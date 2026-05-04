@@ -1,0 +1,2730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>React.js Mastery — Complete Learning Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a40;
+    --accent: #61dafb;
+    --accent2: #f7b731;
+    --accent3: #a78bfa;
+    --accent4: #34d399;
+    --accent5: #fb7185;
+    --text: #e8e8f0;
+    --text-dim: #8888aa;
+    --text-dimmer: #55556a;
+    --code-bg: #0d0d16;
+    --glow: rgba(97,218,251,0.15);
+    --radius: 12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ─────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; opacity: 0.6;
+  }
+
+  /* ── SIDEBAR ────────────────────────────────────── */
+  #sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: 260px; background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto; z-index: 100;
+    padding: 0 0 40px;
+    transition: transform 0.3s ease;
+  }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-track { background: transparent; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .sidebar-logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .sidebar-logo .logo-react {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; font-family: 'JetBrains Mono', monospace;
+  }
+
+  .sidebar-logo h2 {
+    font-size: 18px; font-weight: 800; color: var(--text);
+    line-height: 1.2; margin-top: 4px;
+  }
+
+  .progress-bar-wrap {
+    padding: 0 24px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+
+  .progress-label {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-dimmer); font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 8px; display: flex; justify-content: space-between;
+  }
+
+  .progress-track {
+    height: 3px; background: var(--border); border-radius: 2px; overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent3));
+    border-radius: 2px; width: 0%; transition: width 0.4s ease;
+  }
+
+  .nav-section-label {
+    font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--text-dimmer); font-family: 'JetBrains Mono', monospace;
+    padding: 16px 24px 6px; font-weight: 600;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 24px; cursor: pointer;
+    color: var(--text-dim); font-size: 13.5px; font-weight: 400;
+    transition: all 0.2s; text-decoration: none; border-left: 3px solid transparent;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+
+  .nav-item.active {
+    color: var(--accent); background: rgba(97,218,251,0.06);
+    border-left-color: var(--accent);
+  }
+
+  .nav-item .nav-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-dimmer); min-width: 18px;
+  }
+
+  .nav-item.active .nav-num { color: var(--accent); }
+
+  .level-badge {
+    margin-left: auto; font-size: 9px; letter-spacing: 1px;
+    padding: 2px 6px; border-radius: 20px; font-weight: 600;
+    text-transform: uppercase; font-family: 'JetBrains Mono', monospace;
+  }
+
+  .lvl-beginner { background: rgba(52,211,153,0.15); color: var(--accent4); }
+  .lvl-intermediate { background: rgba(247,183,49,0.15); color: var(--accent2); }
+  .lvl-advanced { background: rgba(167,139,250,0.15); color: var(--accent3); }
+  .lvl-expert { background: rgba(251,113,133,0.15); color: var(--accent5); }
+
+  /* ── MAIN ────────────────────────────────────────── */
+  #main {
+    margin-left: 260px;
+    min-height: 100vh;
+    position: relative; z-index: 1;
+  }
+
+  /* ── HERO ────────────────────────────────────────── */
+  .hero {
+    padding: 80px 60px 60px;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(97,218,251,0.08) 0%, transparent 70%);
+    border-bottom: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute; top: -100px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); background: rgba(97,218,251,0.08);
+    border: 1px solid rgba(97,218,251,0.2); border-radius: 20px;
+    padding: 6px 14px; margin-bottom: 24px;
+  }
+
+  .hero-tag::before { content: '⚛'; font-size: 14px; }
+
+  .hero h1 {
+    font-size: clamp(36px, 5vw, 64px); font-weight: 800; line-height: 1.1;
+    letter-spacing: -1.5px; margin-bottom: 20px;
+  }
+
+  .hero h1 span { color: var(--accent); }
+  .hero h1 em { font-style: normal; color: var(--accent3); }
+
+  .hero-sub {
+    font-family: 'Instrument Serif', serif; font-size: 20px;
+    color: var(--text-dim); max-width: 580px; margin-bottom: 36px;
+    font-style: italic; line-height: 1.6;
+  }
+
+  .hero-stats {
+    display: flex; gap: 32px; flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex; flex-direction: column;
+  }
+
+  .stat-num {
+    font-size: 28px; font-weight: 800; color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .stat-label {
+    font-size: 11px; color: var(--text-dimmer);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px;
+  }
+
+  .stat:nth-child(1) .stat-num { color: var(--accent); }
+  .stat:nth-child(2) .stat-num { color: var(--accent2); }
+  .stat:nth-child(3) .stat-num { color: var(--accent3); }
+  .stat:nth-child(4) .stat-num { color: var(--accent4); }
+
+  /* ── CONTENT AREA ────────────────────────────────── */
+  .content { padding: 0 60px 80px; }
+
+  /* ── SECTION ─────────────────────────────────────── */
+  .section {
+    padding-top: 64px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 64px;
+  }
+
+  .section:last-child { border-bottom: none; }
+
+  .section-header {
+    display: flex; align-items: flex-start; gap: 20px;
+    margin-bottom: 36px;
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 2px;
+    color: var(--text-dimmer); padding-top: 6px;
+    min-width: 36px;
+  }
+
+  .section-title-wrap { flex: 1; }
+
+  .section-phase {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    margin-bottom: 8px; font-weight: 600;
+  }
+
+  .phase-1 { color: var(--accent4); }
+  .phase-2 { color: var(--accent); }
+  .phase-3 { color: var(--accent2); }
+  .phase-4 { color: var(--accent3); }
+  .phase-5 { color: var(--accent5); }
+
+  .section h2 {
+    font-size: clamp(24px, 3vw, 36px); font-weight: 800;
+    letter-spacing: -0.5px; line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .section-desc {
+    font-family: 'Instrument Serif', serif; font-style: italic;
+    font-size: 16px; color: var(--text-dim);
+  }
+
+  /* ── BODY CONTENT ────────────────────────────────── */
+  .body-text {
+    font-size: 15.5px; color: var(--text-dim); line-height: 1.85;
+    max-width: 740px; margin-bottom: 24px;
+  }
+
+  .body-text strong { color: var(--text); font-weight: 600; }
+
+  h3 {
+    font-size: 18px; font-weight: 700; color: var(--text);
+    margin: 36px 0 14px; letter-spacing: -0.2px;
+  }
+
+  h3::before {
+    content: '//';
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent); margin-right: 10px; font-size: 14px; font-weight: 400;
+  }
+
+  h4 {
+    font-size: 14px; font-weight: 700; color: var(--text-dim);
+    margin: 24px 0 10px; text-transform: uppercase;
+    letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────── */
+  .code-wrap {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 20px 0 28px;
+    position: relative;
+  }
+
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-dots { display: flex; gap: 6px; }
+  .code-dots span {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .code-dots span:nth-child(1) { background: #ff5f56; }
+  .code-dots span:nth-child(2) { background: #ffbd2e; }
+  .code-dots span:nth-child(3) { background: #27c93f; }
+
+  .code-filename {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-dimmer); letter-spacing: 0.5px;
+  }
+
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--accent); letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  pre {
+    padding: 22px 24px; overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; line-height: 1.8; color: #c9d1d9;
+  }
+
+  pre::-webkit-scrollbar { height: 4px; }
+  pre::-webkit-scrollbar-track { background: transparent; }
+  pre::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .kw { color: #ff7b72; }         /* keywords */
+  .fn { color: #d2a8ff; }         /* functions */
+  .str { color: #a5d6ff; }        /* strings */
+  .num { color: #79c0ff; }        /* numbers */
+  .cmt { color: #8b949e; font-style: italic; }  /* comments */
+  .tag { color: #7ee787; }        /* JSX tags */
+  .attr { color: #79c0ff; }       /* attributes */
+  .hook { color: #ffa657; }       /* hooks */
+  .comp { color: #f0e68c; }       /* component names */
+  .prop { color: #c9d1d9; }       /* props */
+  .op { color: #ff7b72; }         /* operators */
+  .imp { color: #ff7b72; }        /* import */
+
+  /* ── CALLOUTS ────────────────────────────────────── */
+  .callout {
+    border-radius: var(--radius); padding: 18px 22px;
+    margin: 20px 0; border-left: 3px solid;
+    font-size: 14.5px; line-height: 1.7;
+  }
+
+  .callout-title {
+    font-weight: 700; font-size: 12px; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .callout.info {
+    background: rgba(97,218,251,0.06); border-color: var(--accent);
+    color: var(--text-dim);
+  }
+  .callout.info .callout-title { color: var(--accent); }
+
+  .callout.tip {
+    background: rgba(52,211,153,0.06); border-color: var(--accent4);
+    color: var(--text-dim);
+  }
+  .callout.tip .callout-title { color: var(--accent4); }
+
+  .callout.warn {
+    background: rgba(247,183,49,0.06); border-color: var(--accent2);
+    color: var(--text-dim);
+  }
+  .callout.warn .callout-title { color: var(--accent2); }
+
+  .callout.danger {
+    background: rgba(251,113,133,0.06); border-color: var(--accent5);
+    color: var(--text-dim);
+  }
+  .callout.danger .callout-title { color: var(--accent5); }
+
+  /* ── CONCEPT GRID ────────────────────────────────── */
+  .concept-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px; margin: 24px 0;
+  }
+
+  .concept-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .concept-card:hover {
+    border-color: rgba(97,218,251,0.3); transform: translateY(-2px);
+  }
+
+  .concept-icon {
+    font-size: 22px; margin-bottom: 10px;
+  }
+
+  .concept-card h4 {
+    font-size: 13px; font-weight: 700; color: var(--text);
+    margin: 0 0 8px; text-transform: none; letter-spacing: 0;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .concept-card p {
+    font-size: 13px; color: var(--text-dim); line-height: 1.6;
+  }
+
+  /* ── CHECKLIST ───────────────────────────────────── */
+  .checklist {
+    list-style: none; margin: 16px 0 24px;
+  }
+
+  .checklist li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 0; font-size: 14.5px; color: var(--text-dim);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .checklist li:last-child { border-bottom: none; }
+
+  .checklist li::before {
+    content: '▸'; color: var(--accent); font-size: 10px;
+    margin-top: 5px; flex-shrink: 0;
+  }
+
+  .checklist li strong { color: var(--text); }
+
+  /* ── PROJECT CARDS ───────────────────────────────── */
+  .project-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px; margin: 20px 0;
+    position: relative; overflow: hidden;
+  }
+
+  .project-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+
+  .project-card.mini::before { background: linear-gradient(90deg, var(--accent4), var(--accent)); }
+  .project-card.major::before { background: linear-gradient(90deg, var(--accent3), var(--accent5)); }
+
+  .project-badge {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px; margin-bottom: 14px; font-weight: 600;
+  }
+
+  .project-card.mini .project-badge {
+    background: rgba(52,211,153,0.15); color: var(--accent4);
+  }
+
+  .project-card.major .project-badge {
+    background: rgba(167,139,250,0.15); color: var(--accent3);
+  }
+
+  .project-card h3 {
+    font-size: 20px; color: var(--text); margin: 0 0 10px;
+  }
+
+  .project-card h3::before { display: none; }
+
+  .project-card p {
+    font-size: 14px; color: var(--text-dim); margin-bottom: 18px; line-height: 1.65;
+  }
+
+  .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .tech-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    padding: 3px 10px; border-radius: 6px; color: var(--text-dim);
+    background: var(--surface2); border: 1px solid var(--border);
+  }
+
+  /* ── PHASE ROADMAP ───────────────────────────────── */
+  .roadmap {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 0; margin: 28px 0; border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+
+  .roadmap-phase {
+    padding: 20px 18px;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+
+  .roadmap-phase:last-child { border-right: none; }
+
+  .rp-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
+  }
+
+  .roadmap-phase:nth-child(1) .rp-label { color: var(--accent4); }
+  .roadmap-phase:nth-child(2) .rp-label { color: var(--accent); }
+  .roadmap-phase:nth-child(3) .rp-label { color: var(--accent2); }
+  .roadmap-phase:nth-child(4) .rp-label { color: var(--accent3); }
+  .roadmap-phase:nth-child(5) .rp-label { color: var(--accent5); }
+
+  .rp-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+
+  .rp-items { list-style: none; }
+  .rp-items li { font-size: 11.5px; color: var(--text-dim); padding: 3px 0; }
+  .rp-items li::before { content: '·'; margin-right: 6px; }
+
+  /* ── TABLE ───────────────────────────────────────── */
+  .table-wrap { overflow-x: auto; margin: 20px 0 28px; }
+
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  th {
+    text-align: left; padding: 12px 16px;
+    background: var(--surface2);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-dim); border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+
+  td {
+    padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text-dim); vertical-align: top;
+  }
+
+  tr:hover td { background: rgba(255,255,255,0.015); }
+
+  td:first-child { color: var(--text); font-weight: 500; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1px 6px; color: var(--accent);
+  }
+
+  /* ── COMPARE ─────────────────────────────────────── */
+  .compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;
+  }
+
+  .compare-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+
+  .compare-label {
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 1px; text-transform: uppercase; font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .compare-box.bad .compare-label { color: var(--accent5); background: rgba(251,113,133,0.05); }
+  .compare-box.good .compare-label { color: var(--accent4); background: rgba(52,211,153,0.05); }
+
+  .compare-box pre { background: transparent; }
+
+  /* ── CHECKPOINT ──────────────────────────────────── */
+  .checkpoint {
+    background: linear-gradient(135deg, rgba(97,218,251,0.04), rgba(167,139,250,0.04));
+    border: 1px solid rgba(97,218,251,0.2); border-radius: var(--radius);
+    padding: 28px; margin: 36px 0;
+  }
+
+  .checkpoint-title {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 16px; font-weight: 600;
+  }
+
+  .checkpoint h4 {
+    font-size: 16px; color: var(--text); margin: 0 0 14px;
+    font-family: 'Syne', sans-serif; text-transform: none; letter-spacing: 0;
+    font-weight: 700;
+  }
+
+  .checkpoint-items {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .ci {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-dim);
+  }
+
+  .ci::before {
+    content: '☐'; color: var(--accent3); flex-shrink: 0;
+    font-size: 16px;
+  }
+
+  /* ── FOLDER TREE ─────────────────────────────────── */
+  .folder-tree {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    line-height: 2; color: var(--text-dim); margin: 20px 0;
+  }
+
+  .ft-dir { color: var(--accent2); }
+  .ft-file { color: var(--text-dim); }
+  .ft-comment { color: var(--text-dimmer); font-style: italic; }
+  .ft-important { color: var(--accent4); }
+
+  /* ── INLINE CODE ─────────────────────────────────── */
+  .ic { color: var(--accent); }
+
+  /* ── BACK TO TOP ─────────────────────────────────── */
+  #btt {
+    position: fixed; bottom: 28px; right: 28px;
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-dim); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; z-index: 200;
+    transition: all 0.2s; opacity: 0;
+    pointer-events: none;
+  }
+
+  #btt.visible { opacity: 1; pointer-events: all; }
+  #btt:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* ── RESPONSIVE ──────────────────────────────────── */
+  @media (max-width: 900px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #main { margin-left: 0; }
+    .hero { padding: 60px 24px 40px; }
+    .content { padding: 0 24px 60px; }
+    .roadmap { grid-template-columns: 1fr 1fr; }
+    .compare { grid-template-columns: 1fr; }
+    #menu-btn {
+      display: flex; position: fixed; top: 16px; left: 16px; z-index: 300;
+      width: 40px; height: 40px; align-items: center; justify-content: center;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; cursor: pointer; color: var(--text);
+    }
+  }
+
+  #menu-btn { display: none; }
+
+  .divider {
+    height: 1px; background: var(--border); margin: 32px 0;
+  }
+
+  .two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;
+  }
+
+  @media (max-width: 640px) {
+    .two-col { grid-template-columns: 1fr; }
+    .concept-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<button id="menu-btn" onclick="toggleSidebar()">☰</button>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-react">⚛ React.js</div>
+    <h2>Mastery Guide</h2>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label">
+      <span>Progress</span>
+      <span id="pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <div class="nav-section-label">Foundation</div>
+  <a class="nav-item" href="#s0"><span class="nav-num">00</span>Overview & Roadmap<span class="level-badge lvl-beginner">Intro</span></a>
+  <a class="nav-item" href="#s1"><span class="nav-num">01</span>Prerequisites<span class="level-badge lvl-beginner">Beginner</span></a>
+  <a class="nav-item" href="#s2"><span class="nav-num">02</span>JS → React Mindset<span class="level-badge lvl-beginner">Beginner</span></a>
+  <a class="nav-item" href="#s3"><span class="nav-num">03</span>JSX & Setup<span class="level-badge lvl-beginner">Beginner</span></a>
+
+  <div class="nav-section-label">Core Concepts</div>
+  <a class="nav-item" href="#s4"><span class="nav-num">04</span>Components<span class="level-badge lvl-beginner">Beginner</span></a>
+  <a class="nav-item" href="#s5"><span class="nav-num">05</span>Props<span class="level-badge lvl-beginner">Beginner</span></a>
+  <a class="nav-item" href="#s6"><span class="nav-num">06</span>State & Events<span class="level-badge lvl-beginner">Beginner</span></a>
+  <a class="nav-item" href="#s7"><span class="nav-num">07</span>Lists & Keys<span class="level-badge lvl-beginner">Beginner</span></a>
+  <a class="nav-item" href="#s8"><span class="nav-num">08</span>Conditional Rendering<span class="level-badge lvl-beginner">Beginner</span></a>
+  <a class="nav-item" href="#s9"><span class="nav-num">09</span>Forms<span class="level-badge lvl-intermediate">Inter</span></a>
+
+  <div class="nav-section-label">Hooks & Patterns</div>
+  <a class="nav-item" href="#s10"><span class="nav-num">10</span>Core Hooks<span class="level-badge lvl-intermediate">Inter</span></a>
+  <a class="nav-item" href="#s11"><span class="nav-num">11</span>useEffect & Lifecycle<span class="level-badge lvl-intermediate">Inter</span></a>
+  <a class="nav-item" href="#s12"><span class="nav-num">12</span>Custom Hooks<span class="level-badge lvl-intermediate">Inter</span></a>
+  <a class="nav-item" href="#s13"><span class="nav-num">13</span>Context API<span class="level-badge lvl-intermediate">Inter</span></a>
+  <a class="nav-item" href="#s14"><span class="nav-num">14</span>React Router<span class="level-badge lvl-intermediate">Inter</span></a>
+
+  <div class="nav-section-label">Advanced</div>
+  <a class="nav-item" href="#s15"><span class="nav-num">15</span>Performance<span class="level-badge lvl-advanced">Advanced</span></a>
+  <a class="nav-item" href="#s16"><span class="nav-num">16</span>State Management<span class="level-badge lvl-advanced">Advanced</span></a>
+  <a class="nav-item" href="#s17"><span class="nav-num">17</span>Advanced Patterns<span class="level-badge lvl-advanced">Advanced</span></a>
+  <a class="nav-item" href="#s18"><span class="nav-num">18</span>Testing<span class="level-badge lvl-advanced">Advanced</span></a>
+
+  <div class="nav-section-label">Production</div>
+  <a class="nav-item" href="#s19"><span class="nav-num">19</span>Architecture & Scale<span class="level-badge lvl-expert">Expert</span></a>
+  <a class="nav-item" href="#s20"><span class="nav-num">20</span>Mini Projects<span class="level-badge lvl-intermediate">Inter</span></a>
+  <a class="nav-item" href="#s21"><span class="nav-num">21</span>Capstone Projects<span class="level-badge lvl-expert">Expert</span></a>
+  <a class="nav-item" href="#s22"><span class="nav-num">22</span>Deployment<span class="level-badge lvl-advanced">Advanced</span></a>
+</nav>
+
+<!-- BACK TO TOP -->
+<button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- MAIN -->
+<main id="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">Complete Curriculum</div>
+    <h1>React.js<br/><span>Mastery</span> from<br/><em>Zero to Expert</em></h1>
+    <p class="hero-sub">A hands-on, end-to-end curriculum for developers who want to truly understand React — not just copy patterns.</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">22</span><span class="stat-label">Modules</span></div>
+      <div class="stat"><span class="stat-num">80+</span><span class="stat-label">Code Examples</span></div>
+      <div class="stat"><span class="stat-num">5</span><span class="stat-label">Projects</span></div>
+      <div class="stat"><span class="stat-num">8+</span><span class="stat-label">Yrs Depth</span></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 0: OVERVIEW -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s0">
+    <div class="section-header">
+      <div class="section-num">00</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-1">Introduction</div>
+        <h2>Overview &amp; Learning Roadmap</h2>
+        <div class="section-desc">What you'll learn, how it's structured, and what to expect.</div>
+      </div>
+    </div>
+
+    <p class="body-text">React is a <strong>JavaScript library for building user interfaces</strong>, created by Facebook (Meta) in 2013. Today it powers apps used by billions — Facebook, Instagram, Airbnb, Netflix, and countless others. This guide takes you from your first component to production-grade architecture, covering everything an 8+ year senior engineer would know.</p>
+
+    <div class="roadmap">
+      <div class="roadmap-phase">
+        <div class="rp-label">Phase 1</div>
+        <div class="rp-title">Foundation</div>
+        <ul class="rp-items">
+          <li>JSX syntax</li>
+          <li>Components</li>
+          <li>Props & State</li>
+          <li>Events</li>
+          <li>Lists & Keys</li>
+        </ul>
+      </div>
+      <div class="roadmap-phase">
+        <div class="rp-label">Phase 2</div>
+        <div class="rp-title">Core Hooks</div>
+        <ul class="rp-items">
+          <li>useState</li>
+          <li>useEffect</li>
+          <li>useRef</li>
+          <li>useCallback</li>
+          <li>Custom Hooks</li>
+        </ul>
+      </div>
+      <div class="roadmap-phase">
+        <div class="rp-label">Phase 3</div>
+        <div class="rp-title">Ecosystem</div>
+        <ul class="rp-items">
+          <li>React Router</li>
+          <li>Context API</li>
+          <li>Forms & Validation</li>
+          <li>API Integration</li>
+          <li>Mini Projects</li>
+        </ul>
+      </div>
+      <div class="roadmap-phase">
+        <div class="rp-label">Phase 4</div>
+        <div class="rp-title">Advanced</div>
+        <ul class="rp-items">
+          <li>Performance</li>
+          <li>Redux / Zustand</li>
+          <li>Compound Patterns</li>
+          <li>Testing</li>
+          <li>TypeScript</li>
+        </ul>
+      </div>
+      <div class="roadmap-phase">
+        <div class="rp-label">Phase 5</div>
+        <div class="rp-title">Production</div>
+        <ul class="rp-items">
+          <li>Architecture</li>
+          <li>Next.js / SSR</li>
+          <li>CI/CD</li>
+          <li>Monitoring</li>
+          <li>Capstone</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-title">📋 How to Use This Guide</div>
+      Read each section in order. Every concept builds on the last. Don't skip ahead — React's real power is in understanding how the pieces <strong>compose together</strong>. Run every code example, modify it, break it, and fix it. That's how mastery forms.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 1: PREREQUISITES -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-1">Phase 1 — Foundation</div>
+        <h2>Prerequisites</h2>
+        <div class="section-desc">The JavaScript you must know before writing your first line of React.</div>
+      </div>
+    </div>
+
+    <p class="body-text">React is a JavaScript library — so strong JS fundamentals are non-negotiable. Here's exactly what you need to be comfortable with:</p>
+
+    <h3>JavaScript Essentials Checklist</h3>
+
+    <div class="two-col">
+      <div>
+        <ul class="checklist">
+          <li><strong>ES6+ Syntax</strong> — let/const, arrow functions, template literals</li>
+          <li><strong>Destructuring</strong> — arrays and objects</li>
+          <li><strong>Spread/Rest</strong> — <code>...args</code> and <code>...obj</code></li>
+          <li><strong>Array Methods</strong> — map, filter, reduce, find, some, every</li>
+          <li><strong>Modules</strong> — import / export (ESM)</li>
+        </ul>
+      </div>
+      <div>
+        <ul class="checklist">
+          <li><strong>Promises &amp; async/await</strong> — asynchronous patterns</li>
+          <li><strong>Closures</strong> — how scope captures variables</li>
+          <li><strong>this keyword</strong> — context binding</li>
+          <li><strong>DOM basics</strong> — document, events, querySelector</li>
+          <li><strong>JSON</strong> — JSON.parse, JSON.stringify</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Quick JS Refresher — Patterns React Uses Constantly</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">js-refresher.js</span>
+        <span class="code-lang">JavaScript</span>
+      </div>
+      <pre><span class="cmt">// ── DESTRUCTURING ─────────────────────────────────────────────</span>
+<span class="kw">const</span> user = { name: <span class="str">'Alice'</span>, age: <span class="num">30</span>, role: <span class="str">'admin'</span> };
+
+<span class="cmt">// Object destructuring (you'll do this with props constantly)</span>
+<span class="kw">const</span> { name, age } = user;
+
+<span class="cmt">// With rename and default</span>
+<span class="kw">const</span> { role = <span class="str">'user'</span>, name: displayName } = user;
+
+<span class="cmt">// Array destructuring (essential for useState!)</span>
+<span class="kw">const</span> [first, second, ...rest] = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>];
+
+<span class="cmt">// ── SPREAD OPERATOR ───────────────────────────────────────────</span>
+<span class="cmt">// Creating new objects without mutating (critical in React!)</span>
+<span class="kw">const</span> updatedUser = { ...user, age: <span class="num">31</span> };         <span class="cmt">// new object</span>
+<span class="kw">const</span> newItems = [...existingItems, newItem];      <span class="cmt">// new array</span>
+
+<span class="cmt">// ── ARRAY METHODS ─────────────────────────────────────────────</span>
+<span class="kw">const</span> products = [
+  { id: <span class="num">1</span>, name: <span class="str">'Laptop'</span>, price: <span class="num">999</span>, inStock: <span class="kw">true</span> },
+  { id: <span class="num">2</span>, name: <span class="str">'Phone'</span>,  price: <span class="num">699</span>, inStock: <span class="kw">false</span> },
+  { id: <span class="num">3</span>, name: <span class="str">'Tablet'</span>, price: <span class="num">499</span>, inStock: <span class="kw">true</span> },
+];
+
+<span class="cmt">// map → transforms (use this to render lists in JSX)</span>
+<span class="kw">const</span> names = products.<span class="fn">map</span>(p => p.name);
+
+<span class="cmt">// filter → subset (remove items without mutating)</span>
+<span class="kw">const</span> available = products.<span class="fn">filter</span>(p => p.inStock);
+
+<span class="cmt">// reduce → aggregate (totals, grouping, etc.)</span>
+<span class="kw">const</span> total = products.<span class="fn">reduce</span>((sum, p) => sum + p.price, <span class="num">0</span>);
+
+<span class="cmt">// ── ASYNC / AWAIT ─────────────────────────────────────────────</span>
+<span class="kw">async function</span> <span class="fn">fetchUsers</span>() {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.example.com/users'</span>);
+    <span class="kw">const</span> data = <span class="kw">await</span> response.<span class="fn">json</span>();
+    <span class="kw">return</span> data;
+  } <span class="kw">catch</span> (error) {
+    console.<span class="fn">error</span>(<span class="str">'Failed to fetch:'</span>, error);
+    <span class="kw">throw</span> error;
+  }
+}
+
+<span class="cmt">// ── OPTIONAL CHAINING & NULLISH COALESCING ────────────────────</span>
+<span class="kw">const</span> city = user?.address?.city ?? <span class="str">'Unknown'</span>;
+<span class="kw">const</span> count = data?.items?.length ?? <span class="num">0</span>;</pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-title">💡 Pro Tip</div>
+      If any of the above feels unfamiliar, spend 1–2 days on that specific concept before continuing. MDN Web Docs and javascript.info are your best references. React development goes much faster with solid JS foundations.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 2: JS → REACT MINDSET -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-1">Phase 1 — Foundation</div>
+        <h2>The JavaScript → React Mindset Shift</h2>
+        <div class="section-desc">The mental models that separate frustrated beginners from confident React developers.</div>
+      </div>
+    </div>
+
+    <p class="body-text">React is <strong>not just JavaScript with extra syntax</strong>. It's a fundamentally different way of thinking about UI. This mindset shift is where most beginners struggle — master it early.</p>
+
+    <h3>Key Differences</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Vanilla JavaScript</th>
+            <th>React</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>You <strong>imperatively</strong> manipulate the DOM</td>
+            <td>You <strong>declaratively</strong> describe what UI should look like</td>
+          </tr>
+          <tr>
+            <td><code>document.getElementById('btn').innerText = 'Clicked'</code></td>
+            <td><code>&lt;Button label={isClicked ? 'Clicked' : 'Click me'} /&gt;</code></td>
+          </tr>
+          <tr>
+            <td>You track state manually in variables</td>
+            <td>React tracks state and re-renders automatically</td>
+          </tr>
+          <tr>
+            <td>UI is built by mutating the DOM</td>
+            <td>UI is a function of state: <code>UI = f(state)</code></td>
+          </tr>
+          <tr>
+            <td>One big HTML file with scattered JS</td>
+            <td>Small, reusable, composable components</td>
+          </tr>
+          <tr>
+            <td>Direct DOM manipulation is normal</td>
+            <td>Direct DOM manipulation is almost always a code smell</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The Core Mental Model: UI = f(state)</h3>
+    <p class="body-text">In React, your UI is a <strong>pure function of your data (state)</strong>. When state changes, React re-runs that function and updates only what changed in the DOM. You never say "update this button's text" — you say "here's my state, derive the UI."</p>
+
+    <div class="compare">
+      <div class="compare-box bad">
+        <div class="compare-label">❌ Imperative (Vanilla JS)</div>
+        <pre><span class="cmt">// You describe HOW to change things</span>
+<span class="kw">let</span> count = <span class="num">0</span>;
+
+document.<span class="fn">getElementById</span>(<span class="str">'btn'</span>)
+  .<span class="fn">addEventListener</span>(<span class="str">'click'</span>, () => {
+    count++;
+    document.<span class="fn">getElementById</span>(<span class="str">'count'</span>)
+      .innerText = count;
+    <span class="kw">if</span> (count > <span class="num">10</span>) {
+      document.<span class="fn">getElementById</span>(<span class="str">'warn'</span>)
+        .style.display = <span class="str">'block'</span>;
+    }
+  });</pre>
+      </div>
+      <div class="compare-box good">
+        <div class="compare-label">✅ Declarative (React)</div>
+        <pre><span class="cmt">// You describe WHAT it should look like</span>
+<span class="kw">function</span> <span class="comp">Counter</span>() {
+  <span class="kw">const</span> [count, setCount] = <span class="hook">useState</span>(<span class="num">0</span>);
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;p&gt;</span>{count}<span class="tag">&lt;/p&gt;</span>
+      {count > <span class="num">10</span> &amp;&amp; <span class="tag">&lt;Warning /&gt;</span>}
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="fn">()</span> => <span class="fn">setCount</span>(c => c + <span class="num">1</span>)}<span class="tag">&gt;</span>
+        Click
+      <span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</pre>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-title">⚠️ Critical Mindset Rules</div>
+      <strong>1. Never mutate state directly</strong> — always use the setter function.<br/>
+      <strong>2. React components are just functions</strong> — they take props and return JSX.<br/>
+      <strong>3. Think in components</strong> — every piece of UI is a self-contained unit.<br/>
+      <strong>4. Data flows down, events flow up</strong> — props go parent → child, callbacks go child → parent.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 3: JSX & SETUP -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-1">Phase 1 — Foundation</div>
+        <h2>JSX &amp; Project Setup</h2>
+        <div class="section-desc">Your first React app, and understanding JSX from the ground up.</div>
+      </div>
+    </div>
+
+    <h3>Setting Up with Vite (Recommended)</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">terminal</span>
+        <span class="code-lang">bash</span>
+      </div>
+      <pre><span class="cmt"># Create a new React project using Vite (fast, modern, recommended)</span>
+npm create vite@latest my-app -- --template react
+
+<span class="cmt"># Navigate into the project</span>
+cd my-app
+
+<span class="cmt"># Install dependencies</span>
+npm install
+
+<span class="cmt"># Start the dev server</span>
+npm run dev</pre>
+    </div>
+
+    <h3>Understanding JSX</h3>
+    <p class="body-text">JSX is <strong>not HTML</strong>. It's a syntax extension for JavaScript that looks like HTML but compiles to JavaScript function calls. Babel/Vite transforms it behind the scenes.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">JSXExplained.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="cmt">// What you write:</span>
+<span class="kw">const</span> element = <span class="tag">&lt;h1</span> <span class="attr">className</span>=<span class="str">"title"</span><span class="tag">&gt;</span>Hello, World!<span class="tag">&lt;/h1&gt;</span>;
+
+<span class="cmt">// What it compiles to (React.createElement):</span>
+<span class="kw">const</span> element = React.<span class="fn">createElement</span>(
+  <span class="str">'h1'</span>,
+  { className: <span class="str">'title'</span> },
+  <span class="str">'Hello, World!'</span>
+);
+
+<span class="cmt">// ── JSX RULES ─────────────────────────────────────────────────</span>
+
+<span class="cmt">// Rule 1: Use className instead of class</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"container"</span><span class="tag">&gt;&lt;/div&gt;</span>
+
+<span class="cmt">// Rule 2: All tags must be closed (self-closing OK)</span>
+<span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="str">"photo.jpg"</span> <span class="attr">alt</span>=<span class="str">"photo"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;br /&gt;</span>
+<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="tag">/&gt;</span>
+
+<span class="cmt">// Rule 3: Return ONE root element — use a Fragment if needed</span>
+<span class="kw">return</span> (
+  <span class="tag">&lt;&gt;</span>           <span class="cmt">{/* React.Fragment shorthand */}</span>
+    <span class="tag">&lt;h1&gt;</span>Title<span class="tag">&lt;/h1&gt;</span>
+    <span class="tag">&lt;p&gt;</span>Content<span class="tag">&lt;/p&gt;</span>
+  <span class="tag">&lt;/&gt;</span>
+);
+
+<span class="cmt">// Rule 4: JavaScript expressions go inside curly braces</span>
+<span class="kw">const</span> name = <span class="str">'Alice'</span>;
+<span class="kw">const</span> num = <span class="num">42</span>;
+<span class="kw">return</span> <span class="tag">&lt;p&gt;</span>Hello {name}, the answer is {num * <span class="num">2</span>}<span class="tag">&lt;/p&gt;</span>;
+
+<span class="cmt">// Rule 5: Event names are camelCase</span>
+<span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="fn">handleClick</span>}<span class="tag">&gt;</span>Click me<span class="tag">&lt;/button&gt;</span>
+
+<span class="cmt">// Rule 6: Style is an object (camelCase properties)</span>
+<span class="tag">&lt;div</span> <span class="attr">style</span>={{ backgroundColor: <span class="str">'blue'</span>, fontSize: <span class="str">'16px'</span> }}<span class="tag">&gt;&lt;/div&gt;</span>
+
+<span class="cmt">// Rule 7: Comments inside JSX use {/* */}</span>
+<span class="kw">return</span> (
+  <span class="tag">&lt;div&gt;</span>
+    {<span class="cmt">/* This is a JSX comment */</span>}
+    <span class="tag">&lt;p&gt;</span>Content<span class="tag">&lt;/p&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+);</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 4: COMPONENTS -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-1">Phase 1 — Foundation</div>
+        <h2>Components</h2>
+        <div class="section-desc">The fundamental building blocks of every React application.</div>
+      </div>
+    </div>
+
+    <p class="body-text">A React component is <strong>a JavaScript function that returns JSX</strong>. Think of components as custom HTML elements — reusable, self-contained, and composable. Everything in React is a component.</p>
+
+    <h3>Anatomy of a Component</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">UserCard.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="imp">import</span> React <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="cmt">// ① Function name starts with UPPERCASE (required for React to treat it as a component)</span>
+<span class="kw">function</span> <span class="comp">UserCard</span>({ name, role, avatarUrl, isOnline }) {
+  <span class="cmt">// ② Can contain any JavaScript logic above the return</span>
+  <span class="kw">const</span> initials = name.<span class="fn">split</span>(<span class="str">' '</span>).<span class="fn">map</span>(n => n[<span class="num">0</span>]).<span class="fn">join</span>(<span class="str">''</span>);
+  <span class="kw">const</span> statusColor = isOnline ? <span class="str">'#22c55e'</span> : <span class="str">'#9ca3af'</span>;
+
+  <span class="cmt">// ③ Returns JSX (your UI description)</span>
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"user-card"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"avatar"</span><span class="tag">&gt;</span>
+        {avatarUrl
+          ? <span class="tag">&lt;img</span> <span class="attr">src</span>={avatarUrl} <span class="attr">alt</span>={name} <span class="tag">/&gt;</span>
+          : <span class="tag">&lt;span&gt;</span>{initials}<span class="tag">&lt;/span&gt;</span>
+        }
+        <span class="tag">&lt;span</span>
+          <span class="attr">className</span>=<span class="str">"status-dot"</span>
+          <span class="attr">style</span>={{ backgroundColor: statusColor }}
+        <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/div&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"info"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;h3&gt;</span>{name}<span class="tag">&lt;/h3&gt;</span>
+        <span class="tag">&lt;p&gt;</span>{role}<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+
+<span class="cmt">// ④ Export for use in other files</span>
+<span class="kw">export default</span> <span class="comp">UserCard</span>;
+
+<span class="cmt">// ── USAGE ─────────────────────────────────────────────────────</span>
+<span class="kw">function</span> <span class="comp">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;</span><span class="comp">UserCard</span>
+        <span class="attr">name</span>=<span class="str">"Alice Johnson"</span>
+        <span class="attr">role</span>=<span class="str">"Senior Engineer"</span>
+        <span class="attr">isOnline</span>={<span class="kw">true</span>}
+      <span class="tag">/&gt;</span>
+      <span class="tag">&lt;</span><span class="comp">UserCard</span>
+        <span class="attr">name</span>=<span class="str">"Bob Smith"</span>
+        <span class="attr">role</span>=<span class="str">"Designer"</span>
+        <span class="attr">isOnline</span>={<span class="kw">false</span>}
+      <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</pre>
+    </div>
+
+    <h3>Component Composition</h3>
+    <p class="body-text">React's power comes from <strong>composing small components into larger ones</strong>. Think in a tree structure — complex UIs are just trees of simple components.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">CompositionExample.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="cmt">// Small, focused components</span>
+<span class="kw">function</span> <span class="comp">Badge</span>({ label, variant = <span class="str">'default'</span> }) {
+  <span class="kw">return</span> <span class="tag">&lt;span</span> <span class="attr">className</span>={`badge badge--${variant}`}<span class="tag">&gt;</span>{label}<span class="tag">&lt;/span&gt;</span>;
+}
+
+<span class="kw">function</span> <span class="comp">Avatar</span>({ src, name, size = <span class="str">'md'</span> }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;img</span>
+      <span class="attr">src</span>={src || <span class="str">'/default-avatar.png'</span>}
+      <span class="attr">alt</span>={name}
+      <span class="attr">className</span>={`avatar avatar--${size}`}
+    <span class="tag">/&gt;</span>
+  );
+}
+
+<span class="cmt">// Composed into a larger component</span>
+<span class="kw">function</span> <span class="comp">TeamMember</span>({ user }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"team-member"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;</span><span class="comp">Avatar</span> <span class="attr">src</span>={user.avatar} <span class="attr">name</span>={user.name} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;div&gt;</span>
+        <span class="tag">&lt;h4&gt;</span>{user.name}<span class="tag">&lt;/h4&gt;</span>
+        <span class="tag">&lt;</span><span class="comp">Badge</span> <span class="attr">label</span>={user.role} <span class="attr">variant</span>=<span class="str">"primary"</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+
+<span class="cmt">// children prop — allows wrapping components</span>
+<span class="kw">function</span> <span class="comp">Card</span>({ title, children }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"card"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;h2&gt;</span>{title}<span class="tag">&lt;/h2&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"card__body"</span><span class="tag">&gt;</span>{children}<span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+
+<span class="cmt">// Usage — Card wraps any content via children</span>
+<span class="tag">&lt;</span><span class="comp">Card</span> <span class="attr">title</span>=<span class="str">"Team"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;</span><span class="comp">TeamMember</span> <span class="attr">user</span>={alice} <span class="tag">/&gt;</span>
+  <span class="tag">&lt;</span><span class="comp">TeamMember</span> <span class="attr">user</span>={bob} <span class="tag">/&gt;</span>
+<span class="tag">&lt;/</span><span class="comp">Card</span><span class="tag">&gt;</span></pre>
+    </div>
+
+    <div class="checkpoint">
+      <div class="checkpoint-title">✦ Checkpoint 04</div>
+      <h4>You can now:</h4>
+      <div class="checkpoint-items">
+        <div class="ci">Create functional components</div>
+        <div class="ci">Use JSX rules correctly</div>
+        <div class="ci">Compose components together</div>
+        <div class="ci">Use the children prop</div>
+        <div class="ci">Export &amp; import components</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 5: PROPS -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-1">Phase 1 — Foundation</div>
+        <h2>Props</h2>
+        <div class="section-desc">How data flows from parent to child — the backbone of component communication.</div>
+      </div>
+    </div>
+
+    <p class="body-text">Props (properties) are how you <strong>pass data into a component</strong>. They're read-only — a component should never modify its own props. Think of them as function arguments for your UI.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">PropsDeepDive.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="cmt">// ── BASIC PROPS ───────────────────────────────────────────────</span>
+<span class="kw">function</span> <span class="comp">Button</span>({ label, onClick, variant = <span class="str">'primary'</span>, disabled = <span class="kw">false</span> }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;button</span>
+      <span class="attr">className</span>={`btn btn--${variant}`}
+      <span class="attr">onClick</span>={onClick}
+      <span class="attr">disabled</span>={disabled}
+    <span class="tag">&gt;</span>
+      {label}
+    <span class="tag">&lt;/button&gt;</span>
+  );
+}
+
+<span class="cmt">// ── PROP TYPES (all valid ways to pass props) ─────────────────</span>
+<span class="tag">&lt;</span><span class="comp">Button</span> <span class="attr">label</span>=<span class="str">"Save"</span> <span class="tag">/&gt;</span>              <span class="cmt">// string prop</span>
+<span class="tag">&lt;</span><span class="comp">Button</span> <span class="attr">label</span>={<span class="str">"Save"</span>} <span class="tag">/&gt;</span>           <span class="cmt">// expression (same result)</span>
+<span class="tag">&lt;</span><span class="comp">Button</span> <span class="attr">disabled</span>={<span class="kw">true</span>} <span class="tag">/&gt;</span>         <span class="cmt">// boolean</span>
+<span class="tag">&lt;</span><span class="comp">Button</span> <span class="attr">disabled</span> <span class="tag">/&gt;</span>               <span class="cmt">// boolean shorthand (disabled={true})</span>
+<span class="tag">&lt;</span><span class="comp">Button</span> <span class="attr">onClick</span>={() => <span class="fn">save</span>()} <span class="tag">/&gt;</span>  <span class="cmt">// function prop</span>
+<span class="tag">&lt;</span><span class="comp">Button</span> <span class="attr">count</span>={<span class="num">42</span>} <span class="tag">/&gt;</span>              <span class="cmt">// number</span>
+<span class="tag">&lt;</span><span class="comp">Button</span> <span class="attr">data</span>={[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>]} <span class="tag">/&gt;</span>          <span class="cmt">// array</span>
+<span class="tag">&lt;</span><span class="comp">Button</span> <span class="attr">user</span>={{ name: <span class="str">'Alice'</span> }} <span class="tag">/&gt;</span> <span class="cmt">// object</span>
+
+<span class="cmt">// ── SPREADING PROPS ───────────────────────────────────────────</span>
+<span class="kw">const</span> buttonProps = {
+  label: <span class="str">'Submit'</span>,
+  variant: <span class="str">'success'</span>,
+  onClick: <span class="fn">handleSubmit</span>
+};
+<span class="tag">&lt;</span><span class="comp">Button</span> {...buttonProps} <span class="tag">/&gt;</span>         <span class="cmt">// equivalent to listing each prop</span>
+
+<span class="cmt">// ── PROP DRILLING EXAMPLE ─────────────────────────────────────</span>
+<span class="cmt">// Data flows: App → Layout → Sidebar → UserMenu → Avatar</span>
+<span class="kw">function</span> <span class="comp">App</span>() {
+  <span class="kw">const</span> user = { name: <span class="str">'Alice'</span>, avatar: <span class="str">'/alice.png'</span> };
+  <span class="kw">return</span> <span class="tag">&lt;</span><span class="comp">Layout</span> <span class="attr">user</span>={user} <span class="tag">/&gt;</span>;
+}
+
+<span class="cmt">// ── RENDER PROPS PATTERN (advanced) ──────────────────────────</span>
+<span class="cmt">// Pass a function as a prop to control what gets rendered</span>
+<span class="kw">function</span> <span class="comp">DataList</span>({ items, renderItem }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ul&gt;</span>
+      {items.<span class="fn">map</span>((item, idx) => (
+        <span class="tag">&lt;li</span> <span class="attr">key</span>={item.id ?? idx}<span class="tag">&gt;</span>{<span class="fn">renderItem</span>(item)}<span class="tag">&lt;/li&gt;</span>
+      ))}
+    <span class="tag">&lt;/ul&gt;</span>
+  );
+}
+
+<span class="cmt">// Usage — caller controls the rendering</span>
+<span class="tag">&lt;</span><span class="comp">DataList</span>
+  <span class="attr">items</span>={users}
+  <span class="attr">renderItem</span>={(user) => (
+    <span class="tag">&lt;span&gt;</span>{user.name} — {user.role}<span class="tag">&lt;/span&gt;</span>
+  )}
+<span class="tag">/&gt;</span></pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 6: STATE & EVENTS -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s6">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-1">Phase 1 — Foundation</div>
+        <h2>State &amp; Events</h2>
+        <div class="section-desc">Making components interactive — the heart of React.</div>
+      </div>
+    </div>
+
+    <p class="body-text">State is <strong>data that changes over time</strong> and should cause the UI to update. Unlike props (received from outside), state is owned and managed by the component itself. <code>useState</code> is the primary hook for managing state.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">StateDeepDive.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="imp">import</span> { useState } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="cmt">// ── BASIC STATE ───────────────────────────────────────────────</span>
+<span class="kw">function</span> <span class="comp">Counter</span>() {
+  <span class="cmt">// useState returns [currentValue, setterFunction]</span>
+  <span class="kw">const</span> [count, setCount] = <span class="hook">useState</span>(<span class="num">0</span>); <span class="cmt">// 0 is initial value</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;p&gt;</span>Count: {count}<span class="tag">&lt;/p&gt;</span>
+      <span class="cmt">{/* Functional update: safe when new state depends on old */}</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">setCount</span>(prev => prev + <span class="num">1</span>)}<span class="tag">&gt;</span>+<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">setCount</span>(prev => prev - <span class="num">1</span>)}<span class="tag">&gt;</span>-<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">setCount</span>(<span class="num">0</span>)}<span class="tag">&gt;</span>Reset<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+
+<span class="cmt">// ── OBJECT STATE ──────────────────────────────────────────────</span>
+<span class="kw">function</span> <span class="comp">ProfileForm</span>() {
+  <span class="kw">const</span> [profile, setProfile] = <span class="hook">useState</span>({
+    firstName: <span class="str">''</span>,
+    lastName: <span class="str">''</span>,
+    email: <span class="str">''</span>,
+  });
+
+  <span class="cmt">// CRITICAL: Don't mutate state! Always spread and replace.</span>
+  <span class="kw">const</span> <span class="fn">handleChange</span> = (e) => {
+    <span class="kw">const</span> { name, value } = e.target;
+    <span class="fn">setProfile</span>(prev => ({
+      ...prev,         <span class="cmt">// keep all existing fields</span>
+      [name]: value    <span class="cmt">// update only the changed field</span>
+    }));
+  };
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">name</span>=<span class="str">"firstName"</span> <span class="attr">value</span>={profile.firstName} <span class="attr">onChange</span>={<span class="fn">handleChange</span>} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">name</span>=<span class="str">"lastName"</span>  <span class="attr">value</span>={profile.lastName}  <span class="attr">onChange</span>={<span class="fn">handleChange</span>} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">name</span>=<span class="str">"email"</span>     <span class="attr">value</span>={profile.email}     <span class="attr">onChange</span>={<span class="fn">handleChange</span>} <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  );
+}
+
+<span class="cmt">// ── LIFTING STATE UP ──────────────────────────────────────────</span>
+<span class="cmt">// When siblings need to share state, lift it to their parent</span>
+<span class="kw">function</span> <span class="comp">ShoppingApp</span>() {
+  <span class="kw">const</span> [cart, setCart] = <span class="hook">useState</span>([]);
+
+  <span class="kw">const</span> <span class="fn">addToCart</span> = (item) => {
+    <span class="fn">setCart</span>(prev => [...prev, item]);
+  };
+
+  <span class="kw">const</span> <span class="fn">removeFromCart</span> = (id) => {
+    <span class="fn">setCart</span>(prev => prev.<span class="fn">filter</span>(item => item.id !== id));
+  };
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="cmt">{/* ProductList receives addToCart as a callback */}</span>
+      <span class="tag">&lt;</span><span class="comp">ProductList</span> <span class="attr">onAddToCart</span>={<span class="fn">addToCart</span>} <span class="tag">/&gt;</span>
+      <span class="cmt">{/* Cart receives the cart state and remove handler */}</span>
+      <span class="tag">&lt;</span><span class="comp">Cart</span> <span class="attr">items</span>={cart} <span class="attr">onRemove</span>={<span class="fn">removeFromCart</span>} <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</pre>
+    </div>
+
+    <div class="callout danger">
+      <div class="callout-title">🚨 Common State Mistakes</div>
+      <strong>Never do this:</strong> <code>state.count = 5</code> — direct mutation won't trigger re-render.<br/>
+      <strong>Never do this:</strong> <code>setCount(count + 1); setCount(count + 1);</code> — use functional form: <code>setCount(c =&gt; c + 1)</code> twice instead.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 7 & 8: LISTS, KEYS, CONDITIONAL -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s7">
+    <div class="section-header">
+      <div class="section-num">07–08</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-1">Phase 1 — Foundation</div>
+        <h2>Lists, Keys &amp; Conditional Rendering</h2>
+        <div class="section-desc">Rendering dynamic data and conditional UI — patterns you'll use in every component.</div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">ListsAndConditionals.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="cmt">// ── RENDERING LISTS ───────────────────────────────────────────</span>
+<span class="kw">function</span> <span class="comp">TaskList</span>({ tasks }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ul&gt;</span>
+      {tasks.<span class="fn">map</span>((task) => (
+        <span class="cmt">{/* key must be UNIQUE and STABLE — never use index if items reorder */}</span>
+        <span class="tag">&lt;</span><span class="comp">TaskItem</span> <span class="attr">key</span>={task.id} <span class="attr">task</span>={task} <span class="tag">/&gt;</span>
+      ))}
+    <span class="tag">&lt;/ul&gt;</span>
+  );
+}
+
+<span class="cmt">// ── WHY KEYS MATTER ───────────────────────────────────────────</span>
+<span class="cmt">// Keys help React identify which items changed, added, or removed.</span>
+<span class="cmt">// Without stable keys, React may re-render items incorrectly.</span>
+<span class="cmt">// ✅ Use unique IDs from your data: key={item.id}</span>
+<span class="cmt">// ❌ Avoid array index: key={index} — causes bugs on delete/reorder</span>
+
+<span class="cmt">// ── CONDITIONAL RENDERING PATTERNS ───────────────────────────</span>
+<span class="kw">function</span> <span class="comp">StatusDisplay</span>({ status, data, error }) {
+  <span class="cmt">// Pattern 1: if/else (outside JSX)</span>
+  <span class="kw">if</span> (status === <span class="str">'loading'</span>) {
+    <span class="kw">return</span> <span class="tag">&lt;</span><span class="comp">Spinner</span> <span class="tag">/&gt;</span>;
+  }
+  <span class="kw">if</span> (status === <span class="str">'error'</span>) {
+    <span class="kw">return</span> <span class="tag">&lt;</span><span class="comp">ErrorMessage</span> <span class="attr">message</span>={error} <span class="tag">/&gt;</span>;
+  }
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="cmt">{/* Pattern 2: && operator — renders right side only if left is truthy */}</span>
+      {data.<span class="prop">length</span> === <span class="num">0</span> &amp;&amp; <span class="tag">&lt;p&gt;</span>No items found.<span class="tag">&lt;/p&gt;</span>}
+
+      <span class="cmt">{/* Pattern 3: Ternary — renders one of two things */}</span>
+      {data.<span class="prop">length</span> > <span class="num">0</span>
+        ? <span class="tag">&lt;</span><span class="comp">DataGrid</span> <span class="attr">rows</span>={data} <span class="tag">/&gt;</span>
+        : <span class="tag">&lt;</span><span class="comp">EmptyState</span> <span class="tag">/&gt;</span>
+      }
+
+      <span class="cmt">{/* Pattern 4: Variable — for complex conditions */}</span>
+      {(() => {
+        <span class="kw">switch</span> (data.<span class="prop">type</span>) {
+          <span class="kw">case</span> <span class="str">'chart'</span>:  <span class="kw">return</span> <span class="tag">&lt;</span><span class="comp">Chart</span> <span class="attr">data</span>={data} <span class="tag">/&gt;</span>;
+          <span class="kw">case</span> <span class="str">'table'</span>:  <span class="kw">return</span> <span class="tag">&lt;</span><span class="comp">Table</span> <span class="attr">data</span>={data} <span class="tag">/&gt;</span>;
+          <span class="kw">default</span>:       <span class="kw">return</span> <span class="tag">&lt;</span><span class="comp">RawData</span> <span class="attr">data</span>={data} <span class="tag">/&gt;</span>;
+        }
+      })()}
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+
+<span class="cmt">// ── GOTCHA: 0 is falsy but renders in JSX! ────────────────────</span>
+<span class="cmt">// ❌ This renders "0" on screen if count is 0:</span>
+{count &amp;&amp; <span class="tag">&lt;p&gt;</span>Items: {count}<span class="tag">&lt;/p&gt;</span>}
+
+<span class="cmt">// ✅ Fix: convert to boolean first:</span>
+{count > <span class="num">0</span> &amp;&amp; <span class="tag">&lt;p&gt;</span>Items: {count}<span class="tag">&lt;/p&gt;</span>}
+{!!count &amp;&amp; <span class="tag">&lt;p&gt;</span>Items: {count}<span class="tag">&lt;/p&gt;</span>}</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 9: FORMS -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s9">
+    <div class="section-header">
+      <div class="section-num">09</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-2">Phase 2 — Core Hooks</div>
+        <h2>Forms &amp; Controlled Components</h2>
+        <div class="section-desc">Managing user input the React way.</div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">LoginForm.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="imp">import</span> { useState } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">function</span> <span class="comp">LoginForm</span>({ onSubmit }) {
+  <span class="kw">const</span> [form, setForm] = <span class="hook">useState</span>({ email: <span class="str">''</span>, password: <span class="str">''</span> });
+  <span class="kw">const</span> [errors, setErrors] = <span class="hook">useState</span>({});
+  <span class="kw">const</span> [isSubmitting, setIsSubmitting] = <span class="hook">useState</span>(<span class="kw">false</span>);
+
+  <span class="kw">const</span> <span class="fn">validate</span> = () => {
+    <span class="kw">const</span> newErrors = {};
+    <span class="kw">if</span> (!form.email.<span class="fn">includes</span>(<span class="str">'@'</span>)) newErrors.email = <span class="str">'Invalid email'</span>;
+    <span class="kw">if</span> (form.password.<span class="prop">length</span> < <span class="num">8</span>) newErrors.password = <span class="str">'Min 8 characters'</span>;
+    <span class="kw">return</span> newErrors;
+  };
+
+  <span class="kw">const</span> <span class="fn">handleChange</span> = ({ target: { name, value } }) => {
+    <span class="fn">setForm</span>(prev => ({ ...prev, [name]: value }));
+    <span class="cmt">// Clear error for field as user types</span>
+    <span class="kw">if</span> (errors[name]) <span class="fn">setErrors</span>(prev => ({ ...prev, [name]: <span class="str">''</span> }));
+  };
+
+  <span class="kw">const</span> <span class="fn">handleSubmit</span> = <span class="kw">async</span> (e) => {
+    e.<span class="fn">preventDefault</span>();          <span class="cmt">// Prevent browser page reload</span>
+    <span class="kw">const</span> validationErrors = <span class="fn">validate</span>();
+    <span class="kw">if</span> (<span class="fn">Object</span>.<span class="fn">keys</span>(validationErrors).<span class="prop">length</span> > <span class="num">0</span>) {
+      <span class="fn">setErrors</span>(validationErrors);
+      <span class="kw">return</span>;
+    }
+    <span class="fn">setIsSubmitting</span>(<span class="kw">true</span>);
+    <span class="kw">try</span> {
+      <span class="kw">await</span> <span class="fn">onSubmit</span>(form);
+    } <span class="kw">finally</span> {
+      <span class="fn">setIsSubmitting</span>(<span class="kw">false</span>);
+    }
+  };
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="fn">handleSubmit</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;div&gt;</span>
+        <span class="tag">&lt;input</span>
+          <span class="attr">type</span>=<span class="str">"email"</span>
+          <span class="attr">name</span>=<span class="str">"email"</span>
+          <span class="attr">value</span>={form.email}
+          <span class="attr">onChange</span>={<span class="fn">handleChange</span>}
+          <span class="attr">placeholder</span>=<span class="str">"you@example.com"</span>
+        <span class="tag">/&gt;</span>
+        {errors.email &amp;&amp; <span class="tag">&lt;span</span> <span class="attr">className</span>=<span class="str">"error"</span><span class="tag">&gt;</span>{errors.email}<span class="tag">&lt;/span&gt;</span>}
+      <span class="tag">&lt;/div&gt;</span>
+      <span class="tag">&lt;div&gt;</span>
+        <span class="tag">&lt;input</span>
+          <span class="attr">type</span>=<span class="str">"password"</span>
+          <span class="attr">name</span>=<span class="str">"password"</span>
+          <span class="attr">value</span>={form.password}
+          <span class="attr">onChange</span>={<span class="fn">handleChange</span>}
+          <span class="attr">placeholder</span>=<span class="str">"••••••••"</span>
+        <span class="tag">/&gt;</span>
+        {errors.password &amp;&amp; <span class="tag">&lt;span</span> <span class="attr">className</span>=<span class="str">"error"</span><span class="tag">&gt;</span>{errors.password}<span class="tag">&lt;/span&gt;</span>}
+      <span class="tag">&lt;/div&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"submit"</span> <span class="attr">disabled</span>={isSubmitting}<span class="tag">&gt;</span>
+        {isSubmitting ? <span class="str">'Signing in…'</span> : <span class="str">'Sign In'</span>}
+      <span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  );
+}</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 10: CORE HOOKS -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s10">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-2">Phase 2 — Core Hooks</div>
+        <h2>Core Hooks Deep Dive</h2>
+        <div class="section-desc">useState, useReducer, useRef, useMemo, useCallback — mastered.</div>
+      </div>
+    </div>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-icon">🔢</div>
+        <h4>useState</h4>
+        <p>Manages simple values. Returns [state, setter]. Triggers re-render when called.</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">🔄</div>
+        <h4>useReducer</h4>
+        <p>For complex state logic. Like Redux but local. Action → Reducer → New State.</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">🔗</div>
+        <h4>useRef</h4>
+        <p>Mutable container that doesn't trigger re-render. Use for DOM refs & timers.</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">⚡</div>
+        <h4>useMemo</h4>
+        <p>Memoizes expensive computed values. Only recalculates when dependencies change.</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">📌</div>
+        <h4>useCallback</h4>
+        <p>Memoizes functions. Prevents child re-renders when passing callbacks as props.</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">🆔</div>
+        <h4>useId</h4>
+        <p>Generates stable unique IDs for accessibility labels across server and client.</p>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">HooksDeepDive.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="imp">import</span> { useState, useReducer, useRef, useMemo, useCallback } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="cmt">// ── useReducer — for complex state transitions ─────────────────</span>
+<span class="kw">const</span> cartReducer = (state, action) => {
+  <span class="kw">switch</span> (action.<span class="prop">type</span>) {
+    <span class="kw">case</span> <span class="str">'ADD_ITEM'</span>:
+      <span class="kw">return</span> { ...state, items: [...state.items, action.<span class="prop">payload</span>] };
+    <span class="kw">case</span> <span class="str">'REMOVE_ITEM'</span>:
+      <span class="kw">return</span> {
+        ...state,
+        items: state.items.<span class="fn">filter</span>(i => i.id !== action.<span class="prop">payload</span>)
+      };
+    <span class="kw">case</span> <span class="str">'CLEAR'</span>:
+      <span class="kw">return</span> { ...state, items: [] };
+    <span class="kw">default</span>:
+      <span class="kw">return</span> state;
+  }
+};
+
+<span class="kw">function</span> <span class="comp">Cart</span>() {
+  <span class="kw">const</span> [state, dispatch] = <span class="hook">useReducer</span>(cartReducer, { items: [] });
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;p&gt;</span>{state.items.<span class="prop">length</span>} items<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">dispatch</span>({ type: <span class="str">'ADD_ITEM'</span>, payload: newItem })}<span class="tag">&gt;</span>
+        Add
+      <span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">dispatch</span>({ type: <span class="str">'CLEAR'</span> })}<span class="tag">&gt;</span>
+        Clear Cart
+      <span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+
+<span class="cmt">// ── useRef — mutable container, does not trigger re-render ─────</span>
+<span class="kw">function</span> <span class="comp">StopWatch</span>() {
+  <span class="kw">const</span> [time, setTime] = <span class="hook">useState</span>(<span class="num">0</span>);
+  <span class="kw">const</span> intervalRef = <span class="hook">useRef</span>(<span class="kw">null</span>);   <span class="cmt">// stores timer ID without re-render</span>
+  <span class="kw">const</span> inputRef = <span class="hook">useRef</span>(<span class="kw">null</span>);      <span class="cmt">// direct DOM access</span>
+
+  <span class="kw">const</span> <span class="fn">start</span> = () => {
+    intervalRef.<span class="prop">current</span> = <span class="fn">setInterval</span>(() => {
+      <span class="fn">setTime</span>(t => t + <span class="num">1</span>);
+    }, <span class="num">1000</span>);
+  };
+
+  <span class="kw">const</span> <span class="fn">stop</span> = () => <span class="fn">clearInterval</span>(intervalRef.<span class="prop">current</span>);
+
+  <span class="kw">const</span> <span class="fn">focusInput</span> = () => inputRef.<span class="prop">current</span>?.<span class="fn">focus</span>();
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;p&gt;</span>{time}s<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="fn">start</span>}<span class="tag">&gt;</span>Start<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="fn">stop</span>}<span class="tag">&gt;</span>Stop<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">ref</span>={inputRef} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="fn">focusInput</span>}<span class="tag">&gt;</span>Focus<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+
+<span class="cmt">// ── useMemo & useCallback — performance optimization ───────────</span>
+<span class="kw">function</span> <span class="comp">FilteredList</span>({ items, onItemClick }) {
+  <span class="kw">const</span> [query, setQuery] = <span class="hook">useState</span>(<span class="str">''</span>);
+
+  <span class="cmt">// useMemo: only recalculate when items or query changes</span>
+  <span class="kw">const</span> filtered = <span class="hook">useMemo</span>(
+    () => items.<span class="fn">filter</span>(i => i.name.<span class="fn">toLowerCase</span>().<span class="fn">includes</span>(query.<span class="fn">toLowerCase</span>())),
+    [items, query]
+  );
+
+  <span class="cmt">// useCallback: stable function reference across renders</span>
+  <span class="kw">const</span> <span class="fn">handleClick</span> = <span class="hook">useCallback</span>(
+    (item) => <span class="fn">onItemClick</span>(item),
+    [onItemClick]
+  );
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">value</span>={query} <span class="attr">onChange</span>={e => <span class="fn">setQuery</span>(e.target.value)} <span class="tag">/&gt;</span>
+      {filtered.<span class="fn">map</span>(item => (
+        <span class="tag">&lt;</span><span class="comp">Item</span> <span class="attr">key</span>={item.id} <span class="attr">item</span>={item} <span class="attr">onClick</span>={<span class="fn">handleClick</span>} <span class="tag">/&gt;</span>
+      ))}
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 11: useEffect -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s11">
+    <div class="section-header">
+      <div class="section-num">11</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-2">Phase 2 — Core Hooks</div>
+        <h2>useEffect &amp; the Component Lifecycle</h2>
+        <div class="section-desc">Side effects, data fetching, subscriptions — done right.</div>
+      </div>
+    </div>
+
+    <p class="body-text"><code>useEffect</code> lets you perform side effects (API calls, DOM manipulation, subscriptions, timers) after React renders. Understanding its dependency array is crucial to avoiding bugs.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">UseEffectMastery.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="imp">import</span> { useState, useEffect } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="cmt">// ── DEPENDENCY ARRAY PATTERNS ─────────────────────────────────</span>
+
+<span class="cmt">// 1. No array — runs after EVERY render (usually not what you want)</span>
+<span class="hook">useEffect</span>(() => { ... });
+
+<span class="cmt">// 2. Empty array [] — runs ONCE after mount (like componentDidMount)</span>
+<span class="hook">useEffect</span>(() => { ... }, []);
+
+<span class="cmt">// 3. With dependencies — runs when any dependency changes</span>
+<span class="hook">useEffect</span>(() => { ... }, [userId, filter]);
+
+<span class="cmt">// ── REAL EXAMPLE: Data Fetching ───────────────────────────────</span>
+<span class="kw">function</span> <span class="comp">UserProfile</span>({ userId }) {
+  <span class="kw">const</span> [user, setUser] = <span class="hook">useState</span>(<span class="kw">null</span>);
+  <span class="kw">const</span> [loading, setLoading] = <span class="hook">useState</span>(<span class="kw">true</span>);
+  <span class="kw">const</span> [error, setError] = <span class="hook">useState</span>(<span class="kw">null</span>);
+
+  <span class="hook">useEffect</span>(() => {
+    <span class="cmt">// Cleanup: ignore stale responses when userId changes quickly</span>
+    <span class="kw">let</span> isMounted = <span class="kw">true</span>;
+
+    <span class="kw">const</span> <span class="fn">fetchUser</span> = <span class="kw">async</span> () => {
+      <span class="fn">setLoading</span>(<span class="kw">true</span>);
+      <span class="fn">setError</span>(<span class="kw">null</span>);
+      <span class="kw">try</span> {
+        <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/users/${userId}`</span>);
+        <span class="kw">if</span> (!res.<span class="prop">ok</span>) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'Failed to fetch'</span>);
+        <span class="kw">const</span> data = <span class="kw">await</span> res.<span class="fn">json</span>();
+        <span class="kw">if</span> (isMounted) <span class="fn">setUser</span>(data); <span class="cmt">// only update if still mounted</span>
+      } <span class="kw">catch</span> (err) {
+        <span class="kw">if</span> (isMounted) <span class="fn">setError</span>(err.<span class="prop">message</span>);
+      } <span class="kw">finally</span> {
+        <span class="kw">if</span> (isMounted) <span class="fn">setLoading</span>(<span class="kw">false</span>);
+      }
+    };
+
+    <span class="fn">fetchUser</span>();
+
+    <span class="cmt">// Cleanup function — runs before next effect or unmount</span>
+    <span class="kw">return</span> () => { isMounted = <span class="kw">false</span>; };
+
+  }, [userId]); <span class="cmt">// Re-run only when userId changes</span>
+
+  <span class="kw">if</span> (loading) <span class="kw">return</span> <span class="tag">&lt;</span><span class="comp">Spinner</span> <span class="tag">/&gt;</span>;
+  <span class="kw">if</span> (error)   <span class="kw">return</span> <span class="tag">&lt;p&gt;</span>Error: {error}<span class="tag">&lt;/p&gt;</span>;
+  <span class="kw">if</span> (!user)   <span class="kw">return</span> <span class="kw">null</span>;
+
+  <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>{user.name}<span class="tag">&lt;/div&gt;</span>;
+}
+
+<span class="cmt">// ── EVENT LISTENER CLEANUP ────────────────────────────────────</span>
+<span class="hook">useEffect</span>(() => {
+  <span class="kw">const</span> <span class="fn">handleResize</span> = () => <span class="fn">setWidth</span>(window.innerWidth);
+  window.<span class="fn">addEventListener</span>(<span class="str">'resize'</span>, <span class="fn">handleResize</span>);
+  <span class="kw">return</span> () => window.<span class="fn">removeEventListener</span>(<span class="str">'resize'</span>, <span class="fn">handleResize</span>);
+}, []);</pre>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-title">⚠️ useEffect Pitfalls</div>
+      <strong>Missing dependencies</strong> cause stale closure bugs. Include everything your effect reads from component scope.<br/>
+      <strong>Infinite loops</strong> happen when you set state inside an effect without proper dependencies.<br/>
+      <strong>Always clean up</strong> subscriptions, timers, and event listeners in the return function.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 12: CUSTOM HOOKS -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s12">
+    <div class="section-header">
+      <div class="section-num">12</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-2">Phase 2 — Core Hooks</div>
+        <h2>Custom Hooks</h2>
+        <div class="section-desc">Extract and reuse stateful logic across components — the React superpower.</div>
+      </div>
+    </div>
+
+    <p class="body-text">Custom hooks are <strong>JavaScript functions starting with "use"</strong> that can call other hooks. They let you extract complex, reusable stateful logic out of components — the single biggest step toward professional React code.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">hooks/useFetch.js</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="imp">import</span> { useState, useEffect, useCallback } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="cmt">// ── CUSTOM HOOK: useFetch ─────────────────────────────────────</span>
+<span class="cmt">// Encapsulates all data-fetching logic in one reusable hook</span>
+<span class="kw">export function</span> <span class="fn">useFetch</span>(url) {
+  <span class="kw">const</span> [data, setData] = <span class="hook">useState</span>(<span class="kw">null</span>);
+  <span class="kw">const</span> [loading, setLoading] = <span class="hook">useState</span>(<span class="kw">false</span>);
+  <span class="kw">const</span> [error, setError] = <span class="hook">useState</span>(<span class="kw">null</span>);
+
+  <span class="kw">const</span> <span class="fn">execute</span> = <span class="hook">useCallback</span>(<span class="kw">async</span> () => {
+    <span class="fn">setLoading</span>(<span class="kw">true</span>);
+    <span class="fn">setError</span>(<span class="kw">null</span>);
+    <span class="kw">try</span> {
+      <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(url);
+      <span class="kw">if</span> (!res.<span class="prop">ok</span>) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`HTTP ${res.status}`</span>);
+      <span class="fn">setData</span>(<span class="kw">await</span> res.<span class="fn">json</span>());
+    } <span class="kw">catch</span> (e) {
+      <span class="fn">setError</span>(e.<span class="prop">message</span>);
+    } <span class="kw">finally</span> {
+      <span class="fn">setLoading</span>(<span class="kw">false</span>);
+    }
+  }, [url]);
+
+  <span class="hook">useEffect</span>(() => { <span class="fn">execute</span>(); }, [execute]);
+
+  <span class="kw">return</span> { data, loading, error, refetch: execute };
+}
+
+<span class="cmt">// ── CUSTOM HOOK: useLocalStorage ──────────────────────────────</span>
+<span class="kw">export function</span> <span class="fn">useLocalStorage</span>(key, initialValue) {
+  <span class="kw">const</span> [value, setValue] = <span class="hook">useState</span>(() => {
+    <span class="kw">try</span> {
+      <span class="kw">const</span> stored = localStorage.<span class="fn">getItem</span>(key);
+      <span class="kw">return</span> stored ? <span class="fn">JSON</span>.<span class="fn">parse</span>(stored) : initialValue;
+    } <span class="kw">catch</span> { <span class="kw">return</span> initialValue; }
+  });
+
+  <span class="kw">const</span> <span class="fn">set</span> = <span class="hook">useCallback</span>((newValue) => {
+    <span class="fn">setValue</span>(newValue);
+    localStorage.<span class="fn">setItem</span>(key, <span class="fn">JSON</span>.<span class="fn">stringify</span>(newValue));
+  }, [key]);
+
+  <span class="kw">return</span> [value, set];
+}
+
+<span class="cmt">// ── CUSTOM HOOK: useDebounce ──────────────────────────────────</span>
+<span class="kw">export function</span> <span class="fn">useDebounce</span>(value, delay = <span class="num">300</span>) {
+  <span class="kw">const</span> [debounced, setDebounced] = <span class="hook">useState</span>(value);
+
+  <span class="hook">useEffect</span>(() => {
+    <span class="kw">const</span> timer = <span class="fn">setTimeout</span>(() => <span class="fn">setDebounced</span>(value), delay);
+    <span class="kw">return</span> () => <span class="fn">clearTimeout</span>(timer);
+  }, [value, delay]);
+
+  <span class="kw">return</span> debounced;
+}
+
+<span class="cmt">// ── USAGE ─────────────────────────────────────────────────────</span>
+<span class="kw">function</span> <span class="comp">SearchPage</span>() {
+  <span class="kw">const</span> [query, setQuery] = <span class="hook">useState</span>(<span class="str">''</span>);
+  <span class="kw">const</span> debouncedQuery = <span class="fn">useDebounce</span>(query, <span class="num">400</span>);
+  <span class="kw">const</span> { data, loading } = <span class="fn">useFetch</span>(<span class="str">`/api/search?q=${debouncedQuery}`</span>);
+  <span class="kw">const</span> [recentSearches, setRecentSearches] = <span class="fn">useLocalStorage</span>(<span class="str">'recent'</span>, []);
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">value</span>={query} <span class="attr">onChange</span>={e => <span class="fn">setQuery</span>(e.target.value)} <span class="tag">/&gt;</span>
+      {loading ? <span class="tag">&lt;</span><span class="comp">Spinner</span> <span class="tag">/&gt;</span> : <span class="tag">&lt;</span><span class="comp">Results</span> <span class="attr">data</span>={data} <span class="tag">/&gt;</span>}
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 13: CONTEXT API -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s13">
+    <div class="section-header">
+      <div class="section-num">13</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-3">Phase 3 — Ecosystem</div>
+        <h2>Context API</h2>
+        <div class="section-desc">Global state without prop drilling — themes, auth, preferences.</div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">context/AuthContext.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="imp">import</span> { createContext, useContext, useState, useCallback } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="cmt">// 1. Create the context</span>
+<span class="kw">const</span> AuthContext = <span class="fn">createContext</span>(<span class="kw">null</span>);
+
+<span class="cmt">// 2. Create the Provider component (wraps your app or subtree)</span>
+<span class="kw">export function</span> <span class="comp">AuthProvider</span>({ children }) {
+  <span class="kw">const</span> [user, setUser] = <span class="hook">useState</span>(<span class="kw">null</span>);
+  <span class="kw">const</span> [token, setToken] = <span class="hook">useState</span>(<span class="fn">localStorage</span>.<span class="fn">getItem</span>(<span class="str">'token'</span>));
+
+  <span class="kw">const</span> <span class="fn">login</span> = <span class="hook">useCallback</span>(<span class="kw">async</span> (credentials) => {
+    <span class="kw">const</span> { user, token } = <span class="kw">await</span> <span class="fn">authApi</span>.<span class="fn">login</span>(credentials);
+    <span class="fn">setUser</span>(user);
+    <span class="fn">setToken</span>(token);
+    localStorage.<span class="fn">setItem</span>(<span class="str">'token'</span>, token);
+  }, []);
+
+  <span class="kw">const</span> <span class="fn">logout</span> = <span class="hook">useCallback</span>(() => {
+    <span class="fn">setUser</span>(<span class="kw">null</span>);
+    <span class="fn">setToken</span>(<span class="kw">null</span>);
+    localStorage.<span class="fn">removeItem</span>(<span class="str">'token'</span>);
+  }, []);
+
+  <span class="kw">const</span> value = {
+    user,
+    token,
+    login,
+    logout,
+    isAuthenticated: !!user,
+  };
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;</span><span class="comp">AuthContext.Provider</span> <span class="attr">value</span>={value}<span class="tag">&gt;</span>
+      {children}
+    <span class="tag">&lt;/</span><span class="comp">AuthContext.Provider</span><span class="tag">&gt;</span>
+  );
+}
+
+<span class="cmt">// 3. Custom hook for consuming the context (best practice)</span>
+<span class="kw">export function</span> <span class="fn">useAuth</span>() {
+  <span class="kw">const</span> context = <span class="hook">useContext</span>(AuthContext);
+  <span class="kw">if</span> (!context) {
+    <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'useAuth must be used within AuthProvider'</span>);
+  }
+  <span class="kw">return</span> context;
+}
+
+<span class="cmt">// 4. Usage anywhere in the tree — no prop drilling!</span>
+<span class="kw">function</span> <span class="comp">Header</span>() {
+  <span class="kw">const</span> { user, logout, isAuthenticated } = <span class="fn">useAuth</span>();
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;header&gt;</span>
+      {isAuthenticated
+        ? <span class="tag">&lt;button</span> <span class="attr">onClick</span>={logout}<span class="tag">&gt;</span>Logout ({user.name})<span class="tag">&lt;/button&gt;</span>
+        : <span class="tag">&lt;a</span> <span class="attr">href</span>=<span class="str">"/login"</span><span class="tag">&gt;</span>Login<span class="tag">&lt;/a&gt;</span>
+      }
+    <span class="tag">&lt;/header&gt;</span>
+  );
+}</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 14: REACT ROUTER -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s14">
+    <div class="section-header">
+      <div class="section-num">14</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-3">Phase 3 — Ecosystem</div>
+        <h2>React Router v6</h2>
+        <div class="section-desc">Client-side routing — navigation, protected routes, and dynamic URLs.</div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">App.jsx + ProtectedRoute.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="imp">import</span> {
+  BrowserRouter, Routes, Route, Link,
+  Navigate, useNavigate, useParams, useSearchParams, Outlet
+} <span class="kw">from</span> <span class="str">'react-router-dom'</span>;
+
+<span class="cmt">// ── FULL ROUTER SETUP ─────────────────────────────────────────</span>
+<span class="kw">function</span> <span class="comp">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;</span><span class="comp">BrowserRouter</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;</span><span class="comp">Routes</span><span class="tag">&gt;</span>
+        <span class="cmt">{/* Public routes */}</span>
+        <span class="tag">&lt;</span><span class="comp">Route</span> <span class="attr">path</span>=<span class="str">"/"</span>        <span class="attr">element</span>={<span class="tag">&lt;</span><span class="comp">HomePage</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;</span><span class="comp">Route</span> <span class="attr">path</span>=<span class="str">"/login"</span>    <span class="attr">element</span>={<span class="tag">&lt;</span><span class="comp">LoginPage</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;</span><span class="comp">Route</span> <span class="attr">path</span>=<span class="str">"/about"</span>    <span class="attr">element</span>={<span class="tag">&lt;</span><span class="comp">AboutPage</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+
+        <span class="cmt">{/* Dynamic URL params */}</span>
+        <span class="tag">&lt;</span><span class="comp">Route</span> <span class="attr">path</span>=<span class="str">"/users/:id"</span> <span class="attr">element</span>={<span class="tag">&lt;</span><span class="comp">UserPage</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+
+        <span class="cmt">{/* Protected routes — nested layout */}</span>
+        <span class="tag">&lt;</span><span class="comp">Route</span> <span class="attr">element</span>={<span class="tag">&lt;</span><span class="comp">ProtectedLayout</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+          <span class="tag">&lt;</span><span class="comp">Route</span> <span class="attr">path</span>=<span class="str">"/dashboard"</span> <span class="attr">element</span>={<span class="tag">&lt;</span><span class="comp">Dashboard</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+          <span class="tag">&lt;</span><span class="comp">Route</span> <span class="attr">path</span>=<span class="str">"/settings"</span>  <span class="attr">element</span>={<span class="tag">&lt;</span><span class="comp">Settings</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/</span><span class="comp">Route</span><span class="tag">&gt;</span>
+
+        <span class="cmt">{/* Catch-all 404 */}</span>
+        <span class="tag">&lt;</span><span class="comp">Route</span> <span class="attr">path</span>=<span class="str">"*"</span> <span class="attr">element</span>={<span class="tag">&lt;</span><span class="comp">NotFound</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/</span><span class="comp">Routes</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;/</span><span class="comp">BrowserRouter</span><span class="tag">&gt;</span>
+  );
+}
+
+<span class="cmt">// ── PROTECTED ROUTE PATTERN ───────────────────────────────────</span>
+<span class="kw">function</span> <span class="comp">ProtectedLayout</span>() {
+  <span class="kw">const</span> { isAuthenticated } = <span class="fn">useAuth</span>();
+  <span class="kw">if</span> (!isAuthenticated) <span class="kw">return</span> <span class="tag">&lt;</span><span class="comp">Navigate</span> <span class="attr">to</span>=<span class="str">"/login"</span> <span class="attr">replace</span> <span class="tag">/&gt;</span>;
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;</span><span class="comp">AppNav</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;</span><span class="comp">Outlet</span> <span class="tag">/&gt;</span>  <span class="cmt">{/* renders the matched child route */}</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+
+<span class="cmt">// ── HOOKS IN ROUTE COMPONENTS ─────────────────────────────────</span>
+<span class="kw">function</span> <span class="comp">UserPage</span>() {
+  <span class="kw">const</span> { id } = <span class="hook">useParams</span>();                   <span class="cmt">// /users/42 → id = "42"</span>
+  <span class="kw">const</span> [params] = <span class="hook">useSearchParams</span>();            <span class="cmt">// ?tab=profile → params.get('tab')</span>
+  <span class="kw">const</span> navigate = <span class="hook">useNavigate</span>();               <span class="cmt">// programmatic navigation</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;h1&gt;</span>User {id}<span class="tag">&lt;/h1&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">navigate</span>(<span class="str">'/dashboard'</span>)}<span class="tag">&gt;</span>
+        Back to Dashboard
+      <span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 15: PERFORMANCE -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s15">
+    <div class="section-header">
+      <div class="section-num">15</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-4">Phase 4 — Advanced</div>
+        <h2>Performance Optimization</h2>
+        <div class="section-desc">React.memo, code splitting, virtualization, and Profiler-driven optimization.</div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">PerformancePatterns.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="imp">import</span> { memo, lazy, Suspense } <span class="kw">from</span> <span class="str">'react'</span>;
+<span class="imp">import</span> { FixedSizeList } <span class="kw">from</span> <span class="str">'react-window'</span>;
+
+<span class="cmt">// ── React.memo — prevent unnecessary re-renders ────────────────</span>
+<span class="cmt">// Wraps a component; only re-renders if props changed (shallow compare)</span>
+<span class="kw">const</span> <span class="comp">ExpensiveItem</span> = <span class="fn">memo</span>(<span class="kw">function</span> <span class="comp">ExpensiveItem</span>({ item, onSelect }) {
+  <span class="cmt">// Only re-renders if item or onSelect references change</span>
+  <span class="kw">return</span> <span class="tag">&lt;div</span> <span class="attr">onClick</span>={() => <span class="fn">onSelect</span>(item.id)}<span class="tag">&gt;</span>{item.name}<span class="tag">&lt;/div&gt;</span>;
+});
+
+<span class="cmt">// Use with useCallback to ensure stable function references:</span>
+<span class="kw">const</span> <span class="fn">handleSelect</span> = <span class="hook">useCallback</span>((id) => {
+  <span class="fn">setSelected</span>(id);
+}, []); <span class="cmt">// stable reference across renders</span>
+
+<span class="cmt">// ── Code Splitting — load code only when needed ─────────────────</span>
+<span class="kw">const</span> <span class="comp">AdminPanel</span> = <span class="fn">lazy</span>(() => <span class="fn">import</span>(<span class="str">'./AdminPanel'</span>));
+<span class="kw">const</span> <span class="comp">ReportViewer</span> = <span class="fn">lazy</span>(() => <span class="fn">import</span>(<span class="str">'./ReportViewer'</span>));
+
+<span class="kw">function</span> <span class="comp">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;</span><span class="comp">Suspense</span> <span class="attr">fallback</span>={<span class="tag">&lt;</span><span class="comp">PageLoader</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;</span><span class="comp">Routes</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;</span><span class="comp">Route</span> <span class="attr">path</span>=<span class="str">"/admin"</span>   <span class="attr">element</span>={<span class="tag">&lt;</span><span class="comp">AdminPanel</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;</span><span class="comp">Route</span> <span class="attr">path</span>=<span class="str">"/reports"</span> <span class="attr">element</span>={<span class="tag">&lt;</span><span class="comp">ReportViewer</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/</span><span class="comp">Routes</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;/</span><span class="comp">Suspense</span><span class="tag">&gt;</span>
+  );
+}
+
+<span class="cmt">// ── Virtualization — render only visible rows ──────────────────</span>
+<span class="cmt">// For lists with 1000s of items, only render what's in the viewport</span>
+<span class="kw">function</span> <span class="comp">HugeList</span>({ items }) {
+  <span class="kw">const</span> <span class="comp">Row</span> = ({ index, style }) => (
+    <span class="tag">&lt;div</span> <span class="attr">style</span>={style}<span class="tag">&gt;</span>{items[index].name}<span class="tag">&lt;/div&gt;</span>
+  );
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;</span><span class="comp">FixedSizeList</span>
+      <span class="attr">height</span>={<span class="num">600</span>}
+      <span class="attr">itemCount</span>={items.<span class="prop">length</span>}
+      <span class="attr">itemSize</span>={<span class="num">50</span>}
+    <span class="tag">&gt;</span>
+      {<span class="comp">Row</span>}
+    <span class="tag">&lt;/</span><span class="comp">FixedSizeList</span><span class="tag">&gt;</span>
+  );
+}</pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-title">💡 Optimization Rule</div>
+      <strong>Profile before optimizing.</strong> Use React DevTools Profiler to find actual bottlenecks. Adding memo/useMemo everywhere without measurement often adds complexity without benefit — these optimizations have a cost too.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 16: STATE MANAGEMENT -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s16">
+    <div class="section-header">
+      <div class="section-num">16</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-4">Phase 4 — Advanced</div>
+        <h2>Global State Management</h2>
+        <div class="section-desc">Context for small apps, Zustand for medium apps, Redux Toolkit for large apps.</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Solution</th><th>Best For</th><th>Bundle Size</th><th>Learning Curve</th></tr></thead>
+        <tbody>
+          <tr><td>Context + useReducer</td><td>Small apps, infrequent updates</td><td>0 kb (built-in)</td><td>Low</td></tr>
+          <tr><td>Zustand</td><td>Medium apps, simple global state</td><td>~1 kb</td><td>Very Low</td></tr>
+          <tr><td>Jotai / Recoil</td><td>Atomic state, fine-grained updates</td><td>~3 kb</td><td>Low-Medium</td></tr>
+          <tr><td>Redux Toolkit</td><td>Large teams, complex logic, devtools</td><td>~12 kb</td><td>Medium-High</td></tr>
+          <tr><td>TanStack Query</td><td>Server state, caching, async</td><td>~12 kb</td><td>Medium</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">store/useStore.js (Zustand)</span>
+        <span class="code-lang">JavaScript</span>
+      </div>
+      <pre><span class="imp">import</span> { create } <span class="kw">from</span> <span class="str">'zustand'</span>;
+
+<span class="cmt">// Zustand — minimal boilerplate, no providers needed</span>
+<span class="kw">const</span> useStore = <span class="fn">create</span>((set, get) => ({
+  <span class="cmt">// State</span>
+  user: <span class="kw">null</span>,
+  cart: [],
+  theme: <span class="str">'dark'</span>,
+
+  <span class="cmt">// Actions</span>
+  <span class="fn">setUser</span>: (user) => <span class="fn">set</span>({ user }),
+  <span class="fn">toggleTheme</span>: () => <span class="fn">set</span>(s => ({ theme: s.theme === <span class="str">'dark'</span> ? <span class="str">'light'</span> : <span class="str">'dark'</span> })),
+
+  <span class="fn">addToCart</span>: (item) => <span class="fn">set</span>(s => ({
+    cart: [...s.cart, item]
+  })),
+
+  <span class="fn">removeFromCart</span>: (id) => <span class="fn">set</span>(s => ({
+    cart: s.cart.<span class="fn">filter</span>(i => i.id !== id)
+  })),
+
+  <span class="cmt">// Computed (using get())</span>
+  <span class="fn">getCartTotal</span>: () => <span class="fn">get</span>().cart.<span class="fn">reduce</span>((sum, i) => sum + i.price, <span class="num">0</span>),
+}));
+
+<span class="cmt">// Usage — anywhere in the tree, no Provider!</span>
+<span class="kw">function</span> <span class="comp">CartBadge</span>() {
+  <span class="kw">const</span> cart = <span class="fn">useStore</span>(state => state.cart);    <span class="cmt">// only subscribes to cart</span>
+  <span class="kw">return</span> <span class="tag">&lt;span&gt;</span>{cart.<span class="prop">length</span>} items<span class="tag">&lt;/span&gt;</span>;
+}
+
+<span class="kw">function</span> <span class="comp">AddButton</span>({ item }) {
+  <span class="kw">const</span> addToCart = <span class="fn">useStore</span>(s => s.addToCart);
+  <span class="kw">return</span> <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">addToCart</span>(item)}<span class="tag">&gt;</span>Add to cart<span class="tag">&lt;/button&gt;</span>;
+}</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 17: ADVANCED PATTERNS -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s17">
+    <div class="section-header">
+      <div class="section-num">17</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-4">Phase 4 — Advanced</div>
+        <h2>Advanced Patterns</h2>
+        <div class="section-desc">Compound Components, HOCs, Error Boundaries — patterns used in production libraries.</div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">AdvancedPatterns.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="cmt">// ── COMPOUND COMPONENTS ───────────────────────────────────────</span>
+<span class="cmt">// Components that work together, sharing implicit state via Context.</span>
+<span class="cmt">// Like how &lt;select&gt; and &lt;option&gt; work together.</span>
+
+<span class="kw">const</span> TabContext = <span class="fn">createContext</span>();
+
+<span class="kw">function</span> <span class="comp">Tabs</span>({ children, defaultTab }) {
+  <span class="kw">const</span> [activeTab, setActiveTab] = <span class="hook">useState</span>(defaultTab);
+  <span class="kw">return</span> (
+    <span class="tag">&lt;</span><span class="comp">TabContext.Provider</span> <span class="attr">value</span>={{ activeTab, setActiveTab }}<span class="tag">&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"tabs"</span><span class="tag">&gt;</span>{children}<span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/</span><span class="comp">TabContext.Provider</span><span class="tag">&gt;</span>
+  );
+}
+
+<span class="comp">Tabs</span>.<span class="comp">List</span> = <span class="kw">function</span> <span class="comp">TabList</span>({ children }) {
+  <span class="kw">return</span> <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"tabs__list"</span> <span class="attr">role</span>=<span class="str">"tablist"</span><span class="tag">&gt;</span>{children}<span class="tag">&lt;/div&gt;</span>;
+};
+
+<span class="comp">Tabs</span>.<span class="comp">Tab</span> = <span class="kw">function</span> <span class="comp">Tab</span>({ id, children }) {
+  <span class="kw">const</span> { activeTab, setActiveTab } = <span class="hook">useContext</span>(TabContext);
+  <span class="kw">return</span> (
+    <span class="tag">&lt;button</span>
+      <span class="attr">role</span>=<span class="str">"tab"</span>
+      <span class="attr">aria-selected</span>={activeTab === id}
+      <span class="attr">onClick</span>={() => <span class="fn">setActiveTab</span>(id)}
+    <span class="tag">&gt;</span>
+      {children}
+    <span class="tag">&lt;/button&gt;</span>
+  );
+};
+
+<span class="comp">Tabs</span>.<span class="comp">Panel</span> = <span class="kw">function</span> <span class="comp">TabPanel</span>({ id, children }) {
+  <span class="kw">const</span> { activeTab } = <span class="hook">useContext</span>(TabContext);
+  <span class="kw">return</span> activeTab === id ? <span class="tag">&lt;div</span> <span class="attr">role</span>=<span class="str">"tabpanel"</span><span class="tag">&gt;</span>{children}<span class="tag">&lt;/div&gt;</span> : <span class="kw">null</span>;
+};
+
+<span class="cmt">// Clean, readable usage:</span>
+<span class="tag">&lt;</span><span class="comp">Tabs</span> <span class="attr">defaultTab</span>=<span class="str">"overview"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;</span><span class="comp">Tabs.List</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;</span><span class="comp">Tabs.Tab</span> <span class="attr">id</span>=<span class="str">"overview"</span><span class="tag">&gt;</span>Overview<span class="tag">&lt;/</span><span class="comp">Tabs.Tab</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;</span><span class="comp">Tabs.Tab</span> <span class="attr">id</span>=<span class="str">"details"</span><span class="tag">&gt;</span>Details<span class="tag">&lt;/</span><span class="comp">Tabs.Tab</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;/</span><span class="comp">Tabs.List</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;</span><span class="comp">Tabs.Panel</span> <span class="attr">id</span>=<span class="str">"overview"</span><span class="tag">&gt;</span>Overview content<span class="tag">&lt;/</span><span class="comp">Tabs.Panel</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;</span><span class="comp">Tabs.Panel</span> <span class="attr">id</span>=<span class="str">"details"</span><span class="tag">&gt;</span>Details content<span class="tag">&lt;/</span><span class="comp">Tabs.Panel</span><span class="tag">&gt;</span>
+<span class="tag">&lt;/</span><span class="comp">Tabs</span><span class="tag">&gt;</span>
+
+<span class="cmt">// ── ERROR BOUNDARIES ─────────────────────────────────────────</span>
+<span class="cmt">// Catch JS errors in component trees (still class-based in React 18)</span>
+<span class="kw">class</span> <span class="comp">ErrorBoundary</span> <span class="kw">extends</span> React.Component {
+  state = { hasError: <span class="kw">false</span>, error: <span class="kw">null</span> };
+
+  <span class="kw">static</span> <span class="fn">getDerivedStateFromError</span>(error) {
+    <span class="kw">return</span> { hasError: <span class="kw">true</span>, error };
+  }
+
+  <span class="fn">componentDidCatch</span>(error, info) {
+    <span class="cmt">// Log to error tracking service (Sentry, etc.)</span>
+    errorTracker.<span class="fn">capture</span>(error, info);
+  }
+
+  <span class="fn">render</span>() {
+    <span class="kw">if</span> (<span class="kw">this</span>.state.hasError) {
+      <span class="kw">return</span> <span class="kw">this</span>.props.fallback || <span class="tag">&lt;p&gt;</span>Something went wrong.<span class="tag">&lt;/p&gt;</span>;
+    }
+    <span class="kw">return</span> <span class="kw">this</span>.props.children;
+  }
+}</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 18: TESTING -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s18">
+    <div class="section-header">
+      <div class="section-num">18</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-4">Phase 4 — Advanced</div>
+        <h2>Testing React Applications</h2>
+        <div class="section-desc">Vitest + React Testing Library — test behavior, not implementation.</div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">LoginForm.test.jsx</span>
+        <span class="code-lang">JSX</span>
+      </div>
+      <pre><span class="imp">import</span> { render, screen, fireEvent, waitFor } <span class="kw">from</span> <span class="str">'@testing-library/react'</span>;
+<span class="imp">import</span> { vi } <span class="kw">from</span> <span class="str">'vitest'</span>;
+<span class="imp">import</span> <span class="comp">LoginForm</span> <span class="kw">from</span> <span class="str">'./LoginForm'</span>;
+
+<span class="cmt">// Test file structure — describe groups, it/test for individual tests</span>
+<span class="fn">describe</span>(<span class="str">'LoginForm'</span>, () => {
+
+  <span class="fn">it</span>(<span class="str">'renders email and password fields'</span>, () => {
+    <span class="fn">render</span>(<span class="tag">&lt;</span><span class="comp">LoginForm</span> <span class="attr">onSubmit</span>={() => {}} <span class="tag">/&gt;</span>);
+
+    <span class="cmt">// Query by accessible role — not by class names!</span>
+    expect(screen.<span class="fn">getByRole</span>(<span class="str">'textbox'</span>, { name: /email/i })).<span class="fn">toBeInTheDocument</span>();
+    expect(screen.<span class="fn">getByLabelText</span>(/password/i)).<span class="fn">toBeInTheDocument</span>();
+  });
+
+  <span class="fn">it</span>(<span class="str">'shows validation errors for empty submit'</span>, <span class="kw">async</span> () => {
+    <span class="fn">render</span>(<span class="tag">&lt;</span><span class="comp">LoginForm</span> <span class="attr">onSubmit</span>={() => {}} <span class="tag">/&gt;</span>);
+
+    <span class="cmt">// Simulate clicking submit without filling form</span>
+    fireEvent.<span class="fn">click</span>(screen.<span class="fn">getByRole</span>(<span class="str">'button'</span>, { name: /sign in/i }));
+
+    <span class="kw">await</span> <span class="fn">waitFor</span>(() => {
+      expect(screen.<span class="fn">getByText</span>(/invalid email/i)).<span class="fn">toBeInTheDocument</span>();
+      expect(screen.<span class="fn">getByText</span>(/min 8 characters/i)).<span class="fn">toBeInTheDocument</span>();
+    });
+  });
+
+  <span class="fn">it</span>(<span class="str">'calls onSubmit with credentials on valid submit'</span>, <span class="kw">async</span> () => {
+    <span class="kw">const</span> mockSubmit = vi.<span class="fn">fn</span>().<span class="fn">mockResolvedValue</span>({ success: <span class="kw">true</span> });
+    <span class="fn">render</span>(<span class="tag">&lt;</span><span class="comp">LoginForm</span> <span class="attr">onSubmit</span>={mockSubmit} <span class="tag">/&gt;</span>);
+
+    <span class="cmt">// Type into fields</span>
+    fireEvent.<span class="fn">change</span>(screen.<span class="fn">getByLabelText</span>(/email/i), {
+      target: { value: <span class="str">'user@example.com'</span> }
+    });
+    fireEvent.<span class="fn">change</span>(screen.<span class="fn">getByLabelText</span>(/password/i), {
+      target: { value: <span class="str">'securepass123'</span> }
+    });
+    fireEvent.<span class="fn">click</span>(screen.<span class="fn">getByRole</span>(<span class="str">'button'</span>, { name: /sign in/i }));
+
+    <span class="kw">await</span> <span class="fn">waitFor</span>(() => {
+      expect(mockSubmit).<span class="fn">toHaveBeenCalledWith</span>({
+        email: <span class="str">'user@example.com'</span>,
+        password: <span class="str">'securepass123'</span>
+      });
+    });
+  });
+});</pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-title">💡 Testing Philosophy</div>
+      Test <strong>behavior, not implementation</strong>. Ask: "What would a user do?" Query by text, role, and labels — not by CSS classes or component internals. Your tests should remain valid even if you refactor the component completely.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 19: ARCHITECTURE -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s19">
+    <div class="section-header">
+      <div class="section-num">19</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-5">Phase 5 — Production</div>
+        <h2>Architecture, Folder Structure &amp; Scaling</h2>
+        <div class="section-desc">How senior engineers organize large React codebases.</div>
+      </div>
+    </div>
+
+    <h3>Feature-Based Folder Structure (Recommended)</h3>
+
+    <div class="folder-tree">
+<span class="ft-dir">src/</span>
+├── <span class="ft-dir">app/</span>              <span class="ft-comment"># App-wide config (router, providers, store)</span>
+│   ├── <span class="ft-file">App.jsx</span>
+│   ├── <span class="ft-file">router.jsx</span>
+│   └── <span class="ft-file">store.js</span>
+├── <span class="ft-dir">features/</span>         <span class="ft-comment"># Feature modules (the main bulk)</span>
+│   ├── <span class="ft-dir">auth/</span>
+│   │   ├── <span class="ft-file">LoginPage.jsx</span>
+│   │   ├── <span class="ft-file">useAuth.js</span>
+│   │   ├── <span class="ft-file">authSlice.js</span>
+│   │   └── <span class="ft-file">auth.test.js</span>
+│   ├── <span class="ft-dir">dashboard/</span>
+│   │   ├── <span class="ft-file">DashboardPage.jsx</span>
+│   │   ├── <span class="ft-dir">components/</span>
+│   │   └── <span class="ft-file">useDashboard.js</span>
+│   └── <span class="ft-dir">products/</span>
+├── <span class="ft-dir">shared/</span>           <span class="ft-comment"># Shared across features</span>
+│   ├── <span class="ft-dir">components/</span>   <span class="ft-comment"># Generic UI: Button, Modal, Table…</span>
+│   ├── <span class="ft-dir">hooks/</span>        <span class="ft-comment"># useFetch, useDebounce, useLocalStorage…</span>
+│   ├── <span class="ft-dir">utils/</span>        <span class="ft-comment"># Pure functions, formatters, validators</span>
+│   └── <span class="ft-dir">types/</span>        <span class="ft-comment"># TypeScript interfaces (if using TS)</span>
+├── <span class="ft-dir">services/</span>         <span class="ft-comment"># API clients, external services</span>
+│   ├── <span class="ft-file">api.js</span>        <span class="ft-comment"># Axios/fetch instance + interceptors</span>
+│   └── <span class="ft-dir">endpoints/</span>
+└── <span class="ft-dir">assets/</span>           <span class="ft-comment"># Images, fonts, SVGs</span>
+    </div>
+
+    <h3>Best Practices Checklist</h3>
+    <ul class="checklist">
+      <li><strong>One component per file</strong> — makes imports, testing, and git diffs clean</li>
+      <li><strong>Co-locate tests</strong> — <code>Button.jsx</code> and <code>Button.test.jsx</code> in the same folder</li>
+      <li><strong>Barrel exports</strong> — <code>index.js</code> in each folder for clean imports</li>
+      <li><strong>Separate concerns</strong> — UI logic in components, business logic in hooks/utils</li>
+      <li><strong>TypeScript</strong> — adopt it from day one in any production project</li>
+      <li><strong>Absolute imports</strong> — configure path aliases to avoid <code>../../../</code> hell</li>
+      <li><strong>Consistent naming</strong> — PascalCase for components, camelCase for hooks and utils</li>
+      <li><strong>Error boundaries</strong> — wrap routes and async sections to prevent full-page crashes</li>
+      <li><strong>Environment variables</strong> — never hardcode API keys or secrets</li>
+      <li><strong>Lint + format</strong> — ESLint with eslint-plugin-react-hooks + Prettier</li>
+    </ul>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 20: MINI PROJECTS -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s20">
+    <div class="section-header">
+      <div class="section-num">20</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-3">Hands-On</div>
+        <h2>Mini Projects</h2>
+        <div class="section-desc">Cement each phase with a real, buildable project.</div>
+      </div>
+    </div>
+
+    <div class="project-card mini">
+      <div class="project-badge">Mini Project 1</div>
+      <h3>Task Manager App</h3>
+      <p>Build a fully functional to-do manager with add/edit/delete, priority levels, filtering by status, and persistence via localStorage. Perfect for applying components, state, forms, and custom hooks together.</p>
+      <div class="tech-tags">
+        <span class="tech-tag">useState</span>
+        <span class="tech-tag">useReducer</span>
+        <span class="tech-tag">useLocalStorage</span>
+        <span class="tech-tag">Controlled Forms</span>
+        <span class="tech-tag">Filtering</span>
+      </div>
+    </div>
+
+    <div class="project-card mini">
+      <div class="project-badge">Mini Project 2</div>
+      <h3>Weather Dashboard</h3>
+      <p>Fetch real weather data from OpenWeatherMap API. Search by city, show current conditions and a 5-day forecast, handle loading/error states, and cache results with React Query.</p>
+      <div class="tech-tags">
+        <span class="tech-tag">useFetch</span>
+        <span class="tech-tag">useDebounce</span>
+        <span class="tech-tag">Error Handling</span>
+        <span class="tech-tag">TanStack Query</span>
+        <span class="tech-tag">Context (Theme)</span>
+      </div>
+    </div>
+
+    <div class="project-card mini">
+      <div class="project-badge">Mini Project 3</div>
+      <h3>E-Commerce Product Page</h3>
+      <p>Product listing with search, filter by category/price, sort options, product detail modal, and a shopping cart with Zustand. Add routing for a cart page and checkout summary.</p>
+      <div class="tech-tags">
+        <span class="tech-tag">React Router</span>
+        <span class="tech-tag">Zustand</span>
+        <span class="tech-tag">useMemo</span>
+        <span class="tech-tag">Compound Components</span>
+        <span class="tech-tag">Code Splitting</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 21: CAPSTONE PROJECTS -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s21">
+    <div class="section-header">
+      <div class="section-num">21</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-5">Phase 5 — Production</div>
+        <h2>Capstone Projects</h2>
+        <div class="section-desc">Real-world, portfolio-worthy full-stack applications.</div>
+      </div>
+    </div>
+
+    <div class="project-card major">
+      <div class="project-badge">Capstone Project 1</div>
+      <h3>📊 Analytics Dashboard</h3>
+      <p>Build a production-grade admin dashboard with a sidebar nav, multiple data views (charts, tables, KPI cards), real-time data polling, role-based access control, dark/light theme, and a responsive layout. Connect to a mock or real backend API.</p>
+      <h4>Features to implement:</h4>
+      <ul class="checklist" style="margin-bottom:16px;">
+        <li>Auth with JWT tokens and refresh flow</li>
+        <li>Protected routes with role guards (admin vs viewer)</li>
+        <li>Interactive charts with Recharts or Victory</li>
+        <li>Infinite scroll data table with sorting &amp; filtering</li>
+        <li>Optimistic UI updates (edit before server confirms)</li>
+        <li>Toast notifications system (custom hook + Context)</li>
+        <li>Full test suite (unit + integration)</li>
+        <li>Deployed to Vercel with CI/CD via GitHub Actions</li>
+      </ul>
+      <div class="tech-tags">
+        <span class="tech-tag">Next.js</span>
+        <span class="tech-tag">TanStack Query</span>
+        <span class="tech-tag">Redux Toolkit</span>
+        <span class="tech-tag">Recharts</span>
+        <span class="tech-tag">Tailwind CSS</span>
+        <span class="tech-tag">Vitest + RTL</span>
+        <span class="tech-tag">TypeScript</span>
+      </div>
+    </div>
+
+    <div class="project-card major" style="margin-top:20px;">
+      <div class="project-badge">Capstone Project 2</div>
+      <h3>💬 Real-Time Chat Application</h3>
+      <p>Full-stack chat app with multiple rooms, real-time messaging via WebSockets, message history, user presence (online/offline), file uploads, emoji reactions, and a notification system. Uses a Node.js + Socket.io backend.</p>
+      <h4>Features to implement:</h4>
+      <ul class="checklist" style="margin-bottom:16px;">
+        <li>WebSocket connection with reconnection logic</li>
+        <li>Message virtualization (react-window) for performance</li>
+        <li>Optimistic message rendering (appear instantly, sync later)</li>
+        <li>Image upload with preview and progress indicator</li>
+        <li>Unread message count per room (badge)</li>
+        <li>User typing indicator (debounced emit)</li>
+        <li>Search message history (with highlight)</li>
+        <li>Mobile-responsive with PWA support</li>
+      </ul>
+      <div class="tech-tags">
+        <span class="tech-tag">React 18</span>
+        <span class="tech-tag">Socket.io</span>
+        <span class="tech-tag">Zustand</span>
+        <span class="tech-tag">react-window</span>
+        <span class="tech-tag">Custom Hooks</span>
+        <span class="tech-tag">Error Boundaries</span>
+        <span class="tech-tag">TypeScript</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- SECTION 22: DEPLOYMENT -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section" id="s22">
+    <div class="section-header">
+      <div class="section-num">22</div>
+      <div class="section-title-wrap">
+        <div class="section-phase phase-5">Phase 5 — Production</div>
+        <h2>Deployment, Debugging &amp; What's Next</h2>
+        <div class="section-desc">Ship your app, debug like a pro, and continue growing.</div>
+      </div>
+    </div>
+
+    <h3>Deployment Checklist</h3>
+    <ul class="checklist">
+      <li><strong>Environment variables</strong> — use <code>.env.production</code>, never commit secrets</li>
+      <li><strong>Build optimization</strong> — run <code>npm run build</code>, analyze bundle with rollup-plugin-visualizer</li>
+      <li><strong>Error tracking</strong> — integrate Sentry for production error monitoring</li>
+      <li><strong>Performance monitoring</strong> — Lighthouse CI in your GitHub Actions pipeline</li>
+      <li><strong>Vercel / Netlify</strong> — connect your GitHub repo for automatic deployments</li>
+      <li><strong>CDN assets</strong> — serve images via Cloudflare or similar</li>
+    </ul>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-filename">.github/workflows/ci.yml</span>
+        <span class="code-lang">YAML</span>
+      </div>
+      <pre><span class="cmt"># GitHub Actions CI/CD Pipeline</span>
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: <span class="str">'npm'</span>
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test -- --run    <span class="cmt"># run once, no watch</span>
+      - run: npm run build</pre>
+    </div>
+
+    <h3>What to Learn Next</h3>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-icon">▲</div>
+        <h4>Next.js</h4>
+        <p>SSR, SSG, App Router, Server Components — the standard for production React apps.</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">📘</div>
+        <h4>TypeScript</h4>
+        <p>Type safety for React. PropTypes are obsolete — TypeScript is the industry standard.</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">🔴</div>
+        <h4>GraphQL</h4>
+        <p>Apollo Client or urql for flexible, efficient API queries from React.</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">♿</div>
+        <h4>Accessibility</h4>
+        <p>ARIA roles, keyboard navigation, screen reader support. Non-negotiable in production.</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">🎭</div>
+        <h4>E2E Testing</h4>
+        <p>Playwright or Cypress for full end-to-end user flow testing.</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">⚛</div>
+        <h4>React 19 Features</h4>
+        <p>Server Actions, use() hook, improved Suspense — the latest in the React ecosystem.</p>
+      </div>
+    </div>
+
+    <div class="checkpoint" style="margin-top:40px;">
+      <div class="checkpoint-title">✦ You've Reached the End — Final Self-Assessment</div>
+      <h4>A senior React developer can:</h4>
+      <div class="checkpoint-items">
+        <div class="ci">Architect feature-based codebases</div>
+        <div class="ci">Write reusable custom hooks</div>
+        <div class="ci">Optimize render performance</div>
+        <div class="ci">Implement compound components</div>
+        <div class="ci">Test behavior, not implementation</div>
+        <div class="ci">Handle async data patterns</div>
+        <div class="ci">Build accessible UIs</div>
+        <div class="ci">Deploy with CI/CD pipelines</div>
+        <div class="ci">Debug with DevTools + Profiler</div>
+        <div class="ci">Explain every decision made</div>
+      </div>
+    </div>
+
+    <div class="callout info" style="margin-top:32px;">
+      <div class="callout-title">🎯 Final Advice from an Experienced Engineer</div>
+      The best React developers aren't the ones who memorize APIs — they're the ones who <strong>deeply understand why React works the way it does</strong>. Read the React source code. Contribute to open source. Build things you're actually interested in. Review other people's PRs. Teach what you learn. Those are the habits that take you from good to exceptional.
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+// ── SIDEBAR NAV HIGHLIGHT ────────────────────────────────────
+const sections = document.querySelectorAll('.section');
+const navItems = document.querySelectorAll('.nav-item');
+const progressFill = document.getElementById('progressFill');
+const pct = document.getElementById('pct');
+const btt = document.getElementById('btt');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navItems.forEach(n => {
+        n.classList.remove('active');
+        if (n.getAttribute('href') === '#' + id) n.classList.add('active');
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+// ── PROGRESS BAR ─────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const total = document.body.scrollHeight - window.innerHeight;
+  const pctVal = Math.round((scrolled / total) * 100);
+  progressFill.style.width = pctVal + '%';
+  pct.textContent = pctVal + '%';
+
+  if (scrolled > 300) btt.classList.add('visible');
+  else btt.classList.remove('visible');
+});
+
+// ── MOBILE SIDEBAR ────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (window.innerWidth <= 900) {
+      document.getElementById('sidebar').classList.remove('open');
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 22 — Authentication with Clerk</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --clerk:#6c47ff;--clerk-dim:rgba(108,71,255,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --emerald:#10b981;--emerald-dim:rgba(16,185,129,0.09);
+  --nxt:#e2e8f0;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--clerk);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--clerk);border-bottom-color:var(--clerk);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--clerk);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--clerk);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--clerk-dim);color:var(--clerk);border-color:rgba(108,71,255,.3);}
+.day-btn.primary:hover{background:rgba(108,71,255,.18);}
+
+.week-banner{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(45,212,191,.04));border-bottom:1px solid var(--border);padding:12px 48px;}
+.week-banner-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.week-badge{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--emerald-dim);color:var(--emerald);border:1px solid rgba(16,185,129,.25);white-space:nowrap;}
+.week-text{font-size:13px;color:var(--muted);}
+.week-text strong{color:var(--text);}
+
+.hero{padding:56px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--clerk);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--clerk);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--clerk);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.topics-strip{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;}
+.topic-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.topic-sub{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--clerk);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--clerk-dim);color:var(--clerk);border-color:rgba(108,71,255,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--clerk);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--clerk);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+.ty{color:#38bdf8;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--clerk);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--clerk);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--clerk-dim);color:var(--clerk);border:1px solid rgba(108,71,255,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(108,71,255,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:200px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(108,71,255,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--clerk);}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--clerk-dim);color:var(--clerk);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--clerk);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--clerk);border-color:var(--clerk);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--clerk);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--clerk-dim);color:var(--clerk);border-color:rgba(108,71,255,.3);}
+.footer-btn.primary:hover{background:rgba(108,71,255,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--clerk);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.topics-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav,.week-banner{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 22 · Auth</div>
+  <a href="#why">Why Clerk</a>
+  <a href="#setup">Setup</a>
+  <a href="#components">Components</a>
+  <a href="#hooks">Hooks</a>
+  <a href="#server">Server Auth</a>
+  <a href="#rbac">RBAC</a>
+  <a href="#webhooks">Webhooks</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="week-banner">
+  <div class="week-banner-inner">
+    <span class="week-badge">Week 4 · Day 3</span>
+    <span class="week-text"><strong>Authentication with Clerk</strong> — replace your custom AuthContext with production auth. OAuth, sessions, MFA, RBAC — in minutes, not weeks.</span>
+  </div>
+</div>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 4 · <span>Day 22 of 56</span> · Authentication with Clerk</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day21_nextjs_app_router.html',21)">← Day 21</button>
+      <button class="day-btn primary" onclick="navigateTo('day23_prisma_database.html',23)">Day 23 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 4 · Day 22 · Production auth</div>
+  <h1>Auth with<br><em>Clerk</em></h1>
+  <p class="hero-sub">Building auth from scratch is a 3-month project that most teams get wrong. Clerk gives you email/password, OAuth (Google, GitHub, Apple), passkeys, MFA, session management, and user management in an afternoon — so you can focus on your actual product.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(108,71,255,.3);color:var(--clerk);">Clerk setup + Next.js</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">SignIn / SignUp components</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">useUser / useAuth hooks</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">auth() in Server Components</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">currentUser() in Server</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">clerkMiddleware + routes</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">RBAC — roles + permissions</span>
+    <span class="topic-pill" style="border-color:rgba(16,185,129,.3);color:var(--emerald);">Webhooks — sync to DB</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">focus time</div></div>
+  </div>
+</div>
+
+<!-- TOPICS -->
+<div class="topics-strip">
+  <div class="topics-grid">
+    <div class="topic-card"><span class="topic-icon">🔐</span><div><div class="topic-name">Why Clerk</div><div class="topic-sub">auth is hard, Clerk is not</div></div></div>
+    <div class="topic-card"><span class="topic-icon">⚙️</span><div><div class="topic-name">Setup</div><div class="topic-sub">npm install + env vars</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🧩</span><div><div class="topic-name">Pre-built Components</div><div class="topic-sub">SignIn, SignUp, UserButton</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🪝</span><div><div class="topic-name">Client Hooks</div><div class="topic-sub">useUser, useAuth, useClerk</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🖥️</span><div><div class="topic-name">Server Auth</div><div class="topic-sub">auth(), currentUser()</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🛡️</span><div><div class="topic-name">Middleware</div><div class="topic-sub">clerkMiddleware, routes</div></div></div>
+    <div class="topic-card"><span class="topic-icon">👑</span><div><div class="topic-name">RBAC</div><div class="topic-sub">roles, permissions, metadata</div></div></div>
+    <div class="topic-card"><span class="topic-icon">📡</span><div><div class="topic-name">Webhooks</div><div class="topic-sub">user.created → sync DB</div></div></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 22 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Why Clerk</span>
+    <span class="tdot" onclick="markDone(this)">Setup</span>
+    <span class="tdot" onclick="markDone(this)">Components</span>
+    <span class="tdot" onclick="markDone(this)">Client hooks</span>
+    <span class="tdot" onclick="markDone(this)">Server auth</span>
+    <span class="tdot" onclick="markDone(this)">Middleware</span>
+    <span class="tdot" onclick="markDone(this)">RBAC</span>
+    <span class="tdot" onclick="markDone(this)">Webhooks</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. WHY CLERK -->
+<div class="section" id="why">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Why Clerk — the hidden cost of rolling your own auth</span>
+    <span class="sec-badge" style="background:var(--clerk-dim);color:var(--clerk);">motivation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">what auth actually requires</span>
+      <div class="cc-title">It's never just username + password</div>
+      <div class="cc-body">Production auth needs: secure password hashing (bcrypt/argon2), email verification flows, password reset with time-limited tokens, OAuth (Google, GitHub, Apple, LinkedIn), CSRF protection, session management and rotation, refresh token handling, account lockout, rate limiting login attempts, multi-factor authentication, passkeys, audit logs, GDPR compliance. Each of these is a separate project.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">what Clerk gives you</span>
+      <div class="cc-title">All of the above, in minutes</div>
+      <div class="cc-body">Clerk handles every auth concern: beautiful pre-built UI components (customisable to your brand), all OAuth providers, passkeys, MFA, session management, user management dashboard, and security best practices. Your codebase stays clean — you just call <code>auth()</code> to know who's logged in. Zero security surface area added to your own code.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">what it costs</span>
+      <div class="cc-title">Free up to 10,000 MAU</div>
+      <div class="cc-body">Free tier covers 10,000 monthly active users — more than enough for any project you'll build this year. Beyond that, it's $0.02/MAU. Compare to the developer-hours of building and maintaining auth: one mid-level engineer for 3 months, ongoing security patches, incident response. Clerk is almost always the economically correct choice.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">vs alternatives</span>
+      <div class="cc-title">NextAuth, Auth.js, Supabase Auth, Firebase</div>
+      <div class="cc-body">NextAuth/Auth.js: open source, but you manage sessions in your DB, write adapters, handle UI yourself. Supabase Auth: tied to Supabase DB. Firebase Auth: good but Google-ecosystem lock-in. Clerk: best developer experience, most features pre-built, excellent TypeScript, and the only one with a built-in user management UI you can give your team.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 02. SETUP -->
+<div class="section" id="setup">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Setup — install, configure, wrap your app</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">setup</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + tsx + ts</span><span class="cb-desc">Full Clerk + Next.js App Router setup in 5 steps</span></div>
+    <div class="cb-body"><pre><span class="cm"># Step 1: Install</span>
+npm install @clerk/nextjs
+
+<span class="cm"># Step 2: Add env vars (.env.local)</span>
+<span class="cm"># Get these from clerk.com → Create Application → API Keys</span>
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+
+<span class="cm"># Optional: custom sign-in/up URLs (if using Clerk's hosted pages)</span>
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/dashboard
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/onboarding
+
+<span class="cm">// Step 3: Wrap app with ClerkProvider</span>
+<span class="cm">// app/layout.tsx</span>
+<span class="kw">import</span> { <span class="var">ClerkProvider</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs"</span>
+
+<span class="kw">export default function</span> <span class="fn">RootLayout</span>({ <span class="var">children</span> }: { <span class="prop">children</span>: <span class="ty">React.ReactNode</span> }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ClerkProvider&gt;</span>
+      <span class="tag">&lt;html</span> <span class="attr">lang</span>=<span class="str">"en"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;body&gt;</span>{<span class="var">children</span>}<span class="tag">&lt;/body&gt;</span>
+      <span class="tag">&lt;/html&gt;</span>
+    <span class="tag">&lt;/ClerkProvider&gt;</span>
+  )
+}
+
+<span class="cm">// Step 4: Add middleware to protect routes</span>
+<span class="cm">// middleware.ts (at root)</span>
+<span class="kw">import</span> { <span class="fn">clerkMiddleware</span>, <span class="fn">createRouteMatcher</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs/server"</span>
+
+<span class="kw">const</span> <span class="var">isPublic</span> = <span class="fn">createRouteMatcher</span>([
+  <span class="str">"/"</span>,
+  <span class="str">"/sign-in(.*)"</span>,
+  <span class="str">"/sign-up(.*)"</span>,
+  <span class="str">"/api/webhooks(.*)"</span>,   <span class="cm">// webhooks are public (verified via svix)</span>
+  <span class="str">"/products(.*)"</span>,        <span class="cm">// product browsing is public</span>
+])
+
+<span class="kw">export default</span> <span class="fn">clerkMiddleware</span>(<span class="kw">async</span> (<span class="var">auth</span>, <span class="var">req</span>) => {
+  <span class="kw">if</span> (!<span class="fn">isPublic</span>(<span class="var">req</span>)) {
+    <span class="kw">await</span> <span class="var">auth</span>.<span class="fn">protect</span>()   <span class="cm">// redirect to sign-in if not authenticated</span>
+  }
+})
+
+<span class="kw">export const</span> <span class="var">config</span> = {
+  <span class="prop">matcher</span>: [<span class="str">"/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)","/(api|trpc)(.*)"</span>],
+}
+
+<span class="cm">// Step 5: Create sign-in / sign-up pages</span>
+<span class="cm">// app/sign-in/[[...sign-in]]/page.tsx</span>
+<span class="kw">import</span> { <span class="var">SignIn</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs"</span>
+<span class="kw">export default function</span> <span class="fn">SignInPage</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"flex items-center justify-center min-h-screen"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;SignIn</span> <span class="tag">/&gt;</span>   <span class="cm">{/* beautiful pre-built UI, fully hosted */}</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+<span class="cm">// Repeat for app/sign-up/[[...sign-up]]/page.tsx with &lt;SignUp /&gt;</span></pre></div>
+  </div>
+</div>
+
+<!-- 03. COMPONENTS -->
+<div class="section" id="components">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Pre-built components — SignIn, SignUp, UserButton, UserProfile</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">UI components</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--clerk);"></span>Clerk's ready-to-use UI components</div>
+    <div class="mm-grid">
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--clerk);">&lt;SignIn /&gt;</div>
+        <div class="mm-value">Complete sign-in form: email/password, OAuth buttons, forgot password, MFA prompt. Customise with <code>appearance</code> prop or variables. Works with your Clerk Dashboard theme.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--green);">&lt;SignUp /&gt;</div>
+        <div class="mm-value">Registration form with email verification, OAuth, and any custom fields you configure in the Dashboard. Handles the full signup flow automatically.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--amber);">&lt;UserButton /&gt;</div>
+        <div class="mm-value">The avatar + dropdown that shows the signed-in user. Includes profile link, switch accounts, sign out. Drop it in your Navbar — one line of code.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--purple);">&lt;UserProfile /&gt;</div>
+        <div class="mm-value">Full profile management page: change name/email, profile photo, connected OAuth accounts, active sessions, security settings, MFA setup. Replace your settings page.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--teal);">&lt;SignedIn /&gt; &lt;SignedOut /&gt;</div>
+        <div class="mm-value">Conditional rendering helpers. <code>&lt;SignedIn&gt;</code> only renders its children when a user is authenticated. <code>&lt;SignedOut&gt;</code> renders only when not authenticated. Use instead of checking <code>isSignedIn</code> manually.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--coral);">Customisation</div>
+        <div class="mm-value">All components accept an <code>appearance</code> prop for full CSS variable control. Or use Clerk's visual editor in the Dashboard. You can also build completely custom UI with Clerk's headless API.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Navbar with UserButton, conditional rendering, custom appearance</span></div>
+    <div class="cb-body"><pre><span class="str">"use client"</span>
+
+<span class="kw">import</span> { <span class="var">SignedIn</span>, <span class="var">SignedOut</span>, <span class="var">SignInButton</span>, <span class="var">UserButton</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs"</span>
+<span class="kw">import</span> <span class="var">Link</span> <span class="kw">from</span> <span class="str">"next/link"</span>
+
+<span class="kw">export function</span> <span class="fn">Navbar</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;nav</span> <span class="attr">className</span>=<span class="str">"flex items-center justify-between px-6 py-4 border-b"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;Link</span> <span class="attr">href</span>=<span class="str">"/"</span> <span class="attr">className</span>=<span class="str">"font-bold text-xl"</span><span class="tag">&gt;</span>ShopCo<span class="tag">&lt;/Link&gt;</span>
+
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"flex items-center gap-4"</span><span class="tag">&gt;</span>
+
+        <span class="cm">{/* Only shown when signed in */}</span>
+        <span class="tag">&lt;SignedIn&gt;</span>
+          <span class="tag">&lt;Link</span> <span class="attr">href</span>=<span class="str">"/dashboard"</span><span class="tag">&gt;</span>Dashboard<span class="tag">&lt;/Link&gt;</span>
+          <span class="tag">&lt;UserButton</span>
+            <span class="attr">appearance</span>={{
+              <span class="prop">elements</span>: {
+                <span class="prop">avatarBox</span>:   <span class="str">"w-9 h-9"</span>,
+                <span class="prop">userButtonTrigger</span>: <span class="str">"focus:shadow-none"</span>,
+              },
+            }}
+            <span class="attr">afterSignOutUrl</span>=<span class="str">"/"</span>
+          <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/SignedIn&gt;</span>
+
+        <span class="cm">{/* Only shown when signed out */}</span>
+        <span class="tag">&lt;SignedOut&gt;</span>
+          <span class="tag">&lt;SignInButton</span> <span class="attr">mode</span>=<span class="str">"modal"</span><span class="tag">&gt;</span>
+            <span class="tag">&lt;button</span> <span class="attr">className</span>=<span class="str">"px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"</span><span class="tag">&gt;</span>
+              Log in
+            <span class="tag">&lt;/button&gt;</span>
+          <span class="tag">&lt;/SignInButton&gt;</span>
+          <span class="tag">&lt;Link</span>
+            <span class="attr">href</span>=<span class="str">"/sign-up"</span>
+            <span class="attr">className</span>=<span class="str">"px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700"</span>
+          <span class="tag">&gt;</span>
+            Get started
+          <span class="tag">&lt;/Link&gt;</span>
+        <span class="tag">&lt;/SignedOut&gt;</span>
+
+      <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/nav&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 04. CLIENT HOOKS -->
+<div class="section" id="hooks">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Client hooks — useUser, useAuth, useClerk</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">hooks</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">useUser, useAuth, useClerk — all the client-side auth you need</span></div>
+    <div class="cb-body"><pre><span class="str">"use client"</span>
+<span class="kw">import</span> { <span class="var">useUser</span>, <span class="var">useAuth</span>, <span class="var">useClerk</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs"</span>
+
+<span class="cm">// ── useUser — access current user's profile data ──────────</span>
+<span class="kw">function</span> <span class="fn">ProfileCard</span>() {
+  <span class="kw">const</span> { <span class="var">isLoaded</span>, <span class="var">isSignedIn</span>, <span class="var">user</span> } = <span class="fn">useUser</span>()
+
+  <span class="kw">if</span> (!<span class="var">isLoaded</span>)    <span class="kw">return</span> <span class="tag">&lt;Skeleton</span> <span class="tag">/&gt;</span>      <span class="cm">// Clerk is still loading session</span>
+  <span class="kw">if</span> (!<span class="var">isSignedIn</span>) <span class="kw">return</span> <span class="tag">&lt;SignInPrompt</span> <span class="tag">/&gt;</span>  <span class="cm">// not authenticated</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"flex items-center gap-3"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;img</span> <span class="attr">src</span>={<span class="var">user</span>.<span class="prop">imageUrl</span>} <span class="attr">alt</span>="" <span class="attr">className</span>=<span class="str">"w-10 h-10 rounded-full"</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;div&gt;</span>
+        <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"font-medium"</span><span class="tag">&gt;</span>{<span class="var">user</span>.<span class="prop">fullName</span>}<span class="tag">&lt;/p&gt;</span>
+        <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"text-sm text-gray-500"</span><span class="tag">&gt;</span>{<span class="var">user</span>.<span class="prop">primaryEmailAddress</span>?.<span class="prop">emailAddress</span>}<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+<span class="cm">// user object: { id, firstName, lastName, fullName, imageUrl,</span>
+<span class="cm">//   primaryEmailAddress, emailAddresses, publicMetadata, createdAt, ... }</span>
+
+<span class="cm">// ── useAuth — session info + token ───────────────────────</span>
+<span class="kw">function</span> <span class="fn">ApiExample</span>() {
+  <span class="kw">const</span> { <span class="var">isLoaded</span>, <span class="var">isSignedIn</span>, <span class="var">userId</span>, <span class="var">sessionId</span>, <span class="fn">getToken</span> } = <span class="fn">useAuth</span>()
+
+  <span class="kw">const</span> <span class="fn">callExternalApi</span> = <span class="kw">async</span> () => {
+    <span class="cm">// Get a JWT to pass to your backend / external API</span>
+    <span class="kw">const</span> <span class="var">token</span> = <span class="kw">await</span> <span class="fn">getToken</span>()           <span class="cm">// session JWT</span>
+    <span class="kw">const</span> <span class="var">apiToken</span> = <span class="kw">await</span> <span class="fn">getToken</span>({ <span class="prop">template</span>: <span class="str">"my-api"</span> })  <span class="cm">// custom JWT template</span>
+
+    <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"/api/protected"</span>, {
+      <span class="prop">headers</span>: { <span class="str">"Authorization"</span>: `Bearer ${<span class="var">token</span>}` }
+    })
+  }
+
+  <span class="kw">return</span> <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="fn">callExternalApi</span>}<span class="tag">&gt;</span>Call API<span class="tag">&lt;/button&gt;</span>
+}
+
+<span class="cm">// ── useClerk — control auth programmatically ─────────────</span>
+<span class="kw">function</span> <span class="fn">AuthControls</span>() {
+  <span class="kw">const</span> { <span class="fn">signOut</span>, <span class="fn">openSignIn</span>, <span class="fn">openSignUp</span>, <span class="fn">openUserProfile</span> } = <span class="fn">useClerk</span>()
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">openSignIn</span>()}<span class="tag">&gt;</span>Log in<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">openUserProfile</span>()}<span class="tag">&gt;</span>My Profile<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">signOut</span>({ <span class="prop">redirectUrl</span>: <span class="str">"/"</span> })}<span class="tag">&gt;</span>Sign out<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── Protecting client components ──────────────────────────</span>
+<span class="kw">function</span> <span class="fn">ProtectedFeature</span>() {
+  <span class="kw">const</span> { <span class="var">isSignedIn</span>, <span class="var">userId</span> } = <span class="fn">useAuth</span>()
+
+  <span class="kw">if</span> (!<span class="var">isSignedIn</span>) <span class="kw">return</span> <span class="tag">&lt;p</span><span class="tag">&gt;</span>Please sign in to use this feature<span class="tag">&lt;/p&gt;</span>
+
+  <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>Feature for user {<span class="var">userId</span>}<span class="tag">&lt;/div&gt;</span>
+}</pre></div>
+  </div>
+</div>
+
+<!-- 05. SERVER AUTH -->
+<div class="section" id="server">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Server-side auth — auth() and currentUser() in Server Components</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">server</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">auth() for IDs, currentUser() for full profile, protecting Server Actions and Route Handlers</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="fn">auth</span>, <span class="fn">currentUser</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs/server"</span>
+
+<span class="cm">// ── auth() — lightweight, read userId/sessionId ───────────</span>
+<span class="cm">// Use when you just need the ID to query the DB</span>
+<span class="kw">export default async function</span> <span class="fn">DashboardPage</span>() {
+  <span class="kw">const</span> { <span class="var">userId</span> } = <span class="kw">await</span> <span class="fn">auth</span>()
+
+  <span class="kw">if</span> (!<span class="var">userId</span>) {
+    <span class="fn">redirect</span>(<span class="str">"/sign-in"</span>)   <span class="cm">// or use middleware to handle this</span>
+  }
+
+  <span class="cm">// Use userId to query YOUR database</span>
+  <span class="kw">const</span> <span class="var">orders</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">order</span>.<span class="fn">findMany</span>({
+    <span class="prop">where</span>: { <span class="prop">userId</span> }   <span class="cm">// Clerk's userId stored in your DB at sign-up via webhook</span>
+  })
+
+  <span class="kw">return</span> <span class="tag">&lt;OrderList</span> <span class="attr">orders</span>={<span class="var">orders</span>} <span class="tag">/&gt;</span>
+}
+
+<span class="cm">// ── currentUser() — full user object from Clerk's API ─────</span>
+<span class="cm">// More expensive (API call) but gives full profile data</span>
+<span class="kw">export default async function</span> <span class="fn">SettingsPage</span>() {
+  <span class="kw">const</span> <span class="var">user</span> = <span class="kw">await</span> <span class="fn">currentUser</span>()
+
+  <span class="kw">if</span> (!<span class="var">user</span>) <span class="fn">redirect</span>(<span class="str">"/sign-in"</span>)
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;h1&gt;</span>Welcome, {<span class="var">user</span>.<span class="prop">firstName</span>}!<span class="tag">&lt;/h1&gt;</span>
+      <span class="tag">&lt;p&gt;</span>{<span class="var">user</span>.<span class="prop">primaryEmailAddress</span>?.<span class="prop">emailAddress</span>}<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;img</span> <span class="attr">src</span>={<span class="var">user</span>.<span class="prop">imageUrl</span>} <span class="attr">alt</span>=<span class="str">"Profile"</span> <span class="attr">className</span>=<span class="str">"w-24 h-24 rounded-full"</span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── Protecting Server Actions ─────────────────────────────</span>
+<span class="str">"use server"</span>
+<span class="kw">import</span> { <span class="fn">auth</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs/server"</span>
+
+<span class="kw">export async function</span> <span class="fn">createOrder</span>(<span class="var">formData</span>: <span class="ty">FormData</span>) {
+  <span class="kw">const</span> { <span class="var">userId</span> } = <span class="kw">await</span> <span class="fn">auth</span>()
+
+  <span class="kw">if</span> (!<span class="var">userId</span>) {
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Unauthorized"</span>)  <span class="cm">// or return error state</span>
+  }
+
+  <span class="kw">const</span> <span class="var">order</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">order</span>.<span class="fn">create</span>({
+    <span class="prop">data</span>: {
+      <span class="var">userId</span>,       <span class="cm">// always use server-side userId — never trust client</span>
+      <span class="prop">items</span>: [...],
+    }
+  })
+
+  <span class="fn">revalidatePath</span>(<span class="str">"/orders"</span>)
+  <span class="kw">return</span> { <span class="prop">success</span>: <span class="kw">true</span>, <span class="var">order</span> }
+}
+
+<span class="cm">// ── Protecting Route Handlers ─────────────────────────────</span>
+<span class="cm">// app/api/orders/route.ts</span>
+<span class="kw">import</span> { <span class="fn">auth</span> }         <span class="kw">from</span> <span class="str">"@clerk/nextjs/server"</span>
+<span class="kw">import</span> { <span class="ty">NextResponse</span> } <span class="kw">from</span> <span class="str">"next/server"</span>
+
+<span class="kw">export async function</span> <span class="fn">GET</span>() {
+  <span class="kw">const</span> { <span class="var">userId</span> } = <span class="kw">await</span> <span class="fn">auth</span>()
+
+  <span class="kw">if</span> (!<span class="var">userId</span>) {
+    <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">json</span>({ <span class="prop">error</span>: <span class="str">"Unauthorized"</span> }, { <span class="prop">status</span>: <span class="num">401</span> })
+  }
+
+  <span class="kw">const</span> <span class="var">orders</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">order</span>.<span class="fn">findMany</span>({ <span class="prop">where</span>: { <span class="var">userId</span> } })
+  <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">json</span>({ <span class="var">orders</span> })
+}</pre></div>
+  </div>
+</div>
+
+<!-- 06. RBAC -->
+<div class="section" id="rbac">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">RBAC — roles, permissions, and metadata</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">access control</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx + ts</span><span class="cb-desc">Roles, public metadata, permission checking in server and client</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Setting roles via Clerk Dashboard ─────────────────────</span>
+<span class="cm">// Dashboard → Users → [User] → Metadata → publicMetadata:</span>
+<span class="cm">// { "role": "admin" }</span>
+<span class="cm">// Or set programmatically via Clerk Backend API / webhook</span>
+
+<span class="cm">// ── Reading roles in Server Components ───────────────────</span>
+<span class="kw">import</span> { <span class="fn">auth</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs/server"</span>
+
+<span class="kw">export default async function</span> <span class="fn">AdminPage</span>() {
+  <span class="kw">const</span> { <span class="var">userId</span>, <span class="var">sessionClaims</span> } = <span class="kw">await</span> <span class="fn">auth</span>()
+
+  <span class="cm">// sessionClaims contains publicMetadata merged in</span>
+  <span class="kw">const</span> <span class="var">role</span> = <span class="var">sessionClaims</span>?.<span class="prop">metadata</span>?.<span class="var">role</span>
+
+  <span class="kw">if</span> (<span class="var">role</span> !== <span class="str">"admin"</span>) {
+    <span class="fn">redirect</span>(<span class="str">"/unauthorized"</span>)
+  }
+
+  <span class="kw">return</span> <span class="tag">&lt;AdminDashboard</span> <span class="tag">/&gt;</span>
+}
+
+<span class="cm">// ── Protect routes by role in middleware ──────────────────</span>
+<span class="kw">const</span> <span class="var">isAdminRoute</span> = <span class="fn">createRouteMatcher</span>([<span class="str">"/admin(.*)"</span>])
+
+<span class="kw">export default</span> <span class="fn">clerkMiddleware</span>(<span class="kw">async</span> (<span class="var">auth</span>, <span class="var">req</span>) => {
+  <span class="kw">if</span> (<span class="fn">isAdminRoute</span>(<span class="var">req</span>)) {
+    <span class="kw">await</span> <span class="var">auth</span>.<span class="fn">protect</span>(<span class="cm">/* custom check can go here */</span>)
+
+    <span class="kw">const</span> { <span class="var">sessionClaims</span> } = <span class="kw">await</span> <span class="var">auth</span>()
+    <span class="kw">if</span> (<span class="var">sessionClaims</span>?.<span class="prop">metadata</span>?.<span class="prop">role</span> !== <span class="str">"admin"</span>) {
+      <span class="kw">const</span> <span class="var">url</span> = <span class="kw">new</span> <span class="fn">URL</span>(<span class="str">"/unauthorized"</span>, <span class="var">req</span>.<span class="prop">url</span>)
+      <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">redirect</span>(<span class="var">url</span>)
+    }
+  }
+})
+
+<span class="cm">// ── Reading role in Client Components ────────────────────</span>
+<span class="str">"use client"</span>
+<span class="kw">import</span> { <span class="fn">useAuth</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs"</span>
+
+<span class="kw">function</span> <span class="fn">AdminButton</span>() {
+  <span class="kw">const</span> { <span class="var">sessionClaims</span> } = <span class="fn">useAuth</span>()
+  <span class="kw">const</span> <span class="var">isAdmin</span> = <span class="var">sessionClaims</span>?.<span class="prop">metadata</span>?.<span class="prop">role</span> === <span class="str">"admin"</span>
+
+  <span class="kw">if</span> (!<span class="var">isAdmin</span>) <span class="kw">return</span> <span class="kw">null</span>
+  <span class="kw">return</span> <span class="tag">&lt;Link</span> <span class="attr">href</span>=<span class="str">"/admin"</span><span class="tag">&gt;</span>Admin panel<span class="tag">&lt;/Link&gt;</span>
+}
+
+<span class="cm">// ── Setting metadata programmatically (Server Action) ─────</span>
+<span class="str">"use server"</span>
+<span class="kw">import</span> { <span class="fn">clerkClient</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs/server"</span>
+
+<span class="kw">export async function</span> <span class="fn">promoteToAdmin</span>(<span class="var">targetUserId</span>: <span class="ty">string</span>) {
+  <span class="kw">const</span> { <span class="var">userId</span>, <span class="var">sessionClaims</span> } = <span class="kw">await</span> <span class="fn">auth</span>()
+  <span class="kw">if</span> (<span class="var">sessionClaims</span>?.<span class="prop">metadata</span>?.<span class="prop">role</span> !== <span class="str">"admin"</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Forbidden"</span>)
+
+  <span class="kw">const</span> <span class="var">client</span> = <span class="kw">await</span> <span class="fn">clerkClient</span>()
+  <span class="kw">await</span> <span class="var">client</span>.<span class="var">users</span>.<span class="fn">updateUserMetadata</span>(<span class="var">targetUserId</span>, {
+    <span class="prop">publicMetadata</span>: { <span class="prop">role</span>: <span class="str">"admin"</span> }
+  })
+}
+
+<span class="cm">// ── TypeScript: augment Clerk's types ─────────────────────</span>
+<span class="cm">// types/clerk.d.ts</span>
+<span class="kw">interface</span> <span class="ty">CustomJwtSessionClaims</span> {
+  <span class="prop">metadata</span>: {
+    <span class="prop">role</span>?: <span class="str">"admin"</span> | <span class="str">"user"</span> | <span class="str">"moderator"</span>
+    <span class="prop">plan</span>?: <span class="str">"free"</span> | <span class="str">"pro"</span> | <span class="str">"enterprise"</span>
+  }
+}</pre></div>
+  </div>
+</div>
+
+<!-- 07. WEBHOOKS -->
+<div class="section" id="webhooks">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Webhooks — sync Clerk users to your database</span>
+    <span class="sec-badge" style="background:var(--emerald-dim);color:var(--emerald);">webhooks</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">why webhooks</span>
+      <div class="cc-title">Clerk is the source of truth for auth, not your DB</div>
+      <div class="cc-body">Your Prisma database doesn't automatically know about Clerk users. When someone signs up, you need to create a corresponding record in your <code>users</code> table. Webhooks are Clerk's way of notifying your app when events happen: <code>user.created</code>, <code>user.updated</code>, <code>user.deleted</code>.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">svix verification</span>
+      <div class="cc-title">Verify every webhook is genuinely from Clerk</div>
+      <div class="cc-body">Never trust incoming POST requests without verification. Clerk uses <strong>svix</strong> to sign every webhook. You install <code>svix</code>, read the signature headers, and verify before processing. Invalid signatures → return 400, ignore the payload.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--teal-dim);color:var(--teal);">idempotency</span>
+      <div class="cc-title">Webhooks can arrive more than once</div>
+      <div class="cc-body">Network issues can cause webhooks to be delivered multiple times. Always use <code>upsert</code> instead of <code>create</code> when processing webhooks — if a <code>user.created</code> arrives twice, the second call should be harmless.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">ts</span><span class="cb-desc">Webhook Route Handler — verify svix signature, sync user to Prisma DB</span></div>
+    <div class="cb-body"><pre><span class="cm">// npm install svix</span>
+<span class="cm">// Add WEBHOOK_SECRET to .env.local (from Clerk Dashboard → Webhooks)</span>
+
+<span class="cm">// app/api/webhooks/clerk/route.ts</span>
+<span class="kw">import</span> { <span class="ty">Webhook</span> }           <span class="kw">from</span> <span class="str">"svix"</span>
+<span class="kw">import</span> { <span class="var">headers</span> }          <span class="kw">from</span> <span class="str">"next/headers"</span>
+<span class="kw">import</span> { <span class="ty">WebhookEvent</span> }      <span class="kw">from</span> <span class="str">"@clerk/nextjs/server"</span>
+<span class="kw">import</span> { <span class="ty">NextResponse</span> }      <span class="kw">from</span> <span class="str">"next/server"</span>
+<span class="kw">import</span> { <span class="var">db</span> }               <span class="kw">from</span> <span class="str">"@/lib/db"</span>
+
+<span class="kw">export async function</span> <span class="fn">POST</span>(<span class="var">req</span>: <span class="ty">Request</span>) {
+  <span class="kw">const</span> <span class="var">WEBHOOK_SECRET</span> = <span class="var">process</span>.<span class="prop">env</span>.<span class="prop">WEBHOOK_SECRET</span>
+  <span class="kw">if</span> (!<span class="var">WEBHOOK_SECRET</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Missing WEBHOOK_SECRET"</span>)
+
+  <span class="cm">// ── 1. Read Svix signature headers ───────────────────────</span>
+  <span class="kw">const</span> <span class="var">headerPayload</span> = <span class="kw">await</span> <span class="fn">headers</span>()
+  <span class="kw">const</span> <span class="var">svixId</span>        = <span class="var">headerPayload</span>.<span class="fn">get</span>(<span class="str">"svix-id"</span>)
+  <span class="kw">const</span> <span class="var">svixTimestamp</span> = <span class="var">headerPayload</span>.<span class="fn">get</span>(<span class="str">"svix-timestamp"</span>)
+  <span class="kw">const</span> <span class="var">svixSignature</span> = <span class="var">headerPayload</span>.<span class="fn">get</span>(<span class="str">"svix-signature"</span>)
+
+  <span class="kw">if</span> (!<span class="var">svixId</span> || !<span class="var">svixTimestamp</span> || !<span class="var">svixSignature</span>) {
+    <span class="kw">return</span> <span class="kw">new</span> <span class="ty">Response</span>(<span class="str">"Bad Request: missing svix headers"</span>, { <span class="prop">status</span>: <span class="num">400</span> })
+  }
+
+  <span class="cm">// ── 2. Verify signature ───────────────────────────────────</span>
+  <span class="kw">const</span> <span class="var">body</span> = <span class="kw">await</span> <span class="var">req</span>.<span class="fn">text</span>()
+  <span class="kw">const</span> <span class="var">wh</span>   = <span class="kw">new</span> <span class="fn">Webhook</span>(<span class="var">WEBHOOK_SECRET</span>)
+
+  <span class="kw">let</span> <span class="var">event</span>: <span class="ty">WebhookEvent</span>
+  <span class="kw">try</span> {
+    <span class="var">event</span> = <span class="var">wh</span>.<span class="fn">verify</span>(<span class="var">body</span>, {
+      <span class="str">"svix-id"</span>:        <span class="var">svixId</span>,
+      <span class="str">"svix-timestamp"</span>: <span class="var">svixTimestamp</span>,
+      <span class="str">"svix-signature"</span>: <span class="var">svixSignature</span>,
+    }) <span class="kw">as</span> <span class="ty">WebhookEvent</span>
+  } <span class="kw">catch</span> (<span class="var">err</span>) {
+    <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"Webhook verification failed:"</span>, <span class="var">err</span>)
+    <span class="kw">return</span> <span class="kw">new</span> <span class="ty">Response</span>(<span class="str">"Unauthorized"</span>, { <span class="prop">status</span>: <span class="num">401</span> })
+  }
+
+  <span class="cm">// ── 3. Handle events ──────────────────────────────────────</span>
+  <span class="kw">switch</span> (<span class="var">event</span>.<span class="prop">type</span>) {
+    <span class="kw">case</span> <span class="str">"user.created"</span>: {
+      <span class="kw">const</span> { <span class="var">id</span>, <span class="var">email_addresses</span>, <span class="var">first_name</span>, <span class="var">last_name</span>, <span class="var">image_url</span> } = <span class="var">event</span>.<span class="prop">data</span>
+      <span class="kw">await</span> <span class="var">db</span>.<span class="var">user</span>.<span class="fn">create</span>({
+        <span class="prop">data</span>: {
+          <span class="prop">clerkId</span>: <span class="var">id</span>,         <span class="cm">// store Clerk's ID — link for future lookups</span>
+          <span class="prop">email</span>:   <span class="var">email_addresses</span>[<span class="num">0</span>]?.<span class="prop">email_address</span> ?? <span class="str">""</span>,
+          <span class="prop">name</span>:    `${<span class="var">first_name</span> ?? <span class="str">""</span>} ${<span class="var">last_name</span> ?? <span class="str">""</span>}`.<span class="fn">trim</span>(),
+          <span class="prop">imageUrl</span>:<span class="var">image_url</span>,
+        }
+      })
+      <span class="kw">break</span>
+    }
+    <span class="kw">case</span> <span class="str">"user.updated"</span>: {
+      <span class="kw">const</span> { <span class="var">id</span>, <span class="var">email_addresses</span>, <span class="var">first_name</span>, <span class="var">last_name</span>, <span class="var">image_url</span> } = <span class="var">event</span>.<span class="prop">data</span>
+      <span class="kw">await</span> <span class="var">db</span>.<span class="var">user</span>.<span class="fn">upsert</span>({        <span class="cm">// idempotent — safe to run multiple times</span>
+        <span class="prop">where</span>:  { <span class="prop">clerkId</span>: <span class="var">id</span> },
+        <span class="prop">update</span>: { <span class="prop">email</span>: <span class="var">email_addresses</span>[<span class="num">0</span>]?.<span class="prop">email_address</span>, <span class="prop">imageUrl</span>: <span class="var">image_url</span> },
+        <span class="prop">create</span>: { <span class="prop">clerkId</span>: <span class="var">id</span>, <span class="prop">email</span>: <span class="var">email_addresses</span>[<span class="num">0</span>]?.<span class="prop">email_address</span> ?? <span class="str">""</span>, <span class="prop">name</span>: <span class="str">""</span> },
+      })
+      <span class="kw">break</span>
+    }
+    <span class="kw">case</span> <span class="str">"user.deleted"</span>: {
+      <span class="kw">const</span> { <span class="var">id</span> } = <span class="var">event</span>.<span class="prop">data</span>
+      <span class="kw">await</span> <span class="var">db</span>.<span class="var">user</span>.<span class="fn">delete</span>({ <span class="prop">where</span>: { <span class="prop">clerkId</span>: <span class="var">id</span> } })
+      <span class="kw">break</span>
+    }
+    <span class="kw">default</span>:
+      <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">`Unhandled event: ${<span class="var">event</span>.<span class="prop">type</span>}`</span>)
+  }
+
+  <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">json</span>({ <span class="prop">success</span>: <span class="kw">true</span> })
+}</pre></div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Coding exercises — auth logic in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Session manager — simulate Clerk's session lifecycle</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>createSessionManager()</code> that simulates Clerk's session management: create sessions with a TTL, auto-expire sessions, refresh tokens, sign-out (invalidate), and a <code>getActiveSession()</code> that returns the session or null if expired/invalid.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — session manager</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">function createSessionManager({ ttlMs = 3600_000 } = {}) {
+  const sessions = new Map()  // sessionId → session data
+  let now = Date.now()
+  const tick = (ms) => { now += ms }  // for testing time advancement
+
+  function generateId() {
+    return "sess_" + Math.random().toString(36).slice(2, 14)
+  }
+
+  function createSession(userId, metadata = {}) {
+    const sessionId = generateId()
+    const session = {
+      sessionId,
+      userId,
+      createdAt:  now,
+      expiresAt:  now + ttlMs,
+      lastActive: now,
+      metadata,
+    }
+    sessions.set(sessionId, session)
+    return sessionId
+  }
+
+  function getActiveSession(sessionId) {
+    if (!sessionId) return null
+    const session = sessions.get(sessionId)
+    if (!session) return null
+    // YOUR CODE: check if expired, if so delete and return null
+    if (now > session.expiresAt) { sessions.delete(sessionId); return null }
+    // Update lastActive
+    session.lastActive = now
+    return { ...session }
+  }
+
+  function refreshSession(sessionId) {
+    const session = sessions.get(sessionId)
+    if (!session || now > session.expiresAt) return null
+    session.expiresAt = now + ttlMs
+    return session.sessionId
+  }
+
+  function invalidateSession(sessionId) {
+    return sessions.delete(sessionId)
+  }
+
+  function invalidateAllSessions(userId) {
+    let count = 0
+    for (const [id, sess] of sessions) {
+      if (sess.userId === userId) { sessions.delete(id); count++ }
+    }
+    return count
+  }
+
+  function getActiveSessions(userId) {
+    return [...sessions.values()].filter(s => s.userId === userId && now <= s.expiresAt)
+  }
+
+  return { createSession, getActiveSession, refreshSession, invalidateSession, invalidateAllSessions, getActiveSessions, tick }
+}
+
+// Test
+const sm = createSessionManager({ ttlMs: 1000 })  // 1 second TTL for testing
+
+const s1 = sm.createSession("user_123", { role: "admin" })
+const s2 = sm.createSession("user_123")  // second session
+const s3 = sm.createSession("user_456")
+
+console.log("Active session:", sm.getActiveSession(s1)?.userId)   // user_123
+console.log("Active session role:", sm.getActiveSession(s1)?.metadata?.role)  // admin
+console.log("Invalid session:", sm.getActiveSession("bad_id"))     // null
+
+// Refresh s1 before expiry
+console.log("Refreshed:", sm.refreshSession(s1))   // s1 (not null)
+
+// Advance time to expire s2 and s3 (but not refreshed s1)
+sm.tick(1100)  // 1.1 seconds
+console.log("s1 still valid (refreshed):", sm.getActiveSession(s1) !== null)  // true
+console.log("s2 expired:", sm.getActiveSession(s2))   // null
+console.log("s3 expired:", sm.getActiveSession(s3))   // null
+
+// Sessions for user_123: only s1 (s2 expired)
+const active = sm.getActiveSessions("user_123")
+console.log("Active sessions for user_123:", active.length)  // 1
+
+// Invalidate all sessions (e.g., password changed)
+sm.tick(-1200)  // go back in time to recreate fresh sessions
+const s4 = sm.createSession("user_123")
+const s5 = sm.createSession("user_123")
+const invalidated = sm.invalidateAllSessions("user_123")
+console.log("Invalidated:", invalidated, "sessions")  // 3 (s1 + s4 + s5)
+console.log("All gone:", sm.getActiveSessions("user_123").length === 0)  // true</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Route protection — middleware matcher simulation</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>createRouteMatcher(patterns)</code> (like Clerk's) that matches URL paths against patterns including wildcards (<code>/dashboard(.*)</code>), exact routes, and negations. Then build <code>runMiddleware(request, session)</code> that protects routes based on auth status.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — route matcher + middleware</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">function createRouteMatcher(patterns) {
+  // Convert Clerk-style patterns to RegExp
+  const regexes = patterns.map(p => {
+    // (.*) means "this path and anything after"
+    const escaped = p
+      .replace(/[.+?^${}()|[\]\\]/g, '\\$&')  // escape regex chars except ()
+      .replace(/\\\(/g, '(').replace(/\\\)/g, ')')  // restore ()
+      .replace(/\(\.\*\)/g, '(.*)')            // keep (.*)
+    return new RegExp(`^${escaped}$`)
+  })
+
+  return (pathname) => regexes.some(r => r.test(pathname))
+}
+
+function createAuthMiddleware({ publicRoutes, adminRoutes = [] }) {
+  const isPublic = createRouteMatcher(publicRoutes)
+  const isAdmin  = createRouteMatcher(adminRoutes)
+
+  return function runMiddleware(request) {
+    const { pathname, session } = request
+    const userId  = session?.userId ?? null
+    const role    = session?.role   ?? null
+
+    // Admin routes
+    if (isAdmin(pathname)) {
+      if (!userId) return { action: "redirect", to: `/sign-in?callbackUrl=${pathname}`, reason: "unauthenticated" }
+      if (role !== "admin") return { action: "redirect", to: "/unauthorized", reason: "insufficient role" }
+      return { action: "next", headers: { "x-user-id": userId, "x-role": role } }
+    }
+
+    // Public routes
+    if (isPublic(pathname)) {
+      return { action: "next", reason: "public" }
+    }
+
+    // All other routes: require auth
+    if (!userId) {
+      return { action: "redirect", to: `/sign-in?callbackUrl=${encodeURIComponent(pathname)}`, reason: "unauthenticated" }
+    }
+
+    return { action: "next", headers: { "x-user-id": userId } }
+  }
+}
+
+const middleware = createAuthMiddleware({
+  publicRoutes: ["/", "/sign-in(.*)", "/sign-up(.*)", "/products(.*)", "/about", "/api/webhooks(.*)"],
+  adminRoutes:  ["/admin(.*)"],
+})
+
+const tests = [
+  { url:"/",                    session:null,                 expect:"next" },
+  { url:"/products",            session:null,                 expect:"next" },
+  { url:"/products/42/reviews", session:null,                 expect:"next" },
+  { url:"/sign-in",             session:null,                 expect:"next" },
+  { url:"/sign-in/factor-one",  session:null,                 expect:"next" },
+  { url:"/api/webhooks/clerk",  session:null,                 expect:"next" },
+  { url:"/dashboard",           session:null,                 expect:"redirect" },
+  { url:"/dashboard/settings",  session:{userId:"u1"},        expect:"next" },
+  { url:"/account/orders",      session:{userId:"u1"},        expect:"next" },
+  { url:"/admin",               session:null,                 expect:"redirect" },
+  { url:"/admin",               session:{userId:"u2",role:"user"},  expect:"redirect" },
+  { url:"/admin/products",      session:{userId:"u2",role:"admin"}, expect:"next" },
+  { url:"/api/cart",            session:null,                 expect:"redirect" },
+  { url:"/api/cart",            session:{userId:"u1"},        expect:"next" },
+]
+
+console.log("=== Middleware Route Tests ===")
+let passed = 0
+tests.forEach(t => {
+  const result = middleware({ pathname: t.url, session: t.session })
+  const ok     = result.action === t.expect
+  if (ok) passed++
+  const auth   = t.session?.userId ? `[${t.session.role ?? "user"}]` : "[anon]"
+  console.log(`${ok?"✓":"✗"} ${auth.padEnd(8)} ${t.url.padEnd(28)} → ${result.action}${result.to ? " " + result.to.split("?")[0] : ""}`)
+})
+console.log(`\nPassed: ${passed}/${tests.length}`)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">RBAC — role-based access control system</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createRBAC(config)</code> that maps roles to permissions. Implement <code>can(userId, action, resource)</code> that checks if a user's role grants the requested permission. Support role inheritance (admin inherits all user permissions) and resource-level checks (users can only edit their own content).</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — role-based access control</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">function createRBAC(config) {
+  // config: { roles: { roleName: { permissions: [], inherits: [] } } }
+  const { roles } = config
+
+  function getPermissions(roleName, visited = new Set()) {
+    if (visited.has(roleName)) return new Set()
+    visited.add(roleName)
+
+    const role = roles[roleName]
+    if (!role) return new Set()
+
+    const perms = new Set(role.permissions || [])
+
+    // Inherit from parent roles
+    for (const parent of (role.inherits || [])) {
+      for (const perm of getPermissions(parent, visited)) {
+        perms.add(perm)
+      }
+    }
+
+    return perms
+  }
+
+  function can(user, action, resource = null) {
+    // user: { id, role }
+    const perms = getPermissions(user.role)
+    const perm  = resource ? `${action}:${resource}` : action
+
+    // Exact permission match
+    if (perms.has(perm)) return true
+
+    // Wildcard: "manage:products" → can do any action on products
+    if (perms.has(`manage:${resource}`)) return true
+
+    // Super wildcard: "manage:*"
+    if (perms.has("manage:*")) return true
+
+    return false
+  }
+
+  function canOwn(user, action, resource, ownerId) {
+    // Check if user can do action on own resources
+    if (can(user, action, resource)) return true
+
+    // Check own-resource permission
+    const perms = getPermissions(user.role)
+    if (perms.has(`${action}:own:${resource}`) && user.id === ownerId) return true
+
+    return false
+  }
+
+  return { can, canOwn, getPermissions: (role) => [...getPermissions(role)] }
+}
+
+const rbac = createRBAC({
+  roles: {
+    guest: {
+      permissions: ["read:products", "read:reviews"],
+    },
+    user: {
+      inherits: ["guest"],
+      permissions: ["create:orders", "read:own:orders", "update:own:profile",
+                    "create:reviews", "update:own:reviews", "delete:own:reviews"],
+    },
+    moderator: {
+      inherits: ["user"],
+      permissions: ["delete:reviews", "manage:comments", "read:users"],
+    },
+    admin: {
+      inherits: ["moderator"],
+      permissions: ["manage:products", "manage:users", "manage:orders", "manage:*"],
+    },
+  }
+})
+
+// Test users
+const guest     = { id:"g1", role:"guest" }
+const user      = { id:"u1", role:"user" }
+const moderator = { id:"m1", role:"moderator" }
+const admin     = { id:"a1", role:"admin" }
+
+console.log("=== Guest permissions ===")
+console.log("read products:", rbac.can(guest, "read", "products"))    // true
+console.log("create orders:", rbac.can(guest, "create", "orders"))    // false
+console.log("manage:*:",      rbac.can(guest, "manage", "*"))          // false
+
+console.log("\n=== User permissions ===")
+console.log("read products:", rbac.can(user, "read", "products"))     // true (inherited)
+console.log("create orders:", rbac.can(user, "create", "orders"))     // true
+console.log("delete reviews:", rbac.can(user, "delete", "reviews"))   // false
+
+console.log("\n=== Own-resource checks ===")
+const review = { authorId:"u1" }
+console.log("user deletes own review:", rbac.canOwn(user, "delete", "reviews", "u1"))  // ??? let's check
+// Actually user has "delete:own:reviews"
+console.log("user deletes others review:", rbac.canOwn(user, "delete", "reviews", "u2"))  // false
+
+console.log("\n=== Moderator permissions ===")
+console.log("delete reviews:", rbac.can(moderator, "delete", "reviews"))  // true
+console.log("manage products:", rbac.can(moderator, "manage", "products")) // false
+console.log("read users:", rbac.can(moderator, "read", "users"))           // true
+
+console.log("\n=== Admin permissions ===")
+console.log("manage products:", rbac.can(admin, "manage", "products"))  // true (explicit)
+console.log("delete anything:", rbac.can(admin, "delete", "orders"))    // true (manage:*)
+console.log("nuclear option:", rbac.can(admin, "anything", "at all"))   // true (manage:*)
+
+console.log("\n=== Admin permission set (inherited) ===")
+const adminPerms = rbac.getPermissions("admin")
+console.log("Total permissions:", adminPerms.length)
+console.log("Includes guest perms:", adminPerms.includes("read:products"))</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Webhook processor — verify, parse, idempotent DB sync</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>createWebhookProcessor(secret)</code> that: verifies signatures (simplified svix simulation), parses the event, and processes <code>user.created</code>, <code>user.updated</code>, <code>user.deleted</code> events with idempotent upserts. Test with duplicate events to verify idempotency.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — webhook processor</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">// Mock DB
+const mockDB = {
+  users: new Map(),  // clerkId → user record
+  upsert(user) {
+    const existing = this.users.get(user.clerkId)
+    this.users.set(user.clerkId, { ...(existing || {}), ...user, updatedAt: Date.now() })
+    return this.users.get(user.clerkId)
+  },
+  delete(clerkId) {
+    const had = this.users.has(clerkId)
+    this.users.delete(clerkId)
+    return had
+  },
+  get: (clerkId) => mockDB.users.get(clerkId),
+  all: () => [...mockDB.users.values()],
+}
+
+function createWebhookProcessor(secret) {
+  const processedIds = new Set()  // prevent duplicate processing
+
+  function verifySignature(payload, headers) {
+    // Simplified: real svix uses HMAC-SHA256 of timestamp + payload
+    const { "svix-id": id, "svix-signature": sig } = headers
+    if (!id || !sig) return { valid: false, reason: "Missing headers" }
+    // Simulate: signature = secret + ":" + svix-id hash
+    const expected = `${secret}:${id}`
+    return { valid: sig === expected, reason: sig !== expected ? "Invalid signature" : "ok" }
+  }
+
+  async function process(rawBody, headers) {
+    // 1. Verify
+    const { valid, reason } = verifySignature(rawBody, headers)
+    if (!valid) return { status: 401, error: reason }
+
+    // 2. Parse
+    let event
+    try { event = JSON.parse(rawBody) }
+    catch { return { status: 400, error: "Invalid JSON" } }
+
+    // 3. Idempotency — skip if already processed
+    const eventId = headers["svix-id"]
+    if (processedIds.has(eventId)) {
+      return { status: 200, skipped: true, reason: "already processed" }
+    }
+    processedIds.add(eventId)
+
+    // 4. Handle event
+    const { type, data } = event
+    let result
+
+    switch(type) {
+      case "user.created":
+        result = mockDB.upsert({
+          clerkId:  data.id,
+          email:    data.email_addresses?.[0]?.email_address ?? "",
+          name:     `${data.first_name ?? ""} ${data.last_name ?? ""}`.trim(),
+          imageUrl: data.image_url,
+          createdAt:Date.now(),
+        })
+        return { status: 201, action: "created", user: result }
+
+      case "user.updated":
+        if (!mockDB.get(data.id)) {
+          // Create if doesn't exist (missed the created event)
+          result = mockDB.upsert({ clerkId: data.id, email: data.email_addresses?.[0]?.email_address ?? "", name: "" })
+        } else {
+          result = mockDB.upsert({
+            clerkId:  data.id,
+            email:    data.email_addresses?.[0]?.email_address,
+            name:     `${data.first_name ?? ""} ${data.last_name ?? ""}`.trim(),
+            imageUrl: data.image_url,
+          })
+        }
+        return { status: 200, action: "updated", user: result }
+
+      case "user.deleted":
+        const deleted = mockDB.delete(data.id)
+        return { status: 200, action: "deleted", wasPresent: deleted }
+
+      default:
+        return { status: 200, action: "ignored", type }
+    }
+  }
+
+  return { process }
+}
+
+const processor = createWebhookProcessor("wh_secret_123")
+
+function makeHeaders(id) {
+  return { "svix-id": id, "svix-signature": `wh_secret_123:${id}`, "svix-timestamp": Date.now().toString() }
+}
+
+async function runTests() {
+  // Test: bad signature
+  const bad = await processor.process(JSON.stringify({type:"user.created",data:{id:"u1"}}),
+    {"svix-id":"ev1","svix-signature":"wrong","svix-timestamp":"0"})
+  console.log("Bad signature:", bad.status, bad.error)  // 401
+
+  // Test: user.created
+  const ev1 = JSON.stringify({ type:"user.created", data:{id:"clerk_u1", email_addresses:[{email_address:"alice@test.com"}], first_name:"Alice", last_name:"Smith", image_url:"https://img/1"} })
+  const r1 = await processor.process(ev1, makeHeaders("ev1"))
+  console.log("Created:", r1.status, r1.user?.name, r1.user?.email)
+
+  // Test: duplicate event (same svix-id)
+  const r2 = await processor.process(ev1, makeHeaders("ev1"))
+  console.log("Duplicate:", r2.skipped, r2.reason)  // true, already processed
+
+  // Test: user.updated
+  const ev2 = JSON.stringify({ type:"user.updated", data:{id:"clerk_u1", email_addresses:[{email_address:"alice.new@test.com"}], first_name:"Alice", last_name:"Jones", image_url:"https://img/2"} })
+  const r3 = await processor.process(ev2, makeHeaders("ev2"))
+  console.log("Updated:", r3.action, r3.user?.name, r3.user?.email)
+
+  // Test: user.deleted
+  const ev3 = JSON.stringify({ type:"user.deleted", data:{id:"clerk_u1"} })
+  const r4 = await processor.process(ev3, makeHeaders("ev3"))
+  console.log("Deleted:", r4.action, r4.wasPresent)
+
+  // Verify DB state
+  console.log("\nDB users:", mockDB.all().length)  // 0 (deleted)
+
+  // Test: update for non-existent user (missed created event)
+  const ev4 = JSON.stringify({ type:"user.updated", data:{id:"clerk_u2", email_addresses:[{email_address:"bob@test.com"}], first_name:"Bob"} })
+  await processor.process(ev4, makeHeaders("ev4"))
+  console.log("Upserted missing user:", mockDB.get("clerk_u2")?.email)
+
+  console.log("\n✅ Webhook processor verified")
+}
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Auth state machine — sign-in flow with MFA</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Model the authentication flow as a state machine: <code>idle → loading → needs_mfa → authenticated | error</code>. Implement all transitions: credential submission, MFA verification, OAuth callback, session expiry, and sign-out. Ensure invalid transitions are ignored.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — auth flow state machine</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">function createAuthMachine() {
+  let state = { status: "idle" }
+  let log   = []
+  let subs  = []
+  const notify = () => subs.forEach(fn => fn({ ...state }))
+
+  const transitions = {
+    idle: {
+      SUBMIT_CREDENTIALS: (_, e) => ({ status: "loading", method: e.method }),
+      OAUTH_CALLBACK:     (_, e) => ({ status: "loading", method: "oauth" }),
+    },
+    loading: {
+      NEEDS_MFA:   (_, e) => ({ status: "needs_mfa", mfaType: e.type, attempts: 0 }),
+      SUCCESS:     (_, e) => ({ status: "authenticated", userId: e.userId, sessionId: e.sessionId }),
+      ERROR:       (_, e) => ({ status: "error", message: e.message, canRetry: e.canRetry ?? true }),
+    },
+    needs_mfa: {
+      SUBMIT_MFA:  (s, e) => {
+        if (e.code === "123456") return { status: "authenticated", userId: e.userId, sessionId: "sess_"+Math.random().toString(36).slice(2,8) }
+        const attempts = (s.attempts || 0) + 1
+        if (attempts >= 3) return { status: "error", message: "Too many MFA attempts", canRetry: false }
+        return { ...s, attempts, lastError: "Invalid code" }
+      },
+      CANCEL: () => ({ status: "idle" }),
+    },
+    authenticated: {
+      SIGN_OUT:       () => ({ status: "idle" }),
+      SESSION_EXPIRED:() => ({ status: "error", message: "Session expired", canRetry: true }),
+    },
+    error: {
+      RETRY:  (s) => s.canRetry ? { status: "idle" } : s,
+      RESET:  () => ({ status: "idle" }),
+    },
+  }
+
+  function dispatch(event) {
+    const available = transitions[state.status] || {}
+    const transition = available[event.type]
+    if (!transition) {
+      log.push(`[IGNORED] ${event.type} in state ${state.status}`)
+      return state
+    }
+    const next = transition(state, event)
+    log.push(`${state.status} →[${event.type}]→ ${next.status}`)
+    state = next
+    notify()
+    return state
+  }
+
+  return {
+    dispatch,
+    getState: () => ({ ...state }),
+    subscribe: fn => { subs.push(fn) },
+    getLog:    () => [...log],
+  }
+}
+
+async function runTests() {
+  const machine = createAuthMachine()
+
+  console.log("=== Normal sign-in flow ===")
+  console.log("Initial:", machine.getState().status)  // idle
+
+  machine.dispatch({ type: "SUBMIT_CREDENTIALS", method: "email" })
+  console.log("After submit:", machine.getState().status)  // loading
+
+  machine.dispatch({ type: "NEEDS_MFA", mfaType: "totp" })
+  console.log("Needs MFA:", machine.getState().status, machine.getState().mfaType)
+
+  // Wrong code
+  machine.dispatch({ type: "SUBMIT_MFA", code: "999999" })
+  console.log("Wrong code:", machine.getState().status, "attempts:", machine.getState().attempts)
+
+  // Correct code
+  machine.dispatch({ type: "SUBMIT_MFA", code: "123456", userId: "user_abc" })
+  console.log("Authenticated:", machine.getState().status, machine.getState().userId)
+
+  // Invalid transition: SUBMIT_CREDENTIALS while authenticated (no-op)
+  machine.dispatch({ type: "SUBMIT_CREDENTIALS" })
+  console.log("Still authenticated:", machine.getState().status)
+
+  // Sign out
+  machine.dispatch({ type: "SIGN_OUT" })
+  console.log("After sign out:", machine.getState().status)  // idle
+
+  console.log("\n=== Error + retry flow ===")
+  machine.dispatch({ type: "SUBMIT_CREDENTIALS", method: "email" })
+  machine.dispatch({ type: "ERROR", message: "Invalid password", canRetry: true })
+  console.log("Error:", machine.getState().message)
+
+  machine.dispatch({ type: "RETRY" })
+  console.log("After retry:", machine.getState().status)  // idle
+
+  console.log("\n=== MFA lockout ===")
+  machine.dispatch({ type: "SUBMIT_CREDENTIALS" })
+  machine.dispatch({ type: "NEEDS_MFA", mfaType: "totp" })
+  machine.dispatch({ type: "SUBMIT_MFA", code: "wrong" })
+  machine.dispatch({ type: "SUBMIT_MFA", code: "wrong" })
+  machine.dispatch({ type: "SUBMIT_MFA", code: "wrong" })
+  const locked = machine.getState()
+  console.log("Locked:", locked.status, locked.message)
+  machine.dispatch({ type: "RETRY" })  // canRetry is false
+  console.log("Retry blocked:", machine.getState().status)  // stays error
+
+  console.log("\n=== OAuth flow ===")
+  machine.dispatch({ type: "RESET" })
+  machine.dispatch({ type: "OAUTH_CALLBACK" })
+  machine.dispatch({ type: "SUCCESS", userId: "oauth_user", sessionId: "sess_oauth" })
+  console.log("OAuth success:", machine.getState().status, machine.getState().userId)
+
+  console.log("\nTransition log:")
+  machine.getLog().forEach(t => console.log(" ", t))
+}
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Full auth integration — all systems together</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Combine all today's pieces: session management, route protection middleware, RBAC, and webhook processing into a single simulated auth system for the React Shop. Walk through the full lifecycle: user signs up → webhook creates DB record → user logs in → accesses protected routes → admin promotes user → user gets admin access.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — full auth integration</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// Full React Shop auth simulation
+
+// ── 1. DB ─────────────────────────────────────────────────
+const db = {
+  users: new Map(),
+  create: (u) => { db.users.set(u.clerkId, {...u, role:"user"}); return db.users.get(u.clerkId) },
+  update: (clerkId, data) => { const u = db.users.get(clerkId); if(u) Object.assign(u,data); return u },
+  get:    (clerkId) => db.users.get(clerkId),
+  all:    () => [...db.users.values()],
+}
+
+// ── 2. Session store ──────────────────────────────────────
+const sessions = new Map()
+function createSession(userId, role) {
+  const id = "sess_" + Math.random().toString(36).slice(2,10)
+  sessions.set(id, { id, userId, role, createdAt: Date.now() })
+  return id
+}
+function getSession(id) { return sessions.get(id) ?? null }
+
+// ── 3. Middleware ─────────────────────────────────────────
+function runMiddleware(pathname, sessionId) {
+  const PUBLIC = ["/", "/products", "/sign-in", "/sign-up", "/api/webhooks"]
+  const ADMIN  = ["/admin"]
+  const isPublic = PUBLIC.some(p => pathname.startsWith(p))
+  const isAdmin  = ADMIN.some(p => pathname.startsWith(p))
+  const session  = getSession(sessionId)
+
+  if (isPublic && !isAdmin) return { allow: true, reason: "public" }
+  if (!session) return { allow: false, redirect: `/sign-in?cb=${pathname}`, reason: "unauthenticated" }
+  if (isAdmin && session.role !== "admin") return { allow: false, redirect: "/unauthorized", reason: "not admin" }
+  return { allow: true, userId: session.userId, role: session.role }
+}
+
+// ── 4. RBAC ───────────────────────────────────────────────
+const perms = {
+  user:  ["read:products","create:orders","read:own:orders","create:reviews"],
+  admin: ["manage:products","manage:orders","manage:users","read:products"],
+}
+function can(role, action) { return (perms[role] || []).some(p => p === action || p === `manage:${action.split(":")[1]}` || p.startsWith("manage:")) }
+
+// ── 5. Webhook processor ──────────────────────────────────
+function processWebhook(event) {
+  switch(event.type) {
+    case "user.created": return db.create({ clerkId:event.data.id, email:event.data.email, name:event.data.name })
+    case "user.updated": return db.update(event.data.id, { email:event.data.email, name:event.data.name })
+    case "user.deleted": db.users.delete(event.data.id); return { deleted:true }
+    default: return null
+  }
+}
+
+// ── Full lifecycle test ───────────────────────────────────
+async function runFullLifecycle() {
+  console.log("=== 1. User signs up — Clerk fires webhook ===")
+  const clerkId = "user_abc123"
+  processWebhook({ type:"user.created", data:{ id:clerkId, email:"alice@test.com", name:"Alice Smith" }})
+  const dbUser = db.get(clerkId)
+  console.log("DB user created:", dbUser?.name, dbUser?.email, "role:", dbUser?.role)
+
+  console.log("\n=== 2. User logs in — session created ===")
+  const sessionId = createSession(clerkId, dbUser.role)
+  const session   = getSession(sessionId)
+  console.log("Session created:", session?.id.slice(0,12)+"...")
+  console.log("Session userId:", session?.userId)
+
+  console.log("\n=== 3. Route access ===")
+  const routes = ["/","/products/42","/dashboard","/admin","/api/cart"]
+  routes.forEach(path => {
+    const result = runMiddleware(path, sessionId)
+    console.log(`  ${path.padEnd(20)} → ${result.allow ? "✓ allow" : "✗ redirect: " + result.redirect?.split("?")[0]}`)
+  })
+
+  console.log("\n=== 4. RBAC permission checks ===")
+  const actions = ["read:products","create:orders","manage:products","manage:users"]
+  actions.forEach(a => {
+    console.log(`  user.${a}: ${can("user",a)?"✓":"✗"}  admin.${a}: ${can("admin",a)?"✓":"✗"}`)
+  })
+
+  console.log("\n=== 5. Admin promotes Alice ===")
+  db.update(clerkId, { role: "admin" })
+  // Session would be refreshed by Clerk — simulate by updating
+  sessions.get(sessionId).role = "admin"
+  console.log("Alice's new role:", db.get(clerkId)?.role)
+  console.log("Admin access to /admin:", runMiddleware("/admin", sessionId).allow)
+
+  console.log("\n=== 6. Admin actions unlocked ===")
+  console.log("Can manage:products:", can("admin","manage:products"))
+  console.log("Can manage:users:", can("admin","manage:users"))
+
+  console.log("\n=== 7. Sign out ===")
+  sessions.delete(sessionId)
+  console.log("Signed out. /dashboard access:", runMiddleware("/dashboard", sessionId).allow)
+
+  console.log("\n=== Summary ===")
+  console.log("DB users:", db.all().length)
+  console.log("Active sessions:", sessions.size)
+  console.log("\n✅ Full auth lifecycle complete!")
+}
+runFullLifecycle()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">Why use an auth service like Clerk instead of building auth yourself?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Building auth from scratch requires solving: secure password hashing, email verification with time-limited tokens, OAuth 2.0 flows for each provider (each has different quirks), CSRF protection, session management and rotation, refresh tokens, account lockout after failed attempts, rate limiting, multi-factor authentication, passkeys, audit logs, and GDPR compliance for data deletion. Each of these is a separate project that takes weeks and requires ongoing security maintenance.<br><br>Clerk handles all of this, plus provides a user management dashboard, pre-built UI components that match your brand, excellent TypeScript support, and a free tier up to 10,000 MAU. The real cost of rolling your own is usually 2–3 months of a senior engineer's time, plus ongoing security patches and incident response. For the vast majority of applications, Clerk is the economically and architecturally correct choice.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">What is the difference between auth() and currentUser() in Clerk?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>auth()</code> is a lightweight server-side function that reads the session from the request — it gives you <code>userId</code>, <code>sessionId</code>, and <code>sessionClaims</code> (which includes your custom metadata). It doesn't make an external API call, so it's fast and cheap. Use it in Server Components and Server Actions when you just need the user's ID to query your own database.<br><br><code>currentUser()</code> makes an API call to Clerk's servers to fetch the full user object — including <code>firstName</code>, <code>lastName</code>, <code>imageUrl</code>, <code>emailAddresses</code>, connected OAuth accounts, and all metadata. It's slower and more expensive per request. Use it only when you actually need the profile data, like on a profile page or settings page.<br><br>A common pattern: store user data in your own Prisma database (synced via webhooks), then use <code>auth()</code> to get the ID and query your own DB. This is faster and reduces Clerk API calls.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">How does clerkMiddleware protect routes, and what is createRouteMatcher?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>clerkMiddleware</code> wraps your Next.js middleware function and gives it access to the Clerk authentication context. Inside, you call <code>auth.protect()</code> on routes that require authentication — this redirects unauthenticated users to the sign-in page.<br><br><code>createRouteMatcher(patterns)</code> takes an array of URL patterns (supporting wildcards like <code>/dashboard(.*)</code>) and returns a function that tests whether a given request URL matches. You use it to define which routes are public and which are protected.<br><br>The pattern: define <code>isPublic</code> with all the routes anyone can access, then in the middleware check <code>if (!isPublic(req)) { await auth.protect() }</code>. This is an allowlist approach — if a route isn't explicitly public, it requires auth. This is more secure than a denylist (forgetting to protect a route).<br><br>For role-based route protection, you additionally check <code>sessionClaims.metadata.role</code> after auth and redirect to <code>/unauthorized</code> if the role doesn't match.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">Why do you need webhooks to sync Clerk users to your database?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Clerk manages user authentication — your Prisma database doesn't automatically know when users sign up, update their profile, or delete their account. If you store user-related data (orders, reviews, preferences) in your database keyed to a user ID, you need a record in your users table to relate to.<br><br>Webhooks are the solution: Clerk sends an HTTP POST to your Route Handler whenever user events occur — <code>user.created</code>, <code>user.updated</code>, <code>user.deleted</code>. Your handler verifies the signature (using svix), then creates/updates/deletes the corresponding record in your own database.<br><br>This means your database has a <code>clerkId</code> column that maps Clerk's user ID to your internal record. In Server Components, you call <code>auth()</code> to get the <code>userId</code>, then query your database with that ID to get the user's orders, preferences, etc. This is faster than calling <code>currentUser()</code> for every request and gives you full control over your data.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">How do you implement role-based access control with Clerk?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Store roles in Clerk's <code>publicMetadata</code> — this data is included in the JWT (session token) and available server-side via <code>sessionClaims.metadata.role</code> without an extra API call.<br><br>Set roles via the Clerk Dashboard, via the Clerk Backend SDK in a Server Action, or via webhooks when creating a user. Augment Clerk's TypeScript types in a <code>types/clerk.d.ts</code> file to get type safety on the metadata shape.<br><br>Check roles in three places: in middleware (to redirect before the page even renders), in Server Components (to redirect or show/hide content), and in Server Actions (to prevent unauthorized mutations). Never rely solely on client-side role checks — they can be bypassed. The server is the authoritative source.</div>
+    <div class="tip-box">Clerk also offers a full Permissions system (not just roles) for complex RBAC — you can define permissions like "org:products:manage" and check them with <code>auth.protect({ permission: "org:products:manage" })</code>.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">What is the difference between useUser and useAuth hooks?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useUser()</code> returns the full user object — <code>{ isLoaded, isSignedIn, user }</code>. The <code>user</code> object has the full profile: name, email, imageUrl, metadata, connected accounts, etc. Use this when displaying user profile information in a component.<br><br><code>useAuth()</code> returns session information — <code>{ isLoaded, isSignedIn, userId, sessionId, sessionClaims, getToken }</code>. It doesn't include profile data. Use this when you need the ID to make an API call, when you need to get a token for an external service, or when you need to check role/claims without the full profile.<br><br>Both work only in Client Components. If you need auth data in a Server Component, use <code>auth()</code> or <code>currentUser()</code> from <code>@clerk/nextjs/server</code>. The client hooks get their data from the session stored in a cookie/memory, not from a network call — so they're fast.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">How do you protect a Server Action with Clerk?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Always call <code>auth()</code> at the top of every Server Action that requires authentication. Never trust client-provided user IDs — the client could send any ID. The server must determine the identity independently.<br><br><code>const { userId } = await auth(); if (!userId) throw new Error("Unauthorized")</code> or return an error state. Then use <code>userId</code> for all database operations — this ensures users can only affect their own data.<br><br>For role-based protection in actions: <code>const { userId, sessionClaims } = await auth(); if (sessionClaims?.metadata?.role !== "admin") throw new Error("Forbidden")</code>. This runs server-side and cannot be bypassed by the client. Never check the role on the client and conditionally call the action — always validate on the server regardless of any client-side checks.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">Why must you verify webhook signatures with svix, and how does it work?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Without signature verification, anyone could POST fake events to your webhook endpoint — creating admin accounts, deleting user data, or triggering fraudulent operations. Svix signs every webhook using HMAC-SHA256 of the timestamp + payload using your webhook secret.<br><br>Your handler reads three headers: <code>svix-id</code> (unique event ID), <code>svix-timestamp</code> (when Clerk sent it), and <code>svix-signature</code> (the HMAC signature). You instantiate <code>new Webhook(WEBHOOK_SECRET)</code> and call <code>wh.verify(rawBody, headers)</code>. If the signature doesn't match, throw and return 400. If it does match, you know the event is genuinely from Clerk.<br><br>Important: read the raw body as text before JSON parsing — the signature is computed on the exact byte sequence, and any transformation (like JSON.parse then JSON.stringify) will invalidate it. The <code>svix-timestamp</code> header prevents replay attacks — svix rejects signatures older than a few minutes.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">What is the SignedIn / SignedOut component pattern and when do you use it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>&lt;SignedIn&gt;</code> renders its children only when a user is authenticated. <code>&lt;SignedOut&gt;</code> renders only when not authenticated. They're essentially wrappers that read from Clerk's context and conditionally render — cleaner alternatives to <code>if (isSignedIn) { ... }</code> checks scattered through JSX.<br><br>They work in both Client and Server Components (when in a server context, they're resolved at render time). Common use in Navbar: show the avatar and dashboard link for signed-in users, show the Login/Register buttons for signed-out users.<br><br>For more complex cases — showing different content based on role, protecting specific sections — use <code>useAuth()</code> in a Client Component or <code>auth()</code> in a Server Component for full control. <code>SignedIn/SignedOut</code> is great for simple binary cases, but doesn't give you the user data or role information.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">How do you handle idempotency in webhook processing?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Webhooks can be delivered more than once — network issues, timeouts, or Clerk's retry logic can cause the same event to arrive twice. Your handler must be idempotent: processing the same event multiple times has the same outcome as processing it once.<br><br>Two approaches. First, use <code>upsert</code> instead of <code>create</code> for database operations: <code>db.user.upsert({ where: { clerkId: id }, update: { ... }, create: { ... } })</code>. If the user already exists, it updates; if not, it creates. No error, no duplicate.<br><br>Second, track processed event IDs using the <code>svix-id</code> header. Store processed IDs in a Redis cache or a database table. If an ID has been seen before, return 200 immediately without reprocessing. This is more comprehensive but adds infrastructure. For most applications, the upsert approach is sufficient. Always return 200 on success — returning non-2xx causes Clerk to retry.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">10</span>
+    <span class="sec-title">Night review — self-assessment</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">14 items</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain why Clerk is preferred over rolling custom auth — with concrete examples of what's hard</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can set up Clerk in a Next.js project — install, env vars, ClerkProvider, middleware — from memory</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can add <code>&lt;SignIn /&gt;</code>, <code>&lt;SignUp /&gt;</code>, and <code>&lt;UserButton /&gt;</code> to a Next.js app</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use <code>useUser()</code> vs <code>useAuth()</code> and what each returns</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>auth()</code> in a Server Component to get userId and protect the page with redirect</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write <code>clerkMiddleware</code> with <code>createRouteMatcher</code> to protect all non-public routes</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can protect a Server Action with <code>auth()</code> — never trusting client-provided user IDs</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to implement RBAC with Clerk's <code>publicMetadata</code> and <code>sessionClaims</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a webhook Route Handler: read svix headers, verify signature, handle user events</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why webhooks must use <code>upsert</code> for idempotency</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can differentiate <code>auth()</code> (lightweight, no API call) from <code>currentUser()</code> (full profile, API call)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I replaced the React Shop's custom AuthContext with Clerk today</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I set up a webhook endpoint that syncs Clerk users to Prisma (or mocked DB)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My code is committed and pushed, Clerk auth is working in the deployed Vercel app</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(108,71,255,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--clerk);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank Next.js project</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Write <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">middleware.ts</code> with <code>clerkMiddleware</code> — public routes allowlist, protect everything else<br>
+      2. Write a Server Action <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">createOrder</code> — <code>auth()</code>, throw if not authenticated, use <code>userId</code> in DB write<br>
+      3. Write the Clerk webhook handler — verify svix, handle <code>user.created</code>, <code>user.updated</code>, <code>user.deleted</code><br>
+      4. Add a Navbar with <code>SignedIn</code>, <code>SignedOut</code>, <code>UserButton</code>, and an admin link gated by role
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 4 · Day 22</div>
+      <div class="footer-day-name">Authentication with Clerk</div>
+      <div class="footer-day-next">Next up: <strong>Day 23 — Database with Prisma</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 4 progress</span><span>Day 3 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:43%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day21_nextjs_app_router.html',21)">← Day 21</button>
+      <button class="footer-btn primary" onclick="navigateTo('day23_prisma_database.html',23)">Day 23 — Prisma →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html",current:true},
+]
+const CURRENT=22
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+  "day18_tailwind_css.html","day19_week3_review.html",
+  "day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep building! 🔐`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.style.display='inline-block'
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

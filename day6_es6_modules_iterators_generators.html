@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 6 — ES6 Modules, Iterators & Generators</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --js:#f7df1e;--js-dim:rgba(247,223,30,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre,.mono{font-family:'JetBrains Mono',monospace;}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--js);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--js);border-bottom-color:var(--js);}
+
+/* DAY NAV BAR */
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--js);font-weight:600;}
+.day-btns{display:flex;gap:8px;align-items:center;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;text-decoration:none;}
+.day-btn:hover{background:var(--surface3);color:var(--text);border-color:rgba(255,255,255,.2);}
+.day-btn.primary{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.3);}
+.day-btn.primary:hover{background:rgba(247,223,30,.18);}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--js);width:22px;border-radius:4px;}
+.day-dot:hover{background:var(--muted);}
+
+/* HERO */
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--js);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--js);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--js);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+/* SCHEDULE */
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+/* PROGRESS */
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--js);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.25);}
+
+/* SECTION */
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+/* CONCEPTS */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+/* CODE BLOCKS */
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--js);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.rx{color:#fb923c;}
+
+/* FILE TREE */
+.file-tree{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin:14px 0;font-family:'JetBrains Mono',monospace;font-size:12.5px;}
+.ft-dir{color:var(--blue);font-weight:500;}
+.ft-file{color:var(--text);}
+.ft-comment{color:var(--muted);}
+.ft-line{padding:2px 0;display:flex;gap:8px;}
+
+/* FLOW DIAGRAM */
+.flow-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin:14px 0;}
+.flow-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.flow-title::before{content:'';width:8px;height:8px;border-radius:2px;background:var(--js);flex-shrink:0;}
+.flow-row{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin-bottom:8px;}
+.flow-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:12px;text-align:center;min-width:110px;}
+.flow-box-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:3px;}
+.flow-box-val{font-size:13px;font-weight:600;}
+.flow-arrow{color:var(--hint);font-size:18px;padding:0 6px;flex-shrink:0;}
+
+/* MENTAL MODEL */
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+/* COMPARISON TABLE */
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+/* DIVIDER */
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);position:relative;}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+/* RUNNER */
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--js-dim);color:var(--js);border:1px solid rgba(247,223,30,.25);border-radius:6px;cursor:pointer;transition:background .15s;}
+.run-btn:hover{background:rgba(247,223,30,.18);}
+.runner-code{padding:16px 18px;border-bottom:1px solid var(--border);}
+.runner-code textarea{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:14px 16px;resize:vertical;min-height:160px;outline:none;}
+.runner-code textarea:focus{border-color:rgba(247,223,30,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+/* EXERCISE */
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--js);}
+.ex-hint{font-size:12px;color:var(--muted);border-left:2px solid var(--border2);padding-left:12px;margin-bottom:14px;line-height:1.7;}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+/* QA */
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+/* CHECKLIST */
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--js);border-color:var(--js);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+/* FOOTER NAV */
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-info{display:flex;flex-direction:column;gap:4px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;align-items:center;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.3);}
+.footer-btn.primary:hover{background:rgba(247,223,30,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--js);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 06 · JS</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#modules">Modules</a>
+  <a href="#exports">Exports</a>
+  <a href="#patterns">Patterns</a>
+  <a href="#iterators">Iterators</a>
+  <a href="#generators">Generators</a>
+  <a href="#asyncgen">Async Gen</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<!-- DAY NAV BAR -->
+<div class="day-nav">
+  <div class="day-nav-title">Week 1 · <span>Day 6 of 56</span> · ES6 Modules, Iterators &amp; Generators</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div class="day-btns">
+      <button class="day-btn" onclick="navigateTo('day5_dom_events_classes.html',5)">← Day 5</button>
+      <button class="day-btn primary" onclick="navigateTo('day7_review_project.html',7)">Day 7 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 1 · Day 6 · 8-week plan</div>
+  <h1>ES6 Modules,<br>Iterators &amp; <em>Generators</em></h1>
+  <p class="hero-sub">The tools that power modern JavaScript architecture — how code is organised and shared across files, and how to write lazy, infinite, and async data sequences that would be impossible any other way.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">import / export</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">named vs default</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">dynamic import()</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">iterables &amp; iterators</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">Symbol.iterator</span>
+    <span class="topic-pill" style="border-color:rgba(247,223,30,.3);color:var(--js);">function* generators</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">yield &amp; yield*</span>
+    <span class="topic-pill" style="border-color:rgba(244,114,182,.3);color:var(--pink);">async generators</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--blue);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>ES modules — why they exist</li>
+        <li>Named exports and imports</li>
+        <li>Default exports and imports</li>
+        <li>Re-exports and barrel files</li>
+        <li>Dynamic import() — lazy loading</li>
+        <li>Module patterns and circular deps</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>Iteration protocol — iterable vs iterator</li>
+        <li>Symbol.iterator — making anything iterable</li>
+        <li>for…of, spread, and destructuring with iterables</li>
+        <li>Generator functions — function*</li>
+        <li>yield, yield*, and generator control flow</li>
+        <li>Async generators + for await…of</li>
+        <li>Exercises 1–6 (all runnable)</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Push code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 6 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Modules intro</span>
+    <span class="tdot" onclick="markDone(this)">Named exports</span>
+    <span class="tdot" onclick="markDone(this)">Default exports</span>
+    <span class="tdot" onclick="markDone(this)">Dynamic import</span>
+    <span class="tdot" onclick="markDone(this)">Iterators</span>
+    <span class="tdot" onclick="markDone(this)">Symbol.iterator</span>
+    <span class="tdot" onclick="markDone(this)">Generators</span>
+    <span class="tdot" onclick="markDone(this)">Async generators</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- ════ PART 1 ════ -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Part 1 — ES6 Modules</span></div>
+
+<!-- 01. WHY MODULES -->
+<div class="section" id="modules">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Why modules exist — the problem they solve</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">foundation</span>
+  </div>
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">before modules</span>
+      <div class="cc-title">The global scope nightmare</div>
+      <div class="cc-body">Before ES modules, every JS file shared the same global scope. Variable names collided, load order mattered critically, and there was no way to say "this file depends on that one." Libraries like jQuery littered <code>window</code> with names. Any file could accidentally overwrite any other file's variables. Projects over a few thousand lines became unmaintainable.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">what modules give you</span>
+      <div class="cc-title">Isolated, explicit dependencies</div>
+      <div class="cc-body">Every ES module has its own scope — nothing leaks to global. You <strong>explicitly declare</strong> what you export (what others can use) and what you import (what you depend on). The browser/bundler builds a dependency graph and loads files in the right order automatically. Dead code (unused exports) can be eliminated by bundlers.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">live bindings</span>
+      <div class="cc-title">Imports are live, not copies</div>
+      <div class="cc-body">ES module imports are <strong>live bindings</strong> — if the exporting module updates the exported value, all importers see the update. This is different from CommonJS (<code>require()</code>) which copies the value at import time. Live bindings matter for things like counters and config that might change after module load.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">static analysis</span>
+      <div class="cc-title">Static structure = tree-shaking</div>
+      <div class="cc-body"><code>import</code> and <code>export</code> must be at the top level — they can't be inside <code>if</code> blocks or functions. This <strong>static structure</strong> lets bundlers like Vite and Webpack analyse your code at build time and eliminate exports that are never imported — dramatically reducing bundle size. This is called <strong>tree-shaking</strong>.</div>
+    </div>
+  </div>
+
+  <div class="file-tree">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:2px;background:var(--js);display:inline-block;"></span>typical React project module structure</div>
+    <div class="ft-line"><span style="color:var(--hint);">src/</span></div>
+    <div class="ft-line"><span style="color:var(--hint);">├──</span> <span class="ft-file">main.jsx</span> <span class="ft-comment">&nbsp;&nbsp;&nbsp;&nbsp;← entry point, imports App</span></div>
+    <div class="ft-line"><span style="color:var(--hint);">├──</span> <span class="ft-file">App.jsx</span> <span class="ft-comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← imports components, hooks, utils</span></div>
+    <div class="ft-line"><span style="color:var(--hint);">├──</span> <span class="ft-dir">components/</span></div>
+    <div class="ft-line"><span style="color:var(--hint);">│&nbsp;&nbsp; ├──</span> <span class="ft-file">Button.jsx</span> <span class="ft-comment">&nbsp;← named export: export function Button()</span></div>
+    <div class="ft-line"><span style="color:var(--hint);">│&nbsp;&nbsp; ├──</span> <span class="ft-file">Card.jsx</span> <span class="ft-comment">&nbsp;&nbsp;&nbsp;← default export: export default Card</span></div>
+    <div class="ft-line"><span style="color:var(--hint);">│&nbsp;&nbsp; └──</span> <span class="ft-file">index.js</span> <span class="ft-comment">&nbsp;&nbsp;← barrel: re-exports everything</span></div>
+    <div class="ft-line"><span style="color:var(--hint);">├──</span> <span class="ft-dir">hooks/</span></div>
+    <div class="ft-line"><span style="color:var(--hint);">│&nbsp;&nbsp; └──</span> <span class="ft-file">useAuth.js</span> <span class="ft-comment">&nbsp;← named export: export function useAuth()</span></div>
+    <div class="ft-line"><span style="color:var(--hint);">└──</span> <span class="ft-dir">utils/</span></div>
+    <div class="ft-line"><span style="color:var(--hint);">&nbsp;&nbsp;&nbsp; └──</span> <span class="ft-file">format.js</span> <span class="ft-comment">&nbsp;&nbsp;← named exports: export const formatDate, formatCurrency</span></div>
+  </div>
+</div>
+
+<!-- 02. NAMED & DEFAULT EXPORTS -->
+<div class="section" id="exports">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Named exports, default exports &amp; re-exports</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">daily syntax</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">utils/format.js — named exports</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Named exports — multiple per file, imported by exact name ──</span>
+<span class="cm">// Option A: export inline</span>
+<span class="kw">export const</span> <span class="var">PI</span> = <span class="num">3.14159</span>
+
+<span class="kw">export function</span> <span class="fn">formatCurrency</span>(<span class="var">amount</span>, <span class="var">currency</span> = <span class="str">"USD"</span>) {
+  <span class="kw">return</span> <span class="kw">new</span> <span class="fn">Intl</span>.<span class="fn">NumberFormat</span>(<span class="str">"en-US"</span>, { <span class="prop">style</span>: <span class="str">"currency"</span>, <span class="var">currency</span> }).<span class="fn">format</span>(<span class="var">amount</span>)
+}
+
+<span class="kw">export const</span> <span class="fn">formatDate</span> = (<span class="var">date</span>, <span class="var">locale</span> = <span class="str">"en-US"</span>) =>
+  <span class="kw">new</span> <span class="fn">Date</span>(<span class="var">date</span>).<span class="fn">toLocaleDateString</span>(<span class="var">locale</span>, { <span class="prop">year</span>: <span class="str">"numeric"</span>, <span class="prop">month</span>: <span class="str">"short"</span>, <span class="prop">day</span>: <span class="str">"numeric"</span> })
+
+<span class="kw">export class</span> <span class="fn">Validator</span> {
+  <span class="kw">static</span> <span class="fn">isEmail</span>(<span class="var">s</span>) { <span class="kw">return</span> /<span class="rx">[^\s@]+@[^\s@]+\.[^\s@]+/</span>.<span class="fn">test</span>(<span class="var">s</span>) }
+  <span class="kw">static</span> <span class="fn">isUrl</span>(<span class="var">s</span>)   { <span class="kw">try</span> { <span class="kw">new</span> <span class="fn">URL</span>(<span class="var">s</span>); <span class="kw">return</span> <span class="kw">true</span> } <span class="kw">catch</span> { <span class="kw">return</span> <span class="kw">false</span> } }
+}
+
+<span class="cm">// Option B: export list at bottom (shows public API clearly)</span>
+<span class="kw">const</span> <span class="fn">truncate</span> = (<span class="var">str</span>, <span class="var">n</span> = <span class="num">50</span>) => <span class="var">str</span>.<span class="prop">length</span> > <span class="var">n</span> ? <span class="var">str</span>.<span class="fn">slice</span>(<span class="num">0</span>, <span class="var">n</span>) + <span class="str">"…"</span> : <span class="var">str</span>
+<span class="kw">const</span> <span class="fn">slugify</span>  = (<span class="var">str</span>) => <span class="var">str</span>.<span class="fn">toLowerCase</span>().<span class="fn">replace</span>(/<span class="rx">\s+/g</span>, <span class="str">"-"</span>).<span class="fn">replace</span>(/<span class="rx">[^\w-]/g</span>, <span class="str">""</span>)
+<span class="kw">export</span> { <span class="var">truncate</span>, <span class="var">slugify</span> }
+
+<span class="cm">// Export with rename</span>
+<span class="kw">const</span> <span class="var">_internalHelper</span> = (<span class="var">x</span>) => <span class="var">x</span> * <span class="num">2</span>
+<span class="kw">export</span> { <span class="var">_internalHelper</span> <span class="kw">as</span> <span class="var">doubleValue</span> }  <span class="cm">// exported as doubleValue</span></pre></div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">components/Card.jsx — default export, and importing everything</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Default export — one per file, imported with any name ──</span>
+<span class="kw">export default function</span> <span class="fn">Card</span>({ <span class="var">title</span>, <span class="var">body</span> }) {
+  <span class="kw">return</span> `&lt;div class="card"&gt;&lt;h2&gt;<span class="rx">${</span><span class="var">title</span><span class="rx">}</span>&lt;/h2&gt;&lt;p&gt;<span class="rx">${</span><span class="var">body</span><span class="rx">}</span>&lt;/p&gt;&lt;/div&gt;`
+}
+
+<span class="cm">// Or: declare then export default</span>
+<span class="kw">function</span> <span class="fn">Card</span>(<span class="var">props</span>) { <span class="cm">/* ... */</span> }
+<span class="kw">export default</span> <span class="var">Card</span>
+
+<span class="cm">// ── Importing ────────────────────────────────────────────</span>
+<span class="cm">// Named imports — curly braces, must match export name</span>
+<span class="kw">import</span> { <span class="var">formatCurrency</span>, <span class="var">formatDate</span>, <span class="var">Validator</span> } <span class="kw">from</span> <span class="str">"./utils/format.js"</span>
+
+<span class="cm">// Rename on import</span>
+<span class="kw">import</span> { <span class="var">formatCurrency</span> <span class="kw">as</span> <span class="var">money</span>, <span class="var">truncate</span> <span class="kw">as</span> <span class="var">short</span> } <span class="kw">from</span> <span class="str">"./utils/format.js"</span>
+
+<span class="cm">// Default import — no curly braces, any name you want</span>
+<span class="kw">import</span> <span class="var">Card</span>        <span class="kw">from</span> <span class="str">"./components/Card.jsx"</span>
+<span class="kw">import</span> <span class="var">MyCard</span>      <span class="kw">from</span> <span class="str">"./components/Card.jsx"</span>  <span class="cm">// same module, different name — fine</span>
+
+<span class="cm">// Mix default and named in one import</span>
+<span class="kw">import</span> <span class="var">Router</span>, { <span class="var">Route</span>, <span class="var">Link</span>, <span class="var">useNavigate</span> } <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+
+<span class="cm">// Namespace import — everything under one object</span>
+<span class="kw">import</span> * <span class="kw">as</span> <span class="var">fmt</span> <span class="kw">from</span> <span class="str">"./utils/format.js"</span>
+<span class="fn">fmt</span>.<span class="fn">formatCurrency</span>(<span class="num">1000</span>)  <span class="cm">// access via namespace</span>
+<span class="fn">fmt</span>.<span class="prop">PI</span>                     <span class="cm">// 3.14159</span>
+
+<span class="cm">// Side-effect only import (runs the module, imports nothing)</span>
+<span class="kw">import</span> <span class="str">"./styles/global.css"</span>  <span class="cm">// common in React for stylesheets</span></pre></div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">components/index.js — barrel file pattern (re-exports)</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Barrel file — aggregates exports for cleaner imports ──</span>
+<span class="cm">// components/index.js</span>
+<span class="kw">export</span> { <span class="kw">default</span> <span class="kw">as</span> <span class="var">Card</span>   } <span class="kw">from</span> <span class="str">"./Card.jsx"</span>
+<span class="kw">export</span> { <span class="kw">default</span> <span class="kw">as</span> <span class="var">Button</span> } <span class="kw">from</span> <span class="str">"./Button.jsx"</span>
+<span class="kw">export</span> { <span class="kw">default</span> <span class="kw">as</span> <span class="var">Modal</span>  } <span class="kw">from</span> <span class="str">"./Modal.jsx"</span>
+<span class="kw">export</span> { <span class="var">Input</span>, <span class="var">Select</span>, <span class="var">Textarea</span> } <span class="kw">from</span> <span class="str">"./FormFields.jsx"</span>
+
+<span class="cm">// Consumers import from one place instead of many files</span>
+<span class="cm">// Before barrel:  import Card from "./components/Card"</span>
+<span class="cm">//                 import Button from "./components/Button"</span>
+<span class="cm">//                 import Modal from "./components/Modal"</span>
+<span class="cm">// After barrel:</span>
+<span class="kw">import</span> { <span class="var">Card</span>, <span class="var">Button</span>, <span class="var">Modal</span>, <span class="var">Input</span> } <span class="kw">from</span> <span class="str">"./components"</span>
+
+<span class="cm">// Re-export everything from another module</span>
+<span class="kw">export</span> * <span class="kw">from</span> <span class="str">"./utils/format.js"</span>
+<span class="kw">export</span> * <span class="kw">from</span> <span class="str">"./utils/validation.js"</span></pre></div>
+  </div>
+</div>
+
+<!-- 03. MODULE PATTERNS & DYNAMIC IMPORT -->
+<div class="section" id="patterns">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Dynamic import(), module patterns &amp; gotchas</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">advanced</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Dynamic import() — lazy loading and code splitting</span></div>
+    <div class="cb-body"><pre><span class="cm">// Static imports run at load time — the module is always downloaded</span>
+<span class="kw">import</span> { <span class="var">heavyChart</span> } <span class="kw">from</span> <span class="str">"./charts.js"</span>  <span class="cm">// always loaded, even if never used</span>
+
+<span class="cm">// Dynamic import() — returns a Promise, loads on demand</span>
+<span class="cm">// import() can be called anywhere: inside functions, conditionally, on user action</span>
+
+<span class="cm">// ── Lazy load on user action ───────────────────────────────</span>
+<span class="var">btn</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> { <span class="var">renderChart</span> } = <span class="kw">await</span> <span class="kw">import</span>(<span class="str">"./charts.js"</span>)
+  <span class="fn">renderChart</span>(<span class="var">data</span>)
+})
+
+<span class="cm">// ── Conditional loading by feature flag ────────────────────</span>
+<span class="kw">async function</span> <span class="fn">loadAnalytics</span>() {
+  <span class="kw">if</span> (!<span class="var">user</span>.<span class="prop">trackingConsent</span>) <span class="kw">return</span>
+  <span class="kw">const</span> <span class="var">analytics</span> = <span class="kw">await</span> <span class="kw">import</span>(<span class="str">"./analytics.js"</span>)
+  <span class="var">analytics</span>.<span class="fn">init</span>(<span class="var">user</span>.<span class="prop">id</span>)
+}
+
+<span class="cm">// ── Dynamic module name (careful — breaks tree shaking!) ──</span>
+<span class="kw">const</span> <span class="var">lang</span>       = <span class="str">"fr"</span>
+<span class="kw">const</span> <span class="var">messages</span>   = <span class="kw">await</span> <span class="kw">import</span>(`./locales/<span class="rx">${</span><span class="var">lang</span><span class="rx">}</span>.js`)
+<span class="cm">// Bundlers like Vite handle this — they bundle all matching files</span>
+
+<span class="cm">// ── React lazy() uses dynamic import ──────────────────────</span>
+<span class="cm">// const Dashboard = React.lazy(() => import('./Dashboard.jsx'))</span>
+<span class="cm">// Wrapped in <Suspense fallback={<Spinner />}></cm>
+
+<span class="cm">// ── Import with default and named ─────────────────────────</span>
+<span class="kw">const</span> <span class="var">mod</span> = <span class="kw">await</span> <span class="kw">import</span>(<span class="str">"./utils.js"</span>)
+<span class="kw">const</span> { <span class="kw">default</span>: <span class="var">mainFn</span>, <span class="var">helper</span> } = <span class="var">mod</span>
+
+<span class="cm">// ── Module scope rules ─────────────────────────────────────</span>
+<span class="cm">// Each module is evaluated ONCE — repeated imports return cached result</span>
+<span class="kw">import</span> <span class="str">"./setup.js"</span>  <span class="cm">// runs once even if imported by 10 files</span>
+
+<span class="cm">// Circular dependencies — use carefully</span>
+<span class="cm">// a.js imports b.js; b.js imports a.js → both work but a may see b's exports</span>
+<span class="cm">// as undefined at the time of first evaluation (execution order issue)</span>
+
+<span class="cm">// Top-level await (in modules only)</span>
+<span class="kw">const</span> <span class="var">config</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"/api/config"</span>).<span class="fn">then</span>(<span class="var">r</span> => <span class="var">r</span>.<span class="fn">json</span>())
+<span class="kw">export</span> { <span class="var">config</span> }  <span class="cm">// valid in ES modules — the module waits before being used</span></pre></div>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">ES modules vs CommonJS (Node.js) — know both for interviews</div>
+    <table class="comp-table">
+      <tr><th>Feature</th><th>ES Modules (ESM)</th><th>CommonJS (CJS)</th></tr>
+      <tr><td>Syntax</td><td><code>import / export</code></td><td><code>require() / module.exports</code></td></tr>
+      <tr><td>Loading</td><td>Static (parsed at load time)</td><td>Dynamic (runtime evaluation)</td></tr>
+      <tr><td>Execution</td><td>Deferred — non-blocking</td><td>Synchronous — blocking</td></tr>
+      <tr><td>Bindings</td><td>Live bindings (by reference)</td><td>Copies of values at require time</td></tr>
+      <tr><td>Top-level await</td><td>Supported</td><td>Not supported</td></tr>
+      <tr><td>Tree-shaking</td><td>Yes — bundlers can eliminate dead code</td><td>No — dynamic requires prevent it</td></tr>
+      <tr><td>File extension</td><td><code>.js</code> with <code>type:"module"</code> or <code>.mjs</code></td><td><code>.js</code> (default in Node)</td></tr>
+      <tr><td>Where used</td><td>Browsers natively, modern Node, Vite, React</td><td>Node.js packages, older tooling</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ════ PART 2 ════ -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Part 2 — Iterators &amp; Generators</span></div>
+
+<!-- 04. ITERATION PROTOCOL -->
+<div class="section" id="iterators">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Iteration protocol — iterable vs iterator</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">protocol</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--teal);"></span>Two interfaces — both are needed to make something iterable</div>
+    <div class="mm-grid">
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--teal);">Iterable</div>
+        <div class="mm-value">An object with a <code>[Symbol.iterator]()</code> method that <em>returns</em> an Iterator. Arrays, strings, Maps, Sets, NodeLists are built-in iterables.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--purple);">Iterator</div>
+        <div class="mm-value">An object with a <code>next()</code> method that returns <code>{ value, done }</code>. <code>done: true</code> signals the sequence is finished.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--amber);">What uses iterables</div>
+        <div class="mm-value"><code>for...of</code>, spread <code>[...iter]</code>, destructuring <code>[a, b] = iter</code>, <code>Array.from()</code>, <code>Promise.all()</code>, <code>new Map(iter)</code>.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--green);">Infinite sequences</div>
+        <div class="mm-value">Iterators can produce values forever — <code>done</code> never becomes <code>true</code>. Use <code>break</code> in <code>for...of</code> to stop. Generators make this easy.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">The iteration protocol — implementing Symbol.iterator by hand</span></div>
+    <div class="cb-body"><pre><span class="cm">// Under the hood of for...of:</span>
+<span class="kw">const</span> <span class="var">arr</span>      = [<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>]
+<span class="kw">const</span> <span class="var">iterator</span> = <span class="var">arr</span>[<span class="fn">Symbol</span>.<span class="prop">iterator</span>]()  <span class="cm">// get the iterator</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">iterator</span>.<span class="fn">next</span>())  <span class="cm">// { value: 10, done: false }</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">iterator</span>.<span class="fn">next</span>())  <span class="cm">// { value: 20, done: false }</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">iterator</span>.<span class="fn">next</span>())  <span class="cm">// { value: 30, done: false }</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">iterator</span>.<span class="fn">next</span>())  <span class="cm">// { value: undefined, done: true }</span>
+
+<span class="cm">// ── Make a custom iterable — a Range object ────────────────</span>
+<span class="kw">class</span> <span class="fn">Range</span> {
+  <span class="kw">constructor</span>(<span class="var">start</span>, <span class="var">end</span>, <span class="var">step</span> = <span class="num">1</span>) {
+    <span class="kw">this</span>.<span class="prop">start</span> = <span class="var">start</span>
+    <span class="kw">this</span>.<span class="prop">end</span>   = <span class="var">end</span>
+    <span class="kw">this</span>.<span class="prop">step</span>  = <span class="var">step</span>
+  }
+
+  <span class="cm">// ✦ This method makes Range an iterable</span>
+  [<span class="fn">Symbol</span>.<span class="prop">iterator</span>]() {
+    <span class="kw">let</span> <span class="var">current</span> = <span class="kw">this</span>.<span class="prop">start</span>
+    <span class="kw">const</span> <span class="var">end</span>   = <span class="kw">this</span>.<span class="prop">end</span>
+    <span class="kw">const</span> <span class="var">step</span>  = <span class="kw">this</span>.<span class="prop">step</span>
+
+    <span class="cm">// Returns the iterator object</span>
+    <span class="kw">return</span> {
+      <span class="fn">next</span>() {
+        <span class="kw">if</span> (<span class="var">current</span> <= <span class="var">end</span>) {
+          <span class="kw">const</span> <span class="var">value</span> = <span class="var">current</span>
+          <span class="var">current</span> += <span class="var">step</span>
+          <span class="kw">return</span> { <span class="var">value</span>, <span class="prop">done</span>: <span class="kw">false</span> }
+        }
+        <span class="kw">return</span> { <span class="prop">value</span>: <span class="kw">undefined</span>, <span class="prop">done</span>: <span class="kw">true</span> }
+      }
+    }
+  }
+}
+
+<span class="kw">const</span> <span class="var">r</span> = <span class="kw">new</span> <span class="fn">Range</span>(<span class="num">1</span>, <span class="num">10</span>, <span class="num">2</span>)
+
+<span class="cm">// Works with for...of</span>
+<span class="kw">for</span> (<span class="kw">const</span> <span class="var">n</span> <span class="kw">of</span> <span class="var">r</span>) <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">n</span>)   <span class="cm">// 1, 3, 5, 7, 9</span>
+
+<span class="cm">// Works with spread</span>
+<span class="kw">const</span> <span class="var">nums</span> = [...<span class="kw">new</span> <span class="fn">Range</span>(<span class="num">1</span>, <span class="num">5</span>)]      <span class="cm">// [1, 2, 3, 4, 5]</span>
+
+<span class="cm">// Works with destructuring</span>
+<span class="kw">const</span> [<span class="var">first</span>, <span class="var">second</span>] = <span class="kw">new</span> <span class="fn">Range</span>(<span class="num">10</span>, <span class="num">50</span>, <span class="num">10</span>)  <span class="cm">// 10, 20</span>
+
+<span class="cm">// Works with Array.from</span>
+<span class="kw">const</span> <span class="var">arr2</span> = <span class="fn">Array</span>.<span class="fn">from</span>(<span class="kw">new</span> <span class="fn">Range</span>(<span class="num">0</span>, <span class="num">4</span>))  <span class="cm">// [0, 1, 2, 3, 4]</span></pre></div>
+  </div>
+</div>
+
+<!-- 05. GENERATORS -->
+<div class="section" id="generators">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Generator functions — pauseable execution</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">powerful</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">what they are</span>
+      <div class="cc-title">Functions that pause and resume</div>
+      <div class="cc-body">A generator is a function declared with <code>function*</code> that can <strong>pause its execution</strong> at any <code>yield</code> point and resume exactly where it left off when <code>next()</code> is called again. The function body runs lazily — only when you ask for the next value. Calling a generator function returns a Generator object (which is both an iterable AND an iterator).</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">key uses</span>
+      <div class="cc-title">Where generators shine</div>
+      <div class="cc-body"><strong>Infinite sequences</strong> — IDs, Fibonacci, prime numbers — without ever running out of memory. <strong>Lazy evaluation</strong> — only compute values when asked. <strong>Custom iterators</strong> — much cleaner than implementing <code>Symbol.iterator</code> by hand. <strong>State machines</strong> — each <code>yield</code> is a state. <strong>Saga pattern</strong> in Redux (used in large apps).</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">two-way communication</span>
+      <div class="cc-title">Sending values back in</div>
+      <div class="cc-body">Generators are two-way — <code>yield</code> sends a value out, and <code>next(value)</code> sends a value back in (the <code>yield</code> expression evaluates to that value). This bidirectional flow makes generators ideal for complex async coordination patterns like Redux-Saga.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Generator syntax — yield, yield*, return, two-way, infinite sequences</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Basic generator ────────────────────────────────────────</span>
+<span class="kw">function</span>* <span class="fn">count</span>() {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"start"</span>)
+  <span class="kw">yield</span> <span class="num">1</span>              <span class="cm">// pauses here, returns { value:1, done:false }</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"resumed"</span>)
+  <span class="kw">yield</span> <span class="num">2</span>              <span class="cm">// pauses here, returns { value:2, done:false }</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"last"</span>)
+  <span class="kw">return</span> <span class="num">3</span>             <span class="cm">// returns { value:3, done:true } — generator done</span>
+}
+
+<span class="kw">const</span> <span class="var">gen</span> = <span class="fn">count</span>()    <span class="cm">// does NOT run the body yet — returns generator object</span>
+<span class="var">gen</span>.<span class="fn">next</span>()              <span class="cm">// "start"  → { value:1, done:false }</span>
+<span class="var">gen</span>.<span class="fn">next</span>()              <span class="cm">// "resumed"→ { value:2, done:false }</span>
+<span class="var">gen</span>.<span class="fn">next</span>()              <span class="cm">// "last"   → { value:3, done:true  }</span>
+<span class="var">gen</span>.<span class="fn">next</span>()              <span class="cm">// { value:undefined, done:true } — exhausted</span>
+
+<span class="cm">// Generators ARE iterables — use for...of directly</span>
+<span class="kw">for</span> (<span class="kw">const</span> <span class="var">v</span> <span class="kw">of</span> <span class="fn">count</span>()) <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">v</span>)  <span class="cm">// 1, 2 (return value skipped by for...of)</span>
+
+<span class="cm">// ── Infinite sequence generator ────────────────────────────</span>
+<span class="kw">function</span>* <span class="fn">idGenerator</span>(<span class="var">prefix</span> = <span class="str">"id"</span>) {
+  <span class="kw">let</span> <span class="var">i</span> = <span class="num">1</span>
+  <span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="kw">yield</span> `<span class="rx">${</span><span class="var">prefix</span><span class="rx">}</span>_<span class="rx">${</span><span class="var">i</span>++<span class="rx">}</span>`   <span class="cm">// infinite loop is fine — each next() gets one value</span>
+  }
+}
+<span class="kw">const</span> <span class="var">nextId</span> = <span class="fn">idGenerator</span>(<span class="str">"user"</span>)
+<span class="var">nextId</span>.<span class="fn">next</span>().<span class="prop">value</span>  <span class="cm">// "user_1"</span>
+<span class="var">nextId</span>.<span class="fn">next</span>().<span class="prop">value</span>  <span class="cm">// "user_2"</span>
+<span class="var">nextId</span>.<span class="fn">next</span>().<span class="prop">value</span>  <span class="cm">// "user_3"</span>
+
+<span class="cm">// ── yield* — delegate to another iterable ─────────────────</span>
+<span class="kw">function</span>* <span class="fn">concat</span>(...<span class="var">iterables</span>) {
+  <span class="kw">for</span> (<span class="kw">const</span> <span class="var">it</span> <span class="kw">of</span> <span class="var">iterables</span>) <span class="kw">yield</span>* <span class="var">it</span>  <span class="cm">// yield each value from sub-iterable</span>
+}
+[...<span class="fn">concat</span>([<span class="num">1</span>,<span class="num">2</span>], <span class="str">"abc"</span>, [<span class="num">3</span>])]  <span class="cm">// [1, 2, "a", "b", "c", 3]</span>
+
+<span class="cm">// ── Two-way communication — next(value) sends value in ────</span>
+<span class="kw">function</span>* <span class="fn">calculator</span>() {
+  <span class="kw">let</span> <span class="var">result</span> = <span class="num">0</span>
+  <span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="kw">const</span> <span class="var">input</span> = <span class="kw">yield</span> <span class="var">result</span>  <span class="cm">// yield sends result OUT, receives next input IN</span>
+    <span class="kw">if</span> (<span class="var">input</span> === <span class="kw">null</span>) <span class="kw">break</span>
+    <span class="var">result</span> += <span class="var">input</span>
+  }
+  <span class="kw">return</span> <span class="var">result</span>
+}
+<span class="kw">const</span> <span class="var">calc</span> = <span class="fn">calculator</span>()
+<span class="var">calc</span>.<span class="fn">next</span>()     <span class="cm">// start — { value: 0, done: false }</span>
+<span class="var">calc</span>.<span class="fn">next</span>(<span class="num">10</span>)   <span class="cm">// add 10 — { value: 10, done: false }</span>
+<span class="var">calc</span>.<span class="fn">next</span>(<span class="num">25</span>)   <span class="cm">// add 25 — { value: 35, done: false }</span>
+<span class="var">calc</span>.<span class="fn">next</span>(<span class="kw">null</span>) <span class="cm">// stop — { value: 35, done: true }</span>
+
+<span class="cm">// ── Practical: lazy pipeline ──────────────────────────────</span>
+<span class="kw">function</span>* <span class="fn">take</span>(<span class="var">n</span>, <span class="var">iterable</span>) {
+  <span class="kw">let</span> <span class="var">count</span> = <span class="num">0</span>
+  <span class="kw">for</span> (<span class="kw">const</span> <span class="var">item</span> <span class="kw">of</span> <span class="var">iterable</span>) {
+    <span class="kw">if</span> (<span class="var">count</span>++ >= <span class="var">n</span>) <span class="kw">break</span>
+    <span class="kw">yield</span> <span class="var">item</span>
+  }
+}
+<span class="kw">function</span>* <span class="fn">map</span>(<span class="var">fn</span>, <span class="var">iterable</span>) { <span class="kw">for</span> (<span class="kw">const</span> <span class="var">x</span> <span class="kw">of</span> <span class="var">iterable</span>) <span class="kw">yield</span> <span class="fn">fn</span>(<span class="var">x</span>) }
+<span class="kw">function</span>* <span class="fn">filter</span>(<span class="var">fn</span>, <span class="var">iterable</span>) { <span class="kw">for</span> (<span class="kw">const</span> <span class="var">x</span> <span class="kw">of</span> <span class="var">iterable</span>) <span class="kw">if</span> (<span class="fn">fn</span>(<span class="var">x</span>)) <span class="kw">yield</span> <span class="var">x</span> }
+
+<span class="cm">// Take first 5 even squares from infinite sequence — nothing computed until needed</span>
+<span class="kw">function</span>* <span class="fn">naturals</span>() { <span class="kw">let</span> <span class="var">n</span> = <span class="num">1</span>; <span class="kw">while</span> (<span class="kw">true</span>) <span class="kw">yield</span> <span class="var">n</span>++ }
+
+<span class="kw">const</span> <span class="var">pipeline</span> = <span class="fn">take</span>(<span class="num">5</span>, <span class="fn">filter</span>(<span class="var">n</span> => <span class="var">n</span> % <span class="num">2</span> === <span class="num">0</span>, <span class="fn">map</span>(<span class="var">n</span> => <span class="var">n</span> ** <span class="num">2</span>, <span class="fn">naturals</span>())))
+<span class="fn">console</span>.<span class="fn">log</span>([...<span class="var">pipeline</span>])  <span class="cm">// [4, 16, 36, 64, 100] — first 5 even squares</span></pre></div>
+  </div>
+</div>
+
+<!-- 06. ASYNC GENERATORS -->
+<div class="section" id="asyncgen">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Async generators &amp; for await…of</span>
+    <span class="sec-badge" style="background:var(--pink-dim);color:var(--pink);">async iteration</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--pink-dim);color:var(--pink);">what they are</span>
+      <div class="cc-title">async function* — yields Promises</div>
+      <div class="cc-body">An async generator combines <code>async</code> and <code>function*</code>. It can both <code>await</code> Promises and <code>yield</code> values. Calling <code>next()</code> returns a Promise that resolves to <code>{ value, done }</code>. Used with <code>for await...of</code> which automatically awaits each value in the loop.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--blue-dim);color:var(--blue);">real-world uses</span>
+      <div class="cc-title">When you actually use async generators</div>
+      <div class="cc-body"><strong>Paginated APIs</strong> — yield each page as it arrives, stop when done. <strong>File/stream reading</strong> — yield each chunk. <strong>WebSocket messages</strong> — yield each message as it arrives. <strong>Server-Sent Events</strong>. <strong>AI streaming responses</strong> — yield tokens as the model produces them. This is how streaming chat UIs work.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Async generators — paginated API, streaming, and for await...of</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Async generator — paginated API fetcher ────────────────</span>
+<span class="kw">async function</span>* <span class="fn">fetchAllPages</span>(<span class="var">baseUrl</span>) {
+  <span class="kw">let</span> <span class="var">page</span> = <span class="num">1</span>
+  <span class="kw">let</span> <span class="var">hasMore</span> = <span class="kw">true</span>
+
+  <span class="kw">while</span> (<span class="var">hasMore</span>) {
+    <span class="kw">const</span> <span class="var">response</span> = <span class="kw">await</span> <span class="fn">fetch</span>(`<span class="rx">${</span><span class="var">baseUrl</span><span class="rx">}</span>?page=<span class="rx">${</span><span class="var">page</span><span class="rx">}</span>&amp;limit=10`)
+    <span class="kw">const</span> <span class="var">data</span>     = <span class="kw">await</span> <span class="var">response</span>.<span class="fn">json</span>()
+
+    <span class="kw">yield</span> <span class="var">data</span>.<span class="prop">items</span>   <span class="cm">// yield this page's items, then pause</span>
+
+    <span class="var">hasMore</span> = <span class="var">data</span>.<span class="prop">hasNextPage</span>
+    <span class="var">page</span>++
+  }
+}
+
+<span class="cm">// Consume with for await...of — processes each page as it arrives</span>
+<span class="kw">async function</span> <span class="fn">processAll</span>() {
+  <span class="kw">let</span> <span class="var">total</span> = <span class="num">0</span>
+  <span class="kw">for</span> <span class="kw">await</span> (<span class="kw">const</span> <span class="var">page</span> <span class="kw">of</span> <span class="fn">fetchAllPages</span>(<span class="str">"https://api.example.com/users"</span>)) {
+    <span class="var">total</span> += <span class="var">page</span>.<span class="prop">length</span>
+    <span class="fn">console</span>.<span class="fn">log</span>(`Got <span class="rx">${</span><span class="var">page</span>.<span class="prop">length</span><span class="rx">}</span> items, total: <span class="rx">${</span><span class="var">total</span><span class="rx">}</span>`)
+    <span class="kw">if</span> (<span class="var">total</span> > <span class="num">50</span>) <span class="kw">break</span>   <span class="cm">// stop early — remaining pages never fetched!</span>
+  }
+}
+
+<span class="cm">// ── Stream AI response tokens ──────────────────────────────</span>
+<span class="kw">async function</span>* <span class="fn">streamTokens</span>(<span class="var">prompt</span>) {
+  <span class="kw">const</span> <span class="var">response</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"/api/ai"</span>, {
+    <span class="prop">method</span>: <span class="str">"POST"</span>,
+    <span class="prop">body</span>: <span class="fn">JSON</span>.<span class="fn">stringify</span>({ <span class="var">prompt</span> })
+  })
+
+  <span class="kw">const</span> <span class="var">reader</span>  = <span class="var">response</span>.<span class="prop">body</span>.<span class="fn">getReader</span>()
+  <span class="kw">const</span> <span class="var">decoder</span> = <span class="kw">new</span> <span class="fn">TextDecoder</span>()
+
+  <span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="kw">const</span> { <span class="var">done</span>, <span class="var">value</span> } = <span class="kw">await</span> <span class="var">reader</span>.<span class="fn">read</span>()
+    <span class="kw">if</span> (<span class="var">done</span>) <span class="kw">break</span>
+    <span class="kw">yield</span> <span class="fn">decoder</span>.<span class="fn">decode</span>(<span class="var">value</span>)  <span class="cm">// yield each chunk as it streams</span>
+  }
+}
+
+<span class="cm">// Display tokens as they arrive — this is how ChatGPT streaming works</span>
+<span class="kw">let</span> <span class="var">fullResponse</span> = <span class="str">""</span>
+<span class="kw">for</span> <span class="kw">await</span> (<span class="kw">const</span> <span class="var">token</span> <span class="kw">of</span> <span class="fn">streamTokens</span>(<span class="str">"Explain closures"</span>)) {
+  <span class="var">fullResponse</span> += <span class="var">token</span>
+  <span class="fn">updateUI</span>(<span class="var">fullResponse</span>)   <span class="cm">// re-render after each token</span>
+}
+
+<span class="cm">// ── Collect async iterable to array ───────────────────────</span>
+<span class="kw">async function</span> <span class="fn">collectAsync</span>(<span class="var">asyncIterable</span>) {
+  <span class="kw">const</span> <span class="var">results</span> = []
+  <span class="kw">for</span> <span class="kw">await</span> (<span class="kw">const</span> <span class="var">item</span> <span class="kw">of</span> <span class="var">asyncIterable</span>) <span class="var">results</span>.<span class="fn">push</span>(<span class="var">item</span>)
+  <span class="kw">return</span> <span class="var">results</span>
+}
+<span class="cm">// Or simply: Array.fromAsync(asyncIterable)  — newer browsers</span></pre></div>
+  </div>
+</div>
+
+<!-- 07. EXERCISES -->
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — all runnable in browser</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Module dependency resolver</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Simulate module resolution. Given a map of modules and their dependencies, write a function that returns the correct <strong>load order</strong> using topological sort — modules with no dependencies first, then dependents. This is what bundlers do.</div>
+      <div class="ex-hint">Use a visited Set and a results array. For each module, recursively resolve its dependencies first (DFS), then add the module itself.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — runnable</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">const modules = {
+  "app.js":       ["router.js", "store.js"],
+  "router.js":    ["utils.js"],
+  "store.js":     ["utils.js", "api.js"],
+  "api.js":       ["utils.js"],
+  "utils.js":     [],
+}
+
+function resolveLoadOrder(modules) {
+  const visited = new Set()
+  const order   = []
+
+  function visit(name) {
+    if (visited.has(name)) return   // already resolved
+    visited.add(name)
+    // YOUR CODE: resolve dependencies first, then push name
+    const deps = modules[name] || []
+    // ...
+    order.push(name)
+  }
+
+  Object.keys(modules).forEach(visit)
+  return order
+}
+
+const loadOrder = resolveLoadOrder(modules)
+console.log("Load order:")
+loadOrder.forEach((m, i) => console.log(`  ${i + 1}. ${m}`))
+
+// Verify: utils.js must come before anything that imports it
+const utilIdx   = loadOrder.indexOf("utils.js")
+const routerIdx = loadOrder.indexOf("router.js")
+const apiIdx    = loadOrder.indexOf("api.js")
+console.log("utils before router:", utilIdx < routerIdx)  // true
+console.log("utils before api:",    utilIdx < apiIdx)     // true</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">visit</span>(<span class="var">name</span>) {
+  <span class="kw">if</span> (<span class="var">visited</span>.<span class="fn">has</span>(<span class="var">name</span>)) <span class="kw">return</span>
+  <span class="var">visited</span>.<span class="fn">add</span>(<span class="var">name</span>)
+  <span class="kw">const</span> <span class="var">deps</span> = <span class="var">modules</span>[<span class="var">name</span>] || []
+  <span class="var">deps</span>.<span class="fn">forEach</span>(<span class="fn">visit</span>)    <span class="cm">// recurse into dependencies first</span>
+  <span class="var">order</span>.<span class="fn">push</span>(<span class="var">name</span>)       <span class="cm">// add self after all dependencies are resolved</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Custom iterable — InfiniteCounter</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement an <code>InfiniteCounter</code> class that is iterable. It should count from <code>start</code> by <code>step</code> forever. Use <code>Symbol.iterator</code>. Then write a <code>take(n, iterable)</code> helper that pulls the first <code>n</code> values from any iterable safely.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — Symbol.iterator</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">class InfiniteCounter {
+  constructor(start = 0, step = 1) {
+    this.start = start
+    this.step  = step
+  }
+
+  [Symbol.iterator]() {
+    let current = this.start
+    const step  = this.step
+    // YOUR CODE: return an iterator object with next()
+  }
+}
+
+function take(n, iterable) {
+  // YOUR CODE: return array of first n values from iterable
+}
+
+// Test
+const evens  = new InfiniteCounter(0, 2)
+const odds   = new InfiniteCounter(1, 2)
+const powers = new InfiniteCounter(1, 0)  // hmm, step 0 — handle this edge case
+
+console.log("First 5 evens:",  take(5, evens))    // [0, 2, 4, 6, 8]
+console.log("First 5 odds:",   take(5, odds))     // [1, 3, 5, 7, 9]
+
+// Works with for...of
+let sum = 0
+for (const n of new InfiniteCounter(1)) {
+  if (n > 10) break
+  sum += n
+}
+console.log("Sum 1–10:", sum)  // 55
+
+// Works with destructuring
+const [a, b, c] = new InfiniteCounter(100, 100)
+console.log("Destructured:", a, b, c)  // 100, 200, 300
+
+// Works with spread (careful with infinite — use take instead)
+console.log("First 3 via spread:", [...take(3, new InfiniteCounter(7, 7))])  // [7, 14, 21]</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre>[<span class="fn">Symbol</span>.<span class="prop">iterator</span>]() {
+  <span class="kw">let</span> <span class="var">current</span> = <span class="kw">this</span>.<span class="prop">start</span>
+  <span class="kw">const</span> <span class="var">step</span>  = <span class="kw">this</span>.<span class="prop">step</span>
+  <span class="kw">return</span> {
+    <span class="fn">next</span>() {
+      <span class="kw">const</span> <span class="var">value</span> = <span class="var">current</span>
+      <span class="var">current</span> += <span class="var">step</span>
+      <span class="kw">return</span> { <span class="var">value</span>, <span class="prop">done</span>: <span class="kw">false</span> }   <span class="cm">// never done — infinite</span>
+    }
+  }
+}
+
+<span class="kw">function</span> <span class="fn">take</span>(<span class="var">n</span>, <span class="var">iterable</span>) {
+  <span class="kw">const</span> <span class="var">result</span> = []
+  <span class="kw">for</span> (<span class="kw">const</span> <span class="var">val</span> <span class="kw">of</span> <span class="var">iterable</span>) {
+    <span class="var">result</span>.<span class="fn">push</span>(<span class="var">val</span>)
+    <span class="kw">if</span> (<span class="var">result</span>.<span class="prop">length</span> >= <span class="var">n</span>) <span class="kw">break</span>
+  }
+  <span class="kw">return</span> <span class="var">result</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Generator pipeline — lazy data transforms</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a set of generator utility functions: <code>map*</code>, <code>filter*</code>, <code>take*</code>, <code>flatten*</code>, and <code>zip*</code>. Then use them to build a lazy pipeline that processes an infinite sequence of numbers — only computing values when consumed.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — generator pipeline</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">// Infinite natural numbers
+function* naturals(start = 1) {
+  let n = start
+  while (true) yield n++
+}
+
+// YOUR CODE: implement these generator utilities
+function* mapG(fn, iter)      { /* yield fn(x) for each x */ }
+function* filterG(fn, iter)   { /* yield x if fn(x) is truthy */ }
+function* takeG(n, iter)      { /* yield first n values then stop */ }
+function* flattenG(iter)      { /* yield each item from nested arrays */ }
+function* zipG(iter1, iter2)  { /* yield [a, b] pairs until either runs out */ }
+
+// Test 1: First 5 squares of odd numbers
+const oddSquares = takeG(5,
+  mapG(n => n * n,
+    filterG(n => n % 2 !== 0, naturals())
+  )
+)
+console.log("Odd squares:", [...oddSquares])  // [1, 9, 25, 49, 81]
+
+// Test 2: Flatten nested
+const nested = [[1, 2], [3, 4], [5, 6]]
+console.log("Flattened:", [...flattenG(nested)])  // [1, 2, 3, 4, 5, 6]
+
+// Test 3: Zip two sequences
+const letters = ["a", "b", "c", "d"]
+const nums    = naturals()
+console.log("Zipped:", [...takeG(4, zipG(letters, nums))])
+// [["a",1], ["b",2], ["c",3], ["d",4]]
+
+// Test 4: Fibonacci via generator (bonus)
+function* fibonacci() {
+  let [a, b] = [0, 1]
+  while (true) { yield a; [a, b] = [b, a + b] }
+}
+console.log("Fib 8:", [...takeG(8, fibonacci())])  // [0,1,1,2,3,5,8,13]</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span>* <span class="fn">mapG</span>(<span class="var">fn</span>, <span class="var">iter</span>) {
+  <span class="kw">for</span> (<span class="kw">const</span> <span class="var">x</span> <span class="kw">of</span> <span class="var">iter</span>) <span class="kw">yield</span> <span class="fn">fn</span>(<span class="var">x</span>)
+}
+<span class="kw">function</span>* <span class="fn">filterG</span>(<span class="var">fn</span>, <span class="var">iter</span>) {
+  <span class="kw">for</span> (<span class="kw">const</span> <span class="var">x</span> <span class="kw">of</span> <span class="var">iter</span>) <span class="kw">if</span> (<span class="fn">fn</span>(<span class="var">x</span>)) <span class="kw">yield</span> <span class="var">x</span>
+}
+<span class="kw">function</span>* <span class="fn">takeG</span>(<span class="var">n</span>, <span class="var">iter</span>) {
+  <span class="kw">let</span> <span class="var">count</span> = <span class="num">0</span>
+  <span class="kw">for</span> (<span class="kw">const</span> <span class="var">x</span> <span class="kw">of</span> <span class="var">iter</span>) { <span class="kw">if</span> (<span class="var">count</span>++ >= <span class="var">n</span>) <span class="kw">break</span>; <span class="kw">yield</span> <span class="var">x</span> }
+}
+<span class="kw">function</span>* <span class="fn">flattenG</span>(<span class="var">iter</span>) {
+  <span class="kw">for</span> (<span class="kw">const</span> <span class="var">x</span> <span class="kw">of</span> <span class="var">iter</span>) <span class="kw">yield</span>* <span class="var">x</span>
+}
+<span class="kw">function</span>* <span class="fn">zipG</span>(<span class="var">iter1</span>, <span class="var">iter2</span>) {
+  <span class="kw">const</span> <span class="var">it1</span> = <span class="var">iter1</span>[<span class="fn">Symbol</span>.<span class="prop">iterator</span>]()
+  <span class="kw">const</span> <span class="var">it2</span> = <span class="var">iter2</span>[<span class="fn">Symbol</span>.<span class="prop">iterator</span>]()
+  <span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="kw">const</span> <span class="var">a</span> = <span class="var">it1</span>.<span class="fn">next</span>(), <span class="var">b</span> = <span class="var">it2</span>.<span class="fn">next</span>()
+    <span class="kw">if</span> (<span class="var">a</span>.<span class="prop">done</span> || <span class="var">b</span>.<span class="prop">done</span>) <span class="kw">break</span>
+    <span class="kw">yield</span> [<span class="var">a</span>.<span class="prop">value</span>, <span class="var">b</span>.<span class="prop">value</span>]
+  }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Tree traversal with generators</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Use <code>yield*</code> to implement both depth-first (DFS) and breadth-first (BFS) tree traversal as generators. The tree nodes have <code>{ value, children }</code> shape. Then find all nodes matching a predicate lazily — stopping as soon as one is found without traversing the rest of the tree.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — tree generators</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">const tree = {
+  value: 1,
+  children: [
+    { value: 2, children: [
+      { value: 4, children: [] },
+      { value: 5, children: [] },
+    ]},
+    { value: 3, children: [
+      { value: 6, children: [] },
+      { value: 7, children: [
+        { value: 8, children: [] }
+      ]},
+    ]},
+  ]
+}
+
+// DFS — depth first (goes deep before wide)
+function* dfs(node) {
+  // YOUR CODE: yield node.value, then yield* each child's dfs
+}
+
+// BFS — breadth first (level by level)
+function* bfs(node) {
+  // YOUR CODE: use a queue (array), process level by level
+}
+
+// Lazy find — stops traversal as soon as match found
+function findFirst(tree, predicate, traversal = dfs) {
+  for (const value of traversal(tree)) {
+    if (predicate(value)) return value
+  }
+  return null
+}
+
+console.log("DFS order:", [...dfs(tree)])   // [1, 2, 4, 5, 3, 6, 7, 8]
+console.log("BFS order:", [...bfs(tree)])   // [1, 2, 3, 4, 5, 6, 7, 8]
+
+console.log("First > 5 (DFS):", findFirst(tree, n => n > 5))   // 6
+console.log("First > 5 (BFS):", findFirst(tree, n => n > 5, bfs)) // 6
+
+// Lazy — stops after finding, doesn't traverse rest
+let visited = 0
+for (const v of dfs(tree)) {
+  visited++
+  if (v === 4) break
+}
+console.log("Nodes visited to find 4:", visited)  // 3 (1, 2, 4)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span>* <span class="fn">dfs</span>(<span class="var">node</span>) {
+  <span class="kw">yield</span> <span class="var">node</span>.<span class="prop">value</span>
+  <span class="kw">for</span> (<span class="kw">const</span> <span class="var">child</span> <span class="kw">of</span> <span class="var">node</span>.<span class="prop">children</span>) <span class="kw">yield</span>* <span class="fn">dfs</span>(<span class="var">child</span>)  <span class="cm">// recurse via yield*</span>
+}
+
+<span class="kw">function</span>* <span class="fn">bfs</span>(<span class="var">node</span>) {
+  <span class="kw">const</span> <span class="var">queue</span> = [<span class="var">node</span>]
+  <span class="kw">while</span> (<span class="var">queue</span>.<span class="prop">length</span>) {
+    <span class="kw">const</span> <span class="var">current</span> = <span class="var">queue</span>.<span class="fn">shift</span>()
+    <span class="kw">yield</span> <span class="var">current</span>.<span class="prop">value</span>
+    <span class="var">queue</span>.<span class="fn">push</span>(...<span class="var">current</span>.<span class="prop">children</span>)
+  }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Async generator — paginated data fetcher</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build an <code>async function* paginate(url, options)</code> that handles paginated API responses. It should yield each item individually (not pages), support an optional <code>maxItems</code> limit, and handle errors gracefully by yielding error objects rather than throwing.</div>
+      <div class="ex-hint">Use a simulated fetch since we can't hit real APIs in the runner. The generator should yield individual items from each page, and stop when the API says there are no more pages.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — async generator</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">// Simulated API (returns 3 pages of 3 items each)
+async function fakeFetch(url) {
+  const page = parseInt(url.split("page=")[1]) || 1
+  await new Promise(r => setTimeout(r, 10))  // simulate network delay
+  if (page > 3) return { items: [], hasMore: false }
+  return {
+    items:   Array.from({ length: 3 }, (_, i) => ({ id: (page-1)*3 + i+1, name: `Item ${(page-1)*3+i+1}` })),
+    hasMore: page < 3,
+    nextPage: page + 1
+  }
+}
+
+async function* paginate(baseUrl, { maxItems = Infinity } = {}) {
+  // YOUR CODE:
+  // 1. Fetch pages until hasMore is false or maxItems reached
+  // 2. yield each individual item (not whole pages)
+  // 3. Track total yielded, stop at maxItems
+  // 4. Handle fetch errors gracefully
+}
+
+// Consume all items
+async function run() {
+  const items = []
+  for await (const item of paginate("https://api.example.com/items?page=1")) {
+    items.push(item)
+    console.log("Got:", item.name)
+  }
+  console.log("Total items:", items.length)  // 9
+
+  // With maxItems limit
+  const limited = []
+  for await (const item of paginate("https://api.example.com/items?page=1", { maxItems: 5 })) {
+    limited.push(item)
+  }
+  console.log("Limited to 5:", limited.length)  // 5
+}
+
+run()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">async function</span>* <span class="fn">paginate</span>(<span class="var">baseUrl</span>, { <span class="var">maxItems</span> = <span class="fn">Infinity</span> } = {}) {
+  <span class="kw">let</span> <span class="var">url</span>     = <span class="var">baseUrl</span>
+  <span class="kw">let</span> <span class="var">yielded</span> = <span class="num">0</span>
+
+  <span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="kw">try</span> {
+      <span class="kw">const</span> <span class="var">data</span> = <span class="kw">await</span> <span class="fn">fakeFetch</span>(<span class="var">url</span>)
+
+      <span class="kw">for</span> (<span class="kw">const</span> <span class="var">item</span> <span class="kw">of</span> <span class="var">data</span>.<span class="prop">items</span>) {
+        <span class="kw">if</span> (<span class="var">yielded</span> >= <span class="var">maxItems</span>) <span class="kw">return</span>
+        <span class="kw">yield</span> <span class="var">item</span>
+        <span class="var">yielded</span>++
+      }
+
+      <span class="kw">if</span> (!<span class="var">data</span>.<span class="prop">hasMore</span>) <span class="kw">break</span>
+      <span class="var">url</span> = <span class="var">url</span>.<span class="fn">replace</span>(/<span class="rx">page=\d+/</span>, `page=<span class="rx">${</span><span class="var">data</span>.<span class="prop">nextPage</span><span class="rx">}</span>`)
+    } <span class="kw">catch</span> (<span class="var">err</span>) {
+      <span class="kw">yield</span> { <span class="prop">error</span>: <span class="kw">true</span>, <span class="prop">message</span>: <span class="var">err</span>.<span class="prop">message</span> }
+      <span class="kw">break</span>
+    }
+  }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Stateful generator — parser &amp; state machine</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a CSV parser as a generator. It receives lines one at a time (via <code>next(line)</code>, using two-way generator communication), parses each into an array of fields, and yields the parsed row. Handle quoted fields that may contain commas. This demonstrates generators as stateful co-routines.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — stateful generator co-routine</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">function* csvParser() {
+  let headers = null
+
+  while (true) {
+    const line = yield   // receive a line via next(line)
+    if (line === null) return   // signal to stop
+
+    // Parse a CSV line into fields (handle quoted commas)
+    function parseLine(raw) {
+      const fields = []
+      let current  = ""
+      let inQuotes = false
+
+      for (const char of raw) {
+        if (char === '"') {
+          inQuotes = !inQuotes
+        } else if (char === "," && !inQuotes) {
+          fields.push(current.trim())
+          current = ""
+        } else {
+          current += char
+        }
+      }
+      fields.push(current.trim())
+      return fields
+    }
+
+    const fields = parseLine(line)
+
+    if (!headers) {
+      headers = fields  // first row is the header
+      // Don't yield headers — just set them
+    } else {
+      // YOUR CODE: yield an object mapping headers to fields
+      // e.g. if headers = ["name","age"] and fields = ["Alice","30"]
+      // yield { name: "Alice", age: "30" }
+    }
+  }
+}
+
+// Drive the parser
+const parser = csvParser()
+parser.next()  // start the generator (first next() with no value)
+
+const csvLines = [
+  "name,age,city",
+  "Alice,30,New York",
+  'Bob,25,"San Francisco, CA"',
+  "Carol,35,Chicago",
+]
+
+const rows = []
+for (const line of csvLines) {
+  const result = parser.next(line)
+  if (result.value) rows.push(result.value)
+}
+parser.next(null)  // stop the generator
+
+console.log("Parsed rows:", JSON.stringify(rows, null, 2))</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="cm">// Inside the else branch:</span>
+<span class="kw">const</span> <span class="var">row</span> = {}
+<span class="var">headers</span>.<span class="fn">forEach</span>((<span class="var">h</span>, <span class="var">i</span>) => <span class="var">row</span>[<span class="var">h</span>] = <span class="var">fields</span>[<span class="var">i</span>] ?? <span class="str">""</span>)
+<span class="kw">yield</span> <span class="var">row</span></pre></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 08. INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q1</span><span class="q-text">What is the difference between named exports and default exports? When do you use each?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><strong>Named exports</strong>: a file can have multiple. Imported with the exact same name in curly braces: <code>import { formatDate } from './utils'</code>. You can rename with <code>as</code>. Better for utility modules exporting many functions, and better for tree-shaking since bundlers know exactly which exports are used.<br><br><strong>Default export</strong>: one per file. Imported without curly braces with any name: <code>import Card from './Card'</code>. Conventional for React components — one component per file.<br><br><strong>When to use which</strong>: named exports for utility/helper modules with multiple functions. Default export for modules whose primary purpose is one thing — a component, a class, a configuration object. Many teams avoid default exports entirely because they make global renaming and auto-import tools harder.</div>
+    <div class="tip-box">Depth signal: mention barrel files (index.js that re-exports from multiple modules) and how they affect bundle size — importing from a barrel re-exports file prevents tree-shaking of unused exports in some bundler configurations.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q2</span><span class="q-text">What is tree-shaking and why do ES modules enable it but CommonJS doesn't?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Tree-shaking is the bundler's ability to eliminate unused exports from the final bundle — "shaking the tree" to drop dead leaves.<br><br>ES modules enable it because <code>import</code>/<code>export</code> have a <strong>static structure</strong> — they must be at the top level and can't be inside conditions or functions. The bundler can analyse the entire dependency graph at build time and determine which exports are never imported.<br><br>CommonJS (<code>require()</code>) is dynamic — you can <code>require(someVar)</code> or <code>if (condition) { require('./thing') }</code>. The bundler can't know at build time which modules might be required, so it has to include everything. This is why switching a library from CJS to ESM can dramatically reduce bundle sizes.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q3</span><span class="q-text">What is dynamic import()? How is it different from static import?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Static <code>import</code> is evaluated before code runs — the module is always downloaded when the file loads. Dynamic <code>import()</code> is a function call that returns a Promise and loads the module lazily, on demand, at runtime.<br><br>Dynamic import is used for <strong>code splitting</strong> — only downloading code when it's actually needed. React's <code>React.lazy(() => import('./Component'))</code> uses this. Route-based code splitting with React Router loads each page's code only when that page is visited.<br><br>Unlike static imports, dynamic imports can appear inside functions, conditionals, and event handlers. They can use dynamic paths. The cost is that the loaded module isn't available immediately — you must await the Promise.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q4</span><span class="q-text">What is the iteration protocol? What makes an object iterable in JavaScript?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">The iteration protocol consists of two interfaces: the <strong>iterable</strong> protocol and the <strong>iterator</strong> protocol.<br><br>An object is <strong>iterable</strong> if it has a <code>[Symbol.iterator]()</code> method that returns an <strong>iterator</strong>. An iterator is an object with a <code>next()</code> method that returns <code>{ value, done }</code>.<br><br>Built-in iterables: arrays, strings, Maps, Sets, NodeLists, arguments, typed arrays. These all have <code>Symbol.iterator</code> built in. You can make any custom object iterable by implementing this method.<br><br>What uses iterables: <code>for...of</code>, spread operator <code>[...iterable]</code>, destructuring <code>[a, b] = iterable</code>, <code>Array.from()</code>, <code>new Map(iterable)</code>, and <code>Promise.all(iterable)</code>.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q5</span><span class="q-text">What is a generator function? How does it differ from a regular function?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">A generator function (declared with <code>function*</code>) returns a Generator object when called — the body doesn't run yet. The body executes lazily: each call to <code>next()</code> runs until the next <code>yield</code> statement, suspends, and returns <code>{ value, done }</code>. The next <code>next()</code> call resumes from exactly where it paused.<br><br>Key differences from regular functions: a regular function runs to completion, returning once. A generator suspends and resumes, producing multiple values over time. Generator objects are both iterables (have <code>Symbol.iterator</code>) and iterators (have <code>next()</code>), so they work with all iterable-consuming syntax.<br><br>Important: <code>return</code> in a generator sets <code>done: true</code>. The <code>return</code> value is yielded once but <code>for...of</code> and spread skip it.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q6</span><span class="q-text">What does yield* do in a generator?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>yield*</code> delegates iteration to another iterable — it yields every value produced by the inner iterable before the outer generator continues.<br><br>Without <code>yield*</code>: <code>yield [1, 2, 3]</code> yields the array as a single value. With <code>yield*</code>: <code>yield* [1, 2, 3]</code> yields 1, then 2, then 3 individually.<br><br>Practical uses: flattening nested sequences, composing generators, implementing recursive generator algorithms like tree traversal — instead of manually looping and yielding each item from a recursive call, you just <code>yield* recursiveCall(child)</code>.<br><br>The expression value of <code>yield*</code> is the final <code>return</code> value of the delegated generator (the value from <code>{ done: true, value }</code>).</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q7</span><span class="q-text">What is an async generator? When would you use one over a regular async function?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">An async generator (<code>async function*</code>) combines async/await and generators — it can both <code>await</code> Promises and <code>yield</code> values. Calling <code>next()</code> returns a Promise that resolves to <code>{ value, done }</code>. Used with <code>for await...of</code>.<br><br>Use an async generator when you have a <strong>sequence of async operations producing multiple values over time</strong> — where each value is available at a different point and you want to process each one as it arrives rather than waiting for all of them.<br><br>Examples: paginated API responses (process each page as it arrives), file streaming (yield each chunk), WebSocket messages, AI token streaming. A regular async function can only return one value when fully done. An async generator can yield many partial results while still doing async work between each one.</div>
+    <div class="tip-box">Strong answer: "In our React app, we used an async generator to stream AI responses — each yielded token updated the UI immediately, giving the appearance of the AI typing in real time. This would be impossible with a regular async function which only resolves once."</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q8</span><span class="q-text">What is the difference between for...of and for...in?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>for...of</code> iterates the <strong>values</strong> of any iterable — arrays, strings, Maps, Sets, generators. It uses the iteration protocol (<code>Symbol.iterator</code>). This is what you should use for collections.<br><br><code>for...in</code> iterates the <strong>enumerable property keys</strong> of an object — including inherited ones from the prototype chain. It's designed for plain objects but is unreliable for arrays because: it iterates indices as strings ("0", "1"), it includes any enumerable prototype properties, and the order isn't guaranteed in older environments.<br><br><strong>Rule</strong>: use <code>for...of</code> for iterables (arrays, strings, collections). Use <code>Object.keys()/entries()/values()` + `.forEach()` for plain objects. Avoid <code>for...in</code> for arrays. <code>for...in</code> is rarely useful in modern code.</div>
+    <div class="warn-box">Common interview gotcha: <code>for...in</code> on an array that has been given extra properties (e.g. <code>arr.myProp = "x"</code>) will also iterate "myProp". <code>for...of</code> only iterates the indexed elements.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q9</span><span class="q-text">What are live bindings in ES modules? How do they differ from CommonJS?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">In ES modules, imports are <strong>live bindings</strong> — a read-only view of the exported variable. If the exporting module updates the export, all importers see the new value automatically. The binding is a live reference, not a copy.<br><br>In CommonJS, <code>require()</code> gives you a copy of the exported value at the time of the require call. If the exporting module later changes the value, importers don't see the change.<br><br><strong>Practical implication</strong>: if a module exports a counter and increments it, ESM importers will see the updated count; CJS importers are stuck with the initial value. This matters for configuration objects that are set up asynchronously, counters, and flags.<br><br>Note: the live binding is <em>read-only</em> from the importer's perspective — you can't reassign an imported binding. The module that owns it is the only one that can change it.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q10</span><span class="q-text">What is Symbol.iterator and what happens if you spread an object that doesn't have it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>Symbol.iterator</code> is a well-known Symbol used as a property key. Any object with a <code>[Symbol.iterator]()</code> method is iterable. The method must return an iterator (an object with <code>next()</code>). This protocol is how <code>for...of</code>, spread, and destructuring know how to consume any object uniformly.<br><br>If you try to spread a plain object that has no <code>Symbol.iterator</code>: <code>[...obj]</code> throws <code>TypeError: obj is not iterable</code>. Plain objects are <em>not</em> iterable by default — they don't have <code>Symbol.iterator</code>.<br><br>However, object spread <code>{...obj}</code> works on plain objects — but that's a different operator. It spreads the object's own enumerable properties into a new object, and doesn't use <code>Symbol.iterator</code> at all. Array spread <code>[...obj]</code> uses the iteration protocol; object spread <code>{...obj}</code> uses property enumeration. They look similar but are completely different operations.</div>
+    <div class="tip-box">Show depth: strings are iterable (they yield characters), so <code>[..."hello"]</code> gives <code>["h","e","l","l","o"]</code>. But a Number is not: <code>[...42]</code> throws. Maps and Sets are iterable. WeakMaps and WeakSets are NOT iterable — intentionally, to prevent memory leak analysis.</div></div>
+  </div>
+</div>
+
+<!-- 09. REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check each item only if you can do it without looking. Unchecked items = tomorrow's 5-min warm-ups.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain why modules exist and what problem they solve vs global-scope scripts</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between named and default exports, and when to use each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a barrel file (index.js) that re-exports from multiple modules</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain what <code>import()</code> dynamic import does and how React.lazy uses it</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the difference between ESM and CommonJS, including live bindings</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement <code>[Symbol.iterator]</code> on a custom class from memory</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the iterable vs iterator distinction and can explain both</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a generator function, explain yield, and implement an infinite sequence</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know what <code>yield*</code> does and how to use it for tree traversal</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain two-way generator communication with <code>next(value)</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain what an async generator is and give a real-world use case</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between <code>for...of</code> and <code>for...in</code> and when each is appropriate</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed exercises 3, 4, and 5 without looking at solutions first</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">Today's code is pushed to GitHub with descriptive commit messages</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--js);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2;">
+      1. Write a module with 3 named exports and 1 default export — then write the import statements for each pattern<br>
+      2. Implement a <code>Range</code> class with <code>[Symbol.iterator]</code> that works with <code>for...of</code> and spread<br>
+      3. Write an infinite Fibonacci generator, and a <code>take(n, gen)</code> function that safely pulls n values<br>
+      4. Implement <code>function* dfs(node)</code> for a <code>{ value, children }</code> tree using <code>yield*</code>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div class="footer-day-info">
+      <div class="footer-day-label">Currently on</div>
+      <div class="footer-day-name">Day 6 — ES6 Modules, Iterators &amp; Generators</div>
+      <div class="footer-day-next">Next up: <strong>Day 7 — Week 1 Review Project</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 1 progress</span><span>6 / 7 days</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" id="week-prog" style="width:85%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day5_dom_events_classes.html',5)">← Day 5</button>
+      <button class="footer-btn primary" onclick="navigateTo('day7_review_project.html',7)">Day 7 — Review Project →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Day plan ── */
+const DAY_PLAN = [
+  { num:1, file:"day1_javascript_fundamentals.html",      label:"JS Fundamentals" },
+  { num:2, file:"day2_javascript_arrays_objects.html",    label:"Arrays & Objects" },
+  { num:3, file:"day3_functions_async_js.html",           label:"Functions & Async" },
+  { num:4, file:"day4_dom_events_classes.html",           label:"DOM & Classes" },
+  { num:5, file:"day5_dom_events_classes.html",           label:"DOM, Events & Classes" },
+  { num:6, file:"day6_es6_modules_iterators_generators.html", label:"Modules, Iterators & Generators", current:true },
+  { num:7, file:"day7_review_project.html",               label:"Week 1 Review" },
+]
+const CURRENT = 6
+
+/* ── Available files ── */
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html",
+  "day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html",
+  "day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html",
+])
+
+function navigateTo(file, dayNum) {
+  if (AVAILABLE.has(file)) {
+    window.location.href = file
+  } else {
+    showToast(`Day ${dayNum} hasn't been created yet — keep going! 🚀`)
+  }
+}
+
+function showToast(msg) {
+  document.querySelector('.toast')?.remove()
+  const t = document.createElement('div')
+  t.className = 'toast'
+  t.textContent = msg
+  t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(0);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  const s = document.createElement('style')
+  s.textContent = `@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`
+  document.head.appendChild(s)
+  document.body.appendChild(t)
+  setTimeout(() => t.remove(), 3500)
+}
+
+/* ── Build dot nav ── */
+function buildDots(id) {
+  const el = document.getElementById(id)
+  if (!el) return
+  el.innerHTML = ''
+  DAY_PLAN.forEach(d => {
+    const dot = document.createElement('div')
+    dot.className = 'day-dot' + (d.num < CURRENT ? ' done' : '') + (d.num === CURRENT ? ' current' : '')
+    dot.title = `Day ${d.num}: ${d.label}`
+    dot.onclick = () => navigateTo(d.file, d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+
+/* ── Runner ── */
+function runCode(btn) {
+  const wrap = btn.closest('.runner')
+  const ta   = wrap.querySelector('textarea')
+  const out  = wrap.querySelector('.output-box')
+  const logs = []
+  const orig = console.log
+  console.log = (...a) => logs.push(a.map(x => typeof x === 'object' && x !== null ? JSON.stringify(x,null,2) : String(x)).join(' '))
+  out.classList.remove('err')
+  try {
+    new Function(ta.value)()
+    out.textContent = logs.length ? logs.join('\n') : '(no output — add console.log calls)'
+  } catch(e) {
+    out.classList.add('err')
+    out.textContent = '✗ ' + e.message
+  }
+  console.log = orig
+}
+
+/* ── Toggles ── */
+function toggleSol(btn) {
+  const c = btn.nextElementSibling, a = btn.querySelector('.arrow')
+  const o = c.classList.toggle('open')
+  a.style.transform = o ? 'rotate(90deg)' : ''
+  btn.style.color   = o ? 'var(--text)' : ''
+}
+function toggleQA(el) {
+  const a = el.nextElementSibling, c = el.querySelector('.qa-chev')
+  const o = a.classList.toggle('open')
+  c.style.transform   = o ? 'rotate(90deg)' : ''
+  el.style.background = o ? 'var(--surface3)' : ''
+}
+
+/* ── Checklist + progress ── */
+function toggleCheck(el) {
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el) {
+  el.classList.toggle('done')
+  updateProgress()
+}
+function updateProgress() {
+  const d = document.querySelectorAll('.tdot.done').length
+  const c = document.querySelectorAll('.cl-box.checked').length
+  const t = document.querySelectorAll('.tdot').length + document.querySelectorAll('.cl-box').length
+  const p = Math.round(((d + c) / t) * 100)
+  document.getElementById('prog-fill').style.width = p + '%'
+  document.getElementById('pct-label').textContent = p + '%'
+}
+
+/* ── Sticky nav highlight ── */
+const secs  = document.querySelectorAll('.section')
+const links = document.querySelectorAll('.nav a')
+window.addEventListener('scroll', () => {
+  let cur = ''
+  secs.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id })
+  links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur))
+}, { passive:true })
+</script>
+</body>
+</html>

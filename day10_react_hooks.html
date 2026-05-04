@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 10 — React Hooks Deep Dive</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --react:#61dafb;--react-dim:rgba(97,218,251,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
+  --js:#f7df1e;--js-dim:rgba(247,223,30,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--react);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--react);border-bottom-color:var(--react);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--react);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--react);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.3);}
+.day-btn.primary:hover{background:rgba(97,218,251,.18);}
+
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--react);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--react);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--react);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:620px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--react);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--react);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);position:relative;}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;}
+.runner-meta{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--react-dim);color:var(--react);border:1px solid rgba(97,218,251,.25);border-radius:6px;cursor:pointer;transition:background .15s;}
+.run-btn:hover{background:rgba(97,218,251,.18);}
+.runner-code{padding:16px 18px;border-bottom:1px solid var(--border);}
+.runner-code textarea{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:14px 16px;resize:vertical;min-height:180px;outline:none;}
+.runner-code textarea:focus{border-color:rgba(97,218,251,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--react);}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--react-dim);color:var(--react);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--react);border-color:var(--react);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;align-items:center;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;text-decoration:none;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.3);}
+.footer-btn.primary:hover{background:rgba(97,218,251,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--react);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 10 · React</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#useref">useRef</a>
+  <a href="#usememo">useMemo</a>
+  <a href="#usecallback">useCallback</a>
+  <a href="#custom">Custom Hooks</a>
+  <a href="#patterns">Hook Patterns</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 2 · <span>Day 10 of 56</span> · React Hooks Deep Dive</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day9_react_state_events.html',9)">← Day 9</button>
+      <button class="day-btn primary" onclick="navigateTo('day11_react_router.html',11)">Day 11 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 2 · Day 10 · 8-week plan</div>
+  <h1>React Hooks<br><em>Deep Dive</em></h1>
+  <p class="hero-sub">The hooks that separate good React code from great React code. <code>useRef</code>, <code>useMemo</code>, and <code>useCallback</code> are the performance and escape-hatch tools — and custom hooks are how you reuse logic cleanly across components.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(97,218,251,.3);color:var(--react);">useRef — DOM + mutable values</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">useMemo — memoised values</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">useCallback — stable functions</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">custom hooks — shared logic</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">hook composition</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">stale closures</span>
+    <span class="topic-pill" style="border-color:rgba(244,114,182,.3);color:var(--pink);">render optimisation</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">useLayoutEffect</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--react);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>useRef — what it really is</li>
+        <li>Refs for DOM access — focus, scroll, measure</li>
+        <li>Refs for mutable values without re-render</li>
+        <li>Storing previous values with useRef</li>
+        <li>useLayoutEffect vs useEffect</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>useMemo — what to memoize, when not to</li>
+        <li>useCallback — stable function references</li>
+        <li>React.memo — skipping child re-renders</li>
+        <li>Stale closure problem and solutions</li>
+        <li>Custom hooks — extracting shared logic</li>
+        <li>Hook composition patterns</li>
+        <li>Exercises 1–6 (all runnable)</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Push code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 10 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">useRef</span>
+    <span class="tdot" onclick="markDone(this)">DOM refs</span>
+    <span class="tdot" onclick="markDone(this)">Mutable refs</span>
+    <span class="tdot" onclick="markDone(this)">useMemo</span>
+    <span class="tdot" onclick="markDone(this)">useCallback</span>
+    <span class="tdot" onclick="markDone(this)">React.memo</span>
+    <span class="tdot" onclick="markDone(this)">Custom hooks</span>
+    <span class="tdot" onclick="markDone(this)">Hook patterns</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- ══ 01. useRef ══ -->
+<div class="section" id="useref">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">useRef — a mutable box that survives renders</span>
+    <span class="sec-badge" style="background:var(--react-dim);color:var(--react);">escape hatch</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--react-dim);color:var(--react);">what it is</span>
+      <div class="cc-title">A plain object with a .current property</div>
+      <div class="cc-body"><code>useRef(initialValue)</code> returns <code>{ current: initialValue }</code>. That's it. The same object persists across every render — React never replaces it. Changing <code>ref.current</code> does <strong>not trigger a re-render</strong>. This is the critical difference from state: refs are for values you want to <em>remember</em> but not <em>react to</em>.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">use 1 — DOM access</span>
+      <div class="cc-title">The ref prop attaches to a real DOM node</div>
+      <div class="cc-body">Pass a ref to a JSX element's <code>ref</code> prop. After the component mounts, <code>ref.current</code> holds the actual DOM element. Use this for: programmatic focus, reading input values without controlling them, triggering animations, scrolling to position, measuring element dimensions.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">use 2 — mutable values</span>
+      <div class="cc-title">Store anything that changes but shouldn't re-render</div>
+      <div class="cc-body">Timers, interval IDs, WebSocket instances, previous values, render counts, flags like "is this the first render". If you put these in state, you get unnecessary re-renders. If you use a plain variable, it resets every render. A ref persists without triggering anything.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">common mistake</span>
+      <div class="cc-title">Don't read/write refs during render</div>
+      <div class="cc-body">Reading <code>ref.current</code> during the render phase is unreliable — the DOM hasn't been updated yet. Refs should be read and written inside <strong>event handlers</strong> and <strong>useEffect</strong>. During render, use state. React's rules of hooks require this discipline.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">useRef — DOM access, mutable values, previous value, interval cleanup</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useRef</span>, <span class="var">useEffect</span>, <span class="var">useState</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="cm">// ── Use 1: DOM access ──────────────────────────────────────</span>
+<span class="kw">function</span> <span class="fn">AutoFocusInput</span>() {
+  <span class="kw">const</span> <span class="var">inputRef</span> = <span class="fn">useRef</span>(<span class="kw">null</span>)   <span class="cm">// null until component mounts</span>
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="var">inputRef</span>.<span class="prop">current</span>?.<span class="fn">focus</span>()   <span class="cm">// DOM is ready after mount</span>
+  }, [])
+
+  <span class="kw">return</span> <span class="tag">&lt;input</span> <span class="attr">ref</span>={<span class="var">inputRef</span>} <span class="attr">type</span>=<span class="str">"text"</span> <span class="attr">placeholder</span>=<span class="str">"I focus on mount"</span> <span class="tag">/&gt;</span>
+}
+
+<span class="cm">// ── Scroll to bottom of a chat window ─────────────────────</span>
+<span class="kw">function</span> <span class="fn">ChatWindow</span>({ <span class="var">messages</span> }) {
+  <span class="kw">const</span> <span class="var">bottomRef</span> = <span class="fn">useRef</span>(<span class="kw">null</span>)
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="var">bottomRef</span>.<span class="prop">current</span>?.<span class="fn">scrollIntoView</span>({ <span class="prop">behavior</span>: <span class="str">"smooth"</span> })
+  }, [<span class="var">messages</span>])  <span class="cm">// scroll every time messages change</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"chat"</span><span class="tag">&gt;</span>
+      {<span class="var">messages</span>.<span class="fn">map</span>(<span class="var">m</span> =&gt; <span class="tag">&lt;Message</span> <span class="attr">key</span>={<span class="var">m</span>.<span class="prop">id</span>} <span class="attr">msg</span>={<span class="var">m</span>} <span class="tag">/&gt;</span>)}
+      <span class="tag">&lt;div</span> <span class="attr">ref</span>={<span class="var">bottomRef</span>} <span class="tag">/&gt;</span>   <span class="cm">{/* invisible anchor at bottom */}</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── Measure an element's size ─────────────────────────────</span>
+<span class="kw">function</span> <span class="fn">MeasuredBox</span>() {
+  <span class="kw">const</span> <span class="var">boxRef</span>  = <span class="fn">useRef</span>(<span class="kw">null</span>)
+  <span class="kw">const</span> [<span class="var">size</span>, <span class="fn">setSize</span>] = <span class="fn">useState</span>({ <span class="prop">w</span>: <span class="num">0</span>, <span class="prop">h</span>: <span class="num">0</span> })
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">const</span> { <span class="prop">offsetWidth</span>: <span class="var">w</span>, <span class="prop">offsetHeight</span>: <span class="var">h</span> } = <span class="var">boxRef</span>.<span class="prop">current</span>
+    <span class="fn">setSize</span>({ <span class="var">w</span>, <span class="var">h</span> })
+  }, [])
+
+  <span class="kw">return</span> <span class="tag">&lt;div</span> <span class="attr">ref</span>={<span class="var">boxRef</span>}<span class="tag">&gt;</span>I am {<span class="var">size</span>.<span class="prop">w</span>} × {<span class="var">size</span>.<span class="prop">h</span>}px<span class="tag">&lt;/div&gt;</span>
+}
+
+<span class="cm">// ── Use 2: Store interval ID without re-render ────────────</span>
+<span class="kw">function</span> <span class="fn">Stopwatch</span>() {
+  <span class="kw">const</span> [<span class="var">elapsed</span>, <span class="fn">setElapsed</span>] = <span class="fn">useState</span>(<span class="num">0</span>)
+  <span class="kw">const</span> <span class="var">intervalRef</span> = <span class="fn">useRef</span>(<span class="kw">null</span>)   <span class="cm">// store ID — not state, no re-render</span>
+
+  <span class="kw">const</span> <span class="fn">start</span> = () =&gt; {
+    <span class="kw">if</span> (<span class="var">intervalRef</span>.<span class="prop">current</span>) <span class="kw">return</span>
+    <span class="var">intervalRef</span>.<span class="prop">current</span> = <span class="fn">setInterval</span>(() =&gt; {
+      <span class="fn">setElapsed</span>(<span class="var">e</span> =&gt; <span class="var">e</span> + <span class="num">1</span>)
+    }, <span class="num">1000</span>)
+  }
+
+  <span class="kw">const</span> <span class="fn">stop</span> = () =&gt; {
+    <span class="fn">clearInterval</span>(<span class="var">intervalRef</span>.<span class="prop">current</span>)
+    <span class="var">intervalRef</span>.<span class="prop">current</span> = <span class="kw">null</span>
+  }
+
+  <span class="fn">useEffect</span>(() =&gt; () =&gt; <span class="fn">stop</span>(), [])  <span class="cm">// cleanup on unmount</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;p&gt;</span>{<span class="var">elapsed</span>}s<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="var">start</span>}<span class="tag">&gt;</span>Start<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="var">stop</span>}<span class="tag">&gt;</span>Stop<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── Use 3: Track previous value ───────────────────────────</span>
+<span class="kw">function</span> <span class="fn">usePrevious</span>(<span class="var">value</span>) {
+  <span class="kw">const</span> <span class="var">ref</span> = <span class="fn">useRef</span>()
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="var">ref</span>.<span class="prop">current</span> = <span class="var">value</span>   <span class="cm">// set AFTER render so this render's value becomes "previous"</span>
+  })
+  <span class="kw">return</span> <span class="var">ref</span>.<span class="prop">current</span>        <span class="cm">// returns value from previous render</span>
+}
+
+<span class="kw">function</span> <span class="fn">PriceTracker</span>({ <span class="var">price</span> }) {
+  <span class="kw">const</span> <span class="var">prevPrice</span> = <span class="fn">usePrevious</span>(<span class="var">price</span>)
+  <span class="kw">const</span> <span class="var">direction</span> = <span class="var">prevPrice</span> === <span class="kw">undefined</span> ? <span class="str">"—"</span>
+    : <span class="var">price</span> &gt; <span class="var">prevPrice</span> ? <span class="str">"↑"</span> : <span class="var">price</span> &lt; <span class="var">prevPrice</span> ? <span class="str">"↓"</span> : <span class="str">"→"</span>
+  <span class="kw">return</span> <span class="tag">&lt;p&gt;</span>${<span class="var">price</span>} {<span class="var">direction</span>} (was ${<span class="var">prevPrice</span>})<span class="tag">&lt;/p&gt;</span>
+}</pre></div>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--blue);"></span>useLayoutEffect vs useEffect — when the timing matters</div>
+    <div class="mm-grid">
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--green);">useEffect (99% of the time)</div>
+        <div class="mm-value">Fires asynchronously after the browser has painted. Can't block the browser. Use for: data fetching, subscriptions, logging, anything that doesn't need to read DOM layout before paint.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--amber);">useLayoutEffect (rare)</div>
+        <div class="mm-value">Fires synchronously after DOM mutations but <em>before</em> the browser paints. Use when you need to read DOM measurements (width, height, scroll position) and then update state <em>before</em> the user sees anything — prevents visual flicker.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--coral);">when it matters</div>
+        <div class="mm-value">Tooltips, popovers, dropdowns that need to be positioned relative to a DOM element before showing. If you use <code>useEffect</code> for this, you see a brief flash of the element in the wrong position.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--muted);">rule of thumb</div>
+        <div class="mm-value">Start with <code>useEffect</code>. If you see a visual flicker because you're measuring the DOM and then changing something, switch to <code>useLayoutEffect</code>.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 02. useMemo ══ -->
+<div class="section" id="usememo">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">useMemo — cache expensive computed values</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">performance</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">what it does</span>
+      <div class="cc-title">Remembers a computed value between renders</div>
+      <div class="cc-body"><code>useMemo(fn, deps)</code> calls <code>fn()</code> and caches the result. On subsequent renders it only re-runs <code>fn()</code> if a dependency changed. Otherwise it returns the cached value. Every component function re-runs on every render — <code>useMemo</code> stops expensive computations from re-running unnecessarily.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">when to use it</span>
+      <div class="cc-title">Only for genuinely expensive computations</div>
+      <div class="cc-body">Don't use <code>useMemo</code> by default. It has overhead — the dependency comparison runs every render. Only use it when: the computation is slow (sorting thousands of items, complex maths), <strong>or</strong> you need a stable object/array reference to prevent child re-renders via <code>React.memo</code>.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">common mistake</span>
+      <div class="cc-title">Over-memoising simple computations</div>
+      <div class="cc-body"><code>const x = useMemo(() =&gt; a + b, [a, b])</code> is worse than just <code>const x = a + b</code>. The memo overhead exceeds the savings. Simple filters, sorts, and maths on small arrays don't need memoisation. Profile first, optimise second.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">useMemo — expensive filter, stable references, when NOT to use it</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useMemo</span>, <span class="var">useState</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="cm">// ── Good use: expensive computation on large data ──────────</span>
+<span class="kw">function</span> <span class="fn">ProductCatalog</span>({ <span class="var">products</span> }) {   <span class="cm">// products: 10,000 items</span>
+  <span class="kw">const</span> [<span class="var">query</span>,    <span class="fn">setQuery</span>]    = <span class="fn">useState</span>(<span class="str">""</span>)
+  <span class="kw">const</span> [<span class="var">sortBy</span>,   <span class="fn">setSortBy</span>]   = <span class="fn">useState</span>(<span class="str">"name"</span>)
+  <span class="kw">const</span> [<span class="var">darkMode</span>, <span class="fn">setDarkMode</span>] = <span class="fn">useState</span>(<span class="kw">false</span>)
+
+  <span class="cm">// Only re-runs when query or sortBy changes — NOT when darkMode changes</span>
+  <span class="kw">const</span> <span class="var">filteredProducts</span> = <span class="fn">useMemo</span>(() =&gt; {
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Filtering..."</span>)   <span class="cm">// won't log on darkMode toggle</span>
+    <span class="kw">return</span> <span class="var">products</span>
+      .<span class="fn">filter</span>(<span class="var">p</span> =&gt; <span class="var">p</span>.<span class="prop">name</span>.<span class="fn">toLowerCase</span>().<span class="fn">includes</span>(<span class="var">query</span>.<span class="fn">toLowerCase</span>()))
+      .<span class="fn">sort</span>((<span class="var">a</span>, <span class="var">b</span>) =&gt; <span class="var">a</span>[<span class="var">sortBy</span>].<span class="fn">localeCompare</span>(<span class="var">b</span>[<span class="var">sortBy</span>]))
+  }, [<span class="var">products</span>, <span class="var">query</span>, <span class="var">sortBy</span>])   <span class="cm">// deps: only recalculate when these change</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>={<span class="var">darkMode</span> ? <span class="str">"dark"</span> : <span class="str">""</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">value</span>={<span class="var">query</span>} <span class="attr">onChange</span>={<span class="var">e</span> =&gt; <span class="fn">setQuery</span>(<span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span>)} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;p&gt;</span>{<span class="var">filteredProducts</span>.<span class="prop">length</span>} results<span class="tag">&lt;/p&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── Stable reference for child component (with React.memo) ─</span>
+<span class="kw">const</span> <span class="fn">ExpensiveList</span> = <span class="fn">React</span>.<span class="fn">memo</span>(({ <span class="var">config</span> }) =&gt; {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"ExpensiveList rendered"</span>)
+  <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>...expensive rendering...<span class="tag">&lt;/div&gt;</span>
+})
+
+<span class="kw">function</span> <span class="fn">Parent</span>() {
+  <span class="kw">const</span> [<span class="var">count</span>, <span class="fn">setCount</span>] = <span class="fn">useState</span>(<span class="num">0</span>)
+
+  <span class="cm">// Without useMemo: new object every render → React.memo can't help</span>
+  <span class="cm">// const config = { theme: "dark", pageSize: 20 }  // new ref each render!</span>
+
+  <span class="cm">// With useMemo: same reference unless deps change → React.memo works</span>
+  <span class="kw">const</span> <span class="var">config</span> = <span class="fn">useMemo</span>(
+    () =&gt; ({ <span class="prop">theme</span>: <span class="str">"dark"</span>, <span class="prop">pageSize</span>: <span class="num">20</span> }),
+    []   <span class="cm">// never changes — created once</span>
+  )
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="fn">setCount</span>(<span class="var">c</span> =&gt; <span class="var">c</span> + <span class="num">1</span>)}<span class="tag">&gt;</span>Count: {<span class="var">count</span>}<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;ExpensiveList</span> <span class="attr">config</span>={<span class="var">config</span>} <span class="tag">/&gt;</span>   <span class="cm">{/* won't re-render on count change */}</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── DON'T useMemo for simple/cheap operations ─────────────</span>
+<span class="cm">// BAD: overhead outweighs benefit</span>
+<span class="kw">const</span> <span class="var">doubled</span>   = <span class="fn">useMemo</span>(() =&gt; <span class="var">count</span> * <span class="num">2</span>, [<span class="var">count</span>])           <span class="cm">// just write count * 2</span>
+<span class="kw">const</span> <span class="var">fullName</span>  = <span class="fn">useMemo</span>(() =&gt; `${<span class="var">first</span>} ${<span class="var">last</span>}`, [<span class="var">first</span>, <span class="var">last</span>]) <span class="cm">// just use template literal</span>
+<span class="kw">const</span> <span class="var">smallList</span> = <span class="fn">useMemo</span>(() =&gt; <span class="var">items</span>.<span class="fn">filter</span>(<span class="var">x</span> =&gt; <span class="var">x</span> &gt; <span class="num">5</span>), [<span class="var">items</span>])  <span class="cm">// fine without memo if items.length &lt; 1000</span></pre></div>
+  </div>
+</div>
+
+<!-- ══ 03. useCallback ══ -->
+<div class="section" id="usecallback">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">useCallback — stable function references</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">performance</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">what it does</span>
+      <div class="cc-title">useMemo for functions</div>
+      <div class="cc-body"><code>useCallback(fn, deps)</code> returns the same function reference between renders unless a dependency changes. Without it, every render creates a brand new function object. This matters when the function is passed as a prop to a <code>React.memo</code> child — a new function reference breaks memoisation.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--teal-dim);color:var(--teal);">relationship</span>
+      <div class="cc-title">useCallback = useMemo returning a function</div>
+      <div class="cc-body">These are identical: <code>useCallback(fn, deps)</code> and <code>useMemo(() =&gt; fn, deps)</code>. <code>useCallback</code> is just the convenient shorthand. Both cache by dependency comparison. Both have the same overhead. Both should only be used when the stable reference actually matters — not by default.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">stale closures</span>
+      <div class="cc-title">The hardest useCallback bug</div>
+      <div class="cc-body">A memoised function closes over the state values from when it was created. If you forget a dependency, the function uses a stale (old) value. The fix is to add it to the deps array — but this means the function gets recreated when that value changes, which may undo the performance benefit.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">useCallback with React.memo, the stale closure problem, and useReducer as a fix</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useCallback</span>, <span class="var">useState</span>, <span class="var">memo</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="cm">// ── useCallback + React.memo: the pairing that makes sense ─</span>
+<span class="kw">const</span> <span class="fn">TodoItem</span> = <span class="fn">memo</span>(({ <span class="var">todo</span>, <span class="var">onToggle</span>, <span class="var">onDelete</span> }) =&gt; {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"TodoItem rendered:"</span>, <span class="var">todo</span>.<span class="prop">text</span>)
+  <span class="kw">return</span> (
+    <span class="tag">&lt;li&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="str">"checkbox"</span> <span class="attr">checked</span>={<span class="var">todo</span>.<span class="prop">done</span>} <span class="attr">onChange</span>={() =&gt; <span class="fn">onToggle</span>(<span class="var">todo</span>.<span class="prop">id</span>)} <span class="tag">/&gt;</span>
+      {<span class="var">todo</span>.<span class="prop">text</span>}
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="fn">onDelete</span>(<span class="var">todo</span>.<span class="prop">id</span>)}<span class="tag">&gt;</span>✕<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/li&gt;</span>
+  )
+})
+
+<span class="kw">function</span> <span class="fn">TodoList</span>() {
+  <span class="kw">const</span> [<span class="var">todos</span>,  <span class="fn">setTodos</span>]  = <span class="fn">useState</span>([...])
+  <span class="kw">const</span> [<span class="var">filter</span>, <span class="fn">setFilter</span>] = <span class="fn">useState</span>(<span class="str">"all"</span>)
+
+  <span class="cm">// Without useCallback: new function every render → every TodoItem re-renders</span>
+  <span class="cm">// even when only filter changed!</span>
+
+  <span class="cm">// With useCallback: same reference while todos doesn't change</span>
+  <span class="kw">const</span> <span class="fn">handleToggle</span> = <span class="fn">useCallback</span>((<span class="var">id</span>) =&gt; {
+    <span class="fn">setTodos</span>(<span class="var">prev</span> =&gt; <span class="var">prev</span>.<span class="fn">map</span>(<span class="var">t</span> =&gt; <span class="var">t</span>.<span class="prop">id</span> === <span class="var">id</span> ? { ...<span class="var">t</span>, <span class="prop">done</span>: !<span class="var">t</span>.<span class="prop">done</span> } : <span class="var">t</span>))
+  }, [])  <span class="cm">// empty deps: uses functional setState, never stale!</span>
+
+  <span class="kw">const</span> <span class="fn">handleDelete</span> = <span class="fn">useCallback</span>((<span class="var">id</span>) =&gt; {
+    <span class="fn">setTodos</span>(<span class="var">prev</span> =&gt; <span class="var">prev</span>.<span class="fn">filter</span>(<span class="var">t</span> =&gt; <span class="var">t</span>.<span class="prop">id</span> !== <span class="var">id</span>))
+  }, [])  <span class="cm">// same: functional update, no stale closure</span>
+
+  <span class="kw">const</span> <span class="var">visible</span> = <span class="fn">useMemo</span>(() =&gt;
+    <span class="var">filter</span> === <span class="str">"all"</span> ? <span class="var">todos</span> : <span class="var">todos</span>.<span class="fn">filter</span>(<span class="var">t</span> =&gt; <span class="var">t</span>.<span class="prop">done</span> === (<span class="var">filter</span> === <span class="str">"done"</span>))
+  , [<span class="var">todos</span>, <span class="var">filter</span>])
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ul&gt;</span>
+      {<span class="var">visible</span>.<span class="fn">map</span>(<span class="var">t</span> =&gt; (
+        <span class="tag">&lt;TodoItem</span> <span class="attr">key</span>={<span class="var">t</span>.<span class="prop">id</span>} <span class="attr">todo</span>={<span class="var">t</span>} <span class="attr">onToggle</span>={<span class="var">handleToggle</span>} <span class="attr">onDelete</span>={<span class="var">handleDelete</span>} <span class="tag">/&gt;</span>
+      ))}
+    <span class="tag">&lt;/ul&gt;</span>
+  )
+}
+
+<span class="cm">// ── Stale closure problem with useCallback ────────────────</span>
+<span class="kw">function</span> <span class="fn">BuggyCounter</span>() {
+  <span class="kw">const</span> [<span class="var">count</span>, <span class="fn">setCount</span>] = <span class="fn">useState</span>(<span class="num">0</span>)
+
+  <span class="cm">// BUGGY: count in closure is always 0 (the initial value)</span>
+  <span class="kw">const</span> <span class="fn">alertCount</span> = <span class="fn">useCallback</span>(() =&gt; {
+    <span class="fn">alert</span>(`Count is ${<span class="var">count</span>}`)   <span class="cm">// stale! always shows 0</span>
+  }, [])   <span class="cm">// empty deps — captures count=0 and never updates</span>
+
+  <span class="cm">// FIX 1: add count to deps (recreates fn when count changes)</span>
+  <span class="kw">const</span> <span class="fn">fixedAlert1</span> = <span class="fn">useCallback</span>(() =&gt; {
+    <span class="fn">alert</span>(`Count is ${<span class="var">count</span>}`)
+  }, [<span class="var">count</span>])   <span class="cm">// recreated every time count changes</span>
+
+  <span class="cm">// FIX 2: use a ref to always have current value (no recreation)</span>
+  <span class="kw">const</span> <span class="var">countRef</span> = <span class="fn">useRef</span>(<span class="var">count</span>)
+  <span class="fn">useEffect</span>(() =&gt; { <span class="var">countRef</span>.<span class="prop">current</span> = <span class="var">count</span> }, [<span class="var">count</span>])
+
+  <span class="kw">const</span> <span class="fn">fixedAlert2</span> = <span class="fn">useCallback</span>(() =&gt; {
+    <span class="fn">alert</span>(`Count is ${<span class="var">countRef</span>.<span class="prop">current</span>}`)   <span class="cm">// always current!</span>
+  }, [])   <span class="cm">// stable — reads from ref, not closure</span>
+}</pre></div>
+  </div>
+</div>
+
+<!-- ══ 04. CUSTOM HOOKS ══ -->
+<div class="section" id="custom">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Custom hooks — extract and reuse stateful logic</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">composition</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">what they are</span>
+      <div class="cc-title">Functions that start with "use" and call hooks</div>
+      <div class="cc-body">A custom hook is any JavaScript function whose name starts with <code>use</code> and that calls React hooks internally. That's the entire definition. They let you extract stateful logic from components — logic that involves <code>useState</code>, <code>useEffect</code>, etc. — and share it across components without prop drilling or wrapper components.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">why they matter</span>
+      <div class="cc-title">The correct abstraction for React logic</div>
+      <div class="cc-body">Before hooks, logic reuse required Higher Order Components or Render Props — complex patterns that added wrapper nodes and made component trees hard to read. Custom hooks let you share logic with <strong>zero component overhead</strong>. Each component that calls a custom hook gets its own independent state — hooks are not singletons.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">rule</span>
+      <div class="cc-title">Must follow all rules of hooks</div>
+      <div class="cc-body">Custom hooks obey the same rules: only call at the top level (not in conditionals or loops), only call from React function components or other custom hooks. The <code>use</code> prefix is what tells ESLint to apply hooks rules to your custom function. Never name a hook without <code>use</code>.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">6 production-ready custom hooks — useFetch, useLocalStorage, useDebounce, useOnClickOutside, useWindowSize, useMediaQuery</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── useFetch — async data with loading/error/data states ──</span>
+<span class="kw">function</span> <span class="fn">useFetch</span>(<span class="var">url</span>) {
+  <span class="kw">const</span> [<span class="var">data</span>,    <span class="fn">setData</span>]    = <span class="fn">useState</span>(<span class="kw">null</span>)
+  <span class="kw">const</span> [<span class="var">loading</span>, <span class="fn">setLoading</span>] = <span class="fn">useState</span>(<span class="kw">true</span>)
+  <span class="kw">const</span> [<span class="var">error</span>,   <span class="fn">setError</span>]   = <span class="fn">useState</span>(<span class="kw">null</span>)
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">if</span> (!<span class="var">url</span>) <span class="kw">return</span>
+    <span class="kw">const</span> <span class="var">controller</span> = <span class="kw">new</span> <span class="fn">AbortController</span>()
+    <span class="fn">setLoading</span>(<span class="kw">true</span>); <span class="fn">setError</span>(<span class="kw">null</span>)
+    <span class="fn">fetch</span>(<span class="var">url</span>, { <span class="prop">signal</span>: <span class="var">controller</span>.<span class="prop">signal</span> })
+      .<span class="fn">then</span>(<span class="var">r</span> =&gt; { <span class="kw">if</span> (!<span class="var">r</span>.<span class="prop">ok</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="var">r</span>.<span class="prop">status</span>); <span class="kw">return</span> <span class="var">r</span>.<span class="fn">json</span>() })
+      .<span class="fn">then</span>(<span class="var">d</span> =&gt; { <span class="fn">setData</span>(<span class="var">d</span>); <span class="fn">setLoading</span>(<span class="kw">false</span>) })
+      .<span class="fn">catch</span>(<span class="var">e</span> =&gt; { <span class="kw">if</span> (<span class="var">e</span>.<span class="prop">name</span> !== <span class="str">"AbortError"</span>) { <span class="fn">setError</span>(<span class="var">e</span>.<span class="prop">message</span>); <span class="fn">setLoading</span>(<span class="kw">false</span>) } })
+    <span class="kw">return</span> () =&gt; <span class="var">controller</span>.<span class="fn">abort</span>()
+  }, [<span class="var">url</span>])
+
+  <span class="kw">return</span> { <span class="var">data</span>, <span class="var">loading</span>, <span class="var">error</span> }
+}
+<span class="cm">// Usage:</span>
+<span class="kw">const</span> { <span class="var">data</span>, <span class="var">loading</span>, <span class="var">error</span> } = <span class="fn">useFetch</span>(<span class="str">`/api/users/${userId}`</span>)
+
+<span class="cm">// ── useLocalStorage — state that persists across refreshes ─</span>
+<span class="kw">function</span> <span class="fn">useLocalStorage</span>(<span class="var">key</span>, <span class="var">initialValue</span>) {
+  <span class="kw">const</span> [<span class="var">value</span>, <span class="fn">setValue</span>] = <span class="fn">useState</span>(() =&gt; {   <span class="cm">// lazy initialiser</span>
+    <span class="kw">try</span> {
+      <span class="kw">const</span> <span class="var">item</span> = <span class="var">window</span>.<span class="prop">localStorage</span>.<span class="fn">getItem</span>(<span class="var">key</span>)
+      <span class="kw">return</span> <span class="var">item</span> ? <span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="var">item</span>) : <span class="var">initialValue</span>
+    } <span class="kw">catch</span> { <span class="kw">return</span> <span class="var">initialValue</span> }
+  })
+
+  <span class="kw">const</span> <span class="fn">setStoredValue</span> = <span class="fn">useCallback</span>((<span class="var">newValue</span>) =&gt; {
+    <span class="kw">try</span> {
+      <span class="kw">const</span> <span class="var">val</span> = <span class="var">newValue</span> <span class="kw">instanceof</span> <span class="fn">Function</span> ? <span class="fn">newValue</span>(<span class="var">value</span>) : <span class="var">newValue</span>
+      <span class="fn">setValue</span>(<span class="var">val</span>)
+      <span class="var">window</span>.<span class="prop">localStorage</span>.<span class="fn">setItem</span>(<span class="var">key</span>, <span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="var">val</span>))
+    } <span class="kw">catch</span> {}
+  }, [<span class="var">key</span>, <span class="var">value</span>])
+
+  <span class="kw">return</span> [<span class="var">value</span>, <span class="fn">setStoredValue</span>]
+}
+
+<span class="cm">// ── useDebounce — delays a value update ───────────────────</span>
+<span class="kw">function</span> <span class="fn">useDebounce</span>(<span class="var">value</span>, <span class="var">delay</span> = <span class="num">300</span>) {
+  <span class="kw">const</span> [<span class="var">debounced</span>, <span class="fn">setDebounced</span>] = <span class="fn">useState</span>(<span class="var">value</span>)
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">const</span> <span class="var">timer</span> = <span class="fn">setTimeout</span>(() =&gt; <span class="fn">setDebounced</span>(<span class="var">value</span>), <span class="var">delay</span>)
+    <span class="kw">return</span> () =&gt; <span class="fn">clearTimeout</span>(<span class="var">timer</span>)
+  }, [<span class="var">value</span>, <span class="var">delay</span>])
+  <span class="kw">return</span> <span class="var">debounced</span>
+}
+<span class="cm">// Usage: only fetch after user stops typing 400ms</span>
+<span class="kw">const</span> <span class="var">debouncedQuery</span> = <span class="fn">useDebounce</span>(<span class="var">query</span>, <span class="num">400</span>)
+<span class="fn">useEffect</span>(() =&gt; { <span class="fn">fetchResults</span>(<span class="var">debouncedQuery</span>) }, [<span class="var">debouncedQuery</span>])
+
+<span class="cm">// ── useOnClickOutside — close dropdowns on outside click ──</span>
+<span class="kw">function</span> <span class="fn">useOnClickOutside</span>(<span class="var">ref</span>, <span class="var">handler</span>) {
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">const</span> <span class="fn">listener</span> = (<span class="var">e</span>) =&gt; {
+      <span class="kw">if</span> (!<span class="var">ref</span>.<span class="prop">current</span> || <span class="var">ref</span>.<span class="prop">current</span>.<span class="fn">contains</span>(<span class="var">e</span>.<span class="prop">target</span>)) <span class="kw">return</span>
+      <span class="fn">handler</span>(<span class="var">e</span>)
+    }
+    <span class="fn">document</span>.<span class="fn">addEventListener</span>(<span class="str">"mousedown"</span>, <span class="var">listener</span>)
+    <span class="fn">document</span>.<span class="fn">addEventListener</span>(<span class="str">"touchstart"</span>, <span class="var">listener</span>)
+    <span class="kw">return</span> () =&gt; {
+      <span class="fn">document</span>.<span class="fn">removeEventListener</span>(<span class="str">"mousedown"</span>, <span class="var">listener</span>)
+      <span class="fn">document</span>.<span class="fn">removeEventListener</span>(<span class="str">"touchstart"</span>, <span class="var">listener</span>)
+    }
+  }, [<span class="var">ref</span>, <span class="var">handler</span>])
+}
+<span class="cm">// Usage:</span>
+<span class="kw">const</span> [<span class="var">open</span>, <span class="fn">setOpen</span>] = <span class="fn">useState</span>(<span class="kw">false</span>)
+<span class="kw">const</span> <span class="var">dropdownRef</span>   = <span class="fn">useRef</span>(<span class="kw">null</span>)
+<span class="fn">useOnClickOutside</span>(<span class="var">dropdownRef</span>, () =&gt; <span class="fn">setOpen</span>(<span class="kw">false</span>))
+
+<span class="cm">// ── useWindowSize — reactive window dimensions ────────────</span>
+<span class="kw">function</span> <span class="fn">useWindowSize</span>() {
+  <span class="kw">const</span> [<span class="var">size</span>, <span class="fn">setSize</span>] = <span class="fn">useState</span>({
+    <span class="prop">width</span>:  <span class="var">window</span>.<span class="prop">innerWidth</span>,
+    <span class="prop">height</span>: <span class="var">window</span>.<span class="prop">innerHeight</span>
+  })
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">const</span> <span class="fn">fn</span> = () =&gt; <span class="fn">setSize</span>({ <span class="prop">width</span>: <span class="var">window</span>.<span class="prop">innerWidth</span>, <span class="prop">height</span>: <span class="var">window</span>.<span class="prop">innerHeight</span> })
+    <span class="var">window</span>.<span class="fn">addEventListener</span>(<span class="str">"resize"</span>, <span class="var">fn</span>)
+    <span class="kw">return</span> () =&gt; <span class="var">window</span>.<span class="fn">removeEventListener</span>(<span class="str">"resize"</span>, <span class="var">fn</span>)
+  }, [])
+  <span class="kw">return</span> <span class="var">size</span>
+}</pre></div>
+  </div>
+</div>
+
+<!-- ══ 05. QUICK REFERENCE ══ -->
+<div class="section" id="patterns">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Hooks quick-reference — when to use what</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">cheat sheet</span>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">All hooks — purpose, signature, when to use</div>
+    <table class="comp-table">
+      <tr><th>Hook</th><th>Purpose</th><th>Use when…</th><th>Don't use when…</th></tr>
+      <tr>
+        <td><code>useState</code></td>
+        <td>Simple reactive state</td>
+        <td>UI needs to update when value changes</td>
+        <td>Value changes but re-render isn't needed</td>
+      </tr>
+      <tr>
+        <td><code>useReducer</code></td>
+        <td>Complex state with named transitions</td>
+        <td>Multiple related state updates, testable logic</td>
+        <td>Simple independent values — useState is cleaner</td>
+      </tr>
+      <tr>
+        <td><code>useEffect</code></td>
+        <td>Side effects after render</td>
+        <td>Fetch data, subscribe, set up timers</td>
+        <td>Transforming data for render (do it inline)</td>
+      </tr>
+      <tr>
+        <td><code>useRef</code></td>
+        <td>Mutable box, DOM access</td>
+        <td>DOM focus/scroll/measure, interval IDs, prev values</td>
+        <td>Values that should trigger re-renders — use state</td>
+      </tr>
+      <tr>
+        <td><code>useMemo</code></td>
+        <td>Cache expensive computed value</td>
+        <td>Slow computations, stable object references for React.memo children</td>
+        <td>Simple/cheap calculations — overhead exceeds benefit</td>
+      </tr>
+      <tr>
+        <td><code>useCallback</code></td>
+        <td>Cache function reference</td>
+        <td>Passing handlers to React.memo children, useEffect deps</td>
+        <td>Inline handlers on regular (non-memo) children</td>
+      </tr>
+      <tr>
+        <td><code>useContext</code></td>
+        <td>Read from a context</td>
+        <td>Theme, auth, locale — global data that many components need</td>
+        <td>Data that only a few nearby components need — use props</td>
+      </tr>
+      <tr>
+        <td><code>useLayoutEffect</code></td>
+        <td>Effect before browser paint</td>
+        <td>Measure DOM before paint, prevent flicker in tooltips/popovers</td>
+        <td>Most effects — useEffect is async and lighter</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Coding exercises — hook logic in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Simulate useRef — a box that survives renders</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>useRef(initialValue)</code> using the same cursor-indexed store approach from Day 8. Verify that: the same object is returned on every render, <code>.current</code> can be mutated freely, mutations do NOT trigger re-renders, and it can store any value including DOM-like objects.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — simulate useRef</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">let hookStore  = []
+let hookCursor = 0
+let renderCount = 0
+
+function useState(init) {
+  const i = hookCursor++
+  if (hookStore[i] === undefined) hookStore[i] = { type:'state', val: typeof init === 'function' ? init() : init }
+  const set = (v) => {
+    hookStore[i].val = typeof v === 'function' ? v(hookStore[i].val) : v
+    render()
+  }
+  return [hookStore[i].val, set]
+}
+
+function useRef(initialValue) {
+  const i = hookCursor++
+  // YOUR CODE:
+  // On first call: create { current: initialValue } and store it
+  // On subsequent calls: return THE SAME OBJECT (not a new one!)
+  // Key: don't wrap in { type, val } like useState — just store the ref object directly
+}
+
+// Simulated render
+function render() {
+  hookCursor = 0
+  renderCount++
+
+  const [count, setCount] = useState(0)
+  const counterRef        = useRef(0)     // mutable, no re-render
+  const renderCountRef    = useRef(0)     // track renders without causing them
+
+  // Mutate the ref directly (in real React: done in event handlers/effects)
+  counterRef.current++
+  renderCountRef.current = renderCount
+
+  console.log(`Render #${renderCount}: state=${count}, ref.current=${counterRef.current}, renders tracked=${renderCountRef.current}`)
+
+  return { setCount, counterRef }
+}
+
+// Initial render
+const { setCount, counterRef } = render()
+
+// Mutating ref.current should NOT cause a re-render
+counterRef.current = 99
+counterRef.current = 100
+console.log("After 2 ref mutations — still only 1 render:", renderCount === 1)  // true
+
+// But updating state SHOULD re-render
+setCount(5)
+console.log("After setState — renders now:", renderCount)  // 2
+
+// Verify ref persists across renders (same .current value from last mutation)
+console.log("ref.current after re-render:", counterRef.current)  // 101 (incremented in render #2)
+
+// Verify same object reference across renders
+const ref1 = (() => { hookCursor = 0; useState(0); return useRef(0) })()
+hookCursor = 0; useState(0); const ref2 = useRef(0)
+console.log("Same ref object across renders:", ref1 === ref2)  // true</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">useRef</span>(<span class="var">initialValue</span>) {
+  <span class="kw">const</span> <span class="var">i</span> = <span class="var">hookCursor</span>++
+  <span class="kw">if</span> (<span class="var">hookStore</span>[<span class="var">i</span>] === <span class="kw">undefined</span>) {
+    <span class="var">hookStore</span>[<span class="var">i</span>] = { <span class="prop">current</span>: <span class="var">initialValue</span> }  <span class="cm">// create once</span>
+  }
+  <span class="kw">return</span> <span class="var">hookStore</span>[<span class="var">i</span>]  <span class="cm">// always return SAME object — mutations persist</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Implement useMemo — cached computation with deps</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>useMemo(fn, deps)</code>. It should run <code>fn()</code> on the first call, then cache the result. On subsequent calls, re-run only if a dependency has changed (shallow comparison). Track how many times the expensive function actually runs vs how many renders happen.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — simulate useMemo</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">let memoStore  = []
+let memoCursor = 0
+let computeCount = 0
+
+function useMemo(fn, deps) {
+  const i = memoCursor++
+  // YOUR CODE:
+  // First call: run fn(), store { value, deps }
+  // Subsequent calls: if any dep changed (shallow ===), re-run fn()
+  // Otherwise: return cached value
+  // Tip: use Array.some() to check if deps differ
+}
+
+// Simulate renders
+function render(query, sortBy, theme) {
+  memoCursor = 0
+
+  const ITEMS = Array.from({ length: 1000 }, (_, i) => ({
+    id: i, name: `Item ${i}`, category: i % 3 === 0 ? 'A' : 'B'
+  }))
+
+  // Expensive: filter + sort 1000 items
+  const filtered = useMemo(() => {
+    computeCount++
+    return ITEMS
+      .filter(item => item.name.toLowerCase().includes(query.toLowerCase()))
+      .sort((a, b) => sortBy === 'id' ? a.id - b.id : a.name.localeCompare(b.name))
+  }, [query, sortBy])
+
+  // Cheap derived value (no memo needed, but testing it doesn't re-run on theme change)
+  const label = useMemo(() => {
+    computeCount++
+    return `${filtered.length} results`
+  }, [filtered.length])
+
+  return { count: filtered.length, label }
+}
+
+// Test: same deps → no recompute
+render("item 1", "id", "light")
+console.log("After render 1 — compute calls:", computeCount)  // 2 (both memos ran)
+
+render("item 1", "id", "dark")   // only theme changed — neither memo dep changed
+console.log("After theme change — compute calls:", computeCount)  // still 2!
+
+render("item 2", "id", "dark")   // query changed → first memo re-runs
+console.log("After query change — compute calls:", computeCount)  // 4 (both re-ran since filtered.length changed)
+
+render("item 2", "name", "dark") // sortBy changed → first memo re-runs
+console.log("After sort change — compute calls:", computeCount)   // 5 or 6
+
+console.log("Total renders: 4, compute calls:", computeCount, "— memoization working:", computeCount < 8)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">useMemo</span>(<span class="var">fn</span>, <span class="var">deps</span>) {
+  <span class="kw">const</span> <span class="var">i</span>    = <span class="var">memoCursor</span>++
+  <span class="kw">const</span> <span class="var">prev</span> = <span class="var">memoStore</span>[<span class="var">i</span>]
+  <span class="kw">const</span> <span class="var">changed</span> = !<span class="var">prev</span> || !<span class="var">deps</span> ||
+    <span class="var">deps</span>.<span class="fn">some</span>((<span class="var">d</span>, <span class="var">j</span>) => <span class="var">d</span> !== (<span class="var">prev</span>.<span class="prop">deps</span>||[])[<span class="var">j</span>])
+  <span class="kw">if</span> (<span class="var">changed</span>) {
+    <span class="var">memoStore</span>[<span class="var">i</span>] = { <span class="prop">value</span>: <span class="fn">fn</span>(), <span class="var">deps</span> }
+  }
+  <span class="kw">return</span> <span class="var">memoStore</span>[<span class="var">i</span>].<span class="prop">value</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Build useDebounce — delay a value update</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement the <code>useDebounce(value, delay)</code> custom hook in plain JS (no DOM needed). It should return a debounced version of the value — only updating after the value has been stable for <code>delay</code> ms. Show it prevents rapid-fire computations.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — useDebounce implementation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">// Pure JS simulation of useDebounce logic
+// We'll test the debounce mechanics without React's render cycle
+
+function createDebouncer(delay) {
+  let timer     = null
+  let current   = null
+  let callbacks = []
+
+  // YOUR CODE: implement the core debounce logic
+  // set(value) — clears any pending timer, starts a new one
+  //              after `delay` ms, updates `current` and calls all subscribers
+  // subscribe(fn) — adds a callback that fires when debounced value settles
+  // getCurrent() — returns the current settled value
+
+  function set(value) {
+    // clear pending timer
+    // set new timer: after delay, set current = value, notify subscribers
+  }
+
+  function subscribe(fn) {
+    callbacks.push(fn)
+    return () => { callbacks = callbacks.filter(c => c !== fn) }
+  }
+
+  function getCurrent() { return current }
+
+  return { set, subscribe, getCurrent }
+}
+
+// Test
+async function runTest() {
+  const debouncer = createDebouncer(100)
+  const settled   = []
+  const unsub     = debouncer.subscribe(v => settled.push(v))
+
+  // Simulate rapid typing: "r", "re", "rea", "reac", "react"
+  debouncer.set("r")
+  debouncer.set("re")
+  debouncer.set("rea")
+  debouncer.set("reac")
+  debouncer.set("react")   // only this should settle
+
+  await new Promise(r => setTimeout(r, 150))
+
+  console.log("Settled values:", settled)           // ["react"] — only 1
+  console.log("Current:", debouncer.getCurrent())   // "react"
+  console.log("Debounced correctly:", settled.length === 1 && settled[0] === "react")
+
+  // Test: rapid then pause then rapid
+  debouncer.set("a")
+  debouncer.set("ab")
+  await new Promise(r => setTimeout(r, 150))   // "ab" settles
+
+  debouncer.set("abc")
+  debouncer.set("abcd")
+  await new Promise(r => setTimeout(r, 150))  // "abcd" settles
+
+  console.log("Multi-burst settled:", settled)       // ["react", "ab", "abcd"]
+  console.log("Total settled count:", settled.length) // 3
+
+  unsub()  // unsubscribe
+  debouncer.set("ignored")
+  await new Promise(r => setTimeout(r, 150))
+  console.log("After unsub:", settled.length)  // still 3
+}
+
+runTest()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">set</span>(<span class="var">value</span>) {
+  <span class="fn">clearTimeout</span>(<span class="var">timer</span>)
+  <span class="var">timer</span> = <span class="fn">setTimeout</span>(() => {
+    <span class="var">current</span> = <span class="var">value</span>
+    <span class="var">callbacks</span>.<span class="fn">forEach</span>(<span class="var">fn</span> => <span class="fn">fn</span>(<span class="var">value</span>))
+  }, <span class="var">delay</span>)
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Stale closure detection and fix</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Demonstrate the stale closure problem in a useCallback simulation and implement two fixes: (1) adding the value to the dependency array, (2) using a ref to always hold the latest value. Show which approach produces the correct result in a polling scenario.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — stale closure + fixes</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">// Simulate state + callback storage
+function createComponent() {
+  let count     = 0
+  let callbacks = {}  // named callback cache
+
+  function setState(val) { count = val }
+  function getState()    { return count }
+
+  // Simulate useCallback with empty deps — captures count at creation time
+  function createStaleCb() {
+    const capturedCount = count   // STALE — captures current value, never updates
+    return () => `Count is ${capturedCount}`
+  }
+
+  // Fix 1: re-create callback when count changes (deps: [count])
+  function createFreshCb() {
+    // YOUR CODE: return a function that reads `count` directly from the closure
+    // This is re-created every time count changes — always fresh
+  }
+
+  // Fix 2: use a "ref" (object) so the callback never needs to be re-created
+  const countRef = { current: count }
+  function syncRef() { countRef.current = count }  // call this after setState
+
+  function createRefCb() {
+    // YOUR CODE: return a function that reads countRef.current
+    // This is created ONCE and always has the latest value via the ref
+  }
+
+  return { setState, getState, syncRef, createStaleCb, createFreshCb, createRefCb, countRef }
+}
+
+const comp = createComponent()
+
+// Create all three callbacks at count=0
+const staleCb  = comp.createStaleCb()
+const freshCb  = comp.createFreshCb()
+const refCb    = comp.createRefCb()
+
+console.log("=== At count=0 ===")
+console.log("Stale:", staleCb())   // "Count is 0" ✓
+console.log("Fresh:", freshCb())   // "Count is 0" ✓
+console.log("Ref:  ", refCb())     // "Count is 0" ✓
+
+// Update count to 5
+comp.setState(5)
+comp.syncRef()
+
+// Fresh/ref callbacks re-read current values:
+// Note: in this simulation, freshCb still captures old count (shows the problem clearly)
+// In real React, freshCb would be RE-CREATED after count changes
+console.log("\n=== After count=5 (callbacks NOT re-created) ===")
+console.log("Stale:", staleCb())   // "Count is 0" ← WRONG (stale closure)
+console.log("Fresh:", freshCb())   // shows stale too unless re-created
+console.log("Ref:  ", refCb())     // "Count is 5" ✓ (reads ref.current)
+
+// Simulate re-creating freshCb after state change (what React does with deps)
+const freshCb2 = comp.createFreshCb()   // re-created after count change
+
+console.log("\n=== After re-creating freshCb (simulating deps: [count]) ===")
+console.log("Fresh (recreated):", freshCb2())  // "Count is 5" ✓
+
+comp.setState(42)
+comp.syncRef()
+console.log("\n=== After count=42 ===")
+console.log("Old stale:        ", staleCb())   // still 0
+console.log("Old fresh:        ", freshCb())   // still 0
+console.log("Ref (always live):", refCb())     // 42 ✓ — no re-creation needed</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">createFreshCb</span>() {
+  <span class="cm">// Captures count at call time — needs re-creation when count changes</span>
+  <span class="kw">const</span> <span class="var">captured</span> = <span class="var">count</span>
+  <span class="kw">return</span> () => `Count is ${<span class="var">captured</span>}`
+}
+
+<span class="kw">function</span> <span class="fn">createRefCb</span>() {
+  <span class="cm">// Reads from ref.current — always fresh, no re-creation needed</span>
+  <span class="kw">return</span> () => `Count is ${<span class="var">countRef</span>.<span class="prop">current</span>}`
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Build useFetch custom hook</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a complete <code>useFetch(url)</code> hook simulator. It manages <code>data</code>, <code>loading</code>, and <code>error</code> states, handles AbortController cleanup when the URL changes, and supports a <code>refetch()</code> function. Test it with race conditions — rapid URL changes should not show stale data.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — useFetch implementation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">// Simulated fetch (variable delay to trigger race conditions)
+const fetchLog = []
+async function mockFetch(url, { signal } = {}) {
+  const delay = url.includes("slow") ? 200 : 50
+  await new Promise((res, rej) => {
+    const t = setTimeout(res, delay)
+    signal?.addEventListener("abort", () => { clearTimeout(t); rej(new DOMException("", "AbortError")) })
+  })
+  if (signal?.aborted) throw new DOMException("", "AbortError")
+  fetchLog.push(`resolved: ${url}`)
+  return { data: `Data from ${url}`, timestamp: Date.now() }
+}
+
+// YOUR CODE: implement useFetch as a class/object that manages state
+// It should have: state.data, state.loading, state.error
+// And methods: setUrl(url), refetch(), getState()
+// When URL changes or refetch() called:
+//   1. Abort any in-flight request
+//   2. Set loading=true, error=null
+//   3. Fetch the new URL
+//   4. On success: set data, loading=false
+//   5. On abort: ignore (stale request)
+//   6. On error: set error, loading=false
+
+class FetchHook {
+  constructor() {
+    this.state = { data: null, loading: false, error: null }
+    this.url   = null
+    // YOUR CODE: add controller property
+  }
+
+  async setUrl(url) {
+    this.url = url
+    // YOUR CODE
+  }
+
+  async refetch() {
+    // YOUR CODE: re-fetch current URL
+  }
+
+  getState() { return { ...this.state } }
+}
+
+// Test
+async function runTests() {
+  const hook = new FetchHook()
+
+  // Test 1: basic fetch
+  await hook.setUrl("/api/users")
+  console.log("After fetch:", hook.getState().data)    // "Data from /api/users"
+  console.log("Loading done:", !hook.getState().loading) // true
+
+  // Test 2: race condition — rapid URL changes
+  // Start a slow request, then immediately change to a fast one
+  const fetchLog2 = []
+  hook.setUrl("/api/slow-endpoint")   // starts 200ms fetch
+  await new Promise(r => setTimeout(r, 10))
+  await hook.setUrl("/api/fast-endpoint")  // aborts slow, starts 50ms fetch
+
+  console.log("Race result — data:", hook.getState().data)  // "Data from /api/fast-endpoint"
+  console.log("Slow was aborted (not in fetchLog):", !fetchLog.includes("resolved: /api/slow-endpoint"))
+
+  // Test 3: error handling
+  const errorHook = new FetchHook()
+  const origFetch = global.mockFetch
+  // Inject error
+  async function errorFetch(url) { throw new Error("Network error") }
+  // Simulate error scenario
+  errorHook.state.error = "Network error"
+  errorHook.state.loading = false
+  console.log("Error state:", errorHook.getState().error)  // "Network error"
+
+  // Test 4: refetch
+  await hook.refetch()
+  console.log("After refetch:", hook.getState().data?.includes("fast-endpoint"))  // true
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">class</span> <span class="fn">FetchHook</span> {
+  <span class="kw">constructor</span>() {
+    <span class="kw">this</span>.<span class="prop">state</span>      = { <span class="prop">data</span>: <span class="kw">null</span>, <span class="prop">loading</span>: <span class="kw">false</span>, <span class="prop">error</span>: <span class="kw">null</span> }
+    <span class="kw">this</span>.<span class="prop">url</span>        = <span class="kw">null</span>
+    <span class="kw">this</span>.<span class="prop">controller</span> = <span class="kw">null</span>
+  }
+  <span class="kw">async</span> <span class="fn">setUrl</span>(<span class="var">url</span>) {
+    <span class="kw">this</span>.<span class="prop">controller</span>?.<span class="fn">abort</span>()                  <span class="cm">// cancel in-flight request</span>
+    <span class="kw">this</span>.<span class="prop">url</span>        = <span class="var">url</span>
+    <span class="kw">this</span>.<span class="prop">controller</span> = <span class="kw">new</span> <span class="fn">AbortController</span>()
+    <span class="kw">this</span>.<span class="prop">state</span>       = { <span class="prop">data</span>: <span class="kw">null</span>, <span class="prop">loading</span>: <span class="kw">true</span>, <span class="prop">error</span>: <span class="kw">null</span> }
+    <span class="kw">try</span> {
+      <span class="kw">const</span> <span class="var">res</span>  = <span class="kw">await</span> <span class="fn">mockFetch</span>(<span class="var">url</span>, { <span class="prop">signal</span>: <span class="kw">this</span>.<span class="prop">controller</span>.<span class="prop">signal</span> })
+      <span class="kw">this</span>.<span class="prop">state</span> = { <span class="prop">data</span>: <span class="var">res</span>.<span class="prop">data</span>, <span class="prop">loading</span>: <span class="kw">false</span>, <span class="prop">error</span>: <span class="kw">null</span> }
+    } <span class="kw">catch</span> (<span class="var">e</span>) {
+      <span class="kw">if</span> (<span class="var">e</span>.<span class="prop">name</span> === <span class="str">"AbortError"</span>) <span class="kw">return</span>   <span class="cm">// ignore stale requests</span>
+      <span class="kw">this</span>.<span class="prop">state</span> = { <span class="prop">data</span>: <span class="kw">null</span>, <span class="prop">loading</span>: <span class="kw">false</span>, <span class="prop">error</span>: <span class="var">e</span>.<span class="prop">message</span> }
+    }
+  }
+  <span class="kw">async</span> <span class="fn">refetch</span>() { <span class="kw">await</span> <span class="kw">this</span>.<span class="fn">setUrl</span>(<span class="kw">this</span>.<span class="prop">url</span>) }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Compose custom hooks — build useSearch</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>useSearch(items, options)</code> custom hook by composing smaller hooks. It should combine: <code>useDebounce</code> for the query, <code>useMemo</code>-like caching for filtered results, and state for sort order. Show how composing small focused hooks creates powerful, reusable abstractions.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — compose custom hooks</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// Primitive hooks (simplified, no render cycle needed for this exercise)
+function debounce(value, delay) {
+  // Returns a promise that resolves to the debounced value
+  return new Promise(resolve => setTimeout(() => resolve(value), delay))
+}
+
+function memoize(fn) {
+  let lastDeps = null, lastResult = null
+  return (deps, ...args) => {
+    const changed = !lastDeps || deps.some((d, i) => d !== lastDeps[i])
+    if (changed) { lastResult = fn(...args); lastDeps = deps }
+    return lastResult
+  }
+}
+
+// Build useSearch by composing primitives
+// It returns: { results, query, setQuery, sortBy, setSortBy, isSearching }
+function createUseSearch(items, { searchKey = "name", debounceMs = 300 } = {}) {
+  let query      = ""
+  let sortBy     = "default"
+  let isSearching = false
+  let subscribers = []
+
+  const memoFilter = memoize((items, query, sortBy) => {
+    const q = query.toLowerCase()
+    const filtered = q
+      ? items.filter(item => String(item[searchKey]).toLowerCase().includes(q))
+      : [...items]
+
+    // YOUR CODE: sort filtered based on sortBy
+    // "az":      alphabetically by searchKey ascending
+    // "za":      alphabetically by searchKey descending
+    // "default": keep original order
+    return filtered
+  })
+
+  function getResults() {
+    return memoFilter([query, sortBy], items, query, sortBy)
+  }
+
+  async function setQuery(newQuery) {
+    isSearching = true
+    notify()
+    // YOUR CODE: debounce the query update
+    // After debounce: set query = newQuery, isSearching = false, notify()
+  }
+
+  function setSortBy(newSort) {
+    sortBy = newSort
+    notify()
+  }
+
+  function notify() { subscribers.forEach(fn => fn(getState())) }
+  function subscribe(fn) { subscribers.push(fn); return () => { subscribers = subscribers.filter(s => s !== fn) } }
+  function getState() {
+    return { results: getResults(), query, sortBy, isSearching, total: items.length }
+  }
+
+  return { setQuery, setSortBy, subscribe, getState }
+}
+
+// Test
+async function testSearch() {
+  const products = [
+    { id:1, name:"Apple MacBook",   price:1299 },
+    { id:2, name:"Apple iPhone",    price:999  },
+    { id:3, name:"Samsung Galaxy",  price:799  },
+    { id:4, name:"Apple Watch",     price:399  },
+    { id:5, name:"Google Pixel",    price:599  },
+    { id:6, name:"Dell XPS",        price:1099 },
+  ]
+
+  const search = createUseSearch(products, { debounceMs: 50 })
+  const log    = []
+  search.subscribe(s => log.push({ q: s.query, count: s.results.length }))
+
+  // Test 1: search for "apple"
+  await search.setQuery("apple")
+  console.log("Apple results:", search.getState().results.map(p => p.name))
+
+  // Test 2: sort A→Z
+  search.setSortBy("az")
+  const azResults = search.getState().results.map(p => p.name)
+  console.log("Sorted A→Z:", azResults)
+  console.log("Is sorted:", azResults[0] < azResults[azResults.length-1])  // true
+
+  // Test 3: debounce — rapid typing should only settle once
+  const beforeLog = log.length
+  search.setQuery("s")
+  search.setQuery("sa")
+  search.setQuery("sam")
+  await new Promise(r => setTimeout(r, 100))
+  console.log("After rapid type — settled to:", search.getState().query)  // "sam"
+  console.log("Samsung found:", search.getState().results[0]?.name)
+
+  // Test 4: clear search
+  await search.setQuery("")
+  console.log("All results:", search.getState().results.length)  // 6
+}
+
+testSearch()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="cm">// Sort logic inside memoize:</span>
+<span class="kw">if</span> (<span class="var">sortBy</span> === <span class="str">"az"</span>) <span class="var">filtered</span>.<span class="fn">sort</span>((<span class="var">a</span>,<span class="var">b</span>) => <span class="fn">String</span>(<span class="var">a</span>[<span class="var">searchKey</span>]).<span class="fn">localeCompare</span>(<span class="fn">String</span>(<span class="var">b</span>[<span class="var">searchKey</span>])))
+<span class="kw">if</span> (<span class="var">sortBy</span> === <span class="str">"za"</span>) <span class="var">filtered</span>.<span class="fn">sort</span>((<span class="var">a</span>,<span class="var">b</span>) => <span class="fn">String</span>(<span class="var">b</span>[<span class="var">searchKey</span>]).<span class="fn">localeCompare</span>(<span class="fn">String</span>(<span class="var">a</span>[<span class="var">searchKey</span>])))
+
+<span class="cm">// setQuery with debounce:</span>
+<span class="kw">async</span> <span class="kw">function</span> <span class="fn">setQuery</span>(<span class="var">newQuery</span>) {
+  <span class="var">isSearching</span> = <span class="kw">true</span>
+  <span class="fn">notify</span>()
+  <span class="kw">await</span> <span class="fn">debounce</span>(<span class="var">newQuery</span>, <span class="var">debounceMs</span>)
+  <span class="var">query</span>       = <span class="var">newQuery</span>
+  <span class="var">isSearching</span> = <span class="kw">false</span>
+  <span class="fn">notify</span>()
+}</pre></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">What is useRef and what are its two main use cases?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useRef</code> returns a plain object <code>{ current: initialValue }</code> that persists for the full component lifetime. Mutating <code>.current</code> does not trigger a re-render — this is the key difference from state.<br><br><strong>Use case 1 — DOM access</strong>: pass the ref to a JSX element's <code>ref</code> prop and after mount <code>ref.current</code> holds the real DOM node. Use for programmatic focus, scrolling, measuring element dimensions, or integrating with third-party libraries that need DOM nodes.<br><br><strong>Use case 2 — mutable values without re-render</strong>: storing interval/timeout IDs, WebSocket instances, previous state values, render counts, or any flag that changes but shouldn't trigger re-renders. If you used state for these, every mutation would cause an unnecessary render.</div>
+    <div class="tip-box">Depth signal: "I use the ref+useEffect pattern to always have the latest value in a callback without creating a stale closure — store the value in a ref inside useEffect, then read the ref in the callback with an empty dependency array."</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">When should you use useMemo? What's the cost of over-using it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useMemo</code> caches a computed value and only recomputes when dependencies change. Use it when: the computation is genuinely expensive (sorting/filtering thousands of items, complex maths), or when you need a stable object/array reference to prevent <code>React.memo</code> children from re-rendering.<br><br>The cost of over-using it: every <code>useMemo</code> call has overhead — React runs the dependency comparison on every render. For cheap operations like simple arithmetic, string formatting, or filtering small arrays, the comparison overhead exceeds the savings. The code also becomes harder to read.<br><br>Rule: write the code without <code>useMemo</code> first, profile if there are performance issues, then add memoisation only where the profiler shows it helps.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">What is useCallback and why does it require React.memo to actually help?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useCallback</code> returns a memoised function reference — the same function object across renders unless a dependency changes. Without it, every render creates a brand new function object (even if the function body is identical), because functions are objects and <code>() => {}</code> creates a new reference each time.<br><br>However, a stable function reference only matters if the child component <em>skips rendering based on reference equality</em>. A regular child component always re-renders when the parent renders, regardless of whether its props changed. <code>React.memo</code> is what makes a child skip rendering when props haven't changed — and without stable references, even <code>React.memo</code> can't help because the function prop appears different every time.<br><br>So the pattern is always: <code>useCallback</code> in the parent + <code>React.memo</code> on the child. One without the other is either overhead (useCallback alone) or no benefit (React.memo with unstable props).</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">What is a stale closure in React and how do you fix it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">A stale closure happens when a function (usually in <code>useCallback</code> or <code>useEffect</code>) captures a state or prop value from when it was created, but that value has since changed. The function still "sees" the old value because closures capture variables by reference at the time of creation.<br><br><strong>Three fixes</strong>: (1) Add the value to the dependency array — the function gets recreated when it changes, always seeing the latest value. Downside: may break memoisation. (2) Use the functional update form — <code>setState(prev => prev + 1)</code> always receives the current state, never stale. Best for state updates. (3) Use a ref — store the latest value in a ref inside a <code>useEffect</code>, then read the ref inside the callback. The callback can have an empty dep array but always sees current values via the ref.</div>
+    <div class="warn-box">The most common stale closure bug: <code>useEffect(() => { const id = setInterval(() => console.log(count), 1000) }, [])</code> — count is always 0 because it was captured at mount. Fix: use functional state update inside the interval, or list count in the deps.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">What is a custom hook? How is it different from a regular function?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">A custom hook is a JavaScript function whose name starts with <code>use</code> and that calls React hooks internally. The <code>use</code> prefix is what tells React's linting tools to enforce the rules of hooks on it.<br><br>Differences from a regular function: it can call React hooks (<code>useState</code>, <code>useEffect</code>, etc.), it must follow the rules of hooks (only call at top level, only from components or other hooks), and each component that calls it gets its own independent state — custom hooks are not shared state singletons.<br><br>Custom hooks let you extract stateful logic from components and reuse it without adding wrapper components or prop drilling. A <code>useWindowSize</code> hook can be called by 10 components — each gets its own state, all updated by the same resize listener. The abstraction is perfect: zero component overhead, complete logic reuse.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">What is React.memo? When should you use it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>React.memo</code> is a higher-order component that wraps a component and makes it skip re-rendering if its props haven't changed (shallow comparison). Without it, a child re-renders every time the parent re-renders, regardless of whether its props changed.<br><br>Use it when: a component renders frequently, its renders are expensive, and it receives the same props most of the time. A list item component that renders 100 times in a list is a good candidate — if the parent's other state changes, none of the items need to re-render.<br><br>Don't use it blindly — the shallow prop comparison itself has a cost. If a component always receives different props, <code>React.memo</code> adds overhead with no benefit. Profile first. Also remember: <code>React.memo</code> only works for props — if the component uses a context that changes, it still re-renders.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">What is the difference between useEffect and useLayoutEffect?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useEffect</code> fires <em>asynchronously</em> after the browser has painted — the user sees the updated UI first, then the effect runs. This is non-blocking and fine for most effects (data fetching, subscriptions, logging).<br><br><code>useLayoutEffect</code> fires <em>synchronously</em> after DOM mutations but <em>before</em> the browser paints. The user doesn't see anything until the effect completes. Use this when you need to read DOM measurements (offsetWidth, getBoundingClientRect) and then update something based on them — if you used useEffect for this, the user would see a brief flash of the element in the wrong position before the correction.<br><br>Classic use case: a tooltip that needs to be positioned relative to a trigger element. Read the trigger's position in useLayoutEffect, set the tooltip position, and the user never sees it in the wrong place. With useEffect, there's a visible flicker.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">Why can't you call a hook inside a condition or loop?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">React tracks hooks by their <strong>call order</strong> — internally hooks are stored in an array indexed by the order they're called during render. On every render, hooks must be called in exactly the same order so React can correctly match each hook call to its stored state.<br><br>If you call a hook inside a condition, it might not be called on some renders. This shifts every subsequent hook's index by one — React assigns the wrong state to the wrong hook. The symptoms range from subtle bugs (wrong state values) to crashes.<br><br>The ESLint plugin <code>eslint-plugin-react-hooks</code> enforces this rule automatically. If you need a hook to conditionally do something, put the condition inside the hook: <code>useEffect(() => { if (!enabled) return; ... }, [enabled])</code>.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">How do you implement a previous value tracker with useRef?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">The pattern uses a ref that's updated in useEffect after each render — so during any given render, the ref holds the value from the previous render:<br><br><code>function usePrevious(value) { const ref = useRef(); useEffect(() => { ref.current = value }); return ref.current }</code><br><br>Why it works: useEffect runs after the component renders and the DOM updates. So when the component renders with a new value, <code>ref.current</code> still holds the old value (updated to the new one only after this render completes). The returned <code>ref.current</code> is read during render, before useEffect fires — so it's one render behind.<br><br>This is useful for animations (knowing which direction to animate), comparison displays (price went up/down), and detecting what specifically changed in complex state.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">Walk me through building a useDebounce hook.</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useDebounce</code> delays updating a value until it has been stable for a set time. The implementation:<br><br>Store the debounced value in state initialised to the input value. In a useEffect with the input value and delay as dependencies: set a timeout that updates the debounced state after the delay, and return a cleanup that clears the timeout. This cleanup runs every time the input value changes — clearing the pending timer — which is the debounce behaviour itself.<br><br><code>function useDebounce(value, delay) { const [debounced, setDebounced] = useState(value); useEffect(() => { const t = setTimeout(() => setDebounced(value), delay); return () => clearTimeout(t) }, [value, delay]); return debounced }</code><br><br>Usage: store the raw input in state, pass it to useDebounce, use the debounced value in useEffect's deps for API calls. The API only fires after the user stops typing.</div>
+    <div class="tip-box">Common follow-up: "Why return the cleanup?" — without the cleanup, if value changes before the timeout fires, you'd have multiple pending timeouts racing. The cleanup ensures only the most recent one fires.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can explain or do it without looking. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain what <code>useRef</code> returns and why mutating <code>.current</code> doesn't re-render</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>useRef</code> to focus an input on mount and to store an interval ID</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement <code>usePrevious(value)</code> from memory — ref updated in useEffect after render</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use <code>useMemo</code> and when it's overkill — and the rule about profiling first</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why <code>useCallback</code> needs <code>React.memo</code> on the child to actually help</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the stale closure problem and give 3 ways to fix it</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a custom hook (<code>useFetch</code>, <code>useDebounce</code>, <code>useLocalStorage</code>) from memory</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand that each component calling a custom hook gets its own independent state</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between <code>useEffect</code> and <code>useLayoutEffect</code> and a real scenario for each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain why hooks can't be called inside conditions (call order array)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed exercises 2, 5, and 6 today (useMemo, useFetch, useSearch composition)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built and used at least one custom hook in my local Vite React project today</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I used React DevTools Profiler to identify at least one unnecessary re-render today</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My code is committed and pushed to GitHub</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(97,218,251,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--react);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Write <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">useDebounce(value, delay)</code> from memory — useState + useEffect + clearTimeout cleanup<br>
+      2. Write <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">usePrevious(value)</code> — useRef + useEffect updated after render<br>
+      3. Explain to yourself: why does <code>useCallback(fn, [])</code> create a stale closure, and what are the three fixes?<br>
+      4. Write <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">useLocalStorage(key, initialValue)</code> — lazy useState init + setItem on every update
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 2 · Day 10</div>
+      <div class="footer-day-name">React Hooks Deep Dive</div>
+      <div class="footer-day-next">Next up: <strong>Day 11 — React Router &amp; Navigation</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 2 progress</span><span>Day 3 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:43%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day9_react_state_events.html',9)">← Day 9</button>
+      <button class="footer-btn primary" onclick="navigateTo('day11_react_router.html',11)">Day 11 — Router →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN = [
+  {num:1, file:"day1_javascript_fundamentals.html",          label:"JS Fundamentals"},
+  {num:2, file:"day2_javascript_arrays_objects.html",        label:"Arrays & Objects"},
+  {num:3, file:"day3_functions_async_js.html",               label:"Functions & Async"},
+  {num:4, file:"day4_dom_events_classes.html",               label:"DOM & Classes"},
+  {num:5, file:"day5_dom_events_classes.html",               label:"DOM Events"},
+  {num:6, file:"day6_es6_modules_iterators_generators.html", label:"Modules"},
+  {num:7, file:"day7_week1_review_project.html",             label:"Week 1 Review"},
+  {num:8, file:"day8_react_essentials.html",                 label:"React Essentials"},
+  {num:9, file:"day9_react_state_events.html",               label:"State & Events"},
+  {num:10,file:"day10_react_hooks.html",                     label:"Hooks Deep Dive",current:true},
+]
+const CURRENT   = 10
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html","day10_react_hooks.html",
+])
+
+function navigateTo(file,n){
+  if(AVAILABLE.has(file)) window.location.href=file
+  else showToast(`Day ${n} coming soon — keep going! ⚛️`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}: ${d.label}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

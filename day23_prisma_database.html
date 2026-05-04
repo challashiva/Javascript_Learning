@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 23 — Database with Prisma</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --prisma:#2d3748;--prisma-accent:#5a67d8;--prisma-dim:rgba(90,103,216,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --emerald:#10b981;--emerald-dim:rgba(16,185,129,0.09);
+  --indigo:#6366f1;--indigo-dim:rgba(99,102,241,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--indigo);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--indigo);border-bottom-color:var(--indigo);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--indigo);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--indigo);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--indigo-dim);color:var(--indigo);border-color:rgba(99,102,241,.3);}
+.day-btn.primary:hover{background:rgba(99,102,241,.18);}
+
+.week-banner{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(45,212,191,.04));border-bottom:1px solid var(--border);padding:12px 48px;}
+.week-banner-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.week-badge{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--emerald-dim);color:var(--emerald);border:1px solid rgba(16,185,129,.25);white-space:nowrap;}
+.week-text{font-size:13px;color:var(--muted);}
+.week-text strong{color:var(--text);}
+
+.hero{padding:56px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--indigo);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--indigo);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--indigo);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.topics-strip{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;}
+.topic-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.topic-sub{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--indigo);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--indigo-dim);color:var(--indigo);border-color:rgba(99,102,241,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--indigo);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--indigo);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+.ty{color:#38bdf8;}.schema{color:#a5f3fc;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--indigo);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--indigo);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--indigo-dim);color:var(--indigo);border:1px solid rgba(99,102,241,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(99,102,241,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:200px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(99,102,241,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--indigo);}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--indigo-dim);color:var(--indigo);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--indigo);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--indigo);border-color:var(--indigo);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--indigo);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--indigo-dim);color:var(--indigo);border-color:rgba(99,102,241,.3);}
+.footer-btn.primary:hover{background:rgba(99,102,241,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--indigo);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.topics-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav,.week-banner{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 23 · Prisma</div>
+  <a href="#why">Why Prisma</a>
+  <a href="#schema">Schema</a>
+  <a href="#client">Prisma Client</a>
+  <a href="#queries">CRUD Queries</a>
+  <a href="#relations">Relations</a>
+  <a href="#migrations">Migrations</a>
+  <a href="#patterns">Patterns</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="week-banner">
+  <div class="week-banner-inner">
+    <span class="week-badge">Week 4 · Day 4</span>
+    <span class="week-text"><strong>Database with Prisma</strong> — type-safe database access from TypeScript. Define your schema once, get typed queries, automatic migrations, and a great DX.</span>
+  </div>
+</div>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 4 · <span>Day 23 of 56</span> · Database with Prisma</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day22_auth_clerk.html',22)">← Day 22</button>
+      <button class="day-btn primary" onclick="navigateTo('day24_api_design.html',24)">Day 24 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 4 · Day 23 · Type-safe databases</div>
+  <h1>Database<br>with <em>Prisma</em></h1>
+  <p class="hero-sub">Prisma turns your database into a fully typed TypeScript API. Write your schema in a single file, generate a client with complete autocomplete on every query, and run migrations automatically — without writing a single line of SQL.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(99,102,241,.3);color:var(--indigo);">Prisma schema language</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">prisma generate + migrate</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">CRUD — findMany, create, update</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">relations — 1:1, 1:N, N:M</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">filtering &amp; sorting</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">transactions</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">Prisma Studio</span>
+    <span class="topic-pill" style="border-color:rgba(16,185,129,.3);color:var(--emerald);">connection pooling</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">focus time</div></div>
+  </div>
+</div>
+
+<!-- TOPICS -->
+<div class="topics-strip">
+  <div class="topics-grid">
+    <div class="topic-card"><span class="topic-icon">🗃️</span><div><div class="topic-name">Why Prisma</div><div class="topic-sub">ORM vs raw SQL</div></div></div>
+    <div class="topic-card"><span class="topic-icon">📐</span><div><div class="topic-name">Schema DSL</div><div class="topic-sub">models, fields, types</div></div></div>
+    <div class="topic-card"><span class="topic-icon">⚙️</span><div><div class="topic-name">Prisma Client</div><div class="topic-sub">generate, singleton</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🔍</span><div><div class="topic-name">CRUD Queries</div><div class="topic-sub">find, create, update, delete</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🔗</span><div><div class="topic-name">Relations</div><div class="topic-sub">include, select, connect</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🔄</span><div><div class="topic-name">Migrations</div><div class="topic-sub">dev, deploy, reset</div></div></div>
+    <div class="topic-card"><span class="topic-icon">⚡</span><div><div class="topic-name">Transactions</div><div class="topic-sub">$transaction, interactive</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🚀</span><div><div class="topic-name">Production</div><div class="topic-sub">Supabase, PlanetScale</div></div></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 23 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Why Prisma</span>
+    <span class="tdot" onclick="markDone(this)">Schema</span>
+    <span class="tdot" onclick="markDone(this)">Prisma Client</span>
+    <span class="tdot" onclick="markDone(this)">CRUD</span>
+    <span class="tdot" onclick="markDone(this)">Relations</span>
+    <span class="tdot" onclick="markDone(this)">Filtering</span>
+    <span class="tdot" onclick="markDone(this)">Migrations</span>
+    <span class="tdot" onclick="markDone(this)">Transactions</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. WHY PRISMA -->
+<div class="section" id="why">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Why Prisma — the gap between SQL and TypeScript</span>
+    <span class="sec-badge" style="background:var(--indigo-dim);color:var(--indigo);">motivation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">raw SQL pain</span>
+      <div class="cc-title">Strings that TypeScript can't check</div>
+      <div class="cc-body">With raw SQL: <code>db.query("SELECT * FROM users WHERE id = " + userId)</code> — SQL injection risk. No autocomplete. Typo in a column name → runtime error. Return type is <code>any</code>. Refactoring a column means hunting through string literals. Every query is a potential bug.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">Prisma solution</span>
+      <div class="cc-title">Your DB schema becomes TypeScript types</div>
+      <div class="cc-body">Prisma generates a client from your schema. Every model becomes a TypeScript type. Every query is fully typed — typo in a field name → compile error. Autocomplete on every query parameter. Return types match exactly what you asked for. Refactoring is safe — the compiler guides you.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">vs other ORMs</span>
+      <div class="cc-title">Better DX than Sequelize, TypeORM, Mongoose</div>
+      <div class="cc-body">Sequelize and TypeORM: class decorators, manual type annotations that drift from schema, complex association setup. Mongoose: JavaScript-only, no compile-time safety. Prisma: schema is the single source of truth, generated client is always in sync, queries are clean JS objects — no decorators, no classes.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">the workflow</span>
+      <div class="cc-title">Schema → generate → migrate → query</div>
+      <div class="cc-body">Define your data model in <code>schema.prisma</code>. Run <code>prisma generate</code> to update the TypeScript client. Run <code>prisma migrate dev</code> to update the database schema. Write queries with full autocomplete and type safety. This cycle takes seconds and keeps code, types, and database always in sync.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 02. SCHEMA -->
+<div class="section" id="schema">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">The Prisma schema — models, fields, relations</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">schema</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">prisma</span><span class="cb-desc">Complete React Shop schema — all models, all field types, all relation types</span></div>
+    <div class="cb-body"><pre><span class="cm">// prisma/schema.prisma</span>
+
+<span class="schema">generator</span> <span class="var">client</span> {
+  <span class="prop">provider</span> = <span class="str">"prisma-client-js"</span>
+}
+
+<span class="schema">datasource</span> <span class="var">db</span> {
+  <span class="prop">provider</span> = <span class="str">"postgresql"</span>          <span class="cm">// or "sqlite", "mysql", "mongodb"</span>
+  <span class="prop">url</span>      = <span class="fn">env</span>(<span class="str">"DATABASE_URL"</span>)
+}
+
+<span class="cm">// ── User model ────────────────────────────────────────────</span>
+<span class="schema">model</span> <span class="ty">User</span> {
+  <span class="prop">id</span>        <span class="ty">String</span>   <span class="kw">@id</span> <span class="kw">@default</span>(<span class="fn">cuid</span>())   <span class="cm">// auto-generated collision-resistant ID</span>
+  <span class="prop">clerkId</span>   <span class="ty">String</span>   <span class="kw">@unique</span>                  <span class="cm">// Clerk's user ID — for auth linkage</span>
+  <span class="prop">email</span>     <span class="ty">String</span>   <span class="kw">@unique</span>
+  <span class="prop">name</span>      <span class="ty">String</span>
+  <span class="prop">imageUrl</span>  <span class="ty">String</span>?                           <span class="cm">// optional field (can be null)</span>
+  <span class="prop">role</span>      <span class="ty">Role</span>     <span class="kw">@default</span>(<span class="var">USER</span>)
+  <span class="prop">createdAt</span> <span class="ty">DateTime</span> <span class="kw">@default</span>(<span class="fn">now</span>())
+  <span class="prop">updatedAt</span> <span class="ty">DateTime</span> <span class="kw">@updatedAt</span>               <span class="cm">// auto-set on every update</span>
+
+  <span class="cm">// Relations</span>
+  <span class="prop">orders</span>    <span class="ty">Order</span>[]                           <span class="cm">// one user → many orders</span>
+  <span class="prop">reviews</span>   <span class="ty">Review</span>[]
+  <span class="prop">cart</span>      <span class="ty">CartItem</span>[]
+
+  <span class="kw">@@map</span>(<span class="str">"users"</span>)                              <span class="cm">// actual DB table name</span>
+}
+
+<span class="schema">enum</span> <span class="ty">Role</span> { <span class="var">USER</span>  <span class="var">ADMIN</span>  <span class="var">MODERATOR</span> }
+
+<span class="cm">// ── Product model ─────────────────────────────────────────</span>
+<span class="schema">model</span> <span class="ty">Product</span> {
+  <span class="prop">id</span>          <span class="ty">String</span>   <span class="kw">@id</span> <span class="kw">@default</span>(<span class="fn">cuid</span>())
+  <span class="prop">name</span>        <span class="ty">String</span>
+  <span class="prop">slug</span>        <span class="ty">String</span>   <span class="kw">@unique</span>
+  <span class="prop">description</span> <span class="ty">String</span>
+  <span class="prop">price</span>       <span class="ty">Decimal</span>  <span class="kw">@db</span>.<span class="fn">Decimal</span>(<span class="num">10</span>, <span class="num">2</span>)   <span class="cm">// precise money — not Float!</span>
+  <span class="prop">stock</span>       <span class="ty">Int</span>      <span class="kw">@default</span>(<span class="num">0</span>)
+  <span class="prop">images</span>      <span class="ty">String</span>[]                         <span class="cm">// array of image URLs</span>
+  <span class="prop">published</span>   <span class="ty">Boolean</span>  <span class="kw">@default</span>(<span class="kw">false</span>)
+  <span class="prop">createdAt</span>   <span class="ty">DateTime</span> <span class="kw">@default</span>(<span class="fn">now</span>())
+  <span class="prop">updatedAt</span>   <span class="ty">DateTime</span> <span class="kw">@updatedAt</span>
+
+  <span class="prop">categoryId</span>  <span class="ty">String</span>
+  <span class="prop">category</span>    <span class="ty">Category</span> <span class="kw">@relation</span>(<span class="prop">fields</span>: [<span class="prop">categoryId</span>], <span class="prop">references</span>: [<span class="prop">id</span>])
+
+  <span class="prop">reviews</span>     <span class="ty">Review</span>[]
+  <span class="prop">orderItems</span>  <span class="ty">OrderItem</span>[]
+  <span class="prop">cartItems</span>   <span class="ty">CartItem</span>[]
+  <span class="prop">tags</span>        <span class="ty">Tag</span>[]     <span class="kw">@relation</span>(<span class="str">"ProductTags"</span>)  <span class="cm">// many-to-many</span>
+
+  <span class="kw">@@index</span>([<span class="prop">categoryId</span>])          <span class="cm">// create DB index for common queries</span>
+  <span class="kw">@@index</span>([<span class="prop">published</span>, <span class="prop">createdAt</span>]) <span class="cm">// composite index</span>
+}
+
+<span class="cm">// ── Order model ───────────────────────────────────────────</span>
+<span class="schema">model</span> <span class="ty">Order</span> {
+  <span class="prop">id</span>        <span class="ty">String</span>      <span class="kw">@id</span> <span class="kw">@default</span>(<span class="fn">cuid</span>())
+  <span class="prop">status</span>    <span class="ty">OrderStatus</span> <span class="kw">@default</span>(<span class="var">PENDING</span>)
+  <span class="prop">total</span>     <span class="ty">Decimal</span>     <span class="kw">@db</span>.<span class="fn">Decimal</span>(<span class="num">10</span>, <span class="num">2</span>)
+  <span class="prop">createdAt</span> <span class="ty">DateTime</span>    <span class="kw">@default</span>(<span class="fn">now</span>())
+
+  <span class="prop">userId</span>    <span class="ty">String</span>
+  <span class="prop">user</span>      <span class="ty">User</span>        <span class="kw">@relation</span>(<span class="prop">fields</span>: [<span class="prop">userId</span>], <span class="prop">references</span>: [<span class="prop">id</span>], <span class="prop">onDelete</span>: <span class="var">CASCADE</span>)
+  <span class="prop">items</span>     <span class="ty">OrderItem</span>[]
+}
+
+<span class="schema">enum</span> <span class="ty">OrderStatus</span> { <span class="var">PENDING</span>  <span class="var">PROCESSING</span>  <span class="var">SHIPPED</span>  <span class="var">DELIVERED</span>  <span class="var">CANCELLED</span> }
+
+<span class="cm">// ── Junction table for N:M ───────────────────────────────</span>
+<span class="schema">model</span> <span class="ty">Tag</span> {
+  <span class="prop">id</span>       <span class="ty">String</span>    <span class="kw">@id</span> <span class="kw">@default</span>(<span class="fn">cuid</span>())
+  <span class="prop">name</span>     <span class="ty">String</span>    <span class="kw">@unique</span>
+  <span class="prop">products</span> <span class="ty">Product</span>[] <span class="kw">@relation</span>(<span class="str">"ProductTags"</span>)
+}</pre></div>
+  </div>
+</div>
+
+<!-- 03. PRISMA CLIENT -->
+<div class="section" id="client">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Prisma Client — setup, singleton, and the generated types</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">setup</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + ts</span><span class="cb-desc">Install, generate, singleton pattern for Next.js</span></div>
+    <div class="cb-body"><pre><span class="cm"># Install</span>
+npm install prisma @prisma/client
+npx prisma init           <span class="cm"># creates prisma/schema.prisma + .env</span>
+
+<span class="cm"># After editing schema.prisma:</span>
+npx prisma generate       <span class="cm"># updates the TypeScript client</span>
+npx prisma migrate dev --name init  <span class="cm"># creates + applies a migration</span>
+npx prisma studio         <span class="cm"># visual DB browser at localhost:5555</span>
+
+<span class="cm">// ── lib/db.ts — singleton to avoid connection pool exhaustion ─</span>
+<span class="cm">// In development, Next.js hot-reloads files, which would create a</span>
+<span class="cm">// new PrismaClient on every reload → too many connections.</span>
+<span class="cm">// The singleton pattern reuses the existing instance.</span>
+<span class="kw">import</span> { <span class="ty">PrismaClient</span> } <span class="kw">from</span> <span class="str">"@prisma/client"</span>
+
+<span class="kw">const</span> <span class="fn">globalForPrisma</span> = <span class="var">globalThis</span> <span class="kw">as</span> <span class="kw">unknown</span> <span class="kw">as</span> { <span class="prop">prisma</span>: <span class="ty">PrismaClient</span> | <span class="kw">undefined</span> }
+
+<span class="kw">export const</span> <span class="var">db</span> = <span class="fn">globalForPrisma</span>.<span class="prop">prisma</span> ?? <span class="kw">new</span> <span class="fn">PrismaClient</span>({
+  <span class="prop">log</span>: <span class="var">process</span>.<span class="prop">env</span>.<span class="prop">NODE_ENV</span> === <span class="str">"development"</span>
+    ? [<span class="str">"query"</span>, <span class="str">"error"</span>, <span class="str">"warn"</span>]  <span class="cm">// log all queries in dev</span>
+    : [<span class="str">"error"</span>],                   <span class="cm">// only errors in prod</span>
+})
+
+<span class="kw">if</span> (<span class="var">process</span>.<span class="prop">env</span>.<span class="prop">NODE_ENV</span> !== <span class="str">"production"</span>) {
+  <span class="fn">globalForPrisma</span>.<span class="prop">prisma</span> = <span class="var">db</span>
+}
+
+<span class="cm">// Usage in any Server Component or Server Action:</span>
+<span class="kw">import</span> { <span class="var">db</span> } <span class="kw">from</span> <span class="str">"@/lib/db"</span>
+<span class="kw">const</span> <span class="var">user</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">user</span>.<span class="fn">findUnique</span>({ <span class="prop">where</span>: { <span class="prop">id</span>: <span class="str">"..."</span> } })
+<span class="cm">// user is typed as: User | null   — from your schema!</span>
+
+<span class="cm">// ── Generated types you can import ───────────────────────</span>
+<span class="kw">import</span> <span class="kw">type</span> { <span class="ty">User</span>, <span class="ty">Product</span>, <span class="ty">Order</span>, <span class="ty">OrderStatus</span>, <span class="ty">Prisma</span> } <span class="kw">from</span> <span class="str">"@prisma/client"</span>
+
+<span class="cm">// Use Prisma namespace for complex types:</span>
+<span class="kw">type</span> <span class="ty">ProductWithCategory</span> = <span class="ty">Prisma</span>.<span class="ty">ProductGetPayload</span>&lt;{
+  <span class="prop">include</span>: { <span class="prop">category</span>: <span class="kw">true</span> }
+}>
+<span class="cm">// → Product & { category: Category }  — exactly what the query returns!</span>
+
+<span class="kw">type</span> <span class="ty">CreateProductInput</span> = <span class="ty">Prisma</span>.<span class="ty">ProductCreateInput</span>  <span class="cm">// input type for create()</span>
+<span class="kw">type</span> <span class="ty">UpdateProductInput</span> = <span class="ty">Prisma</span>.<span class="ty">ProductUpdateInput</span>  <span class="cm">// input type for update()</span></pre></div>
+  </div>
+</div>
+
+<!-- 04. CRUD QUERIES -->
+<div class="section" id="queries">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">CRUD queries — every operation you'll use daily</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">queries</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">findMany, findUnique, create, update, upsert, delete — with filtering and pagination</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">db</span> } <span class="kw">from</span> <span class="str">"@/lib/db"</span>
+
+<span class="cm">// ── findMany — list with filter, sort, pagination ─────────</span>
+<span class="kw">const</span> <span class="var">products</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({
+  <span class="prop">where</span>: {
+    <span class="prop">published</span>:  <span class="kw">true</span>,
+    <span class="prop">stock</span>:      { <span class="prop">gt</span>: <span class="num">0</span> },              <span class="cm">// gt=greater-than, gte, lt, lte</span>
+    <span class="prop">price</span>:      { <span class="prop">gte</span>: <span class="num">10</span>, <span class="prop">lte</span>: <span class="num">500</span> },  <span class="cm">// between 10 and 500</span>
+    <span class="prop">name</span>:       { <span class="prop">contains</span>: <span class="str">"Pro"</span>, <span class="prop">mode</span>: <span class="str">"insensitive"</span> },  <span class="cm">// case-insensitive search</span>
+    <span class="prop">categoryId</span>: <span class="str">"cat_electronics"</span>,
+    <span class="prop">NOT</span>:        { <span class="prop">status</span>: <span class="str">"DRAFT"</span> },     <span class="cm">// negation</span>
+    <span class="prop">OR</span>: [                               <span class="cm">// logical OR</span>
+      { <span class="prop">price</span>: { <span class="prop">lt</span>: <span class="num">50</span> } },
+      { <span class="prop">tags</span>: { <span class="prop">some</span>: { <span class="prop">name</span>: <span class="str">"sale"</span> } } }
+    ],
+  },
+  <span class="prop">orderBy</span>: [
+    { <span class="prop">createdAt</span>: <span class="str">"desc"</span> },
+    { <span class="prop">name</span>: <span class="str">"asc"</span> },               <span class="cm">// tie-break</span>
+  ],
+  <span class="prop">skip</span>:  (<span class="var">page</span> - <span class="num">1</span>) * <span class="var">pageSize</span>,       <span class="cm">// offset pagination</span>
+  <span class="prop">take</span>:  <span class="var">pageSize</span>,
+  <span class="prop">select</span>: {                           <span class="cm">// only fetch these fields (more efficient)</span>
+    <span class="prop">id</span>: <span class="kw">true</span>, <span class="prop">name</span>: <span class="kw">true</span>, <span class="prop">price</span>: <span class="kw">true</span>, <span class="prop">images</span>: <span class="kw">true</span>
+  },
+})
+<span class="cm">// products: Array of { id, name, price, images } — exactly what select specified</span>
+
+<span class="cm">// ── findUnique — single record by unique field ────────────</span>
+<span class="kw">const</span> <span class="var">product</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findUnique</span>({
+  <span class="prop">where</span>: { <span class="prop">id</span>: <span class="str">"prod_123"</span> },   <span class="cm">// or { slug: "macbook-pro" }</span>
+})
+<span class="cm">// product: Product | null</span>
+
+<span class="cm">// findFirst — first match (non-unique where clause)</span>
+<span class="kw">const</span> <span class="var">latest</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findFirst</span>({
+  <span class="prop">where</span>: { <span class="prop">categoryId</span>: <span class="str">"cat_1"</span> },
+  <span class="prop">orderBy</span>: { <span class="prop">createdAt</span>: <span class="str">"desc"</span> },
+})
+
+<span class="cm">// ── count ─────────────────────────────────────────────────</span>
+<span class="kw">const</span> <span class="var">total</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">count</span>({ <span class="prop">where</span>: { <span class="prop">published</span>: <span class="kw">true</span> } })
+
+<span class="cm">// ── create ────────────────────────────────────────────────</span>
+<span class="kw">const</span> <span class="var">newProduct</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">create</span>({
+  <span class="prop">data</span>: {
+    <span class="prop">name</span>:       <span class="str">"MacBook Pro"</span>,
+    <span class="prop">slug</span>:       <span class="str">"macbook-pro"</span>,
+    <span class="prop">description</span>:<span class="str">"Apple M3 chip"</span>,
+    <span class="prop">price</span>:      <span class="num">1999.99</span>,
+    <span class="prop">stock</span>:      <span class="num">50</span>,
+    <span class="prop">category</span>:  { <span class="prop">connect</span>: { <span class="prop">id</span>: <span class="str">"cat_electronics"</span> } },  <span class="cm">// relate to existing</span>
+    <span class="prop">tags</span>:       { <span class="prop">connect</span>: [{ <span class="prop">name</span>: <span class="str">"laptop"</span> }, { <span class="prop">name</span>: <span class="str">"apple"</span> }] },
+  },
+})
+
+<span class="cm">// ── update ────────────────────────────────────────────────</span>
+<span class="kw">const</span> <span class="var">updated</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">update</span>({
+  <span class="prop">where</span>: { <span class="prop">id</span>: <span class="str">"prod_123"</span> },
+  <span class="prop">data</span>:  {
+    <span class="prop">stock</span>: { <span class="prop">decrement</span>: <span class="num">1</span> },     <span class="cm">// atomic operations: increment, decrement, multiply</span>
+    <span class="prop">price</span>: <span class="num">1799.99</span>,
+  },
+})
+
+<span class="cm">// ── upsert — create or update ─────────────────────────────</span>
+<span class="kw">const</span> <span class="var">user</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">user</span>.<span class="fn">upsert</span>({
+  <span class="prop">where</span>:  { <span class="prop">clerkId</span>: <span class="str">"user_abc"</span> },
+  <span class="prop">update</span>: { <span class="prop">name</span>: <span class="str">"Alice Smith"</span>, <span class="prop">email</span>: <span class="str">"new@email.com"</span> },
+  <span class="prop">create</span>: { <span class="prop">clerkId</span>: <span class="str">"user_abc"</span>, <span class="prop">name</span>: <span class="str">"Alice"</span>, <span class="prop">email</span>: <span class="str">"alice@email.com"</span> },
+})
+
+<span class="cm">// ── delete ────────────────────────────────────────────────</span>
+<span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">delete</span>({ <span class="prop">where</span>: { <span class="prop">id</span>: <span class="str">"prod_123"</span> } })
+<span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">deleteMany</span>({ <span class="prop">where</span>: { <span class="prop">published</span>: <span class="kw">false</span>, <span class="prop">stock</span>: <span class="num">0</span> } })</pre></div>
+  </div>
+</div>
+
+<!-- 05. RELATIONS -->
+<div class="section" id="relations">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Relations — include, select, nested writes</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">relations</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">include vs select, nested creates, many-to-many, relationship filtering</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── include — fetch related records ───────────────────────</span>
+<span class="kw">const</span> <span class="var">product</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findUnique</span>({
+  <span class="prop">where</span>: { <span class="prop">id</span>: <span class="str">"prod_123"</span> },
+  <span class="prop">include</span>: {
+    <span class="prop">category</span>: <span class="kw">true</span>,          <span class="cm">// include full Category object</span>
+    <span class="prop">reviews</span>:  {
+      <span class="prop">where</span>:   { <span class="prop">rating</span>: { <span class="prop">gte</span>: <span class="num">4</span> } },   <span class="cm">// filter related records</span>
+      <span class="prop">orderBy</span>: { <span class="prop">createdAt</span>: <span class="str">"desc"</span> },
+      <span class="prop">take</span>:    <span class="num">5</span>,
+      <span class="prop">include</span>: { <span class="prop">user</span>: { <span class="prop">select</span>: { <span class="prop">name</span>: <span class="kw">true</span>, <span class="prop">imageUrl</span>: <span class="kw">true</span> } } },
+    },
+    <span class="prop">tags</span>:     <span class="kw">true</span>,
+    <span class="cm">// _count to count related records without fetching them</span>
+    <span class="prop">_count</span>: { <span class="prop">select</span>: { <span class="prop">reviews</span>: <span class="kw">true</span>, <span class="prop">orderItems</span>: <span class="kw">true</span> } }
+  },
+})
+<span class="cm">// product.reviews → Review[] (filtered), product.category → Category</span>
+<span class="cm">// product._count.reviews → number</span>
+
+<span class="cm">// ── include vs select — when to use each ─────────────────</span>
+<span class="cm">// include: Product + extra fields appended</span>
+<span class="cm">// select: only the fields you specify (can include relations)</span>
+<span class="kw">const</span> <span class="var">lean</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({
+  <span class="prop">select</span>: {
+    <span class="prop">id</span>: <span class="kw">true</span>, <span class="prop">name</span>: <span class="kw">true</span>, <span class="prop">price</span>: <span class="kw">true</span>,
+    <span class="prop">category</span>: { <span class="prop">select</span>: { <span class="prop">name</span>: <span class="kw">true</span> } },   <span class="cm">// nested select</span>
+  }
+})
+<span class="cm">// lean: { id, name, price, category: { name } }[] — nothing else</span>
+
+<span class="cm">// ── Nested create — create related records together ───────</span>
+<span class="kw">const</span> <span class="var">order</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">order</span>.<span class="fn">create</span>({
+  <span class="prop">data</span>: {
+    <span class="prop">userId</span>: <span class="str">"user_123"</span>,
+    <span class="prop">total</span>:  <span class="num">299.99</span>,
+    <span class="prop">items</span>:  {
+      <span class="prop">create</span>: [                          <span class="cm">// create related OrderItems inline</span>
+        { <span class="prop">productId</span>: <span class="str">"prod_1"</span>, <span class="prop">quantity</span>: <span class="num">2</span>, <span class="prop">price</span>: <span class="num">99.99</span> },
+        { <span class="prop">productId</span>: <span class="str">"prod_2"</span>, <span class="prop">quantity</span>: <span class="num">1</span>, <span class="prop">price</span>: <span class="num">100.01</span> },
+      ]
+    }
+  },
+  <span class="prop">include</span>: { <span class="prop">items</span>: { <span class="prop">include</span>: { <span class="prop">product</span>: <span class="kw">true</span> } } }
+})
+
+<span class="cm">// ── Many-to-many — tags on products ──────────────────────</span>
+<span class="cm">// Connect existing tags:</span>
+<span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">update</span>({
+  <span class="prop">where</span>: { <span class="prop">id</span>: <span class="str">"prod_123"</span> },
+  <span class="prop">data</span>: {
+    <span class="prop">tags</span>: {
+      <span class="prop">connect</span>:    [{ <span class="prop">id</span>: <span class="str">"tag_sale"</span> }],    <span class="cm">// add tags</span>
+      <span class="prop">disconnect</span>: [{ <span class="prop">id</span>: <span class="str">"tag_old"</span> }],     <span class="cm">// remove tags</span>
+      <span class="prop">set</span>:        [{ <span class="prop">id</span>: <span class="str">"tag_new"</span> }],     <span class="cm">// replace all tags</span>
+    }
+  }
+})
+
+<span class="cm">// ── Filter by relation ────────────────────────────────────</span>
+<span class="cm">// Products that HAVE at least one review with rating >= 4</span>
+<span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({
+  <span class="prop">where</span>: { <span class="prop">reviews</span>: { <span class="prop">some</span>: { <span class="prop">rating</span>: { <span class="prop">gte</span>: <span class="num">4</span> } } } }
+})
+
+<span class="cm">// Products that have NO reviews:</span>
+<span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({
+  <span class="prop">where</span>: { <span class="prop">reviews</span>: { <span class="prop">none</span>: {} } }
+})
+
+<span class="cm">// Products where ALL reviews have rating >= 3:</span>
+<span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({
+  <span class="prop">where</span>: { <span class="prop">reviews</span>: { <span class="prop">every</span>: { <span class="prop">rating</span>: { <span class="prop">gte</span>: <span class="num">3</span> } } } }
+})</pre></div>
+  </div>
+</div>
+
+<!-- 06. MIGRATIONS + TRANSACTIONS -->
+<div class="section" id="migrations">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Migrations &amp; transactions — database changes safely</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">migrations</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + typescript</span><span class="cb-desc">Migration workflow, seed script, $transaction for atomic operations</span></div>
+    <div class="cb-body"><pre><span class="cm"># ── Migration commands ────────────────────────────────────</span>
+npx prisma migrate dev --name add_slug_to_product  <span class="cm"># dev: create + apply</span>
+npx prisma migrate deploy                          <span class="cm"># prod: apply pending migrations</span>
+npx prisma migrate reset                           <span class="cm"># dev only: reset DB + re-apply all</span>
+npx prisma db push                                 <span class="cm"># dev: push schema without migration file (prototyping)</span>
+npx prisma migrate status                          <span class="cm"># check what's pending</span>
+
+<span class="cm"># ── Seed script ──────────────────────────────────────────</span>
+<span class="cm"># package.json: "prisma": { "seed": "ts-node prisma/seed.ts" }</span>
+<span class="cm"># prisma/seed.ts:</span>
+<span class="kw">import</span> { <span class="var">db</span> } <span class="kw">from</span> <span class="str">"../lib/db"</span>
+
+<span class="kw">async function</span> <span class="fn">main</span>() {
+  <span class="kw">await</span> <span class="var">db</span>.<span class="var">category</span>.<span class="fn">createMany</span>({
+    <span class="prop">data</span>: [
+      { <span class="prop">name</span>: <span class="str">"Electronics"</span>, <span class="prop">slug</span>: <span class="str">"electronics"</span> },
+      { <span class="prop">name</span>: <span class="str">"Clothing"</span>,     <span class="prop">slug</span>: <span class="str">"clothing"</span> },
+    ],
+    <span class="prop">skipDuplicates</span>: <span class="kw">true</span>,   <span class="cm">// safe to re-run</span>
+  })
+}
+<span class="fn">main</span>().<span class="fn">catch</span>(<span class="fn">console</span>.<span class="prop">error</span>).<span class="fn">finally</span>(() => <span class="var">db</span>.<span class="fn">$disconnect</span>())
+<span class="cm"># Run: npx prisma db seed</span>
+
+<span class="cm">// ── $transaction — atomic operations ──────────────────────</span>
+<span class="cm">// All succeed or all fail — no partial updates</span>
+
+<span class="cm">// Sequential transaction (operations run in order, can use results)</span>
+<span class="kw">const</span> [<span class="var">order</span>, <span class="var">updatedStock</span>] = <span class="kw">await</span> <span class="var">db</span>.<span class="fn">$transaction</span>([
+  <span class="var">db</span>.<span class="var">order</span>.<span class="fn">create</span>({ <span class="prop">data</span>: { <span class="prop">userId</span>: <span class="str">"u1"</span>, <span class="prop">total</span>: <span class="num">99</span> } }),
+  <span class="var">db</span>.<span class="var">product</span>.<span class="fn">update</span>({ <span class="prop">where</span>: { <span class="prop">id</span>: <span class="str">"p1"</span> }, <span class="prop">data</span>: { <span class="prop">stock</span>: { <span class="prop">decrement</span>: <span class="num">1</span> } } })
+])
+<span class="cm">// If either fails, both are rolled back</span>
+
+<span class="cm">// Interactive transaction (can use results of earlier operations)</span>
+<span class="kw">await</span> <span class="var">db</span>.<span class="fn">$transaction</span>(<span class="kw">async</span> (<span class="var">tx</span>) => {
+  <span class="cm">// Check stock first</span>
+  <span class="kw">const</span> <span class="var">product</span> = <span class="kw">await</span> <span class="var">tx</span>.<span class="var">product</span>.<span class="fn">findUnique</span>({ <span class="prop">where</span>: { <span class="prop">id</span>: <span class="str">"p1"</span> } })
+
+  <span class="kw">if</span> (!<span class="var">product</span> || <span class="var">product</span>.<span class="prop">stock</span> < <span class="num">1</span>) {
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Out of stock"</span>)   <span class="cm">// throws → rolls back the whole transaction</span>
+  }
+
+  <span class="cm">// Decrement stock and create order atomically</span>
+  <span class="kw">const</span> <span class="var">order</span> = <span class="kw">await</span> <span class="var">tx</span>.<span class="var">order</span>.<span class="fn">create</span>({
+    <span class="prop">data</span>: { <span class="prop">userId</span>: <span class="str">"u1"</span>, <span class="prop">total</span>: <span class="var">product</span>.<span class="prop">price</span> }
+  })
+  <span class="kw">await</span> <span class="var">tx</span>.<span class="var">product</span>.<span class="fn">update</span>({
+    <span class="prop">where</span>: { <span class="prop">id</span>: <span class="str">"p1"</span> },
+    <span class="prop">data</span>:  { <span class="prop">stock</span>: { <span class="prop">decrement</span>: <span class="num">1</span> } }
+  })
+  <span class="kw">return</span> <span class="var">order</span>
+})</pre></div>
+  </div>
+</div>
+
+<!-- 07. PRODUCTION PATTERNS -->
+<div class="section" id="patterns">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Production patterns — pagination, raw SQL, connection pooling</span>
+    <span class="sec-badge" style="background:var(--emerald-dim);color:var(--emerald);">production</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">Cursor pagination, aggregations, raw SQL, Supabase/PlanetScale setup</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Cursor-based pagination (better than offset for feeds) ─</span>
+<span class="kw">async function</span> <span class="fn">getProducts</span>({ <span class="var">cursor</span>, <span class="var">take</span> = <span class="num">20</span> }: { <span class="prop">cursor</span>?: <span class="ty">string</span>; <span class="prop">take</span>?: <span class="ty">number</span> }) {
+  <span class="kw">const</span> <span class="var">products</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({
+    <span class="prop">take</span>:   <span class="var">take</span> + <span class="num">1</span>,            <span class="cm">// fetch one extra to check hasMore</span>
+    <span class="prop">cursor</span>: <span class="var">cursor</span> ? { <span class="prop">id</span>: <span class="var">cursor</span> } : <span class="kw">undefined</span>,
+    <span class="prop">skip</span>:   <span class="var">cursor</span> ? <span class="num">1</span> : <span class="num">0</span>,      <span class="cm">// skip the cursor item itself</span>
+    <span class="prop">orderBy</span>:{ <span class="prop">createdAt</span>: <span class="str">"desc"</span> },
+  })
+  <span class="kw">const</span> <span class="var">hasMore</span>  = <span class="var">products</span>.<span class="prop">length</span> > <span class="var">take</span>
+  <span class="kw">const</span> <span class="var">items</span>    = <span class="var">hasMore</span> ? <span class="var">products</span>.<span class="fn">slice</span>(<span class="num">0</span>, -<span class="num">1</span>) : <span class="var">products</span>
+  <span class="kw">const</span> <span class="var">nextCursor</span> = <span class="var">hasMore</span> ? <span class="var">items</span>.<span class="fn">at</span>(-<span class="num">1</span>)?.<span class="prop">id</span> : <span class="kw">undefined</span>
+  <span class="kw">return</span> { <span class="var">items</span>, <span class="var">hasMore</span>, <span class="var">nextCursor</span> }
+}
+
+<span class="cm">// ── Aggregations ──────────────────────────────────────────</span>
+<span class="kw">const</span> <span class="var">stats</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">order</span>.<span class="fn">aggregate</span>({
+  <span class="prop">_sum</span>: { <span class="prop">total</span>: <span class="kw">true</span> },        <span class="cm">// total revenue</span>
+  <span class="prop">_avg</span>: { <span class="prop">total</span>: <span class="kw">true</span> },        <span class="cm">// average order value</span>
+  <span class="prop">_count</span>: { <span class="prop">_all</span>: <span class="kw">true</span> },      <span class="cm">// order count</span>
+  <span class="prop">_min</span>: { <span class="prop">createdAt</span>: <span class="kw">true</span> },   <span class="cm">// first order date</span>
+  <span class="prop">where</span>: { <span class="prop">status</span>: <span class="str">"DELIVERED"</span> },
+})
+<span class="var">stats</span>.<span class="prop">_sum</span>.<span class="prop">total</span>    <span class="cm">// Decimal | null</span>
+
+<span class="cm">// Group by — revenue by category</span>
+<span class="kw">const</span> <span class="var">byCategory</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">groupBy</span>({
+  <span class="prop">by</span>: [<span class="str">"categoryId"</span>],
+  <span class="prop">_sum</span>: { <span class="prop">price</span>: <span class="kw">true</span> },
+  <span class="prop">_count</span>: <span class="kw">true</span>,
+  <span class="prop">having</span>: { <span class="prop">price</span>: { <span class="prop">_avg</span>: { <span class="prop">gt</span>: <span class="num">100</span> } } }  <span class="cm">// filter groups</span>
+})
+
+<span class="cm">// ── Raw SQL (escape hatch) ─────────────────────────────────</span>
+<span class="cm">// Only when Prisma's API can't express the query</span>
+<span class="kw">const</span> <span class="var">result</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="fn">$queryRaw</span>&lt;{ <span class="prop">id</span>: <span class="ty">string</span>; <span class="prop">count</span>: <span class="ty">bigint</span> }[]&gt;`
+  SELECT p.id, COUNT(r.id) as count
+  FROM products p
+  LEFT JOIN reviews r ON r."productId" = p.id
+  WHERE p.published = true
+  GROUP BY p.id
+  ORDER BY count DESC
+  LIMIT ${<span class="num">10</span>}
+`
+<span class="cm">// Template literals are parameterised — no SQL injection risk!</span>
+<span class="cm">// Never: db.$queryRawUnsafe("SELECT * FROM " + tableName)  ← dangerous</span>
+
+<span class="cm">// ── Connection pooling for serverless (Vercel/Netlify) ────</span>
+<span class="cm">// .env — use PgBouncer / Prisma Accelerate / Supabase pooler:</span>
+DATABASE_URL=<span class="str">"postgresql://user:pass@db.supabase.co:6543/postgres?pgbouncer=true"</span>
+DIRECT_URL=<span class="str">"postgresql://user:pass@db.supabase.co:5432/postgres"</span>
+
+<span class="cm">// schema.prisma with connection pooler:</span>
+<span class="schema">datasource</span> <span class="var">db</span> {
+  <span class="prop">provider</span>  = <span class="str">"postgresql"</span>
+  <span class="prop">url</span>       = <span class="fn">env</span>(<span class="str">"DATABASE_URL"</span>)     <span class="cm">// pooled — for queries</span>
+  <span class="prop">directUrl</span> = <span class="fn">env</span>(<span class="str">"DIRECT_URL"</span>)      <span class="cm">// direct — for migrations</span>
+}</pre></div>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">Prisma vs other database solutions — when to use what</div>
+    <table class="comp-table">
+      <tr><th>Solution</th><th>Best for</th><th>Trade-offs</th></tr>
+      <tr><td><code>Prisma + PostgreSQL</code></td><td>Most full-stack Next.js apps, complex relations, need type safety</td><td>Slightly more verbose, migrations can conflict in teams</td></tr>
+      <tr><td><code>Prisma + SQLite</code></td><td>Development/prototyping, single-server apps</td><td>No production scaling, no concurrent writes</td></tr>
+      <tr><td><code>Drizzle ORM</code></td><td>When you want SQL-like DX, max performance</td><td>More verbose, less magic, better for SQL experts</td></tr>
+      <tr><td><code>Supabase</code></td><td>BaaS with built-in auth, storage, realtime</td><td>Postgres under the hood, can use Prisma on top</td></tr>
+      <tr><td><code>PlanetScale</code></td><td>Massive scale, branch-based schema changes</td><td>MySQL-based, no foreign key constraints</td></tr>
+      <tr><td><code>Neon</code></td><td>Serverless Postgres, branching, autoscaling</td><td>Serverless cold starts if idle</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Coding exercises — Prisma patterns in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Mock Prisma client — type-safe query builder</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>createMockPrisma(models)</code> that simulates Prisma's CRUD API: <code>findMany</code>, <code>findUnique</code>, <code>create</code>, <code>update</code>, <code>upsert</code>, <code>delete</code>, and <code>count</code>. Support basic <code>where</code> filtering and <code>orderBy</code>. This simulates how Prisma's generated client works internally.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — mock Prisma client</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">function createMockPrisma(initialData = {}) {
+  // In-memory store: { modelName: [records...] }
+  const store = {}
+  for (const [model, records] of Object.entries(initialData)) {
+    store[model] = [...records]
+  }
+
+  function matchWhere(record, where) {
+    if (!where) return true
+    return Object.entries(where).every(([key, condition]) => {
+      const val = record[key]
+      if (condition === null || typeof condition !== 'object') return val === condition
+      if ('equals'   in condition) return val === condition.equals
+      if ('contains' in condition) return String(val).toLowerCase().includes(String(condition.contains).toLowerCase())
+      if ('gte'      in condition && val < condition.gte) return false
+      if ('lte'      in condition && val > condition.lte) return false
+      if ('gt'       in condition && val <= condition.gt)  return false
+      if ('lt'       in condition && val >= condition.lt)  return false
+      if ('in'       in condition) return condition.in.includes(val)
+      if ('not'      in condition) return val !== condition.not
+      return val === condition
+    })
+  }
+
+  function sortBy(records, orderBy) {
+    if (!orderBy) return records
+    const pairs = Array.isArray(orderBy) ? orderBy : [orderBy]
+    return [...records].sort((a, b) => {
+      for (const pair of pairs) {
+        const [[field, dir]] = Object.entries(pair)
+        if (a[field] < b[field]) return dir === 'asc' ? -1 : 1
+        if (a[field] > b[field]) return dir === 'asc' ? 1 : -1
+      }
+      return 0
+    })
+  }
+
+  function makeModel(name) {
+    if (!store[name]) store[name] = []
+
+    return {
+      async findMany({ where, orderBy, skip = 0, take, select } = {}) {
+        let results = store[name].filter(r => matchWhere(r, where))
+        results = sortBy(results, orderBy)
+        results = results.slice(skip, take ? skip + take : undefined)
+        if (select) results = results.map(r => Object.fromEntries(Object.keys(select).map(k => [k, r[k]])))
+        return results
+      },
+      async findUnique({ where }) {
+        return store[name].find(r => matchWhere(r, where)) ?? null
+      },
+      async findFirst({ where, orderBy } = {}) {
+        let results = store[name].filter(r => matchWhere(r, where))
+        return sortBy(results, orderBy)[0] ?? null
+      },
+      async count({ where } = {}) {
+        return store[name].filter(r => matchWhere(r, where)).length
+      },
+      async create({ data }) {
+        const record = { id: `id_${Date.now()}_${Math.random().toString(36).slice(2,6)}`, ...data, createdAt: new Date(), updatedAt: new Date() }
+        store[name].push(record)
+        return record
+      },
+      async update({ where, data }) {
+        const idx = store[name].findIndex(r => matchWhere(r, where))
+        if (idx === -1) throw new Error(`Record not found`)
+        const record = { ...store[name][idx] }
+        // Handle increment/decrement
+        for (const [k, v] of Object.entries(data)) {
+          if (v && typeof v === 'object' && 'increment' in v) record[k] = (record[k] || 0) + v.increment
+          else if (v && typeof v === 'object' && 'decrement' in v) record[k] = (record[k] || 0) - v.decrement
+          else record[k] = v
+        }
+        record.updatedAt = new Date()
+        store[name][idx] = record
+        return record
+      },
+      async upsert({ where, create, update }) {
+        const existing = store[name].find(r => matchWhere(r, where))
+        if (existing) return this.update({ where, data: update })
+        return this.create({ data: create })
+      },
+      async delete({ where }) {
+        const idx = store[name].findIndex(r => matchWhere(r, where))
+        if (idx === -1) throw new Error(`Record not found`)
+        const [deleted] = store[name].splice(idx, 1)
+        return deleted
+      },
+    }
+  }
+
+  const handler = { get: (_, model) => makeModel(model) }
+  return new Proxy({}, handler)
+}
+
+// Test
+async function runTests() {
+  const db = createMockPrisma({
+    product: [
+      { id:"p1", name:"MacBook Pro", price:1999, stock:10, category:"laptops", published:true },
+      { id:"p2", name:"iPad Pro",    price:799,  stock:5,  category:"tablets", published:true },
+      { id:"p3", name:"Draft Item",  price:50,   stock:0,  category:"misc",    published:false },
+    ]
+  })
+
+  // findMany with filter
+  const published = await db.product.findMany({ where:{ published:true } })
+  console.log("Published:", published.length, "products")  // 2
+
+  // findMany with filter + sort + pagination
+  const page1 = await db.product.findMany({ where:{ published:true }, orderBy:[{price:"desc"}], take:1 })
+  console.log("Most expensive:", page1[0].name)  // MacBook Pro
+
+  // findMany with price range
+  const mid = await db.product.findMany({ where:{ price:{ gte:500, lte:1500 } } })
+  console.log("Price 500-1500:", mid.map(p=>p.name))  // [iPad Pro]
+
+  // count
+  const total = await db.product.count({ where:{ published:true } })
+  console.log("Published count:", total)  // 2
+
+  // create
+  const newProd = await db.product.create({ data:{ name:"AirPods", price:249, stock:50, published:true } })
+  console.log("Created:", newProd.name, "id:", newProd.id.slice(0,8)+"...")
+
+  // update with increment
+  await db.product.update({ where:{ id:"p1" }, data:{ stock:{ decrement:2 }, price:1799 } })
+  const updated = await db.product.findUnique({ where:{ id:"p1" } })
+  console.log("Updated stock:", updated.stock, "price:", updated.price)  // 8, 1799
+
+  // upsert
+  await db.product.upsert({ where:{ id:"p99" }, create:{ name:"New",price:99 }, update:{ price:89 } })
+  const upserted = await db.product.findUnique({ where:{ id:"p99" } })
+  console.log("Upserted:", upserted?.name, upserted?.price)  // New, 99
+
+  // select
+  const lean = await db.product.findMany({ where:{published:true}, select:{name:true,price:true} })
+  console.log("Selected fields:", Object.keys(lean[0]))  // [name, price]
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Relations — include and nested create simulation</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Extend the mock Prisma client to support <code>include</code> — joining related records from other models. Simulate a product with its category and reviews using <code>include: { category: true, reviews: { take: 3 } }</code>. Then simulate a nested create: order with inline order items.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — relations simulation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">// Simulate Prisma's include (join) behaviour
+function createRelationalDB(schema) {
+  // schema: { modelName: { data: [...], relations: { field: { model, foreignKey, type } } } }
+  const store = {}
+  for (const [model, config] of Object.entries(schema)) {
+    store[model] = [...(config.data || [])]
+  }
+
+  function resolveInclude(record, modelName, include) {
+    if (!include) return record
+    const result = { ...record }
+    const relations = schema[modelName]?.relations || {}
+
+    for (const [field, options] of Object.entries(include)) {
+      const rel = relations[field]
+      if (!rel) continue
+
+      const { model: relModel, foreignKey, type, options: relOptions } = rel
+
+      if (type === 'hasMany') {
+        // e.g. product.reviews → reviews where productId = product.id
+        let related = store[relModel].filter(r => r[foreignKey] === record.id)
+        if (relOptions?.orderBy) {
+          const [[f, dir]] = Object.entries(relOptions.orderBy)
+          related.sort((a,b) => dir==='desc' ? (b[f]>a[f]?1:-1) : (a[f]>b[f]?1:-1))
+        }
+        const take = (typeof options === 'object' && options.take) || (relOptions?.take)
+        if (take) related = related.slice(0, take)
+        result[field] = related
+      } else if (type === 'belongsTo') {
+        // e.g. review.user → user where user.id = review.userId
+        const relatedId = record[foreignKey]
+        result[field] = store[relModel].find(r => r.id === relatedId) ?? null
+      }
+    }
+    return result
+  }
+
+  return {
+    async find(modelName, { where, include, take, orderBy } = {}) {
+      let results = store[modelName].filter(r => {
+        if (!where) return true
+        return Object.entries(where).every(([k,v]) => r[k] === v)
+      })
+      if (orderBy) {
+        const [[f,dir]] = Object.entries(orderBy)
+        results.sort((a,b) => dir==='desc' ? (b[f]>a[f]?1:-1) : (a[f]>b[f]?1:-1))
+      }
+      if (take) results = results.slice(0, take)
+      return results.map(r => resolveInclude(r, modelName, include))
+    },
+    async createWithNested(modelName, { data, nested }) {
+      // Create parent
+      const parent = { id: `${modelName}_${Date.now()}`, ...data }
+      store[modelName].push(parent)
+      // Create nested (e.g., order items)
+      if (nested) {
+        for (const [field, { model: relModel, items }] of Object.entries(nested)) {
+          for (const item of items) {
+            store[relModel].push({ id: `${relModel}_${Date.now()}_${Math.random().toString(36).slice(2,5)}`, [`${modelName}Id`]: parent.id, ...item })
+          }
+        }
+      }
+      return parent
+    },
+    count: (modelName, foreignKey, parentId) =>
+      store[modelName].filter(r => r[foreignKey] === parentId).length,
+  }
+}
+
+const db = createRelationalDB({
+  product: {
+    data: [
+      { id:"p1", name:"MacBook Pro", price:1999, categoryId:"c1" },
+      { id:"p2", name:"iPad Pro",    price:799,  categoryId:"c2" },
+    ],
+    relations: {
+      category: { model:"category", foreignKey:"categoryId", type:"belongsTo" },
+      reviews:  { model:"review",   foreignKey:"productId",  type:"hasMany" },
+    }
+  },
+  category: {
+    data: [
+      { id:"c1", name:"Laptops" },
+      { id:"c2", name:"Tablets" },
+    ]
+  },
+  review: {
+    data: [
+      { id:"r1", productId:"p1", rating:5, text:"Amazing!", userId:"u1" },
+      { id:"r2", productId:"p1", rating:4, text:"Great",    userId:"u2" },
+      { id:"r3", productId:"p1", rating:3, text:"OK",       userId:"u3" },
+      { id:"r4", productId:"p2", rating:5, text:"Love it",  userId:"u1" },
+    ]
+  },
+  order: { data: [], relations: {} },
+  orderItem: { data: [], relations: {} },
+})
+
+async function runTests() {
+  // Product with category (belongsTo)
+  const products = await db.find("product", {
+    where: { id: "p1" },
+    include: { category: true, reviews: { take: 2 } }
+  })
+  const p = products[0]
+  console.log("Product:", p.name)
+  console.log("Category:", p.category?.name)      // Laptops
+  console.log("Reviews (max 2):", p.reviews?.length) // 2
+
+  // Product without include — no category
+  const plain = await db.find("product", { where:{ id:"p2" } })
+  console.log("No include — category:", plain[0].category)  // undefined
+
+  // All reviews for product
+  const withAllReviews = await db.find("product", { where:{id:"p1"}, include:{ reviews:true } })
+  console.log("All reviews:", withAllReviews[0].reviews?.length)  // 3
+
+  // Nested create — order with items
+  const order = await db.createWithNested("order", {
+    data: { userId:"u1", total:2798, status:"PENDING" },
+    nested: {
+      items: { model:"orderItem", items: [
+        { productId:"p1", qty:1, price:1999 },
+        { productId:"p2", qty:1, price:799  },
+      ]}
+    }
+  })
+  console.log("Created order:", order.id.slice(0,12)+"...")
+  console.log("Order items created:", db.count("orderItem", "orderId", order.id))  // 2
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Transaction — atomic order creation with stock check</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>createOrder(db, userId, items)</code> using the transaction pattern: check stock for all items, create the order, create order items, decrement stock — all atomically. If any step fails (out of stock, DB error), roll back everything. Verify with concurrent orders that stock doesn't go negative.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — atomic order transaction</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">// Simulate Prisma's $transaction with rollback
+function createTransactionalDB() {
+  let products = [
+    { id:"p1", name:"MacBook Pro", price:1999, stock:2 },
+    { id:"p2", name:"AirPods",     price:249,  stock:1 },
+  ]
+  let orders     = []
+  let orderItems = []
+
+  function snapshot() {
+    return {
+      products:   JSON.parse(JSON.stringify(products)),
+      orders:     JSON.parse(JSON.stringify(orders)),
+      orderItems: JSON.parse(JSON.stringify(orderItems)),
+    }
+  }
+  function restore(snap) {
+    products   = snap.products
+    orders     = snap.orders
+    orderItems = snap.orderItems
+  }
+
+  async function $transaction(fn) {
+    const snap = snapshot()
+    const tx   = { products, orders, orderItems }  // pass refs — mutations affect store
+    try {
+      const result = await fn(tx)
+      return { success: true, result }
+    } catch(e) {
+      restore(snap)   // ROLLBACK
+      return { success: false, error: e.message }
+    }
+  }
+
+  async function createOrder(userId, items) {
+    return $transaction(async (tx) => {
+      // 1. Check stock for all items atomically
+      for (const { productId, qty } of items) {
+        const product = tx.products.find(p => p.id === productId)
+        if (!product) throw new Error(`Product ${productId} not found`)
+        if (product.stock < qty) throw new Error(`Insufficient stock for ${product.name}: need ${qty}, have ${product.stock}`)
+      }
+
+      // 2. Calculate total
+      const total = items.reduce((sum, { productId, qty }) => {
+        const p = tx.products.find(p => p.id === productId)
+        return sum + (p.price * qty)
+      }, 0)
+
+      // 3. Create order
+      const order = { id:`ord_${Date.now()}`, userId, total, status:"PENDING", createdAt:new Date() }
+      tx.orders.push(order)
+
+      // 4. Create items + decrement stock
+      for (const { productId, qty } of items) {
+        const product = tx.products.find(p => p.id === productId)
+        tx.orderItems.push({ id:`oi_${Math.random().toString(36).slice(2,8)}`, orderId:order.id, productId, qty, price:product.price })
+        product.stock -= qty  // decrement in-place (mutations affect original)
+      }
+
+      return order
+    })
+  }
+
+  return {
+    createOrder,
+    getStock: (id) => products.find(p=>p.id===id)?.stock,
+    getOrders: () => orders.length,
+    getState: () => ({ products:[...products], orders:[...orders] }),
+  }
+}
+
+async function runTests() {
+  const db = createTransactionalDB()
+
+  // Test 1: successful order
+  console.log("=== Test 1: Successful order ===")
+  console.log("MacBook stock before:", db.getStock("p1"))  // 2
+  const r1 = await db.createOrder("u1", [{ productId:"p1", qty:1 }, { productId:"p2", qty:1 }])
+  console.log("Order created:", r1.success)                 // true
+  console.log("MacBook stock after:", db.getStock("p1"))   // 1
+  console.log("AirPods stock after:", db.getStock("p2"))   // 0
+
+  // Test 2: insufficient stock — should rollback
+  console.log("\n=== Test 2: Insufficient stock (rollback) ===")
+  const stockBefore = db.getStock("p1")
+  const ordersBefore = db.getOrders()
+  const r2 = await db.createOrder("u2", [
+    { productId:"p1", qty:1 },
+    { productId:"p2", qty:1 }  // AirPods stock is 0 now!
+  ])
+  console.log("Order failed:", !r2.success)                      // true
+  console.log("Error:", r2.error)                                 // Insufficient stock
+  console.log("MacBook stock unchanged:", db.getStock("p1") === stockBefore)  // true (rolled back)
+  console.log("Orders unchanged:", db.getOrders() === ordersBefore)            // true (rolled back)
+
+  // Test 3: last MacBook
+  console.log("\n=== Test 3: Last MacBook ===")
+  const r3 = await db.createOrder("u3", [{ productId:"p1", qty:1 }])
+  console.log("Order created:", r3.success)           // true
+  console.log("MacBook stock now:", db.getStock("p1"))// 0
+
+  // Test 4: concurrent orders — would over-sell without transaction
+  console.log("\n=== Test 4: Race condition prevention ===")
+  const [r4a, r4b] = await Promise.all([
+    db.createOrder("u4", [{ productId:"p1", qty:1 }]),
+    db.createOrder("u5", [{ productId:"p1", qty:1 }]),
+  ])
+  const success = [r4a, r4b].filter(r=>r.success).length
+  const failed  = [r4a, r4b].filter(r=>!r.success).length
+  console.log("Concurrent: succeeded:", success, "failed:", failed)  // 0 success, 2 fail (stock=0)
+  console.log("Final MacBook stock:", db.getStock("p1"))  // 0 (never negative!)
+
+  console.log("\nTotal orders created:", db.getOrders())
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Cursor pagination — implement getNextPageParam</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement cursor-based pagination that works identically to Prisma's <code>cursor + skip + take</code> pattern. Build <code>paginate(records, options)</code> returning <code>{ items, nextCursor, hasMore, total }</code>. Show that cursor pagination is stable even when new records are inserted between pages.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — cursor pagination</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">// Simulate Prisma cursor pagination
+function paginate(records, { cursor = null, take = 5, orderField = "createdAt", orderDir = "desc" } = {}) {
+  // Sort all records
+  const sorted = [...records].sort((a, b) => {
+    if (a[orderField] < b[orderField]) return orderDir === "desc" ? 1  : -1
+    if (a[orderField] > b[orderField]) return orderDir === "desc" ? -1 : 1
+    return 0
+  })
+
+  // Find cursor position
+  let startIdx = 0
+  if (cursor) {
+    const cursorIdx = sorted.findIndex(r => r.id === cursor)
+    if (cursorIdx === -1) throw new Error(`Cursor not found: ${cursor}`)
+    startIdx = cursorIdx + 1  // skip the cursor item itself
+  }
+
+  // Take one extra to determine hasMore
+  const slice = sorted.slice(startIdx, startIdx + take + 1)
+  const hasMore = slice.length > take
+  const items = hasMore ? slice.slice(0, take) : slice
+  const nextCursor = hasMore ? items[items.length - 1].id : null
+
+  return { items, nextCursor, hasMore, total: records.length, fetched: startIdx + items.length }
+}
+
+// Generate test data
+const products = Array.from({ length: 25 }, (_, i) => ({
+  id:        `p${String(i+1).padStart(2,"0")}`,
+  name:      `Product ${i+1}`,
+  price:     10 * (i + 1),
+  createdAt: new Date(2024, 0, i + 1).toISOString(),  // Jan 1, 2, 3...
+}))
+
+async function runTests() {
+  console.log("=== Cursor Pagination ===")
+  console.log("Total products:", products.length)
+
+  // Page 1
+  const page1 = paginate(products, { take:5 })
+  console.log("\nPage 1:")
+  console.log("Items:", page1.items.map(p=>p.name).join(", "))
+  console.log("hasMore:", page1.hasMore)         // true
+  console.log("nextCursor:", page1.nextCursor)
+
+  // Page 2 using cursor
+  const page2 = paginate(products, { take:5, cursor:page1.nextCursor })
+  console.log("\nPage 2:")
+  console.log("Items:", page2.items.map(p=>p.name).join(", "))
+  console.log("hasMore:", page2.hasMore)         // true
+
+  // Navigate all pages
+  let cursor = null
+  let pageNum = 0
+  let allItems = []
+  do {
+    pageNum++
+    const page = paginate(products, { take:8, cursor })
+    allItems.push(...page.items)
+    cursor = page.nextCursor
+  } while (cursor)
+
+  console.log("\nAll pages traversed:", pageNum, "pages")
+  console.log("Total items fetched:", allItems.length)  // 25
+  console.log("No duplicates:", new Set(allItems.map(i=>i.id)).size === 25)
+
+  // Key insight: cursor pagination is STABLE when new items are added
+  console.log("\n=== Stability Test ===")
+  const stableProducts = [...products]
+  const page1stable = paginate(stableProducts, { take:5 })
+  console.log("Page 1 cursor:", page1stable.nextCursor)
+
+  // Insert a new product at the "front" (most recent date)
+  stableProducts.push({ id:"p_new", name:"Brand New Product", price:99, createdAt:new Date(2024,1,15).toISOString() })
+
+  // Page 2 from cursor is SAME regardless of new product
+  const page2stable = paginate(stableProducts, { take:5, cursor:page1stable.nextCursor })
+  console.log("Page 2 still starts at:", page2stable.items[0].name)
+  console.log("Stable pagination:", !page2stable.items.find(i=>i.id==="p_new"))  // new item not duplicated
+
+  // Compare: offset pagination would shift and cause duplicates/skips
+  console.log("\nWhy not offset?")
+  console.log("Offset page 2 (skip 5) after insert would skip:", stableProducts.sort((a,b)=>b.createdAt>a.createdAt?1:-1)[4].name)
+  console.log("Cursor page 2 correctly continues from:", page1stable.nextCursor)
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Aggregations — revenue stats, group by, top products</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>aggregate(records, options)</code> and <code>groupBy(records, options)</code> — simulating Prisma's <code>_sum</code>, <code>_avg</code>, <code>_count</code>, <code>_min</code>, <code>_max</code>, and <code>groupBy</code>. Build a dashboard stats function that calculates revenue by category, top products, and total metrics.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — aggregations and group by</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">function aggregate(records, { _sum, _avg, _count, _min, _max, where } = {}) {
+  const filtered = where ? records.filter(r => Object.entries(where).every(([k,v]) => r[k] === v)) : records
+  const result = {}
+
+  if (_sum) {
+    result._sum = {}
+    for (const field of Object.keys(_sum)) {
+      result._sum[field] = filtered.reduce((s, r) => s + (Number(r[field]) || 0), 0)
+    }
+  }
+  if (_avg) {
+    result._avg = {}
+    for (const field of Object.keys(_avg)) {
+      result._avg[field] = filtered.length ? filtered.reduce((s,r) => s + (Number(r[field])||0), 0) / filtered.length : null
+    }
+  }
+  if (_count) {
+    result._count = typeof _count === 'object' && _count._all !== undefined
+      ? { _all: filtered.length }
+      : filtered.length
+  }
+  if (_min) {
+    result._min = {}
+    for (const field of Object.keys(_min)) {
+      const vals = filtered.map(r => r[field]).filter(v => v != null)
+      result._min[field] = vals.length ? vals.reduce((min, v) => v < min ? v : min) : null
+    }
+  }
+  if (_max) {
+    result._max = {}
+    for (const field of Object.keys(_max)) {
+      const vals = filtered.map(r => r[field]).filter(v => v != null)
+      result._max[field] = vals.length ? vals.reduce((max, v) => v > max ? v : max) : null
+    }
+  }
+  return result
+}
+
+function groupBy(records, { by, _sum, _count, _avg, orderBy, having } = {}) {
+  const groups = new Map()
+  for (const r of records) {
+    const key = by.map(f => r[f]).join("|")
+    if (!groups.has(key)) groups.set(key, { ...Object.fromEntries(by.map(f=>[f,r[f]])), _records:[] })
+    groups.get(key)._records.push(r)
+  }
+
+  let result = [...groups.values()].map(g => {
+    const agg = aggregate(g._records, { _sum, _count, _avg })
+    return { ...Object.fromEntries(by.map(f=>[f,g[f]])), ...agg }
+  })
+
+  if (having) {
+    result = result.filter(g => {
+      return Object.entries(having).every(([field, cond]) => {
+        const val = g._sum?.[field] ?? g._avg?.[field] ?? 0
+        if (cond._gt !== undefined) return val > cond._gt
+        if (cond._gte !== undefined) return val >= cond._gte
+        return true
+      })
+    })
+  }
+
+  if (orderBy) {
+    const [[f, dir]] = Object.entries(orderBy)
+    result.sort((a,b) => {
+      const av = a._sum?.[f] ?? a._count ?? 0
+      const bv = b._sum?.[f] ?? b._count ?? 0
+      return dir === 'desc' ? bv - av : av - bv
+    })
+  }
+
+  return result
+}
+
+// Test data
+const orders = [
+  { id:"o1", status:"DELIVERED", total:1999, userId:"u1", categoryId:"laptops",  createdAt:"2024-01" },
+  { id:"o2", status:"DELIVERED", total:799,  userId:"u2", categoryId:"tablets",  createdAt:"2024-01" },
+  { id:"o3", status:"DELIVERED", total:249,  userId:"u1", categoryId:"audio",    createdAt:"2024-02" },
+  { id:"o4", status:"CANCELLED", total:1799, userId:"u3", categoryId:"laptops",  createdAt:"2024-02" },
+  { id:"o5", status:"DELIVERED", total:1299, userId:"u2", categoryId:"laptops",  createdAt:"2024-02" },
+  { id:"o6", status:"DELIVERED", total:499,  userId:"u4", categoryId:"tablets",  createdAt:"2024-03" },
+]
+
+// Overall stats
+const stats = aggregate(orders, {
+  _sum: { total: true },
+  _avg: { total: true },
+  _count: { _all: true },
+  _min: { total: true },
+  _max: { total: true },
+  where: { status: "DELIVERED" },
+})
+console.log("=== Revenue Dashboard ===")
+console.log("Total revenue: $" + stats._sum.total.toFixed(2))  // delivered only
+console.log("Avg order value: $" + stats._avg.total.toFixed(2))
+console.log("Order count:", stats._count._all)
+console.log("Smallest order: $" + stats._min.total)
+console.log("Largest order: $" + stats._max.total)
+
+// Revenue by category
+console.log("\n=== Revenue by Category ===")
+const byCategory = groupBy(
+  orders.filter(o => o.status === "DELIVERED"),
+  { by: ["categoryId"], _sum: { total: true }, _count: { _all: true }, orderBy: { total: "desc" } }
+)
+byCategory.forEach(g => console.log(`  ${g.categoryId.padEnd(10)} $${g._sum.total.toFixed(0).padStart(6)} (${g._count._all} orders)`))
+
+// Monthly revenue
+console.log("\n=== Monthly Revenue ===")
+const byMonth = groupBy(
+  orders.filter(o=>o.status==="DELIVERED"),
+  { by:["createdAt"], _sum:{ total:true }, orderBy:{ total:"asc" } }
+)
+byMonth.forEach(g => console.log(`  ${g.createdAt}: $${g._sum.total}`))
+
+// High-value categories (sum > 500)
+console.log("\n=== High-value categories (total > 500) ===")
+const highValue = groupBy(
+  orders.filter(o=>o.status==="DELIVERED"),
+  { by:["categoryId"], _sum:{ total:true }, having:{ total:{ _gt: 500 } } }
+)
+highValue.forEach(g => console.log(`  ${g.categoryId}: $${g._sum.total}`))</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Full React Shop data layer — complete Prisma integration</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build the complete data access layer for the React Shop: <code>getProducts</code> with filtering/pagination, <code>getProductWithDetails</code> with category + reviews, <code>createOrder</code> with atomic stock decrement, and <code>getDashboardStats</code> with aggregations. Everything typed and using the mock Prisma client.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — full data layer integration</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// ── Full React Shop data access layer ────────────────────
+
+// Simple in-memory DB
+const DB = {
+  products: [
+    { id:"p1", name:"MacBook Pro",   price:1999, stock:5,  categoryId:"c1", published:true,  rating:4.8, reviewCount:127 },
+    { id:"p2", name:"iPad Pro",      price:799,  stock:10, categoryId:"c2", published:true,  rating:4.7, reviewCount:89  },
+    { id:"p3", name:"AirPods Pro",   price:249,  stock:20, categoryId:"c3", published:true,  rating:4.9, reviewCount:340 },
+    { id:"p4", name:"Mac Mini",      price:699,  stock:3,  categoryId:"c1", published:true,  rating:4.6, reviewCount:52  },
+    { id:"p5", name:"Draft Product", price:99,   stock:0,  categoryId:"c1", published:false, rating:0,   reviewCount:0   },
+  ],
+  categories: [
+    { id:"c1", name:"Laptops & Desktops" },
+    { id:"c2", name:"Tablets" },
+    { id:"c3", name:"Audio" },
+  ],
+  reviews: [
+    { id:"r1", productId:"p1", userId:"u1", rating:5, text:"Outstanding!",    createdAt:"2024-01-15" },
+    { id:"r2", productId:"p1", userId:"u2", rating:4, text:"Very good",        createdAt:"2024-01-20" },
+    { id:"r3", productId:"p2", userId:"u3", rating:5, text:"Love it!",         createdAt:"2024-02-01" },
+    { id:"r4", productId:"p3", userId:"u1", rating:5, text:"Best earbuds",     createdAt:"2024-02-10" },
+  ],
+  orders: [],
+  orderItems: [],
+}
+
+// ── Data access functions ─────────────────────────────────
+
+async function getProducts({ category, search, minPrice, maxPrice, page = 1, pageSize = 4 } = {}) {
+  let results = DB.products.filter(p => {
+    if (!p.published) return false
+    if (category && p.categoryId !== category) return false
+    if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false
+    if (minPrice !== undefined && p.price < minPrice) return false
+    if (maxPrice !== undefined && p.price > maxPrice) return false
+    return true
+  }).sort((a,b) => b.rating - a.rating)
+
+  const total = results.length
+  const items = results.slice((page-1)*pageSize, page*pageSize)
+  return { items: items.map(p=>({ id:p.id,name:p.name,price:p.price,rating:p.rating })), total, page, totalPages:Math.ceil(total/pageSize) }
+}
+
+async function getProductWithDetails(id) {
+  const product = DB.products.find(p => p.id === id && p.published)
+  if (!product) return null
+  const category = DB.categories.find(c => c.id === product.categoryId)
+  const reviews  = DB.reviews.filter(r => r.productId === id).slice(0, 5)
+  return { ...product, category, reviews, _count:{ reviews:product.reviewCount } }
+}
+
+async function createOrder(userId, items) {
+  // Check stock
+  for (const { productId, qty } of items) {
+    const p = DB.products.find(p => p.id === productId)
+    if (!p) throw new Error(`Product ${productId} not found`)
+    if (p.stock < qty) throw new Error(`Insufficient stock: ${p.name}`)
+  }
+  // Create order
+  const total = items.reduce((s, { productId, qty }) => s + DB.products.find(p=>p.id===productId).price * qty, 0)
+  const order = { id:`ord_${Date.now()}`, userId, total, status:"PENDING", createdAt:new Date().toISOString() }
+  DB.orders.push(order)
+  // Create items + decrement stock
+  for (const { productId, qty } of items) {
+    const product = DB.products.find(p => p.id === productId)
+    DB.orderItems.push({ orderId:order.id, productId, qty, price:product.price })
+    product.stock -= qty
+  }
+  return order
+}
+
+async function getDashboardStats() {
+  const deliveredOrders = DB.orders.filter(o => o.status !== "CANCELLED")
+  const revenue = deliveredOrders.reduce((s,o) => s + o.total, 0)
+  const topProducts = [...DB.products].sort((a,b) => b.reviewCount - a.reviewCount).slice(0,3)
+  const lowStock = DB.products.filter(p => p.published && p.stock > 0 && p.stock <= 3)
+  return {
+    revenue, orderCount:DB.orders.length,
+    avgOrderValue: DB.orders.length ? revenue/DB.orders.length : 0,
+    topProducts: topProducts.map(p => ({ name:p.name, rating:p.rating, reviews:p.reviewCount })),
+    lowStockAlert: lowStock.map(p => ({ name:p.name, stock:p.stock })),
+  }
+}
+
+// ── Tests ─────────────────────────────────────────────────
+async function runTests() {
+  console.log("=== Product listing ===")
+  const list = await getProducts({ pageSize:4 })
+  console.log("Products:", list.items.map(p=>p.name).join(", "))
+  console.log("Total:", list.total, "totalPages:", list.totalPages)
+
+  const filtered = await getProducts({ search:"pro", minPrice:500 })
+  console.log("Filtered 'pro' >=500:", filtered.items.map(p=>p.name).join(", "))
+
+  console.log("\n=== Product detail ===")
+  const detail = await getProductWithDetails("p1")
+  console.log("Product:", detail.name, "Rating:", detail.rating)
+  console.log("Category:", detail.category.name)
+  console.log("Reviews:", detail.reviews.length, "/ Total:", detail._count.reviews)
+
+  console.log("\n=== Order creation ===")
+  const order = await createOrder("u1", [{ productId:"p1",qty:1 }, { productId:"p3",qty:2 }])
+  console.log("Order created: $" + order.total)
+  console.log("MacBook stock:", DB.products.find(p=>p.id==="p1").stock)  // 4
+  console.log("AirPods stock:", DB.products.find(p=>p.id==="p3").stock)  // 18
+
+  try { await createOrder("u2", [{ productId:"p4", qty:10 }]) }
+  catch(e) { console.log("Stock error:", e.message) }
+
+  console.log("\n=== Dashboard stats ===")
+  const stats = await getDashboardStats()
+  console.log("Revenue: $" + stats.revenue.toFixed(2))
+  console.log("Top products:", stats.topProducts.map(p=>p.name).join(", "))
+  console.log("Low stock alerts:", stats.lowStockAlert.map(p=>`${p.name}(${p.stock})`).join(", "))
+
+  console.log("\n✅ Full data layer verified!")
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">What is Prisma and why is it preferred over raw SQL or other ORMs?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Prisma is a next-generation ORM that generates a type-safe client from your schema. The three core advantages over alternatives: <strong>type safety</strong> — every query is fully typed, typos in field names are compile errors, return types match exactly what you asked for; <strong>schema as single source of truth</strong> — your schema file defines the database structure and the TypeScript types simultaneously, no drift; <strong>developer experience</strong> — autocomplete on every query argument, Prisma Studio as a visual browser, clear error messages.<br><br>Versus raw SQL: raw SQL strings can't be type-checked, have SQL injection risk if not careful, and require manual TypeScript type annotations. Versus Sequelize/TypeORM: those use class decorators and manual type sync that often drifts from the real schema. Prisma generates the client fresh from your actual schema — it's always accurate.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">What is the difference between include and select in Prisma?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>include</code> appends relation data to the query result — you get the full model plus the related records. <code>select</code> specifies exactly which fields to return — you only get what you ask for, and it can include relations too.<br><br><code>include: { category: true }</code> returns <code>Product & { category: Category }</code> — all product fields plus the full category. <code>select: { name: true, price: true, category: { select: { name: true } } }</code> returns only those three fields — nothing else, which is more efficient for list views where you don't need every column.<br><br>You can't use both <code>include</code> and <code>select</code> at the same level — pick one. For performance: prefer <code>select</code> in list views (only fetch what you render), use <code>include</code> in detail views (fetch the full object and its relations). The <code>_count</code> modifier lets you count relations without fetching them: <code>include: { _count: { select: { reviews: true } } }</code>.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">When and why would you use Prisma's $transaction?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Use <code>$transaction</code> when multiple database operations must either all succeed or all fail — partial completion would leave the data in an inconsistent state. The classic example: placing an order requires creating the order record AND decrementing stock. If the order creates but the stock decrement fails (or vice versa), the database is in a bad state.<br><br>Two forms: <strong>sequential</strong> — <code>db.$transaction([op1, op2, op3])</code> — runs all operations in a single transaction but can't use the result of op1 in op2. <strong>Interactive</strong> — <code>db.$transaction(async (tx) => { ... })</code> — you get a transaction-scoped client where you can read then write based on results. If you throw inside the callback, the entire transaction rolls back.<br><br>For the stock-check case: read the product inside the transaction, check the stock, then decrement. Because it's all in one transaction, another concurrent request can't deplete the stock between your read and write — preventing overselling.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">What is the Prisma singleton pattern and why is it needed in Next.js?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">In development, Next.js hot-reloads modules when files change. Without the singleton pattern, every hot-reload creates a new <code>PrismaClient</code> instance, each with its own connection pool. You'd quickly exhaust the database's connection limit (typically 100 for PostgreSQL) with warnings and connection errors.<br><br>The singleton stores the instance on <code>globalThis</code>: <code>globalThis.prisma ?? new PrismaClient()</code>. On first load: the instance is created and stored on <code>globalThis</code>. On hot-reload: the module re-runs, but finds the existing instance on <code>globalThis</code> and returns it instead of creating a new one. In production, this doesn't matter because modules aren't re-executed — but you still need the pattern for development.<br><br>In serverless environments (Vercel), each function invocation is a fresh Node.js process — the singleton doesn't help there. Use a connection pooler (Supabase pooler, PgBouncer, Prisma Accelerate) to reuse connections across invocations.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">Why should you use Decimal instead of Float for money in Prisma?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Floating point numbers in computers can't represent all decimal values exactly — it's a fundamental binary representation issue. <code>0.1 + 0.2</code> in JavaScript is <code>0.30000000000000004</code>, not <code>0.3</code>. For money, these tiny rounding errors accumulate and can cause discrepancies in totals, taxes, and financial reports.<br><br>Prisma's <code>Decimal</code> type maps to the database's <code>NUMERIC</code> or <code>DECIMAL(10, 2)</code> type, which stores exact decimal values without floating-point errors. In TypeScript, Prisma returns <code>Decimal</code> objects that you can convert with <code>.toNumber()</code> or <code>.toString()</code>.<br><br>Always use <code>Decimal @db.Decimal(10, 2)</code> for prices, totals, tax amounts, and any monetary value. Use <code>Int</code> instead if you store money in cents/pence — an integer for $19.99 stored as 1999 cents avoids both floating-point issues and requires no special type.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">What is cursor-based pagination and when is it better than offset pagination?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Offset pagination (<code>skip: 20, take: 10</code>) works by counting rows to skip. This becomes slow on large tables (the database must count through millions of rows to find page 1000), and it's unstable — if a new record is inserted while a user is paginating, they'll see a duplicate or skip a record depending on where it was inserted.<br><br>Cursor pagination uses the last seen record's ID (or a timestamp) as a reference point. Instead of "skip 20", it says "give me the 10 records after this specific ID." This is: fast (uses an index, not counting), stable (unaffected by insertions before the cursor), and the natural pattern for infinite scroll feeds.<br><br>In Prisma: <code>cursor: { id: lastSeenId }, skip: 1, take: 10</code> — skip 1 excludes the cursor record itself. Fetch <code>take + 1</code> to detect whether more pages exist. Return the last fetched ID as the next cursor.<br><br>Use offset for traditional numbered pagination (the user can jump to page 37). Use cursor for infinite scroll, feeds, and real-time data streams.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">How do Prisma migrations work and what's the difference between migrate dev and migrate deploy?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">When you change <code>schema.prisma</code>, Prisma needs to update the actual database structure to match. Migrations are version-controlled SQL files that describe these changes — they're committed to git and applied in order.<br><br><code>prisma migrate dev</code> is for local development: it detects schema changes, generates a migration SQL file, applies it to the development database, and updates the Prisma Client. It can also reset the DB and re-apply all migrations from scratch. It prompts you if there are dangerous changes.<br><br><code>prisma migrate deploy</code> is for production: it applies all pending (unapplied) migrations without generating new ones. It never prompts, never resets data, and should be run in your CI/CD pipeline before deploying new code. The workflow: developer runs <code>migrate dev</code> locally → commits the migration file → CI runs <code>migrate deploy</code> before deploying the new app version.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">How do you handle N:M (many-to-many) relationships in Prisma?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Prisma supports two kinds of N:M relations. <strong>Implicit</strong>: both models reference each other in their schema and Prisma creates a hidden junction table automatically. Simple to write, but you can't add extra fields to the junction table.<br><br><strong>Explicit</strong>: you create the junction model yourself (e.g., <code>ProductTag</code>), which gives you control to add fields like <code>assignedAt</code> or <code>assignedBy</code>.<br><br>For operations, use <code>connect</code>, <code>disconnect</code>, and <code>set</code> in update mutations. <code>connect</code> adds a relation, <code>disconnect</code> removes one, <code>set</code> replaces the entire collection. For filtering: <code>where: { tags: { some: { name: "sale" } } }</code> finds products that have at least one tag named "sale". <code>every</code> finds products where all tags match. <code>none</code> finds products with no matching tags.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">How do you handle database connections in serverless Next.js deployments?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Serverless functions (Vercel Edge, AWS Lambda) have cold starts and short lifetimes — they don't maintain persistent connections. Each invocation might open a new connection, and with many concurrent requests you can hit the database's connection limit (typically 100 for PostgreSQL).<br><br>The solution is a <strong>connection pooler</strong>: a proxy that maintains a pool of persistent database connections and routes incoming queries to available ones. Options: <strong>Supabase</strong> includes a built-in pooler (PgBouncer); <strong>Prisma Accelerate</strong> is Prisma's official cloud pooler; <strong>Neon</strong> has serverless connection pooling built in; you can self-host PgBouncer.<br><br>Configure two URLs in your schema: <code>url = env("DATABASE_URL")</code> for queries (the pooled URL, usually port 6543) and <code>directUrl = env("DIRECT_URL")</code> for migrations (the direct URL, port 5432 — migrations don't work through PgBouncer in transaction mode). The singleton pattern helps in dev but doesn't solve the serverless problem.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">What is Prisma Studio and how do you use it in development?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Prisma Studio is a visual browser for your database, accessible at <code>localhost:5555</code> after running <code>npx prisma studio</code>. It shows all your models as tables, lets you browse and filter records, create/edit/delete rows, and follow relations between models — without writing a single SQL query or needing a separate DB GUI application like TablePlus or pgAdmin.<br><br>In development, it's invaluable for: quickly checking whether your queries are writing the right data, inspecting the result of migrations, debugging why a relation isn't working, seeding test data manually, and verifying that webhooks (like Clerk user.created) are correctly creating records in your database.<br><br>It connects directly to the database URL from your <code>.env</code> file, respects your Prisma schema for types and relations, and reflects schema changes immediately after <code>prisma generate</code>. Note that it's a development tool only — don't run it in production as it gives direct database access.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">10</span>
+    <span class="sec-title">Night review — self-assessment</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">14 items</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a Prisma schema with models, relations (1:N, N:M), enums, and indexes</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know why to use <code>Decimal</code> for money and <code>@updatedAt</code> for timestamps</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can set up the Prisma singleton in <code>lib/db.ts</code> and explain why it's needed</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write <code>findMany</code> with where, orderBy, skip/take, and select</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>include</code> for relations and <code>_count</code> to count without fetching</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>some</code>, <code>every</code>, <code>none</code> for filtering by relation</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a nested create — order with inline order items</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between <code>$transaction([...])</code> and <code>$transaction(async tx => {...})</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement cursor-based pagination — <code>cursor, skip:1, take:n+1, nextCursor</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>aggregate</code> with <code>_sum, _avg, _count</code> for dashboard stats</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know <code>migrate dev</code> vs <code>migrate deploy</code> and when to use each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the connection pooling problem in serverless and how to solve it</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I added Prisma + Supabase (or SQLite) to the React Shop with a full schema today</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My code is committed, migrations are applied, and the deployed app reads from a real database</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(99,102,241,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--indigo);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank Next.js + Prisma project</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Write a <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">schema.prisma</code> for the React Shop — User, Product, Order, OrderItem, Category with proper relations<br>
+      2. Write <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">lib/db.ts</code> singleton and query <code>getProducts</code> with filtering and cursor pagination<br>
+      3. Write <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">createOrder</code> Server Action with <code>$transaction</code> — stock check + decrement atomically<br>
+      4. Write a seed script that populates categories, products, and a test user
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 4 · Day 23</div>
+      <div class="footer-day-name">Database with Prisma</div>
+      <div class="footer-day-next">Next up: <strong>Day 24 — API Design &amp; REST</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 4 progress</span><span>Day 4 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:57%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day22_auth_clerk.html',22)">← Day 22</button>
+      <button class="footer-btn primary" onclick="navigateTo('day24_api_design.html',24)">Day 24 — API Design →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html",current:true},
+]
+const CURRENT=23
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+  "day18_tailwind_css.html","day19_week3_review.html",
+  "day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep building! 🗃️`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.style.display='inline-block'
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

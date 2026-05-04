@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Complete Guide — Beginner to Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --bg4: #22222f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8e8f0;
+    --text2: #9090a8;
+    --text3: #5a5a72;
+    --accent: #f0c040;
+    --accent2: #e07030;
+    --blue: #4a9eff;
+    --green: #40d090;
+    --purple: #a070ff;
+    --pink: #ff6090;
+    --teal: #30c0c0;
+    --font-body: 'Outfit', sans-serif;
+    --font-display: 'DM Serif Display', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    padding: 80px 40px 60px;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 80% 50%, rgba(240,192,64,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, rgba(74,158,255,0.06) 0%, transparent 60%);
+  }
+  .hero-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 40px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 60px);
+    line-height: 1.1;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+  .hero h1 em { color: var(--accent); font-style: italic; }
+  .hero-desc { color: var(--text2); font-size: 16px; max-width: 480px; }
+  .hero-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 180px;
+  }
+  .stat-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 50px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .stat-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 200px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 32px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  .sidebar-section {
+    margin-bottom: 8px;
+    padding: 0 20px;
+  }
+  .sidebar-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 16px 0 6px;
+  }
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    text-decoration: none;
+  }
+  .nav-link:hover { background: var(--bg3); color: var(--text); }
+  .nav-link.active { background: var(--bg3); color: var(--accent); font-weight: 500; }
+  .nav-link .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text3);
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .nav-link.active .dot,
+  .nav-link:hover .dot { background: var(--accent); }
+  .level-tag {
+    margin-left: auto;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+  .lv-b { background: rgba(64,208,144,0.15); color: var(--green); }
+  .lv-m { background: rgba(240,192,64,0.15); color: var(--accent); }
+  .lv-a { background: rgba(160,112,255,0.15); color: var(--purple); }
+
+  /* ── MAIN CONTENT ── */
+  .main { padding: 40px 48px; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-header { margin-bottom: 36px; }
+  .section-header h2 {
+    font-family: var(--font-display);
+    font-size: 36px;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .section-header p { color: var(--text2); font-size: 15px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border2); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .badge-beginner { background: rgba(64,208,144,0.12); color: var(--green); border: 1px solid rgba(64,208,144,0.2); }
+  .badge-mid { background: rgba(240,192,64,0.12); color: var(--accent); border: 1px solid rgba(240,192,64,0.2); }
+  .badge-arch { background: rgba(160,112,255,0.12); color: var(--purple); border: 1px solid rgba(160,112,255,0.2); }
+  .badge-interview { background: rgba(255,96,144,0.12); color: var(--pink); border: 1px solid rgba(255,96,144,0.2); }
+
+  /* ── CODE ── */
+  pre {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #c8c8e0;
+  }
+  .kw { color: #a070ff; }
+  .str { color: #40d090; }
+  .num { color: #f0c040; }
+  .cmt { color: #454560; font-style: italic; }
+  .fn { color: #4a9eff; }
+  .op { color: #e07030; }
+  .cls { color: #ff8060; }
+
+  /* ── SCENARIO BOX ── */
+  .scenario {
+    background: linear-gradient(135deg, rgba(240,192,64,0.05), rgba(240,192,64,0.02));
+    border: 1px solid rgba(240,192,64,0.15);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+  .scenario strong { color: var(--accent); font-weight: 500; }
+  .scenario code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: rgba(255,255,255,0.05);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--text);
+  }
+
+  /* ── COMPARE GRID ── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 14px 0;
+  }
+  .compare-col {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .compare-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .compare-row {
+    font-size: 13px;
+    color: var(--text2);
+    padding: 3px 0;
+    line-height: 1.5;
+  }
+  .compare-row code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    background: rgba(255,255,255,0.05);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  /* ── SCHEMA TABLE ── */
+  .schema-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 14px 0;
+  }
+  .schema-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 500;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+  .schema-table th:first-child { border-radius: 8px 0 0 0; }
+  .schema-table th:last-child { border-radius: 0 8px 0 0; }
+  .schema-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+  .schema-table tr:last-child td { border-bottom: none; }
+  .schema-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── TYPE TAGS ── */
+  .tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    margin: 2px;
+  }
+  .tag-string { background: rgba(64,208,144,0.1); color: var(--green); }
+  .tag-number { background: rgba(240,192,64,0.1); color: var(--accent); }
+  .tag-bool   { background: rgba(74,158,255,0.1); color: var(--blue); }
+  .tag-obj    { background: rgba(240,112,48,0.1); color: var(--accent2); }
+  .tag-fn     { background: rgba(160,112,255,0.1); color: var(--purple); }
+  .tag-any    { background: rgba(144,144,168,0.1); color: var(--text2); }
+
+  /* ── Q&A ── */
+  .qa-item { margin-bottom: 12px; }
+  .qa-q {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    padding: 14px 16px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: border-color 0.15s;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    user-select: none;
+  }
+  .qa-q:hover { border-color: var(--border2); }
+  .qa-q.open { border-radius: 10px 10px 0 0; border-bottom-color: transparent; background: var(--bg4); }
+  .qa-icon {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: rgba(240,192,64,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .qa-chevron {
+    margin-left: auto;
+    color: var(--text3);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .qa-q.open .qa-chevron { transform: rotate(180deg); color: var(--accent); }
+  .qa-a {
+    display: none;
+    padding: 16px 20px;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  .qa-a.open { display: block; }
+  .qa-a code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: rgba(255,255,255,0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--text);
+  }
+  .qa-a pre {
+    margin: 10px 0;
+    font-size: 12px;
+  }
+
+  /* ── LIVE PLAYGROUND ── */
+  .playground {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+  .playground-header {
+    padding: 10px 16px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .playground-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .dots { display: flex; gap: 5px; }
+  .dot-red, .dot-yellow, .dot-green {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .dot-red { background: #ff5f57; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #28c840; }
+  textarea.code-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 16px 20px;
+    resize: none;
+    outline: none;
+    min-height: 80px;
+  }
+  .playground-footer {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .run-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 7px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .run-btn:hover { opacity: 0.85; }
+  .output-area {
+    padding: 12px 20px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    min-height: 40px;
+    border-top: 1px solid var(--border);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .output-area.ok { color: var(--green); }
+  .output-area.err { color: var(--pink); }
+  .output-hint { color: var(--text3); font-style: italic; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 24px 0;
+  }
+
+  /* ── FLOW DIAGRAM (CSS-only) ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 14px 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .flow-step {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .flow-arrow {
+    color: var(--text3);
+    padding: 0 8px;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .flow-step.accent { border-color: rgba(240,192,64,0.3); color: var(--accent); }
+  .flow-step.blue { border-color: rgba(74,158,255,0.3); color: var(--blue); }
+  .flow-step.green { border-color: rgba(64,208,144,0.3); color: var(--green); }
+  .flow-step.purple { border-color: rgba(160,112,255,0.3); color: var(--purple); }
+
+  /* ── HIGHLIGHT ── */
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(74,158,255,0.06), rgba(74,158,255,0.02));
+    border: 1px solid rgba(74,158,255,0.15);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin: 12px 0;
+  }
+  .highlight-box strong { color: var(--blue); }
+
+  /* ── PATTERN CARDS ── */
+  .pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 14px 0;
+  }
+  .pattern-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pattern-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .pattern-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .pattern-name { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .pattern-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  /* ── FOOTER ── */
+  .page-footer {
+    text-align: center;
+    padding: 40px;
+    border-top: 1px solid var(--border);
+    color: var(--text3);
+    font-size: 13px;
+    font-family: var(--font-mono);
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .section.active { animation: fadeIn 0.25s ease; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    .main { padding: 24px 20px; }
+    .hero { padding: 40px 20px; }
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-stats { display: none; }
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-eyebrow">// complete reference guide</div>
+      <h1>JavaScript<br><em>from zero to architecture</em></h1>
+      <p class="hero-desc">Deep dives, real-world scenarios, schema comparisons, interview Q&amp;As — from first variable to system design.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-pill"><div class="stat-dot" style="background:var(--green)"></div>Beginner friendly</div>
+      <div class="stat-pill"><div class="stat-dot" style="background:var(--accent)"></div>Mid-level patterns</div>
+      <div class="stat-pill"><div class="stat-dot" style="background:var(--purple)"></div>Architecture level</div>
+      <div class="stat-pill"><div class="stat-dot" style="background:var(--pink)"></div>Interview Q&amp;A</div>
+    </div>
+  </div>
+</header>
+
+<!-- BODY LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Foundations</div>
+      <button class="nav-link active" onclick="showSection('core',this)"><span class="dot"></span>Core JS <span class="level-tag lv-b">Beg</span></button>
+      <button class="nav-link" onclick="showSection('types',this)"><span class="dot"></span>Types &amp; Coercion <span class="level-tag lv-b">Beg</span></button>
+      <button class="nav-link" onclick="showSection('functions',this)"><span class="dot"></span>Functions &amp; Scope <span class="level-tag lv-m">Mid</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Objects</div>
+      <button class="nav-link" onclick="showSection('objects',this)"><span class="dot"></span>Objects &amp; Schema <span class="level-tag lv-m">Mid</span></button>
+      <button class="nav-link" onclick="showSection('proto',this)"><span class="dot"></span>Prototype / OOP <span class="level-tag lv-m">Mid</span></button>
+      <button class="nav-link" onclick="showSection('classes',this)"><span class="dot"></span>Classes &amp; Inheritance <span class="level-tag lv-m">Mid</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Advanced</div>
+      <button class="nav-link" onclick="showSection('async',this)"><span class="dot"></span>Async &amp; Event Loop <span class="level-tag lv-m">Mid</span></button>
+      <button class="nav-link" onclick="showSection('functional',this)"><span class="dot"></span>Functional JS <span class="level-tag lv-m">Mid</span></button>
+      <button class="nav-link" onclick="showSection('patterns',this)"><span class="dot"></span>Design Patterns <span class="level-tag lv-a">Arch</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Interview</div>
+      <button class="nav-link" onclick="showSection('interview',this)"><span class="dot"></span>Q&amp;A — All Levels <span class="level-tag lv-a">All</span></button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ══ CORE JS ══ -->
+    <section id="sec-core" class="section active">
+      <div class="section-header">
+        <h2>Core JavaScript</h2>
+        <p>Variables, scope, hoisting, closures — the non-negotiable bedrock.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">var · let · const</div>
+          <div class="badges"><span class="badge badge-beginner">Beginner</span></div>
+        </div>
+        <div class="compare-grid">
+          <div class="compare-col">
+            <div class="compare-title" style="color:var(--pink)">Old way — var</div>
+            <div class="compare-row">• Function-scoped (not block)</div>
+            <div class="compare-row">• Hoisted &amp; initialized to <code>undefined</code></div>
+            <div class="compare-row">• Can be re-declared freely</div>
+            <div class="compare-row">• Leaks outside <code>if/for</code> blocks</div>
+          </div>
+          <div class="compare-col">
+            <div class="compare-title" style="color:var(--green)">Modern — let / const</div>
+            <div class="compare-row">• Block-scoped (stays inside <code>{}</code>)</div>
+            <div class="compare-row">• Hoisted but NOT initialized (TDZ)</div>
+            <div class="compare-row">• <code>let</code> reassignable, <code>const</code> is not</div>
+            <div class="compare-row">• Predictable, preferred always</div>
+          </div>
+        </div>
+<pre><span class="cmt">// Temporal Dead Zone — accessing let before declaration throws</span>
+<span class="cmt">// console.log(x); → ReferenceError (TDZ)</span>
+<span class="kw">let</span> x = <span class="num">10</span>;
+
+<span class="cmt">// Classic var loop bug</span>
+<span class="kw">for</span> (<span class="kw">var</span> i = <span class="num">0</span>; i &lt; <span class="num">3</span>; i++) {
+  setTimeout(() =&gt; console.<span class="fn">log</span>(i), <span class="num">100</span>); <span class="cmt">// 3 3 3 — bug!</span>
+}
+<span class="cmt">// Fix: replace var with let — each iteration gets its own i</span>
+<span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i &lt; <span class="num">3</span>; i++) {
+  setTimeout(() =&gt; console.<span class="fn">log</span>(i), <span class="num">100</span>); <span class="cmt">// 0 1 2 ✓</span>
+}</pre>
+        <div class="scenario"><strong>Real scenario:</strong> In a React component rendering a list of buttons, using <code>var</code> in the handler loop means every button alerts the same index. Switching to <code>let</code> or using the loop variable in a closure fixes it instantly.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Closures</div>
+          <div class="badges"><span class="badge badge-mid">Mid-level</span></div>
+        </div>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:12px">A closure is a function that "remembers" the variables from the scope where it was created, even after that outer function has returned.</p>
+<pre><span class="kw">function</span> <span class="fn">makeCounter</span>(start = <span class="num">0</span>) {
+  <span class="kw">let</span> count = start;            <span class="cmt">// private — not accessible outside</span>
+  <span class="kw">return</span> {
+    increment: () =&gt; ++count,
+    decrement: () =&gt; --count,
+    reset:     () =&gt; { count = start; },
+    value:     () =&gt; count
+  };
+}
+
+<span class="kw">const</span> counter = <span class="fn">makeCounter</span>(<span class="num">10</span>);
+counter.<span class="fn">increment</span>();  <span class="cmt">// 11</span>
+counter.<span class="fn">increment</span>();  <span class="cmt">// 12</span>
+counter.<span class="fn">reset</span>();      <span class="cmt">// back to 10</span>
+
+<span class="cmt">// Closure for memoization (caching)</span>
+<span class="kw">function</span> <span class="fn">memoize</span>(fn) {
+  <span class="kw">const</span> cache = <span class="kw">new</span> <span class="cls">Map</span>();
+  <span class="kw">return</span> <span class="kw">function</span>(...args) {
+    <span class="kw">const</span> key = JSON.<span class="fn">stringify</span>(args);
+    <span class="kw">if</span> (cache.<span class="fn">has</span>(key)) <span class="kw">return</span> cache.<span class="fn">get</span>(key);
+    <span class="kw">const</span> result = fn.<span class="fn">apply</span>(<span class="kw">this</span>, args);
+    cache.<span class="fn">set</span>(key, result);
+    <span class="kw">return</span> result;
+  };
+}</pre>
+        <div class="scenario"><strong>Real scenario:</strong> React's <code>useState</code>, <code>useCallback</code>, and <code>useMemo</code> all rely on closures to preserve state between renders. Node.js request handlers close over <code>req</code>/<code>res</code>. Event emitters capture outer scope data.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Live Playground</div></div>
+        <div class="playground">
+          <div class="playground-header">
+            <div class="dots"><div class="dot-red"></div><div class="dot-yellow"></div><div class="dot-green"></div></div>
+            <div class="playground-title">javascript console</div>
+          </div>
+          <textarea class="code-input" id="core-repl" rows="4">// Try: closures, typeof, var vs let
+function makeAdder(x) { return n => x + n; }
+const add5 = makeAdder(5);
+"add5(3) = " + add5(3) + ", add5(10) = " + add5(10);</textarea>
+          <div class="playground-footer">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text3)">expression → evaluated</span>
+            <button class="run-btn" onclick="runCode('core-repl','core-out')">▶ Run</button>
+          </div>
+          <div class="output-area output-hint" id="core-out">// output appears here</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ TYPES ══ -->
+    <section id="sec-types" class="section">
+      <div class="section-header">
+        <h2>Types &amp; Coercion</h2>
+        <p>JS is dynamically typed with notorious coercion quirks — master them to avoid bugs.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">The 8 primitive types</div><div class="badges"><span class="badge badge-beginner">Beginner</span></div></div>
+        <table class="schema-table">
+          <tr><th>Type</th><th>Example</th><th>typeof</th><th>Notes</th></tr>
+          <tr><td><span class="tag tag-string">string</span></td><td><code>"hello"</code></td><td><code>"string"</code></td><td>Immutable, UTF-16</td></tr>
+          <tr><td><span class="tag tag-number">number</span></td><td><code>42</code>, <code>3.14</code>, <code>NaN</code>, <code>Infinity</code></td><td><code>"number"</code></td><td>64-bit float (IEEE 754)</td></tr>
+          <tr><td><span class="tag tag-bool">boolean</span></td><td><code>true</code>, <code>false</code></td><td><code>"boolean"</code></td><td></td></tr>
+          <tr><td><span class="tag tag-any">bigint</span></td><td><code>9007199254740993n</code></td><td><code>"bigint"</code></td><td>Arbitrary integers</td></tr>
+          <tr><td><span class="tag tag-any">symbol</span></td><td><code>Symbol('id')</code></td><td><code>"symbol"</code></td><td>Unique keys</td></tr>
+          <tr><td><span class="tag tag-any">null</span></td><td><code>null</code></td><td><code>"object"</code> ⚠</td><td>Famous bug — intentional absence</td></tr>
+          <tr><td><span class="tag tag-any">undefined</span></td><td><code>undefined</code></td><td><code>"undefined"</code></td><td>Uninitialized</td></tr>
+          <tr><td><span class="tag tag-obj">object</span></td><td><code>{}</code>, <code>[]</code>, <code>Map</code></td><td><code>"object"</code></td><td>Reference type</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Coercion traps &amp; strict equality</div><div class="badges"><span class="badge badge-beginner">Beginner</span></div></div>
+<pre><span class="cmt">// == uses Abstract Equality (coercion), === does not</span>
+<span class="num">0</span>    == <span class="str">""</span>         <span class="cmt">// true  — coerces "" to 0</span>
+<span class="num">0</span>    === <span class="str">""</span>        <span class="cmt">// false — different types</span>
+<span class="num">1</span>    == <span class="kw">true</span>       <span class="cmt">// true  — true coerces to 1</span>
+<span class="kw">null</span> == <span class="kw">undefined</span>  <span class="cmt">// true  — special rule</span>
+<span class="kw">NaN</span>  == <span class="kw">NaN</span>        <span class="cmt">// false — NaN is never equal to itself!</span>
+
+<span class="cmt">// Falsy values (all coerce to false)</span>
+<span class="cmt">// false, 0, -0, 0n, "", '', ``, null, undefined, NaN</span>
+
+<span class="cmt">// Check for NaN properly</span>
+<span class="fn">isNaN</span>(<span class="str">"abc"</span>)          <span class="cmt">// true  — coerces first, bad</span>
+<span class="cls">Number</span>.<span class="fn">isNaN</span>(<span class="str">"abc"</span>)  <span class="cmt">// false — correct, no coercion</span>
+<span class="cls">Number</span>.<span class="fn">isNaN</span>(<span class="kw">NaN</span>)   <span class="cmt">// true  ✓</span>
+
+<span class="cmt">// Safe type checks</span>
+<span class="cls">Array</span>.<span class="fn">isArray</span>([])   <span class="cmt">// true  (not typeof)</span>
+value === <span class="kw">null</span>       <span class="cmt">// null check</span>
+value == <span class="kw">null</span>        <span class="cmt">// null OR undefined check</span></pre>
+        <div class="playground">
+          <div class="playground-header">
+            <div class="dots"><div class="dot-red"></div><div class="dot-yellow"></div><div class="dot-green"></div></div>
+            <div class="playground-title">coercion explorer</div>
+          </div>
+          <textarea class="code-input" id="type-repl" rows="3">// Experiment with coercion
+JSON.stringify({ null: null == undefined, nan: NaN === NaN, arr: Array.isArray([]) })</textarea>
+          <div class="playground-footer">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text3)">expression</span>
+            <button class="run-btn" onclick="runCode('type-repl','type-out')">▶ Run</button>
+          </div>
+          <div class="output-area output-hint" id="type-out">// output appears here</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ FUNCTIONS ══ -->
+    <section id="sec-functions" class="section">
+      <div class="section-header">
+        <h2>Functions &amp; Scope</h2>
+        <p>Declarations, expressions, arrows, IIFE, currying — function mastery.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">4 ways to define a function</div><div class="badges"><span class="badge badge-beginner">Beginner</span></div></div>
+<pre><span class="cmt">// 1. Declaration — hoisted fully, has own 'this'</span>
+<span class="kw">function</span> <span class="fn">greet</span>(name) { <span class="kw">return</span> <span class="str">`Hello, ${name}`</span>; }
+
+<span class="cmt">// 2. Expression — not hoisted, assigned like a value</span>
+<span class="kw">const</span> greet = <span class="kw">function</span>(name) { <span class="kw">return</span> <span class="str">`Hello, ${name}`</span>; };
+
+<span class="cmt">// 3. Arrow — inherits 'this' from surrounding scope</span>
+<span class="kw">const</span> greet = (name) =&gt; <span class="str">`Hello, ${name}`</span>;
+<span class="kw">const</span> double = n =&gt; n * <span class="num">2</span>;          <span class="cmt">// single param, no parens needed</span>
+<span class="kw">const</span> obj = n =&gt; ({ value: n });    <span class="cmt">// returning object literal — wrap in ()</span>
+
+<span class="cmt">// 4. IIFE — Immediately Invoked Function Expression</span>
+(<span class="kw">function</span>() {
+  <span class="kw">const</span> private = <span class="str">'only here'</span>;
+  <span class="cmt">// won't leak into outer scope</span>
+})();</pre>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Currying &amp; partial application</div><div class="badges"><span class="badge badge-mid">Mid-level</span></div></div>
+<pre><span class="cmt">// Currying: f(a, b, c) → f(a)(b)(c)</span>
+<span class="kw">const</span> multiply = a =&gt; b =&gt; a * b;
+<span class="kw">const</span> triple = <span class="fn">multiply</span>(<span class="num">3</span>);
+<span class="fn">triple</span>(<span class="num">5</span>);  <span class="cmt">// 15</span>
+<span class="fn">triple</span>(<span class="num">7</span>);  <span class="cmt">// 21</span>
+
+<span class="cmt">// Generic curry utility</span>
+<span class="kw">const</span> curry = fn =&gt; {
+  <span class="kw">const</span> arity = fn.length;
+  <span class="kw">return</span> <span class="kw">function</span> curried(...args) {
+    <span class="kw">if</span> (args.length &gt;= arity) <span class="kw">return</span> fn(...args);
+    <span class="kw">return</span> (...more) =&gt; <span class="fn">curried</span>(...args, ...more);
+  };
+};
+
+<span class="kw">const</span> add = <span class="fn">curry</span>((a, b, c) =&gt; a + b + c);
+<span class="fn">add</span>(<span class="num">1</span>)(<span class="num">2</span>)(<span class="num">3</span>);  <span class="cmt">// 6</span>
+<span class="fn">add</span>(<span class="num">1</span>, <span class="num">2</span>)(<span class="num">3</span>); <span class="cmt">// 6</span></pre>
+        <div class="scenario"><strong>Real scenario:</strong> In a React app, currying lets you pre-configure handlers: <code>const handleChange = field => event => dispatch({ field, value: event.target.value })</code>. Each field gets its own handler without repetition.</div>
+      </div>
+    </section>
+
+    <!-- ══ OBJECTS & SCHEMA ══ -->
+    <section id="sec-objects" class="section">
+      <div class="section-header">
+        <h2>Objects &amp; Schema Comparison</h2>
+        <p>Object creation, shape validation, deep equality, schema diffing — the article concept explained.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">What is an "object schema"?</div><div class="badges"><span class="badge badge-mid">Mid-level</span></div></div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">A schema is a plain JS object that describes the <em>shape</em> of another object — its keys, expected types, required fields, and constraints. It's a blueprint you can compare real data against.</p>
+<pre><span class="cmt">// ── Schema definition (blueprint object) ──</span>
+<span class="kw">const</span> userSchema = {
+  id:       { type: <span class="str">'number'</span>,  required: <span class="kw">true</span>  },
+  name:     { type: <span class="str">'string'</span>,  required: <span class="kw">true</span>  },
+  email:    { type: <span class="str">'string'</span>,  required: <span class="kw">true</span>  },
+  age:      { type: <span class="str">'number'</span>,  required: <span class="kw">false</span> },
+  isAdmin:  { type: <span class="str">'boolean'</span>, required: <span class="kw">false</span> },
+  role:     { type: <span class="str">'string'</span>,  required: <span class="kw">false</span>, enum: [<span class="str">'user'</span>,<span class="str">'admin'</span>,<span class="str">'mod'</span>] },
+};
+
+<span class="cmt">// ── Validator function ──</span>
+<span class="kw">function</span> <span class="fn">validate</span>(data, schema) {
+  <span class="kw">const</span> errors = [];
+  <span class="kw">for</span> (<span class="kw">const</span> [key, rule] <span class="kw">of</span> Object.<span class="fn">entries</span>(schema)) {
+    <span class="kw">const</span> val = data[key];
+    <span class="kw">if</span> (rule.required &amp;&amp; val === <span class="kw">undefined</span>)
+      errors.<span class="fn">push</span>(<span class="str">`Missing required field: "${key}"`</span>);
+    <span class="kw">else if</span> (val !== <span class="kw">undefined</span> &amp;&amp; <span class="kw">typeof</span> val !== rule.type)
+      errors.<span class="fn">push</span>(<span class="str">`"${key}" must be ${rule.type}, got ${typeof val}`</span>);
+    <span class="kw">else if</span> (rule.enum &amp;&amp; val &amp;&amp; !rule.enum.<span class="fn">includes</span>(val))
+      errors.<span class="fn">push</span>(<span class="str">`"${key}" must be one of [${rule.enum.join(', ')}]`</span>);
+  }
+  <span class="kw">return</span> { valid: errors.length === <span class="num">0</span>, errors };
+}</pre>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Schema Comparison — comparing two schemas (versioning)</div><div class="badges"><span class="badge badge-arch">Architecture</span></div></div>
+<pre><span class="cmt">// Deep equality — compare two plain objects recursively</span>
+<span class="kw">function</span> <span class="fn">deepEqual</span>(a, b) {
+  <span class="kw">if</span> (a === b) <span class="kw">return true</span>;
+  <span class="kw">if</span> (<span class="kw">typeof</span> a !== <span class="str">'object'</span> || <span class="kw">typeof</span> b !== <span class="str">'object'</span>) <span class="kw">return false</span>;
+  <span class="kw">if</span> (a === <span class="kw">null</span> || b === <span class="kw">null</span>) <span class="kw">return false</span>;
+  <span class="kw">const</span> [ka, kb] = [Object.<span class="fn">keys</span>(a), Object.<span class="fn">keys</span>(b)];
+  <span class="kw">if</span> (ka.length !== kb.length) <span class="kw">return false</span>;
+  <span class="kw">return</span> ka.<span class="fn">every</span>(k =&gt; <span class="fn">deepEqual</span>(a[k], b[k]));
+}
+
+<span class="cmt">// Schema diff — find what changed between v1 and v2</span>
+<span class="kw">function</span> <span class="fn">schemaDiff</span>(s1, s2) {
+  <span class="kw">const</span> keys = <span class="kw">new</span> <span class="cls">Set</span>([...Object.<span class="fn">keys</span>(s1), ...Object.<span class="fn">keys</span>(s2)]);
+  <span class="kw">const</span> diff = { added: [], removed: [], changed: {} };
+  <span class="kw">for</span> (<span class="kw">const</span> k <span class="kw">of</span> keys) {
+    <span class="kw">if</span>      (!s1[k])                    diff.added.<span class="fn">push</span>(k);
+    <span class="kw">else if</span> (!s2[k])                    diff.removed.<span class="fn">push</span>(k);
+    <span class="kw">else if</span> (!<span class="fn">deepEqual</span>(s1[k], s2[k])) diff.changed[k] = { from: s1[k], to: s2[k] };
+  }
+  <span class="kw">return</span> diff;
+}
+
+<span class="cmt">// Example — API versioning</span>
+<span class="kw">const</span> schemaV1 = {
+  name:  { type: <span class="str">'string'</span>, required: <span class="kw">true</span>  },
+  age:   { type: <span class="str">'number'</span>, required: <span class="kw">false</span> },
+};
+<span class="kw">const</span> schemaV2 = {
+  name:  { type: <span class="str">'string'</span>, required: <span class="kw">true</span>  },
+  age:   { type: <span class="str">'string'</span>, required: <span class="kw">true</span>  }, <span class="cmt">// type changed! breaking</span>
+  email: { type: <span class="str">'string'</span>, required: <span class="kw">true</span>  }, <span class="cmt">// added</span>
+};
+<span class="fn">schemaDiff</span>(schemaV1, schemaV2);
+<span class="cmt">// { added: ['email'], removed: [], changed: { age: { from: {...}, to: {...} } } }</span></pre>
+        <div class="scenario"><strong>Real scenario:</strong> When your backend team evolves the User API from v1 to v2, run <code>schemaDiff(schemaV1, schemaV2)</code> in CI. It instantly catches breaking changes (type mismatches, removed required fields) before they reach production.</div>
+
+        <div class="divider"></div>
+        <div class="card-title" style="margin-bottom:12px">Schema technique comparison</div>
+        <table class="schema-table">
+          <tr><th>Technique</th><th>When to use</th><th>Types</th><th>Tool</th></tr>
+          <tr><td><strong>Plain object schema</strong></td><td>Simple runtime validation, small APIs</td><td><span class="tag tag-any">any</span></td><td>Custom fn</td></tr>
+          <tr><td><strong>JSON Schema</strong></td><td>REST APIs, OpenAPI specs, cross-language</td><td><span class="tag tag-string">str</span><span class="tag tag-number">num</span><span class="tag tag-bool">bool</span></td><td>ajv</td></tr>
+          <tr><td><strong>TypeScript interface</strong></td><td>Compile-time safety, team codebases</td><td><span class="tag tag-any">static</span></td><td>tsc</td></tr>
+          <tr><td><strong>Zod</strong></td><td>Runtime validation + TS type inference</td><td><span class="tag tag-any">all</span></td><td>zod</td></tr>
+          <tr><td><strong>Yup</strong></td><td>Form validation (Formik, React Hook Form)</td><td><span class="tag tag-any">all</span></td><td>yup</td></tr>
+          <tr><td><strong>Structural deepEqual</strong></td><td>Testing, diffing state, caching keys</td><td><span class="tag tag-obj">obj</span></td><td>custom/lodash</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Live: schema diff demo</div></div>
+        <div class="playground">
+          <div class="playground-header">
+            <div class="dots"><div class="dot-red"></div><div class="dot-yellow"></div><div class="dot-green"></div></div>
+            <div class="playground-title">schema diff playground</div>
+          </div>
+          <textarea class="code-input" id="schema-repl" rows="6">// schemaDiff is defined for you
+const s1 = {name:{type:'string',required:true}, age:{type:'number',required:false}};
+const s2 = {name:{type:'string',required:true}, age:{type:'string',required:true}, email:{type:'string',required:true}};
+JSON.stringify(schemaDiff(s1,s2), null, 2);</textarea>
+          <div class="playground-footer">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text3)">uses schemaDiff + deepEqual defined above</span>
+            <button class="run-btn" onclick="runSchemaDemo()">▶ Run</button>
+          </div>
+          <div class="output-area output-hint" id="schema-out">// output appears here</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ PROTOTYPE ══ -->
+    <section id="sec-proto" class="section">
+      <div class="section-header">
+        <h2>Prototype &amp; OOP</h2>
+        <p>The prototype chain, constructor functions, Object.create — pre-class patterns.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Prototype chain</div><div class="badges"><span class="badge badge-mid">Mid-level</span></div></div>
+<pre><span class="cmt">// Every JS object has a hidden [[Prototype]] link</span>
+<span class="kw">const</span> animal = {
+  breathe() { <span class="kw">return</span> <span class="str">`${this.name} breathes`</span>; }
+};
+<span class="kw">const</span> dog = Object.<span class="fn">create</span>(animal);  <span class="cmt">// dog.__proto__ === animal</span>
+dog.name = <span class="str">'Rex'</span>;
+dog.<span class="fn">breathe</span>();  <span class="cmt">// "Rex breathes" — inherited from animal</span>
+
+<span class="cmt">// Property lookup order:</span>
+<span class="cmt">// dog → animal → Object.prototype → null</span>
+dog.<span class="fn">hasOwnProperty</span>(<span class="str">'name'</span>);    <span class="cmt">// true  — own</span>
+dog.<span class="fn">hasOwnProperty</span>(<span class="str">'breathe'</span>); <span class="cmt">// false — inherited</span>
+
+<span class="cmt">// Constructor function pattern (pre-class)</span>
+<span class="kw">function</span> <span class="cls">Animal</span>(name) { <span class="kw">this</span>.name = name; }
+<span class="cls">Animal</span>.prototype.speak = <span class="kw">function</span>() { <span class="kw">return</span> <span class="str">`${this.name} speaks`</span>; };
+<span class="kw">const</span> cat = <span class="kw">new</span> <span class="cls">Animal</span>(<span class="str">'Whiskers'</span>);
+cat.<span class="fn">speak</span>(); <span class="cmt">// "Whiskers speaks"</span></pre>
+      </div>
+    </section>
+
+    <!-- ══ CLASSES ══ -->
+    <section id="sec-classes" class="section">
+      <div class="section-header">
+        <h2>Classes &amp; Inheritance</h2>
+        <p>ES6 classes are syntactic sugar over prototypes — understand what's underneath.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Class syntax &amp; inheritance</div><div class="badges"><span class="badge badge-mid">Mid-level</span></div></div>
+<pre><span class="kw">class</span> <span class="cls">Animal</span> {
+  <span class="fn">#name</span>;                     <span class="cmt">// private field (ES2022)</span>
+
+  constructor(name) {
+    <span class="kw">this</span>.<span class="fn">#name</span> = name;
+  }
+
+  <span class="fn">get</span> name()   { <span class="kw">return</span> <span class="kw">this</span>.<span class="fn">#name</span>; }
+  <span class="fn">speak</span>()      { <span class="kw">return</span> <span class="str">`${this.#name} makes a sound`</span>; }
+  <span class="kw">static</span> <span class="fn">create</span>(name) { <span class="kw">return</span> <span class="kw">new</span> <span class="kw">this</span>(name); }
+}
+
+<span class="kw">class</span> <span class="cls">Dog</span> <span class="kw">extends</span> <span class="cls">Animal</span> {
+  <span class="fn">constructor</span>(name, breed) {
+    <span class="kw">super</span>(name);           <span class="cmt">// must call super first</span>
+    <span class="kw">this</span>.breed = breed;
+  }
+
+  <span class="fn">speak</span>() {
+    <span class="kw">return</span> <span class="str">`${super.speak()} — Woof!`</span>;
+  }
+}
+
+<span class="kw">const</span> d = <span class="kw">new</span> <span class="cls">Dog</span>(<span class="str">'Rex'</span>, <span class="str">'Labrador'</span>);
+d.<span class="fn">speak</span>();               <span class="cmt">// "Rex makes a sound — Woof!"</span>
+d <span class="kw">instanceof</span> <span class="cls">Dog</span>;        <span class="cmt">// true</span>
+d <span class="kw">instanceof</span> <span class="cls">Animal</span>;     <span class="cmt">// true</span></pre>
+        <div class="scenario"><strong>Real scenario:</strong> In a Node.js REST API, you might have a base <code>Repository</code> class with <code>findById</code>, <code>create</code>, <code>update</code>, and <code>delete</code> methods. <code>UserRepository</code> and <code>ProductRepository</code> extend it with entity-specific logic.</div>
+      </div>
+    </section>
+
+    <!-- ══ ASYNC ══ -->
+    <section id="sec-async" class="section">
+      <div class="section-header">
+        <h2>Async &amp; the Event Loop</h2>
+        <p>Callbacks → Promises → async/await — plus the event loop mental model.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Event Loop — how JS stays non-blocking</div><div class="badges"><span class="badge badge-mid">Mid-level</span></div></div>
+        <div class="flow">
+          <div class="flow-step accent">Call Stack</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step blue">Web APIs</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step green">Callback Queue</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step purple">Microtask Queue</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step accent">Call Stack</div>
+        </div>
+        <div class="highlight-box">
+          <strong>Key rule:</strong> Microtasks (Promise callbacks, queueMicrotask) always drain completely before the next macrotask (setTimeout, setInterval, I/O) runs — even if microtasks keep adding more microtasks.
+        </div>
+<pre><span class="cmt">// Execution order quiz</span>
+console.<span class="fn">log</span>(<span class="str">'1'</span>);                           <span class="cmt">// → 1 (sync)</span>
+
+setTimeout(() =&gt; console.<span class="fn">log</span>(<span class="str">'2'</span>), <span class="num">0</span>);     <span class="cmt">// → 4 (macrotask)</span>
+
+Promise.<span class="fn">resolve</span>().<span class="fn">then</span>(() =&gt;
+  console.<span class="fn">log</span>(<span class="str">'3'</span>)                          <span class="cmt">// → 3 (microtask)</span>
+);
+
+console.<span class="fn">log</span>(<span class="str">'4'</span>);                           <span class="cmt">// → 2 (sync)</span>
+
+<span class="cmt">// Output order: 1, 4, 3, 2</span></pre>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Promise patterns</div><div class="badges"><span class="badge badge-mid">Mid-level</span></div></div>
+<pre><span class="cmt">// async/await — clean sequential async code</span>
+<span class="kw">async function</span> <span class="fn">fetchUser</span>(id) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> res  = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/users/${id}`</span>);
+    <span class="kw">if</span> (!res.ok) <span class="kw">throw new</span> <span class="cls">Error</span>(<span class="str">`HTTP ${res.status}`</span>);
+    <span class="kw">const</span> user = <span class="kw">await</span> res.<span class="fn">json</span>();
+    <span class="kw">return</span> user;
+  } <span class="kw">catch</span> (err) {
+    console.<span class="fn">error</span>(<span class="str">'Fetch failed:'</span>, err);
+    <span class="kw">throw</span> err;  <span class="cmt">// re-throw for caller to handle</span>
+  }
+}
+
+<span class="cmt">// Run in parallel — Promise.all</span>
+<span class="kw">const</span> [user, posts] = <span class="kw">await</span> Promise.<span class="fn">all</span>([
+  <span class="fn">fetchUser</span>(<span class="num">1</span>),
+  <span class="fn">fetch</span>(<span class="str">'/api/posts'</span>).<span class="fn">then</span>(r =&gt; r.<span class="fn">json</span>())
+]);
+
+<span class="cmt">// First to succeed — Promise.any</span>
+<span class="kw">const</span> fastest = <span class="kw">await</span> Promise.<span class="fn">any</span>([<span class="fn">server1</span>(), <span class="fn">server2</span>()]);
+
+<span class="cmt">// All settled (never throws) — Promise.allSettled</span>
+<span class="kw">const</span> results = <span class="kw">await</span> Promise.<span class="fn">allSettled</span>([<span class="fn">a</span>(), <span class="fn">b</span>(), <span class="fn">c</span>()]);
+results.<span class="fn">filter</span>(r =&gt; r.status === <span class="str">'fulfilled'</span>);</pre>
+        <div class="scenario"><strong>Real scenario:</strong> A dashboard page needs user data, recent orders, and analytics. Use <code>Promise.all</code> to fire all three requests simultaneously — cutting load time from 900ms (sequential) to ~300ms (parallel).</div>
+      </div>
+    </section>
+
+    <!-- ══ FUNCTIONAL ══ -->
+    <section id="sec-functional" class="section">
+      <div class="section-header">
+        <h2>Functional JavaScript</h2>
+        <p>map, filter, reduce, immutability, function composition — writing declarative code.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">map · filter · reduce — the holy trinity</div><div class="badges"><span class="badge badge-beginner">Beginner</span></div></div>
+<pre><span class="kw">const</span> orders = [
+  { id: <span class="num">1</span>, amount: <span class="num">200</span>, status: <span class="str">'completed'</span> },
+  { id: <span class="num">2</span>, amount: <span class="num">450</span>, status: <span class="str">'pending'</span>   },
+  { id: <span class="num">3</span>, amount: <span class="num">125</span>, status: <span class="str">'completed'</span> },
+];
+
+<span class="cmt">// map — transform each element</span>
+<span class="kw">const</span> amounts = orders.<span class="fn">map</span>(o =&gt; o.amount);
+<span class="cmt">// [200, 450, 125]</span>
+
+<span class="cmt">// filter — keep elements matching a predicate</span>
+<span class="kw">const</span> completed = orders.<span class="fn">filter</span>(o =&gt; o.status === <span class="str">'completed'</span>);
+<span class="cmt">// [{id:1,...}, {id:3,...}]</span>
+
+<span class="cmt">// reduce — collapse to a single value</span>
+<span class="kw">const</span> total = orders.<span class="fn">reduce</span>((sum, o) =&gt; sum + o.amount, <span class="num">0</span>);
+<span class="cmt">// 775</span>
+
+<span class="cmt">// Chain — total revenue from completed orders</span>
+<span class="kw">const</span> completedRevenue = orders
+  .<span class="fn">filter</span>(o =&gt; o.status === <span class="str">'completed'</span>)
+  .<span class="fn">reduce</span>((sum, o) =&gt; sum + o.amount, <span class="num">0</span>);
+<span class="cmt">// 325</span></pre>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Function composition &amp; pipe</div><div class="badges"><span class="badge badge-arch">Architecture</span></div></div>
+<pre><span class="cmt">// compose: right-to-left, pipe: left-to-right</span>
+<span class="kw">const</span> compose = (...fns) =&gt; x =&gt; fns.<span class="fn">reduceRight</span>((v, f) =&gt; <span class="fn">f</span>(v), x);
+<span class="kw">const</span> pipe    = (...fns) =&gt; x =&gt; fns.<span class="fn">reduce</span>((v, f) =&gt; <span class="fn">f</span>(v), x);
+
+<span class="kw">const</span> trim      = s =&gt; s.<span class="fn">trim</span>();
+<span class="kw">const</span> lowercase = s =&gt; s.<span class="fn">toLowerCase</span>();
+<span class="kw">const</span> slugify   = s =&gt; s.<span class="fn">replace</span>(/\s+/g, <span class="str">'-'</span>);
+
+<span class="kw">const</span> toSlug = <span class="fn">pipe</span>(trim, lowercase, slugify);
+<span class="fn">toSlug</span>(<span class="str">'  Hello World  '</span>);  <span class="cmt">// "hello-world"</span></pre>
+      </div>
+    </section>
+
+    <!-- ══ PATTERNS ══ -->
+    <section id="sec-patterns" class="section">
+      <div class="section-header">
+        <h2>Design Patterns</h2>
+        <p>Module, Observer, Singleton, Factory, Strategy — architecture-level JS.</p>
+      </div>
+      <div class="pattern-grid">
+        <div class="pattern-card" onclick="showPattern('module')"><span class="pattern-icon">📦</span><div class="pattern-name">Module</div><div class="pattern-desc">Encapsulate private state with public interface</div></div>
+        <div class="pattern-card" onclick="showPattern('observer')"><span class="pattern-icon">📡</span><div class="pattern-name">Observer</div><div class="pattern-desc">Publish/subscribe event system</div></div>
+        <div class="pattern-card" onclick="showPattern('factory')"><span class="pattern-icon">🏭</span><div class="pattern-name">Factory</div><div class="pattern-desc">Create objects without specifying class</div></div>
+        <div class="pattern-card" onclick="showPattern('singleton')"><span class="pattern-icon">🔒</span><div class="pattern-name">Singleton</div><div class="pattern-desc">Only one instance ever exists</div></div>
+        <div class="pattern-card" onclick="showPattern('strategy')"><span class="pattern-icon">🎯</span><div class="pattern-name">Strategy</div><div class="pattern-desc">Swap algorithms at runtime</div></div>
+        <div class="pattern-card" onclick="showPattern('proxy')"><span class="pattern-icon">🪞</span><div class="pattern-name">Proxy</div><div class="pattern-desc">Intercept and control object access</div></div>
+      </div>
+
+      <div id="pattern-module" class="card" style="display:none">
+        <div class="card-header"><div class="card-title">Module Pattern</div><div class="badges"><span class="badge badge-arch">Architecture</span></div></div>
+<pre><span class="kw">const</span> CartModule = (() =&gt; {
+  <span class="kw">const</span> items = [];                        <span class="cmt">// private</span>
+
+  <span class="kw">const</span> <span class="fn">findIndex</span> = id =&gt;
+    items.<span class="fn">findIndex</span>(i =&gt; i.id === id);   <span class="cmt">// private helper</span>
+
+  <span class="kw">return</span> {                                 <span class="cmt">// public API</span>
+    <span class="fn">add</span>(item)   { items.<span class="fn">push</span>(item); },
+    <span class="fn">remove</span>(id)  { items.<span class="fn">splice</span>(<span class="fn">findIndex</span>(id), <span class="num">1</span>); },
+    <span class="fn">total</span>()     { <span class="kw">return</span> items.<span class="fn">reduce</span>((s,i) =&gt; s + i.price, <span class="num">0</span>); },
+    <span class="fn">count</span>()     { <span class="kw">return</span> items.length; },
+  };
+})();
+
+CartModule.<span class="fn">add</span>({ id: <span class="num">1</span>, name: <span class="str">'Laptop'</span>, price: <span class="num">999</span> });
+CartModule.<span class="fn">total</span>(); <span class="cmt">// 999</span></pre>
+      </div>
+
+      <div id="pattern-observer" class="card" style="display:none">
+        <div class="card-header"><div class="card-title">Observer Pattern</div><div class="badges"><span class="badge badge-arch">Architecture</span></div></div>
+<pre><span class="kw">class</span> <span class="cls">EventBus</span> {
+  <span class="fn">#events</span> = <span class="kw">new</span> <span class="cls">Map</span>();
+
+  <span class="fn">on</span>(event, cb) {
+    <span class="kw">if</span> (!<span class="kw">this</span>.<span class="fn">#events</span>.<span class="fn">has</span>(event))
+      <span class="kw">this</span>.<span class="fn">#events</span>.<span class="fn">set</span>(event, <span class="kw">new</span> <span class="cls">Set</span>());
+    <span class="kw">this</span>.<span class="fn">#events</span>.<span class="fn">get</span>(event).<span class="fn">add</span>(cb);
+    <span class="kw">return</span> () =&gt; <span class="kw">this</span>.<span class="fn">off</span>(event, cb); <span class="cmt">// unsubscribe fn</span>
+  }
+
+  <span class="fn">off</span>(event, cb) { <span class="kw">this</span>.<span class="fn">#events</span>.<span class="fn">get</span>(event)?.<span class="fn">delete</span>(cb); }
+
+  <span class="fn">emit</span>(event, data) {
+    <span class="kw">this</span>.<span class="fn">#events</span>.<span class="fn">get</span>(event)?.forEach(cb =&gt; <span class="fn">cb</span>(data));
+  }
+}
+
+<span class="kw">const</span> bus = <span class="kw">new</span> <span class="cls">EventBus</span>();
+<span class="kw">const</span> unsub = bus.<span class="fn">on</span>(<span class="str">'order:placed'</span>, order =&gt;
+  console.<span class="fn">log</span>(<span class="str">'New order:'</span>, order));
+bus.<span class="fn">emit</span>(<span class="str">'order:placed'</span>, { id: <span class="num">42</span>, total: <span class="num">150</span> });
+<span class="fn">unsub</span>(); <span class="cmt">// clean up</span></pre>
+      </div>
+
+      <div id="pattern-factory" class="card" style="display:none">
+        <div class="card-header"><div class="card-title">Factory Pattern</div><div class="badges"><span class="badge badge-arch">Architecture</span></div></div>
+<pre><span class="kw">function</span> <span class="fn">createLogger</span>(type = <span class="str">'console'</span>) {
+  <span class="kw">const</span> loggers = {
+    console: { <span class="fn">log</span>: msg =&gt; console.<span class="fn">log</span>(<span class="str">`[LOG] ${msg}`</span>) },
+    file:    { <span class="fn">log</span>: msg =&gt; fs.<span class="fn">appendFileSync</span>(<span class="str">'app.log'</span>, msg) },
+    remote:  { <span class="fn">log</span>: msg =&gt; <span class="fn">fetch</span>(<span class="str">'/logs'</span>, { method:<span class="str">'POST'</span>, body:msg }) },
+  };
+  <span class="kw">return</span> loggers[type] || loggers.console;
+}
+
+<span class="kw">const</span> logger = <span class="fn">createLogger</span>(process.env.LOG_TYPE);
+logger.<span class="fn">log</span>(<span class="str">'Server started'</span>); <span class="cmt">// works regardless of env</span></pre>
+      </div>
+
+      <div id="pattern-singleton" class="card" style="display:none">
+        <div class="card-header"><div class="card-title">Singleton Pattern</div><div class="badges"><span class="badge badge-arch">Architecture</span></div></div>
+<pre><span class="kw">class</span> <span class="cls">Database</span> {
+  <span class="kw">static</span> <span class="fn">#instance</span> = <span class="kw">null</span>;
+  <span class="fn">#connection</span> = <span class="kw">null</span>;
+
+  <span class="kw">constructor</span>() {
+    <span class="kw">if</span> (<span class="cls">Database</span>.<span class="fn">#instance</span>) <span class="kw">return</span> <span class="cls">Database</span>.<span class="fn">#instance</span>;
+    <span class="kw">this</span>.<span class="fn">#connection</span> = <span class="fn">connectDB</span>();
+    <span class="cls">Database</span>.<span class="fn">#instance</span> = <span class="kw">this</span>;
+  }
+
+  <span class="fn">query</span>(sql) { <span class="kw">return</span> <span class="kw">this</span>.<span class="fn">#connection</span>.<span class="fn">run</span>(sql); }
+}
+
+<span class="kw">const</span> db1 = <span class="kw">new</span> <span class="cls">Database</span>();
+<span class="kw">const</span> db2 = <span class="kw">new</span> <span class="cls">Database</span>();
+db1 === db2; <span class="cmt">// true — same instance</span></pre>
+      </div>
+
+      <div id="pattern-strategy" class="card" style="display:none">
+        <div class="card-header"><div class="card-title">Strategy Pattern</div><div class="badges"><span class="badge badge-arch">Architecture</span></div></div>
+<pre><span class="kw">const</span> sortStrategies = {
+  price:  (a, b) =&gt; a.price - b.price,
+  name:   (a, b) =&gt; a.name.<span class="fn">localeCompare</span>(b.name),
+  rating: (a, b) =&gt; b.rating - a.rating,
+};
+
+<span class="kw">function</span> <span class="fn">sortProducts</span>(products, strategy = <span class="str">'price'</span>) {
+  <span class="kw">const</span> comparator = sortStrategies[strategy];
+  <span class="kw">if</span> (!comparator) <span class="kw">throw new</span> <span class="cls">Error</span>(<span class="str">`Unknown sort: ${strategy}`</span>);
+  <span class="kw">return</span> [...products].<span class="fn">sort</span>(comparator);
+}
+
+<span class="fn">sortProducts</span>(products, <span class="str">'rating'</span>); <span class="cmt">// swap strategy at call site</span></pre>
+      </div>
+
+      <div id="pattern-proxy" class="card" style="display:none">
+        <div class="card-header"><div class="card-title">Proxy Pattern</div><div class="badges"><span class="badge badge-arch">Architecture</span></div></div>
+<pre><span class="kw">function</span> <span class="fn">createReactive</span>(target, onChange) {
+  <span class="kw">return new</span> <span class="cls">Proxy</span>(target, {
+    <span class="fn">set</span>(obj, key, value) {
+      <span class="kw">const</span> old = obj[key];
+      obj[key] = value;
+      <span class="kw">if</span> (old !== value) <span class="fn">onChange</span>({ key, old, value });
+      <span class="kw">return true</span>;
+    },
+    <span class="fn">get</span>(obj, key) {
+      <span class="kw">if</span> (<span class="kw">typeof</span> obj[key] === <span class="str">'function'</span>)
+        <span class="kw">return</span> obj[key].<span class="fn">bind</span>(obj);
+      <span class="kw">return</span> obj[key];
+    }
+  });
+}
+
+<span class="kw">const</span> state = <span class="fn">createReactive</span>({ count: <span class="num">0</span> }, console.<span class="fn">log</span>);
+state.count = <span class="num">5</span>; <span class="cmt">// logs: { key: 'count', old: 0, value: 5 }</span>
+<span class="cmt">// This is how Vue 3's reactivity system works!</span></pre>
+      </div>
+    </section>
+
+    <!-- ══ INTERVIEW ══ -->
+    <section id="sec-interview" class="section">
+      <div class="section-header">
+        <h2>Interview Q&amp;A</h2>
+        <p>Click any question to reveal the answer — beginner through architecture level.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Beginner</div><div class="badges"><span class="badge badge-beginner">Beginner</span></div></div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>What is the difference between <code>==</code> and <code>===</code>?<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a"><code>==</code> (loose equality) coerces types before comparing: <code>0 == ""</code> is <code>true</code>. <code>===</code> (strict equality) requires identical types and values: <code>0 === ""</code> is <code>false</code>. Always prefer <code>===</code> unless you explicitly want coercion (rare). Special case: <code>null == undefined</code> is true with <code>==</code>, useful for checking both at once.</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>What is hoisting?<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a">During compilation, JS moves <strong>declarations</strong> to the top of their scope. <code>var</code> declarations are hoisted and initialized to <code>undefined</code>. <code>function</code> declarations are hoisted fully (you can call them before they appear). <code>let</code>/<code>const</code> are hoisted but NOT initialized — accessing them before declaration throws a <code>ReferenceError</code> (the Temporal Dead Zone).</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>What are falsy values in JavaScript?<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a">There are exactly 8 falsy values: <code>false</code>, <code>0</code>, <code>-0</code>, <code>0n</code> (BigInt zero), <code>""</code>/<code>''</code>/<code>``</code> (empty string), <code>null</code>, <code>undefined</code>, <code>NaN</code>. Everything else is truthy — including <code>[]</code>, <code>{}</code>, and <code>"0"</code>.</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>Difference between <code>null</code> and <code>undefined</code>?<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a"><code>undefined</code> means a variable was declared but never assigned a value (or a function returned nothing). <code>null</code> is an intentional assignment meaning "no value here". <code>typeof null === "object"</code> is a famous historical bug. Use <code>value == null</code> to catch both.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Mid-level</div><div class="badges"><span class="badge badge-mid">Mid-level</span></div></div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>Explain closures with a practical use case.<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a">A closure is a function that remembers the outer scope in which it was created. Practical example — <strong>memoization</strong>:<pre><span class="kw">function</span> <span class="fn">memoize</span>(fn) {
+  <span class="kw">const</span> cache = {};          <span class="cmt">// closed over</span>
+  <span class="kw">return</span> (...args) => {
+    <span class="kw">const</span> k = JSON.<span class="fn">stringify</span>(args);
+    <span class="kw">return</span> cache[k] ??= fn(...args);
+  };
+}</span></pre>The <code>cache</code> object persists across calls because the returned function closes over it. React hooks, private module state, and debounce/throttle all use closures.</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>What is the event loop and how does JS handle async?<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a">JS is single-threaded. The event loop lets it handle async without blocking: sync code runs on the Call Stack; async operations (fetch, setTimeout) are offloaded to Web APIs. When done, their callbacks go to the <strong>Callback Queue</strong> (macrotasks) or <strong>Microtask Queue</strong> (Promises). Microtasks always drain fully before the next macrotask. Order: sync → microtasks → macrotask → microtasks → …</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>What is prototypal inheritance?<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a">JS objects have a hidden <code>[[Prototype]]</code> link to another object. When a property is not found on the object itself, JS walks up the chain until it finds it or reaches <code>null</code>. <code>class</code> syntax is sugar over this. <code>Object.create(proto)</code> lets you set the prototype explicitly. Methods placed on <code>prototype</code> are shared across all instances (memory-efficient).</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>Difference between <code>call</code>, <code>apply</code>, and <code>bind</code>?<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a">All three set the <code>this</code> context of a function. <code>call(ctx, a, b)</code> invokes immediately with comma-separated args. <code>apply(ctx, [a, b])</code> invokes immediately with an array of args. <code>bind(ctx, a)</code> returns a new function with <code>this</code> permanently bound — useful for event handlers and partial application.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Architecture level</div><div class="badges"><span class="badge badge-arch">Architecture</span></div></div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>How would you design a scalable event system for a large SPA?<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a">Use the Observer pattern with namespaced events. Key design choices: (1) use a <code>Map&lt;string, Set&lt;Function&gt;&gt;</code> for O(1) lookup and deduplication; (2) return an unsubscribe function from <code>on()</code> to prevent memory leaks; (3) support wildcards or hierarchical events (<code>user:*</code>); (4) add error boundaries so one bad subscriber doesn't break others; (5) consider a BehaviorSubject (RxJS) or signals for reactive state vs. one-time events.</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>Explain how you'd implement schema validation at the API boundary.<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a">Use a schema library like <strong>Zod</strong> — define the schema once, get TypeScript types for free, and validate at runtime. Place validation in middleware before business logic. Structure: (1) Define schema → (2) Validate request body → (3) Return structured 400 errors on failure → (4) Pass typed data to handler. For API versioning, maintain separate schemas (v1Schema, v2Schema) and use <code>schemaDiff()</code> in CI to detect breaking changes automatically.</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>How does garbage collection work in V8 and what causes memory leaks?<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a">V8 uses generational GC: most objects die young and are collected by the <strong>Minor GC</strong> (Scavenger) in the "new space". Long-lived objects are promoted to "old space" and collected by the <strong>Major GC</strong> (Mark-Sweep/Mark-Compact). Common memory leaks: (1) forgotten event listeners (<code>element.addEventListener</code> without <code>removeEventListener</code>); (2) closures capturing large objects; (3) global variables; (4) timers (<code>setInterval</code>) referencing removed DOM; (5) detached DOM nodes still referenced in JS. Use Chrome DevTools Heap Snapshot to diagnose.</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><div class="qa-icon">Q</div>When would you use a Proxy over a class? Explain with a real system.<svg class="qa-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="qa-a">A Proxy intercepts object operations (get, set, delete, apply) transparently — the caller doesn't know a proxy is there. Use cases: <strong>reactivity</strong> (Vue 3 — track all property reads/writes to trigger re-renders), <strong>validation</strong> (throw on invalid property sets), <strong>logging/tracing</strong> (log every method call in production), <strong>lazy loading</strong> (fetch data only on first access), <strong>immutability</strong> (deep-freeze by throwing on set). Classes are better when you control the API surface; Proxy is better when wrapping external objects you don't own.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="page-footer">
+  // javascript-guide.html — beginner to architecture — built with ♥
+</footer>
+
+<script>
+// ── Navigation ──
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Q&A toggle ──
+function toggleQA(el) {
+  const ans = el.nextElementSibling;
+  el.classList.toggle('open');
+  ans.classList.toggle('open');
+}
+
+// ── Pattern cards ──
+function showPattern(name) {
+  const patterns = ['module','observer','factory','singleton','strategy','proxy'];
+  patterns.forEach(p => {
+    const el = document.getElementById('pattern-' + p);
+    if (el) el.style.display = (p === name) ? 'block' : 'none';
+  });
+  document.getElementById('pattern-' + name).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── Deep equal (used in playground) ──
+function deepEqual(a, b) {
+  if (a === b) return true;
+  if (typeof a !== 'object' || typeof b !== 'object') return false;
+  if (a === null || b === null) return false;
+  const ka = Object.keys(a), kb = Object.keys(b);
+  if (ka.length !== kb.length) return false;
+  return ka.every(k => deepEqual(a[k], b[k]));
+}
+
+function schemaDiff(s1, s2) {
+  const keys = new Set([...Object.keys(s1), ...Object.keys(s2)]);
+  const diff = { added: [], removed: [], changed: {} };
+  for (const k of keys) {
+    if      (!s1[k])                    diff.added.push(k);
+    else if (!s2[k])                    diff.removed.push(k);
+    else if (!deepEqual(s1[k], s2[k])) diff.changed[k] = { from: s1[k], to: s2[k] };
+  }
+  return diff;
+}
+
+// ── Playground ──
+function runCode(inputId, outputId) {
+  const code = document.getElementById(inputId).value.trim();
+  const out   = document.getElementById(outputId);
+  try {
+    // eslint-disable-next-line no-new-func
+    const result = new Function('deepEqual', 'schemaDiff', `"use strict"; return (${code})`)(deepEqual, schemaDiff);
+    out.textContent = typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result);
+    out.className = 'output-area ok';
+  } catch (e) {
+    out.textContent = e.message;
+    out.className = 'output-area err';
+  }
+}
+
+function runSchemaDemo() { runCode('schema-repl', 'schema-out'); }
+</script>
+
+</body>
+</html>

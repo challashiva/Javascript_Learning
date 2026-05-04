@@ -1,0 +1,2825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS & React Mastery Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --border: #2a2a3d;
+    --accent: #7c6dfa;
+    --accent2: #f7c948;
+    --accent3: #3fe8c5;
+    --accent4: #ff6b6b;
+    --text: #e8e8f0;
+    --text-muted: #7a7a9a;
+    --text-dim: #4a4a6a;
+    --code-bg: #0e0e18;
+    --level1: #3fe8c5;
+    --level2: #7c6dfa;
+    --level3: #f7c948;
+    --level4: #ff6b6b;
+    --level5: #ff4da6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ─── GRAIN OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ─── SIDEBAR NAV ─── */
+  #sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 280px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 100;
+    padding: 0 0 40px 0;
+    transition: transform 0.3s ease;
+  }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-track { background: transparent; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
+
+  .sidebar-logo h2 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .sidebar-logo span.js { color: var(--accent2); }
+  .sidebar-logo span.re { color: var(--accent); }
+
+  .sidebar-logo p {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .nav-section-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 16px 20px 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 20px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.15s;
+    cursor: pointer;
+    border-left: 2px solid transparent;
+  }
+
+  .nav-item:hover {
+    color: var(--text);
+    background: var(--surface2);
+    border-left-color: var(--accent);
+  }
+
+  .nav-item .level-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ─── MAIN CONTENT ─── */
+  #main {
+    margin-left: 280px;
+    min-height: 100vh;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    padding: 80px 60px 60px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(124,109,250,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent3);
+    background: rgba(63,232,197,0.08);
+    border: 1px solid rgba(63,232,197,0.2);
+    padding: 4px 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    letter-spacing: 0.1em;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 4vw, 3.8rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 .js { color: var(--accent2); }
+  .hero h1 .react { color: var(--accent); }
+  .hero h1 .amp { color: var(--text-dim); }
+
+  .hero-subtitle {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin-bottom: 32px;
+  }
+
+  .level-pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid;
+    font-weight: 500;
+  }
+
+  /* ─── CONTENT AREA ─── */
+  .content {
+    padding: 40px 60px 80px;
+    max-width: 1100px;
+  }
+
+  /* ─── LEVEL HEADERS ─── */
+  .level-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 60px 0 30px;
+    padding: 24px 28px;
+    border-radius: 12px;
+    border: 1px solid;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .level-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.06;
+  }
+
+  .level-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+
+  .level-header h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .level-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ─── TOPIC CARDS ─── */
+  .topic-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .topic-card:hover { border-color: var(--accent); }
+
+  .topic-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    cursor: pointer;
+    user-select: none;
+    gap: 12px;
+  }
+
+  .topic-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .topic-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .topic-title {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .topic-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .topic-toggle {
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    transition: transform 0.25s;
+    flex-shrink: 0;
+  }
+
+  .topic-card.open .topic-toggle { transform: rotate(45deg); color: var(--accent); }
+
+  .topic-body {
+    display: none;
+    padding: 0 24px 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .topic-card.open .topic-body { display: block; }
+
+  /* ─── TOPIC SECTIONS ─── */
+  .section-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .info-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .info-box.full { grid-column: 1 / -1; }
+
+  .info-box h4 {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .info-box p, .info-box li {
+    font-size: 0.83rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .info-box ul { padding-left: 16px; }
+  .info-box li { margin-bottom: 4px; }
+
+  /* ─── CODE BLOCKS ─── */
+  .code-label {
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 16px 0;
+    margin-top: 16px;
+  }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    margin-top: 6px;
+    position: relative;
+  }
+
+  pre code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  /* Syntax highlight classes */
+  .kw { color: #c792ea; } /* keywords */
+  .fn { color: #82aaff; } /* functions */
+  .str { color: #c3e88d; } /* strings */
+  .num { color: var(--accent2); } /* numbers */
+  .cmt { color: #546e7a; font-style: italic; } /* comments */
+  .cls { color: var(--accent3); } /* class names */
+  .op { color: #89ddff; } /* operators */
+  .prop { color: #f07178; } /* properties */
+  .jsx { color: #ffcb6b; } /* JSX tags */
+
+  /* ─── Q&A SECTION ─── */
+  .qa-list { margin-top: 8px; }
+
+  .qa-item {
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+  }
+
+  .qa-item:last-child { border-bottom: none; }
+
+  .qa-q {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .qa-q span.arrow {
+    color: var(--text-dim);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .qa-item.open .qa-q span.arrow { transform: rotate(90deg); color: var(--accent2); }
+
+  .qa-a {
+    display: none;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 8px 0 4px 12px;
+    border-left: 2px solid var(--accent);
+    margin-top: 6px;
+    line-height: 1.65;
+  }
+
+  .qa-item.open .qa-a { display: block; }
+
+  .qa-tag {
+    font-size: 0.6rem;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    border: 1px solid;
+    flex-shrink: 0;
+  }
+
+  /* ─── EXERCISE BOX ─── */
+  .exercise-box {
+    background: rgba(124,109,250,0.06);
+    border: 1px solid rgba(124,109,250,0.25);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+
+  .exercise-box h4 {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .exercise-box ol {
+    padding-left: 18px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .exercise-box li { margin-bottom: 5px; }
+
+  /* ─── MISTAKE BOX ─── */
+  .mistake-box {
+    background: rgba(255,107,107,0.05);
+    border: 1px solid rgba(255,107,107,0.2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 12px;
+  }
+
+  .mistake-box h4 {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent4);
+    margin-bottom: 8px;
+  }
+
+  .mistake-box ul {
+    padding-left: 16px;
+    font-size: 0.81rem;
+    color: var(--text-muted);
+  }
+
+  .mistake-box li { margin-bottom: 5px; }
+
+  /* ─── SCROLL TOP ─── */
+  #scrolltop {
+    position: fixed;
+    bottom: 30px; right: 30px;
+    width: 44px; height: 44px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transition: opacity 0.2s;
+    box-shadow: 0 4px 20px rgba(124,109,250,0.4);
+  }
+
+  #scrolltop.visible { display: flex; }
+
+  /* ─── PROGRESS BAR ─── */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 280px; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    transform-origin: left;
+    transform: scaleX(0);
+    z-index: 300;
+    transition: transform 0.1s;
+  }
+
+  /* ─── MOBILE TOGGLE ─── */
+  #nav-toggle {
+    display: none;
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 200;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+  }
+
+  /* ─── SEARCH ─── */
+  .search-wrap {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 86px;
+    background: var(--surface);
+  }
+
+  .search-wrap input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--text-dim); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #main { margin-left: 0; }
+    #progress-bar { left: 0; }
+    #nav-toggle { display: block; }
+    .hero { padding: 60px 24px 40px; }
+    .content { padding: 24px 24px 60px; }
+    .section-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ─── MISC ─── */
+  .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid;
+    margin: 2px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 40px 0;
+  }
+
+  strong { color: var(--text); }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8em;
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--accent3);
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<button id="nav-toggle" onclick="toggleSidebar()">☰ Menu</button>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <h2><span class="js">JavaScript</span> <span class="re">&amp; React</span></h2>
+    <p>// mastery guide v1.0</p>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="search-input" placeholder="Search topics..." oninput="filterNav(this.value)">
+  </div>
+
+  <div id="nav-list">
+    <div class="nav-section-label">🟢 Level 1 — Beginner</div>
+    <a class="nav-item" onclick="jumpTo('js-basics')"><span class="level-dot" style="background:var(--level1)"></span>JS Fundamentals</a>
+    <a class="nav-item" onclick="jumpTo('variables')"><span class="level-dot" style="background:var(--level1)"></span>Variables & Data Types</a>
+    <a class="nav-item" onclick="jumpTo('functions')"><span class="level-dot" style="background:var(--level1)"></span>Functions</a>
+    <a class="nav-item" onclick="jumpTo('arrays-objects')"><span class="level-dot" style="background:var(--level1)"></span>Arrays & Objects</a>
+    <a class="nav-item" onclick="jumpTo('dom')"><span class="level-dot" style="background:var(--level1)"></span>DOM Manipulation</a>
+    <a class="nav-item" onclick="jumpTo('es6')"><span class="level-dot" style="background:var(--level1)"></span>ES6+ Features</a>
+    <a class="nav-item" onclick="jumpTo('react-intro')"><span class="level-dot" style="background:var(--level1)"></span>React Intro & JSX</a>
+    <a class="nav-item" onclick="jumpTo('react-components')"><span class="level-dot" style="background:var(--level1)"></span>Components & Props</a>
+
+    <div class="nav-section-label">🔵 Level 2 — Intermediate</div>
+    <a class="nav-item" onclick="jumpTo('closures')"><span class="level-dot" style="background:var(--level2)"></span>Closures & Scope</a>
+    <a class="nav-item" onclick="jumpTo('prototypes')"><span class="level-dot" style="background:var(--level2)"></span>Prototypes & OOP</a>
+    <a class="nav-item" onclick="jumpTo('async')"><span class="level-dot" style="background:var(--level2)"></span>Async / Promises</a>
+    <a class="nav-item" onclick="jumpTo('error-handling')"><span class="level-dot" style="background:var(--level2)"></span>Error Handling</a>
+    <a class="nav-item" onclick="jumpTo('modules')"><span class="level-dot" style="background:var(--level2)"></span>Modules & Bundling</a>
+    <a class="nav-item" onclick="jumpTo('hooks')"><span class="level-dot" style="background:var(--level2)"></span>React Hooks</a>
+    <a class="nav-item" onclick="jumpTo('useeffect')"><span class="level-dot" style="background:var(--level2)"></span>useEffect & Lifecycle</a>
+    <a class="nav-item" onclick="jumpTo('forms')"><span class="level-dot" style="background:var(--level2)"></span>Forms in React</a>
+    <a class="nav-item" onclick="jumpTo('routing')"><span class="level-dot" style="background:var(--level2)"></span>React Router</a>
+    <a class="nav-item" onclick="jumpTo('api-react')"><span class="level-dot" style="background:var(--level2)"></span>API Integration</a>
+
+    <div class="nav-section-label">🟡 Level 3 — Advanced</div>
+    <a class="nav-item" onclick="jumpTo('event-loop')"><span class="level-dot" style="background:var(--level3)"></span>Event Loop</a>
+    <a class="nav-item" onclick="jumpTo('fp')"><span class="level-dot" style="background:var(--level3)"></span>Functional Programming</a>
+    <a class="nav-item" onclick="jumpTo('dsa')"><span class="level-dot" style="background:var(--level3)"></span>DSA in JavaScript</a>
+    <a class="nav-item" onclick="jumpTo('state-mgmt')"><span class="level-dot" style="background:var(--level3)"></span>State Management</a>
+    <a class="nav-item" onclick="jumpTo('context-redux')"><span class="level-dot" style="background:var(--level3)"></span>Context & Redux</a>
+    <a class="nav-item" onclick="jumpTo('perf-js')"><span class="level-dot" style="background:var(--level3)"></span>JS Performance</a>
+    <a class="nav-item" onclick="jumpTo('react-perf')"><span class="level-dot" style="background:var(--level3)"></span>React Performance</a>
+
+    <div class="nav-section-label">🔴 Level 4 — Expert</div>
+    <a class="nav-item" onclick="jumpTo('custom-hooks')"><span class="level-dot" style="background:var(--level4)"></span>Custom Hooks</a>
+    <a class="nav-item" onclick="jumpTo('patterns')"><span class="level-dot" style="background:var(--level4)"></span>Design Patterns</a>
+    <a class="nav-item" onclick="jumpTo('testing')"><span class="level-dot" style="background:var(--level4)"></span>Testing in React</a>
+    <a class="nav-item" onclick="jumpTo('architecture')"><span class="level-dot" style="background:var(--level4)"></span>Architecture & Structure</a>
+
+    <div class="nav-section-label">🌟 Level 5 — Master</div>
+    <a class="nav-item" onclick="jumpTo('compiler-internals')"><span class="level-dot" style="background:var(--level5)"></span>React Internals</a>
+    <a class="nav-item" onclick="jumpTo('interview-prep')"><span class="level-dot" style="background:var(--level5)"></span>Interview Prep</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main id="main">
+  <div class="hero">
+    <div class="hero-tag">// COMPLETE LEARNING ROADMAP</div>
+    <h1>Master <span class="js">JavaScript</span><br><span class="amp">&amp;</span> <span class="react">React</span></h1>
+    <p class="hero-subtitle">From your first variable to architecting production-grade apps — every concept, every pattern, every interview question.</p>
+    <div class="level-pills">
+      <span class="pill" style="color:var(--level1);border-color:var(--level1);background:rgba(63,232,197,0.06)">🟢 Beginner</span>
+      <span class="pill" style="color:var(--level2);border-color:var(--level2);background:rgba(124,109,250,0.06)">🔵 Intermediate</span>
+      <span class="pill" style="color:var(--level3);border-color:var(--level3);background:rgba(247,201,72,0.06)">🟡 Advanced</span>
+      <span class="pill" style="color:var(--level4);border-color:var(--level4);background:rgba(255,107,107,0.06)">🔴 Expert</span>
+      <span class="pill" style="color:var(--level5);border-color:var(--level5);background:rgba(255,77,166,0.06)">🌟 Master</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══════════════════════════════ LEVEL 1 ═══════════════════════════════ -->
+    <div id="js-basics" class="level-header" style="border-color:rgba(63,232,197,0.3);background:rgba(63,232,197,0.04)">
+      <div>
+        <div class="level-badge" style="background:rgba(63,232,197,0.15);color:var(--level1)">LEVEL 1</div>
+      </div>
+      <div>
+        <h2 style="color:var(--level1)">Beginner — JavaScript Foundations</h2>
+        <p>Core syntax, data types, functions, DOM basics, and your first React component.</p>
+      </div>
+    </div>
+
+    <!-- TOPIC: Variables & Data Types -->
+    <div class="topic-card" id="variables">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(63,232,197,0.1);color:var(--level1)">📦</div>
+          <div>
+            <div class="topic-title">Variables &amp; Data Types</div>
+            <div class="topic-subtitle">var · let · const · primitives · type coercion</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="section-grid">
+          <div class="info-box">
+            <h4 style="color:var(--level1)">📖 Definition</h4>
+            <p>Variables are named containers that store data. JavaScript has 8 data types: <code>string</code>, <code>number</code>, <code>boolean</code>, <code>null</code>, <code>undefined</code>, <code>BigInt</code>, <code>Symbol</code>, and <code>object</code>.</p>
+          </div>
+          <div class="info-box">
+            <h4 style="color:var(--accent2)">⚡ Why It Matters</h4>
+            <p>Everything in JavaScript is stored as data. Understanding types prevents unexpected bugs caused by JavaScript's automatic type conversion (coercion).</p>
+          </div>
+          <div class="info-box full">
+            <h4 style="color:var(--accent3)">🌍 Real-World Use Cases</h4>
+            <ul>
+              <li>Storing user input from forms</li>
+              <li>Tracking state like cart items, scores, or toggle states</li>
+              <li>Checking conditions (boolean flags)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="code-label">// Simple Example</div>
+<pre><code><span class="cmt">// Three ways to declare variables</span>
+<span class="kw">var</span> oldWay = <span class="str">"avoid using this"</span>;   <span class="cmt">// function-scoped, hoisted, legacy</span>
+<span class="kw">let</span> count = <span class="num">0</span>;                   <span class="cmt">// block-scoped, can be reassigned</span>
+<span class="kw">const</span> PI = <span class="num">3.14159</span>;              <span class="cmt">// block-scoped, cannot be reassigned</span>
+
+<span class="cmt">// Primitive data types</span>
+<span class="kw">const</span> name = <span class="str">"Alice"</span>;            <span class="cmt">// string</span>
+<span class="kw">const</span> age = <span class="num">30</span>;                  <span class="cmt">// number</span>
+<span class="kw">const</span> isLoggedIn = <span class="kw">true</span>;         <span class="cmt">// boolean</span>
+<span class="kw">const</span> score = <span class="kw">null</span>;              <span class="cmt">// null (intentional empty)</span>
+<span class="kw">let</span> result;                      <span class="cmt">// undefined (not yet assigned)</span>
+
+<span class="cmt">// Type checking</span>
+console.<span class="fn">log</span>(<span class="kw">typeof</span> name);        <span class="cmt">// "string"</span>
+console.<span class="fn">log</span>(<span class="kw">typeof</span> age);         <span class="cmt">// "number"</span>
+console.<span class="fn">log</span>(<span class="kw">typeof</span> <span class="kw">null</span>);        <span class="cmt">// "object" ← famous JS bug!</span></code></pre>
+
+        <div class="code-label">// Advanced: Type Coercion Gotchas</div>
+<pre><code><span class="cmt">// JavaScript auto-converts types — this surprises everyone!</span>
+console.<span class="fn">log</span>(<span class="num">1</span> <span class="op">+</span> <span class="str">"2"</span>);     <span class="cmt">// "12" (number → string)</span>
+console.<span class="fn">log</span>(<span class="str">"5"</span> <span class="op">-</span> <span class="num">2</span>);     <span class="cmt">// 3   (string → number)</span>
+console.<span class="fn">log</span>(<span class="kw">true</span> <span class="op">+</span> <span class="num">1</span>);    <span class="cmt">// 2   (true = 1)</span>
+console.<span class="fn">log</span>(<span class="str">""</span> <span class="op">==</span> <span class="kw">false</span>); <span class="cmt">// true (loose equality)</span>
+console.<span class="fn">log</span>(<span class="str">""</span> <span class="op">===</span> <span class="kw">false</span>);<span class="cmt">// false (strict equality ← ALWAYS use this)</span>
+
+<span class="cmt">// Explicit conversion (best practice)</span>
+<span class="fn">Number</span>(<span class="str">"42"</span>)      <span class="cmt">// 42</span>
+<span class="fn">String</span>(<span class="num">42</span>)        <span class="cmt">// "42"</span>
+<span class="fn">Boolean</span>(<span class="num">0</span>)       <span class="cmt">// false</span>
+<span class="fn">Boolean</span>(<span class="str">"hello"</span>) <span class="cmt">// true</span>
+
+<span class="cmt">// Falsy values (be aware!)</span>
+<span class="cmt">// false, 0, "", null, undefined, NaN → all falsy</span></code></pre>
+
+        <div class="mistake-box">
+          <h4>⚠️ Common Mistakes</h4>
+          <ul>
+            <li>Using <code>==</code> instead of <code>===</code> — always use strict equality</li>
+            <li>Using <code>var</code> — use <code>let</code> or <code>const</code> instead</li>
+            <li>Not understanding that <code>const</code> for objects/arrays still allows mutation of contents</li>
+            <li>Forgetting <code>typeof null === "object"</code> is a known JS bug</li>
+          </ul>
+        </div>
+
+        <div class="exercise-box">
+          <h4>🏋️ Exercises</h4>
+          <ol>
+            <li>Create variables for a user profile (name, age, isActive) using appropriate types</li>
+            <li>Predict the output of <code>"3" * "4"</code>, <code>null + 1</code>, <code>undefined + 1</code></li>
+            <li>Write a function that checks if a value is truly empty (null, undefined, or empty string)</li>
+          </ol>
+        </div>
+
+        <div class="info-box full" style="margin-top:12px">
+          <h4 style="color:var(--accent2)">❓ Interview Q&amp;A</h4>
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the difference between <code>let</code>, <code>const</code>, and <code>var</code>?</span><span class="arrow">▶</span></div>
+              <div class="qa-a"><code>var</code> is function-scoped and hoisted (can be used before declaration). <code>let</code> is block-scoped, can be reassigned. <code>const</code> is block-scoped and cannot be reassigned (but object/array contents can still change). Prefer <code>const</code> by default, use <code>let</code> when you need reassignment, never use <code>var</code>.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the difference between <code>==</code> and <code>===</code>?</span><span class="arrow">▶</span></div>
+              <div class="qa-a"><code>==</code> (loose equality) converts types before comparing. <code>===</code> (strict equality) checks both value AND type. Example: <code>0 == false</code> is <code>true</code> but <code>0 === false</code> is <code>false</code>. Always use <code>===</code>.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is <code>NaN</code> and how do you check for it?</span><span class="arrow">▶</span></div>
+              <div class="qa-a"><code>NaN</code> stands for "Not a Number" — result of invalid math like <code>"abc" * 2</code>. The tricky part: <code>NaN === NaN</code> is <code>false</code>! Use <code>Number.isNaN(value)</code> to properly check for it.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: Functions -->
+    <div class="topic-card" id="functions">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(63,232,197,0.1);color:var(--level1)">⚙️</div>
+          <div>
+            <div class="topic-title">Functions</div>
+            <div class="topic-subtitle">declarations · expressions · arrow functions · HOF · IIFE</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="section-grid">
+          <div class="info-box">
+            <h4 style="color:var(--level1)">📖 Definition</h4>
+            <p>Functions are reusable blocks of code that take inputs (parameters), perform actions, and return outputs. They are <strong>first-class citizens</strong> in JS — they can be stored in variables, passed as arguments, and returned from other functions.</p>
+          </div>
+          <div class="info-box">
+            <h4 style="color:var(--accent2)">⚡ Why It Matters</h4>
+            <p>Functions are the building blocks of every JavaScript app. Understanding function types, hoisting, and <code>this</code> binding is critical for avoiding bugs and writing clean code.</p>
+          </div>
+        </div>
+
+        <div class="code-label">// All function types</div>
+<pre><code><span class="cmt">// 1. Function Declaration — hoisted to top of scope</span>
+<span class="kw">function</span> <span class="fn">greet</span>(name) {
+  <span class="kw">return</span> <span class="str">`Hello, </span>${name}<span class="str">!`</span>;
+}
+
+<span class="cmt">// 2. Function Expression — NOT hoisted</span>
+<span class="kw">const</span> greet2 = <span class="kw">function</span>(name) {
+  <span class="kw">return</span> <span class="str">`Hello, </span>${name}<span class="str">!`</span>;
+};
+
+<span class="cmt">// 3. Arrow Function — concise syntax, no own 'this'</span>
+<span class="kw">const</span> <span class="fn">greet3</span> = (name) => <span class="str">`Hello, </span>${name}<span class="str">!`</span>;
+<span class="kw">const</span> <span class="fn">double</span> = n => n * <span class="num">2</span>;           <span class="cmt">// single param: no parens needed</span>
+<span class="kw">const</span> <span class="fn">add</span> = (a, b) => a + b;          <span class="cmt">// single expression: implicit return</span>
+
+<span class="cmt">// 4. Default Parameters</span>
+<span class="kw">const</span> <span class="fn">createUser</span> = (name, role = <span class="str">"viewer"</span>) => ({ name, role });
+
+<span class="cmt">// 5. Rest Parameters &amp; Spread</span>
+<span class="kw">const</span> <span class="fn">sum</span> = (...nums) => nums.<span class="fn">reduce</span>((a, b) => a + b, <span class="num">0</span>);
+<span class="fn">sum</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>);  <span class="cmt">// 10</span>
+
+<span class="cmt">// 6. IIFE — Immediately Invoked Function Expression</span>
+(<span class="kw">function</span>() {
+  <span class="kw">const</span> private = <span class="str">"This won't pollute global scope"</span>;
+})();</code></pre>
+
+        <div class="code-label">// Higher-Order Functions (HOF)</div>
+<pre><code><span class="cmt">// Functions that take or return other functions</span>
+<span class="kw">const</span> numbers = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>];
+
+numbers.<span class="fn">map</span>(n => n * <span class="num">2</span>);           <span class="cmt">// [2, 4, 6, 8, 10]</span>
+numbers.<span class="fn">filter</span>(n => n % <span class="num">2</span> === <span class="num">0</span>); <span class="cmt">// [2, 4]</span>
+numbers.<span class="fn">reduce</span>((acc, n) => acc + n, <span class="num">0</span>); <span class="cmt">// 15</span>
+
+<span class="cmt">// Custom HOF: function that returns a function</span>
+<span class="kw">const</span> <span class="fn">multiply</span> = (factor) => (num) => num * factor;
+<span class="kw">const</span> triple = <span class="fn">multiply</span>(<span class="num">3</span>);
+triple(<span class="num">5</span>); <span class="cmt">// 15</span></code></pre>
+
+        <div class="mistake-box">
+          <h4>⚠️ Common Mistakes</h4>
+          <ul>
+            <li>Arrow functions don't have their own <code>this</code> — don't use them as object methods</li>
+            <li>Forgetting that function declarations are hoisted but function expressions are not</li>
+            <li>Forgetting to <code>return</code> in non-arrow functions</li>
+          </ul>
+        </div>
+
+        <div class="exercise-box">
+          <h4>🏋️ Exercises</h4>
+          <ol>
+            <li>Write a function <code>capitalize(str)</code> that capitalizes the first letter</li>
+            <li>Use <code>.map()</code>, <code>.filter()</code>, <code>.reduce()</code> on an array of products with prices</li>
+            <li>Create a <code>makeCounter()</code> function that returns increment/decrement/reset functions</li>
+          </ol>
+        </div>
+
+        <div class="info-box full" style="margin-top:12px">
+          <h4 style="color:var(--accent2)">❓ Interview Q&amp;A</h4>
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the difference between arrow functions and regular functions?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">Arrow functions: (1) don't have their own <code>this</code> — they inherit <code>this</code> from surrounding scope, (2) can't be used as constructors, (3) don't have <code>arguments</code> object, (4) are always anonymous. Regular functions: bind their own <code>this</code> dynamically based on how they're called.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is function hoisting?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">Function declarations are moved to the top of their scope during the compilation phase. This means you can call a function before it's defined in code. Function expressions and arrow functions assigned to variables are NOT hoisted (only the variable declaration is).</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: Arrays & Objects -->
+    <div class="topic-card" id="arrays-objects">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(63,232,197,0.1);color:var(--level1)">🗂️</div>
+          <div>
+            <div class="topic-title">Arrays &amp; Objects</div>
+            <div class="topic-subtitle">destructuring · spread · rest · methods · immutability</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Array & Object Mastery</div>
+<pre><code><span class="cmt">// Arrays — ordered lists</span>
+<span class="kw">const</span> fruits = [<span class="str">"apple"</span>, <span class="str">"banana"</span>, <span class="str">"cherry"</span>];
+
+<span class="cmt">// Essential array methods</span>
+fruits.<span class="fn">push</span>(<span class="str">"date"</span>);          <span class="cmt">// add to end</span>
+fruits.<span class="fn">pop</span>();                 <span class="cmt">// remove from end</span>
+fruits.<span class="fn">unshift</span>(<span class="str">"avocado"</span>);   <span class="cmt">// add to start</span>
+fruits.<span class="fn">shift</span>();               <span class="cmt">// remove from start</span>
+fruits.<span class="fn">includes</span>(<span class="str">"banana"</span>);   <span class="cmt">// true</span>
+fruits.<span class="fn">indexOf</span>(<span class="str">"cherry"</span>);    <span class="cmt">// 2</span>
+fruits.<span class="fn">slice</span>(<span class="num">1</span>, <span class="num">3</span>);          <span class="cmt">// ["banana","cherry"] — doesn't mutate</span>
+fruits.<span class="fn">splice</span>(<span class="num">1</span>, <span class="num">1</span>);         <span class="cmt">// removes 1 item at index 1 — mutates!</span>
+fruits.<span class="fn">join</span>(<span class="str">", "</span>);           <span class="cmt">// "apple, banana, cherry"</span>
+
+<span class="cmt">// Objects — key-value pairs</span>
+<span class="kw">const</span> user = {
+  name: <span class="str">"Alice"</span>,
+  age: <span class="num">30</span>,
+  address: { city: <span class="str">"NYC"</span>, zip: <span class="str">"10001"</span> }
+};
+
+<span class="cmt">// Destructuring — extract values cleanly</span>
+<span class="kw">const</span> { name, age, address: { city } } = user;
+<span class="kw">const</span> [first, second, ...rest] = fruits;
+
+<span class="cmt">// Spread — copy &amp; merge without mutation</span>
+<span class="kw">const</span> updatedUser = { ...user, age: <span class="num">31</span> };    <span class="cmt">// ✅ immutable update</span>
+<span class="kw">const</span> newFruits = [...fruits, <span class="str">"elderberry"</span>]; <span class="cmt">// ✅ immutable add</span>
+
+<span class="cmt">// Object methods</span>
+<span class="fn">Object</span>.<span class="fn">keys</span>(user);    <span class="cmt">// ["name", "age", "address"]</span>
+<span class="fn">Object</span>.<span class="fn">values</span>(user);  <span class="cmt">// ["Alice", 30, {...}]</span>
+<span class="fn">Object</span>.<span class="fn">entries</span>(user); <span class="cmt">// [["name","Alice"], ["age",30], ...]</span>
+<span class="fn">Object</span>.<span class="fn">freeze</span>(user);  <span class="cmt">// prevents any changes</span></code></pre>
+
+        <div class="code-label">// Advanced: Chaining & Transforming Data</div>
+<pre><code><span class="kw">const</span> products = [
+  { name: <span class="str">"Laptop"</span>, price: <span class="num">999</span>, category: <span class="str">"tech"</span> },
+  { name: <span class="str">"Shirt"</span>,  price: <span class="num">29</span>,  category: <span class="str">"clothing"</span> },
+  { name: <span class="str">"Phone"</span>,  price: <span class="num">699</span>, category: <span class="str">"tech"</span> },
+];
+
+<span class="cmt">// Find tech products, apply discount, sort by price</span>
+<span class="kw">const</span> result = products
+  .<span class="fn">filter</span>(p => p.category === <span class="str">"tech"</span>)
+  .<span class="fn">map</span>(p => ({ ...p, price: p.price * <span class="num">0.9</span> }))
+  .<span class="fn">sort</span>((a, b) => a.price - b.price);
+
+<span class="cmt">// Optional chaining — safe property access</span>
+<span class="kw">const</span> zip = user?.address?.zip; <span class="cmt">// won't throw if address is undefined</span>
+
+<span class="cmt">// Nullish coalescing — default value only for null/undefined</span>
+<span class="kw">const</span> displayName = user.nickname ?? <span class="str">"Anonymous"</span>;</code></pre>
+
+        <div class="exercise-box">
+          <h4>🏋️ Exercises</h4>
+          <ol>
+            <li>Given an array of numbers, return only evens doubled, sorted ascending</li>
+            <li>Merge two objects without mutating either (use spread)</li>
+            <li>Use destructuring to swap two variables without a temp variable</li>
+          </ol>
+        </div>
+
+        <div class="info-box full" style="margin-top:12px">
+          <h4 style="color:var(--accent2)">❓ Interview Q&amp;A</h4>
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the difference between <code>slice</code> and <code>splice</code>?</span><span class="arrow">▶</span></div>
+              <div class="qa-a"><code>slice(start, end)</code> returns a new array — does NOT modify the original. <code>splice(start, deleteCount, ...items)</code> modifies the original array and returns removed elements. In React, always prefer <code>slice</code> to maintain immutability.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the difference between shallow copy and deep copy?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">Shallow copy (spread <code>{...obj}</code>, <code>Object.assign</code>) copies only top-level properties. Nested objects still share references. Deep copy (<code>structuredClone(obj)</code> or <code>JSON.parse(JSON.stringify(obj))</code>) recursively copies everything. Use deep copy when you have nested objects you don't want shared.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: DOM -->
+    <div class="topic-card" id="dom">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(63,232,197,0.1);color:var(--level1)">🌐</div>
+          <div>
+            <div class="topic-title">DOM Manipulation &amp; Events</div>
+            <div class="topic-subtitle">querySelector · addEventListener · event delegation · browser APIs</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// DOM Basics to Advanced</div>
+<pre><code><span class="cmt">// Selecting elements</span>
+<span class="kw">const</span> btn = document.<span class="fn">querySelector</span>(<span class="str">"#myBtn"</span>);
+<span class="kw">const</span> items = document.<span class="fn">querySelectorAll</span>(<span class="str">".list-item"</span>);
+
+<span class="cmt">// Modifying content</span>
+btn.textContent = <span class="str">"Click me"</span>;
+btn.innerHTML = <span class="str">"&lt;strong&gt;Bold&lt;/strong&gt;"</span>; <span class="cmt">// ⚠️ XSS risk if from user input</span>
+
+<span class="cmt">// Styling</span>
+btn.style.color = <span class="str">"blue"</span>;
+btn.classList.<span class="fn">add</span>(<span class="str">"active"</span>);
+btn.classList.<span class="fn">toggle</span>(<span class="str">"hidden"</span>);
+btn.classList.<span class="fn">contains</span>(<span class="str">"active"</span>); <span class="cmt">// true</span>
+
+<span class="cmt">// Events</span>
+btn.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, (e) => {
+  e.<span class="fn">preventDefault</span>();   <span class="cmt">// stop default behavior</span>
+  e.<span class="fn">stopPropagation</span>();  <span class="cmt">// stop event bubbling</span>
+  console.<span class="fn">log</span>(<span class="str">"clicked!"</span>, e.target);
+});
+
+<span class="cmt">// Event Delegation — one listener for many children</span>
+document.<span class="fn">querySelector</span>(<span class="str">"#list"</span>).<span class="fn">addEventListener</span>(<span class="str">"click"</span>, (e) => {
+  <span class="kw">if</span> (e.target.<span class="fn">matches</span>(<span class="str">".item"</span>)) {
+    console.<span class="fn">log</span>(<span class="str">"Item clicked:"</span>, e.target.dataset.id);
+  }
+});
+
+<span class="cmt">// Creating &amp; inserting elements</span>
+<span class="kw">const</span> li = document.<span class="fn">createElement</span>(<span class="str">"li"</span>);
+li.textContent = <span class="str">"New item"</span>;
+document.<span class="fn">querySelector</span>(<span class="str">"#list"</span>).<span class="fn">appendChild</span>(li);</code></pre>
+
+        <div class="mistake-box">
+          <h4>⚠️ Common Mistakes</h4>
+          <ul>
+            <li>Adding event listeners inside loops — use event delegation instead</li>
+            <li>Using <code>innerHTML</code> with user input — causes XSS vulnerabilities</li>
+            <li>Forgetting to remove event listeners causing memory leaks</li>
+          </ul>
+        </div>
+
+        <div class="exercise-box">
+          <h4>🏋️ Exercises</h4>
+          <ol>
+            <li>Build a todo list: add items, mark complete (toggle class), delete</li>
+            <li>Implement a search filter that hides/shows list items dynamically</li>
+            <li>Create a modal that opens/closes via button click</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: ES6+ -->
+    <div class="topic-card" id="es6">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(63,232,197,0.1);color:var(--level1)">✨</div>
+          <div>
+            <div class="topic-title">ES6+ Modern JavaScript</div>
+            <div class="topic-subtitle">template literals · destructuring · modules · optional chaining · nullish coalescing</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// ES6+ Feature Overview</div>
+<pre><code><span class="cmt">// Template Literals</span>
+<span class="kw">const</span> msg = <span class="str">`Hello </span>${name}<span class="str">, you are </span>${age}<span class="str"> years old`</span>;
+
+<span class="cmt">// Short Property Names</span>
+<span class="kw">const</span> x = <span class="num">1</span>, y = <span class="num">2</span>;
+<span class="kw">const</span> point = { x, y }; <span class="cmt">// { x: 1, y: 2 }</span>
+
+<span class="cmt">// Computed property names</span>
+<span class="kw">const</span> field = <span class="str">"email"</span>;
+<span class="kw">const</span> user = { [field]: <span class="str">"alice@example.com"</span> };
+
+<span class="cmt">// Symbol — unique primitive</span>
+<span class="kw">const</span> id = <span class="fn">Symbol</span>(<span class="str">"id"</span>);
+
+<span class="cmt">// Map &amp; Set — powerful collections</span>
+<span class="kw">const</span> map = <span class="kw">new</span> <span class="cls">Map</span>();
+map.<span class="fn">set</span>(<span class="str">"key"</span>, <span class="str">"value"</span>);
+map.<span class="fn">get</span>(<span class="str">"key"</span>); <span class="cmt">// "value"</span>
+
+<span class="kw">const</span> set = <span class="kw">new</span> <span class="cls">Set</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">2</span>, <span class="num">3</span>]);
+[...set]; <span class="cmt">// [1, 2, 3] — unique values only</span>
+<span class="kw">const</span> unique = [...<span class="kw">new</span> <span class="cls">Set</span>(arr)]; <span class="cmt">// deduplicate array!</span>
+
+<span class="cmt">// Generators — pauseable functions</span>
+<span class="kw">function</span>* <span class="fn">counter</span>() {
+  <span class="kw">let</span> i = <span class="num">0</span>;
+  <span class="kw">while</span> (<span class="kw">true</span>) <span class="kw">yield</span> i++;
+}
+<span class="kw">const</span> gen = <span class="fn">counter</span>();
+gen.<span class="fn">next</span>().value; <span class="cmt">// 0</span>
+gen.<span class="fn">next</span>().value; <span class="cmt">// 1</span>
+
+<span class="cmt">// Proxy — intercept object operations</span>
+<span class="kw">const</span> handler = {
+  <span class="fn">get</span>(target, prop) {
+    <span class="kw">return</span> prop <span class="kw">in</span> target ? target[prop] : <span class="str">`No property: </span>${prop}<span class="str">`</span>;
+  }
+};
+<span class="kw">const</span> safe = <span class="kw">new</span> <span class="cls">Proxy</span>({}, handler);</code></pre>
+      </div>
+    </div>
+
+    <!-- TOPIC: React Intro -->
+    <div class="topic-card" id="react-intro">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--accent)">⚛️</div>
+          <div>
+            <div class="topic-title">React Introduction &amp; JSX</div>
+            <div class="topic-subtitle">what is React · virtual DOM · JSX · rendering</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="section-grid">
+          <div class="info-box">
+            <h4 style="color:var(--accent)">📖 What is React?</h4>
+            <p>React is a JavaScript library for building user interfaces. It creates a <strong>Virtual DOM</strong> — a lightweight copy of the real DOM — to efficiently update only what changed instead of re-rendering everything.</p>
+          </div>
+          <div class="info-box">
+            <h4 style="color:var(--accent2)">⚡ Why React?</h4>
+            <ul>
+              <li>Component-based architecture = reusability</li>
+              <li>Declarative — describe WHAT the UI looks like, not HOW to change it</li>
+              <li>Huge ecosystem, great tooling, industry standard</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="code-label">// JSX — JavaScript + HTML syntax</div>
+<pre><code><span class="cmt">// JSX is syntactic sugar for React.createElement()</span>
+<span class="kw">const</span> element = <span class="jsx">&lt;h1 className="title"&gt;</span>Hello World<span class="jsx">&lt;/h1&gt;</span>;
+
+<span class="cmt">// JSX Rules:</span>
+<span class="cmt">// 1. Always return ONE root element (or use &lt;&gt;...&lt;/&gt; fragment)</span>
+<span class="cmt">// 2. Use className (not class), htmlFor (not for)</span>
+<span class="cmt">// 3. All tags must be closed: &lt;img /&gt; not &lt;img&gt;</span>
+<span class="cmt">// 4. JavaScript expressions inside {curly braces}</span>
+
+<span class="kw">const</span> <span class="fn">App</span> = () => {
+  <span class="kw">const</span> name = <span class="str">"Alice"</span>;
+  <span class="kw">const</span> isAdmin = <span class="kw">true</span>;
+
+  <span class="kw">return</span> (
+    <span class="jsx">&lt;&gt;</span>
+      <span class="jsx">&lt;h1&gt;</span>Welcome, {name}!<span class="jsx">&lt;/h1&gt;</span>
+      {isAdmin <span class="op">&amp;&amp;</span> <span class="jsx">&lt;span&gt;</span>Admin<span class="jsx">&lt;/span&gt;</span>}  <span class="cmt">// conditional rendering</span>
+      <span class="jsx">&lt;p&gt;</span>{isAdmin ? <span class="str">"Full access"</span> : <span class="str">"Limited access"</span>}<span class="jsx">&lt;/p&gt;</span>
+    <span class="jsx">&lt;/&gt;</span>
+  );
+};</code></pre>
+
+        <div class="info-box full" style="margin-top:12px">
+          <h4 style="color:var(--accent2)">❓ Interview Q&amp;A</h4>
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the Virtual DOM and why does React use it?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">The Virtual DOM is an in-memory representation of the real DOM. When state changes, React creates a new Virtual DOM tree and diffs it against the previous one (reconciliation). Only the actual changed elements are updated in the real DOM, making updates fast and efficient.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is JSX? Is it required in React?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">JSX is a syntax extension that lets you write HTML-like code in JavaScript. It's compiled by Babel to <code>React.createElement()</code> calls. It's not technically required — you could write raw <code>React.createElement()</code> — but JSX makes code much more readable and is the standard approach.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: React Components & Props -->
+    <div class="topic-card" id="react-components">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--accent)">🧩</div>
+          <div>
+            <div class="topic-title">Components, Props &amp; State</div>
+            <div class="topic-subtitle">functional components · useState · props drilling · lifting state</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Components, Props, useState</div>
+<pre><code><span class="cmt">// Functional Component with Props</span>
+<span class="kw">const</span> <span class="cls">Button</span> = ({ label, onClick, variant = <span class="str">"primary"</span>, disabled = <span class="kw">false</span> }) => (
+  <span class="jsx">&lt;button</span>
+    className={<span class="str">`btn btn--</span>${variant}<span class="str">`</span>}
+    onClick={onClick}
+    disabled={disabled}
+  <span class="jsx">&gt;</span>
+    {label}
+  <span class="jsx">&lt;/button&gt;</span>
+);
+
+<span class="cmt">// useState — managing local state</span>
+<span class="kw">import</span> { useState } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">const</span> <span class="cls">Counter</span> = () => {
+  <span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(<span class="num">0</span>);
+  
+  <span class="kw">return</span> (
+    <span class="jsx">&lt;div&gt;</span>
+      <span class="jsx">&lt;p&gt;</span>Count: {count}<span class="jsx">&lt;/p&gt;</span>
+      <span class="jsx">&lt;button</span> onClick={() => <span class="fn">setCount</span>(prev => prev + <span class="num">1</span>)}<span class="jsx">&gt;</span>+<span class="jsx">&lt;/button&gt;</span>
+      <span class="jsx">&lt;button</span> onClick={() => <span class="fn">setCount</span>(prev => prev - <span class="num">1</span>)}<span class="jsx">&gt;</span>-<span class="jsx">&lt;/button&gt;</span>
+    <span class="jsx">&lt;/div&gt;</span>
+  );
+};
+
+<span class="cmt">// Lifting State — share state between siblings</span>
+<span class="kw">const</span> <span class="cls">Parent</span> = () => {
+  <span class="kw">const</span> [value, setValue] = <span class="fn">useState</span>(<span class="str">""</span>);
+  <span class="kw">return</span> (
+    <span class="jsx">&lt;&gt;</span>
+      <span class="jsx">&lt;Input</span> value={value} onChange={setValue} <span class="jsx">/&gt;</span>
+      <span class="jsx">&lt;Display</span> value={value} <span class="jsx">/&gt;</span>
+    <span class="jsx">&lt;/&gt;</span>
+  );
+};
+
+<span class="cmt">// Rendering lists — always use a unique key</span>
+<span class="kw">const</span> <span class="cls">UserList</span> = ({ users }) => (
+  <span class="jsx">&lt;ul&gt;</span>
+    {users.<span class="fn">map</span>(user => (
+      <span class="jsx">&lt;li</span> key={user.id}<span class="jsx">&gt;</span>{user.name}<span class="jsx">&lt;/li&gt;</span>
+    ))}
+  <span class="jsx">&lt;/ul&gt;</span>
+);</code></pre>
+
+        <div class="mistake-box">
+          <h4>⚠️ Common Mistakes</h4>
+          <ul>
+            <li>Mutating state directly: <code>state.count++</code> — always use setter function</li>
+            <li>Using array index as key — breaks reconciliation if list reorders</li>
+            <li>Not using functional updates: <code>setCount(count + 1)</code> may be stale inside async operations</li>
+          </ul>
+        </div>
+
+        <div class="exercise-box">
+          <h4>🏋️ Exercises</h4>
+          <ol>
+            <li>Build a reusable <code>Card</code> component that accepts title, body, and footer as props</li>
+            <li>Create a controlled input component and display the live value below</li>
+            <li>Build a toggle switch that shows/hides a panel</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ LEVEL 2 ═══════════════════════════════ -->
+    <div class="level-header" style="border-color:rgba(124,109,250,0.3);background:rgba(124,109,250,0.04)">
+      <div>
+        <div class="level-badge" style="background:rgba(124,109,250,0.15);color:var(--level2)">LEVEL 2</div>
+      </div>
+      <div>
+        <h2 style="color:var(--level2)">Intermediate — Deeper JavaScript &amp; React</h2>
+        <p>Closures, async programming, error handling, hooks, forms, routing, and API integration.</p>
+      </div>
+    </div>
+
+    <!-- TOPIC: Closures -->
+    <div class="topic-card" id="closures">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--level2)">🔒</div>
+          <div>
+            <div class="topic-title">Closures &amp; Scope</div>
+            <div class="topic-subtitle">lexical scope · closure · IIFE · private variables · module pattern</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="info-box full">
+          <h4 style="color:var(--level2)">📖 What is a Closure?</h4>
+          <p>A closure is a function that <strong>remembers</strong> variables from its outer scope even after that outer function has finished executing. Think of it as a function bundled with its "memory".</p>
+        </div>
+
+        <div class="code-label">// Closures in depth</div>
+<pre><code><span class="cmt">// Basic Closure</span>
+<span class="kw">function</span> <span class="fn">outer</span>() {
+  <span class="kw">let</span> count = <span class="num">0</span>;                    <span class="cmt">// lives in outer's scope</span>
+  <span class="kw">return</span> <span class="kw">function</span> <span class="fn">inner</span>() {
+    count++;                          <span class="cmt">// "closes over" count</span>
+    <span class="kw">return</span> count;
+  };
+}
+<span class="kw">const</span> increment = <span class="fn">outer</span>();
+increment(); <span class="cmt">// 1</span>
+increment(); <span class="cmt">// 2</span>
+increment(); <span class="cmt">// 3 — count persists in memory!</span>
+
+<span class="cmt">// Real-World: Factory function with private state</span>
+<span class="kw">function</span> <span class="fn">createBankAccount</span>(initialBalance) {
+  <span class="kw">let</span> balance = initialBalance; <span class="cmt">// PRIVATE — can't be accessed outside</span>
+  
+  <span class="kw">return</span> {
+    <span class="fn">deposit</span>(amount) { balance += amount; },
+    <span class="fn">withdraw</span>(amount) {
+      <span class="kw">if</span> (amount > balance) <span class="kw">throw new</span> <span class="cls">Error</span>(<span class="str">"Insufficient funds"</span>);
+      balance -= amount;
+    },
+    <span class="fn">getBalance</span>() { <span class="kw">return</span> balance; }
+  };
+}
+
+<span class="kw">const</span> account = <span class="fn">createBankAccount</span>(<span class="num">100</span>);
+account.<span class="fn">deposit</span>(<span class="num">50</span>);
+account.<span class="fn">getBalance</span>(); <span class="cmt">// 150</span>
+account.balance;       <span class="cmt">// undefined — truly private!</span>
+
+<span class="cmt">// Closure in loops — classic gotcha</span>
+<span class="kw">for</span> (<span class="kw">var</span> i = <span class="num">0</span>; i < <span class="num">3</span>; i++) {
+  setTimeout(() => console.<span class="fn">log</span>(i), <span class="num">100</span>); <span class="cmt">// prints 3, 3, 3 ❌</span>
+}
+
+<span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < <span class="num">3</span>; i++) {
+  setTimeout(() => console.<span class="fn">log</span>(i), <span class="num">100</span>); <span class="cmt">// prints 0, 1, 2 ✅</span>
+}</code></pre>
+
+        <div class="info-box full" style="margin-top:12px">
+          <h4 style="color:var(--accent2)">❓ Interview Q&amp;A</h4>
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is a closure and give a practical example?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">A closure is a function that retains access to its outer scope's variables after the outer function returns. Practical examples: (1) data privacy / private variables, (2) memoization / caching, (3) event handlers that remember context, (4) partial application / currying. In React, every callback inside a component is a closure over state and props.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the difference between lexical scope and dynamic scope?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">JavaScript uses lexical (static) scope — a function's scope is determined by where it's WRITTEN in code, not where it's called. Dynamic scope (used by some other languages) would be determined by the call stack. Closures exist because of lexical scoping.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: Prototypes & OOP -->
+    <div class="topic-card" id="prototypes">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--level2)">🧬</div>
+          <div>
+            <div class="topic-title">Prototypes &amp; OOP</div>
+            <div class="topic-subtitle">prototype chain · classes · inheritance · this · call/apply/bind</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Prototype Chain & Classes</div>
+<pre><code><span class="cmt">// Every object has a [[Prototype]] — forms a chain</span>
+<span class="kw">const</span> arr = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+<span class="cmt">// arr → Array.prototype → Object.prototype → null</span>
+<span class="cmt">// That's why arr.map(), arr.length, etc. work!</span>
+
+<span class="cmt">// ES6 Class (syntactic sugar over prototypes)</span>
+<span class="kw">class</span> <span class="cls">Animal</span> {
+  <span class="fn">constructor</span>(name, sound) {
+    <span class="kw">this</span>.name = name;
+    <span class="kw">this</span>.sound = sound;
+  }
+  
+  <span class="fn">speak</span>() {
+    <span class="kw">return</span> <span class="str">`</span>${<span class="kw">this</span>.name}<span class="str"> says </span>${<span class="kw">this</span>.sound}<span class="str">!`</span>;
+  }
+
+  <span class="kw">static</span> <span class="fn">create</span>(name, sound) {
+    <span class="kw">return new</span> <span class="cls">Animal</span>(name, sound); <span class="cmt">// factory method</span>
+  }
+}
+
+<span class="kw">class</span> <span class="cls">Dog</span> <span class="kw">extends</span> <span class="cls">Animal</span> {
+  <span class="fn">constructor</span>(name) {
+    <span class="kw">super</span>(name, <span class="str">"woof"</span>); <span class="cmt">// must call super() first</span>
+    <span class="kw">this</span>.tricks = [];
+  }
+  
+  <span class="fn">learn</span>(trick) {
+    <span class="kw">this</span>.tricks.<span class="fn">push</span>(trick);
+  }
+  
+  <span class="fn">speak</span>() {
+    <span class="kw">return</span> <span class="kw">super</span>.<span class="fn">speak</span>() + <span class="str">" *wags tail*"</span>;
+  }
+}
+
+<span class="cmt">// this — context binding</span>
+<span class="kw">const</span> obj = {
+  name: <span class="str">"Alice"</span>,
+  greet() { <span class="kw">return</span> <span class="str">`Hi, I'm </span>${<span class="kw">this</span>.name}<span class="str">`</span>; }
+};
+
+<span class="kw">const</span> greetFn = obj.greet;
+greetFn();           <span class="cmt">// "Hi, I'm undefined" — 'this' lost!</span>
+obj.<span class="fn">greet</span>();        <span class="cmt">// "Hi, I'm Alice" — 'this' = obj</span>
+
+<span class="cmt">// Fix with bind / call / apply</span>
+<span class="kw">const</span> bound = obj.greet.<span class="fn">bind</span>(obj);
+bound();             <span class="cmt">// "Hi, I'm Alice"</span>
+obj.greet.<span class="fn">call</span>({ name: <span class="str">"Bob"</span> }); <span class="cmt">// "Hi, I'm Bob"</span></code></pre>
+
+        <div class="exercise-box">
+          <h4>🏋️ Exercises</h4>
+          <ol>
+            <li>Create a <code>Shape</code> base class and extend it with <code>Circle</code> and <code>Rectangle</code> with an <code>area()</code> method</li>
+            <li>Implement a simple <code>EventEmitter</code> class with <code>on</code>, <code>emit</code>, <code>off</code> methods</li>
+            <li>Explain what <code>this</code> is in 5 different contexts</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: Async -->
+    <div class="topic-card" id="async">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--level2)">⏳</div>
+          <div>
+            <div class="topic-title">Async Programming</div>
+            <div class="topic-subtitle">callbacks → Promises → async/await · fetch API · error handling</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Evolution of Async in JavaScript</div>
+<pre><code><span class="cmt">// STAGE 1: Callbacks — "callback hell"</span>
+<span class="fn">fetchUser</span>(id, (err, user) => {
+  <span class="kw">if</span> (err) <span class="kw">return</span> console.<span class="fn">error</span>(err);
+  <span class="fn">fetchPosts</span>(user.id, (err, posts) => {  <span class="cmt">// nested & messy</span>
+    <span class="kw">if</span> (err) <span class="kw">return</span> console.<span class="fn">error</span>(err);
+    <span class="fn">fetchComments</span>(posts[<span class="num">0</span>].id, (err, comments) => { <span class="cmt">// pyramid of doom</span>
+      <span class="cmt">// ... even deeper</span>
+    });
+  });
+});
+
+<span class="cmt">// STAGE 2: Promises — chainable, better error handling</span>
+<span class="fn">fetchUser</span>(id)
+  .<span class="fn">then</span>(user => <span class="fn">fetchPosts</span>(user.id))
+  .<span class="fn">then</span>(posts => <span class="fn">fetchComments</span>(posts[<span class="num">0</span>].id))
+  .<span class="fn">then</span>(comments => console.<span class="fn">log</span>(comments))
+  .<span class="fn">catch</span>(err => console.<span class="fn">error</span>(<span class="str">"Error:"</span>, err))
+  .<span class="fn">finally</span>(() => console.<span class="fn">log</span>(<span class="str">"Done!"</span>));
+
+<span class="cmt">// STAGE 3: async/await — reads like synchronous code ✅</span>
+<span class="kw">async function</span> <span class="fn">loadUserData</span>(id) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">fetchUser</span>(id);
+    <span class="kw">const</span> posts = <span class="kw">await</span> <span class="fn">fetchPosts</span>(user.id);
+    <span class="kw">const</span> comments = <span class="kw">await</span> <span class="fn">fetchComments</span>(posts[<span class="num">0</span>].id);
+    <span class="kw">return</span> { user, posts, comments };
+  } <span class="kw">catch</span> (error) {
+    console.<span class="fn">error</span>(<span class="str">"Failed:"</span>, error);
+    <span class="kw">throw</span> error;
+  }
+}
+
+<span class="cmt">// Parallel requests — don't await sequentially if independent!</span>
+<span class="kw">const</span> [users, products] = <span class="kw">await</span> Promise.<span class="fn">all</span>([
+  <span class="fn">fetchUsers</span>(),
+  <span class="fn">fetchProducts</span>()
+]);
+
+<span class="cmt">// Other Promise utilities</span>
+Promise.<span class="fn">allSettled</span>([...]) <span class="cmt">// all resolve/reject, get results for each</span>
+Promise.<span class="fn">race</span>([...])        <span class="cmt">// first one to resolve/reject wins</span>
+Promise.<span class="fn">any</span>([...])         <span class="cmt">// first to resolve (ignores rejections)</span>
+
+<span class="cmt">// Fetch API</span>
+<span class="kw">async function</span> <span class="fn">getUser</span>(id) {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/users/</span>${id}<span class="str">`</span>);
+  <span class="kw">if</span> (!res.ok) <span class="kw">throw new</span> <span class="cls">Error</span>(<span class="str">`HTTP error: </span>${res.status}<span class="str">`</span>);
+  <span class="kw">return</span> res.<span class="fn">json</span>(); <span class="cmt">// parse JSON</span>
+}
+
+<span class="cmt">// POST request</span>
+<span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"/api/users"</span>, {
+  method: <span class="str">"POST"</span>,
+  headers: { <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span> },
+  body: <span class="fn">JSON</span>.<span class="fn">stringify</span>({ name: <span class="str">"Alice"</span> })
+});</code></pre>
+
+        <div class="info-box full" style="margin-top:12px">
+          <h4 style="color:var(--accent2)">❓ Interview Q&amp;A</h4>
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What are the states of a Promise?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">A Promise has 3 states: (1) <strong>Pending</strong> — initial state, neither fulfilled nor rejected. (2) <strong>Fulfilled</strong> — operation completed successfully, <code>.then()</code> is called. (3) <strong>Rejected</strong> — operation failed, <code>.catch()</code> is called. Once settled (fulfilled or rejected), a Promise cannot change state.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the difference between Promise.all and Promise.allSettled?</span><span class="arrow">▶</span></div>
+              <div class="qa-a"><code>Promise.all</code> rejects immediately if ANY promise rejects (fail-fast). <code>Promise.allSettled</code> waits for ALL promises to complete and returns an array of objects with <code>{status: 'fulfilled'|'rejected', value|reason}</code>. Use <code>allSettled</code> when you need results from all operations even if some fail.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: Error Handling -->
+    <div class="topic-card" id="error-handling">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--level2)">🛡️</div>
+          <div>
+            <div class="topic-title">Error Handling &amp; Debugging</div>
+            <div class="topic-subtitle">try/catch/finally · custom errors · error boundaries · debugging tools</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Comprehensive Error Handling</div>
+<pre><code><span class="cmt">// Custom Error classes</span>
+<span class="kw">class</span> <span class="cls">ApiError</span> <span class="kw">extends</span> <span class="cls">Error</span> {
+  <span class="fn">constructor</span>(message, statusCode) {
+    <span class="kw">super</span>(message);
+    <span class="kw">this</span>.name = <span class="str">"ApiError"</span>;
+    <span class="kw">this</span>.statusCode = statusCode;
+  }
+}
+
+<span class="cmt">// Proper async error handling</span>
+<span class="kw">async function</span> <span class="fn">fetchData</span>(url) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(url);
+    <span class="kw">if</span> (!res.ok) <span class="kw">throw new</span> <span class="cls">ApiError</span>(<span class="str">"Request failed"</span>, res.status);
+    <span class="kw">return await</span> res.<span class="fn">json</span>();
+  } <span class="kw">catch</span> (err) {
+    <span class="kw">if</span> (err <span class="kw">instanceof</span> <span class="cls">ApiError</span>) {
+      console.<span class="fn">error</span>(<span class="str">`API Error </span>${err.statusCode}<span class="str">: </span>${err.message}<span class="str">`</span>);
+    } <span class="kw">else</span> {
+      console.<span class="fn">error</span>(<span class="str">"Network error:"</span>, err);
+    }
+    <span class="kw">throw</span> err; <span class="cmt">// re-throw so callers can handle it</span>
+  } <span class="kw">finally</span> {
+    console.<span class="fn">log</span>(<span class="str">"Request completed"</span>); <span class="cmt">// ALWAYS runs</span>
+  }
+}</code></pre>
+
+        <div class="code-label">// React Error Boundary</div>
+<pre><code><span class="cmt">// Catches errors in component tree (class component required)</span>
+<span class="kw">class</span> <span class="cls">ErrorBoundary</span> <span class="kw">extends</span> <span class="cls">React</span>.Component {
+  state = { hasError: <span class="kw">false</span>, error: <span class="kw">null</span> };
+
+  <span class="kw">static</span> <span class="fn">getDerivedStateFromError</span>(error) {
+    <span class="kw">return</span> { hasError: <span class="kw">true</span>, error };
+  }
+
+  <span class="fn">componentDidCatch</span>(error, info) {
+    <span class="fn">logToMonitoring</span>(error, info.componentStack); <span class="cmt">// e.g., Sentry</span>
+  }
+
+  <span class="fn">render</span>() {
+    <span class="kw">if</span> (<span class="kw">this</span>.state.hasError) {
+      <span class="kw">return</span> <span class="jsx">&lt;h2&gt;</span>Something went wrong. <span class="jsx">&lt;button</span> onClick={() => <span class="kw">this</span>.<span class="fn">setState</span>({hasError: <span class="kw">false</span>})}<span class="jsx">&gt;</span>Retry<span class="jsx">&lt;/button&gt;&lt;/h2&gt;</span>;
+    }
+    <span class="kw">return</span> <span class="kw">this</span>.props.children;
+  }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- TOPIC: React Hooks -->
+    <div class="topic-card" id="hooks">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--level2)">🪝</div>
+          <div>
+            <div class="topic-title">React Hooks Deep Dive</div>
+            <div class="topic-subtitle">useState · useReducer · useMemo · useCallback · useRef · useContext</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// All Essential Hooks</div>
+<pre><code><span class="kw">import</span> { useState, useReducer, useMemo, useCallback, useRef, useContext } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="cmt">// useState — for simple state</span>
+<span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(<span class="num">0</span>);
+<span class="kw">const</span> [user, setUser] = <span class="fn">useState</span>(<span class="kw">null</span>);
+
+<span class="cmt">// useReducer — for complex state logic (like mini-Redux)</span>
+<span class="kw">const</span> reducer = (state, action) => {
+  <span class="kw">switch</span> (action.type) {
+    <span class="kw">case</span> <span class="str">"INCREMENT"</span>: <span class="kw">return</span> { ...state, count: state.count + <span class="num">1</span> };
+    <span class="kw">case</span> <span class="str">"RESET"</span>:     <span class="kw">return</span> { count: <span class="num">0</span> };
+    <span class="kw">default</span>: <span class="kw">return</span> state;
+  }
+};
+<span class="kw">const</span> [state, dispatch] = <span class="fn">useReducer</span>(reducer, { count: <span class="num">0</span> });
+<span class="fn">dispatch</span>({ type: <span class="str">"INCREMENT"</span> });
+
+<span class="cmt">// useMemo — cache expensive calculations</span>
+<span class="kw">const</span> sortedList = <span class="fn">useMemo</span>(
+  () => [...items].<span class="fn">sort</span>((a, b) => a.price - b.price),
+  [items]  <span class="cmt">// only recalculate when items changes</span>
+);
+
+<span class="cmt">// useCallback — cache functions (for child component optimization)</span>
+<span class="kw">const</span> handleClick = <span class="fn">useCallback</span>(() => {
+  <span class="fn">setCount</span>(prev => prev + <span class="num">1</span>);
+}, []);  <span class="cmt">// [] = never recreated</span>
+
+<span class="cmt">// useRef — mutable value that doesn't trigger re-render</span>
+<span class="kw">const</span> inputRef = <span class="fn">useRef</span>(<span class="kw">null</span>);
+inputRef.current.<span class="fn">focus</span>();  <span class="cmt">// DOM access</span>
+
+<span class="kw">const</span> renderCount = <span class="fn">useRef</span>(<span class="num">0</span>);
+renderCount.current++;  <span class="cmt">// track without re-render</span>
+
+<span class="cmt">// useContext — consume context</span>
+<span class="kw">const</span> ThemeContext = <span class="cls">React</span>.<span class="fn">createContext</span>(<span class="str">"light"</span>);
+<span class="kw">const</span> theme = <span class="fn">useContext</span>(ThemeContext);</code></pre>
+
+        <div class="mistake-box">
+          <h4>⚠️ Common Hook Mistakes</h4>
+          <ul>
+            <li>Calling hooks inside conditionals or loops — hooks MUST be called at the top level</li>
+            <li>Missing dependencies in <code>useEffect</code>/<code>useMemo</code> dependency arrays</li>
+            <li>Overusing <code>useMemo</code>/<code>useCallback</code> — premature optimization adds complexity</li>
+            <li>Using stale closures — state inside callbacks can be outdated</li>
+          </ul>
+        </div>
+
+        <div class="info-box full" style="margin-top:12px">
+          <h4 style="color:var(--accent2)">❓ Interview Q&amp;A</h4>
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>When should you use useReducer vs useState?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">Use <code>useReducer</code> when: (1) next state depends on previous state in complex ways, (2) you have multiple sub-values in state that change together, (3) you want to co-locate state logic, (4) state transitions need to be testable. Use <code>useState</code> for simple independent values. Rule of thumb: if you have 3+ related state values or complex update logic, switch to useReducer.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the difference between useMemo and useCallback?</span><span class="arrow">▶</span></div>
+              <div class="qa-a"><code>useMemo</code> memoizes a <strong>computed value</strong> (the result of a function). <code>useCallback</code> memoizes a <strong>function itself</strong>. You'd use <code>useCallback</code> when passing a callback to a child component wrapped in <code>React.memo</code>, to prevent the child from re-rendering due to a new function reference every render.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: useEffect -->
+    <div class="topic-card" id="useeffect">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--level2)">🔄</div>
+          <div>
+            <div class="topic-title">useEffect &amp; Component Lifecycle</div>
+            <div class="topic-subtitle">side effects · cleanup · dependency array · mount/update/unmount</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// useEffect — every pattern</div>
+<pre><code><span class="kw">import</span> { useEffect, useState } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">const</span> <span class="cls">Component</span> = ({ userId }) => {
+  <span class="kw">const</span> [user, setUser] = <span class="fn">useState</span>(<span class="kw">null</span>);
+
+  <span class="cmt">// 1. Run ONCE on mount (empty deps [])</span>
+  <span class="fn">useEffect</span>(() => {
+    console.<span class="fn">log</span>(<span class="str">"Component mounted"</span>);
+  }, []);
+
+  <span class="cmt">// 2. Run on every render (no deps array)</span>
+  <span class="fn">useEffect</span>(() => {
+    console.<span class="fn">log</span>(<span class="str">"Component rendered"</span>);
+  });
+
+  <span class="cmt">// 3. Run when userId changes</span>
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">let</span> cancelled = <span class="kw">false</span>; <span class="cmt">// prevent state update after unmount</span>
+
+    <span class="kw">const</span> <span class="fn">loadUser</span> = <span class="kw">async</span> () => {
+      <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetchUser</span>(userId);
+      <span class="kw">if</span> (!cancelled) <span class="fn">setUser</span>(data);
+    };
+
+    <span class="fn">loadUser</span>();
+
+    <span class="cmt">// Cleanup function — runs before next effect or on unmount</span>
+    <span class="kw">return</span> () => { cancelled = <span class="kw">true</span>; };
+  }, [userId]);
+
+  <span class="cmt">// 4. Event listeners — ALWAYS cleanup!</span>
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">const</span> <span class="fn">handleResize</span> = () => console.<span class="fn">log</span>(window.innerWidth);
+    window.<span class="fn">addEventListener</span>(<span class="str">"resize"</span>, handleResize);
+    <span class="kw">return</span> () => window.<span class="fn">removeEventListener</span>(<span class="str">"resize"</span>, handleResize);
+  }, []);
+
+  <span class="cmt">// 5. Timers — ALWAYS cleanup!</span>
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">const</span> id = <span class="fn">setInterval</span>(() => <span class="fn">tick</span>(), <span class="num">1000</span>);
+    <span class="kw">return</span> () => <span class="fn">clearInterval</span>(id);
+  }, []);
+
+  <span class="kw">return</span> <span class="jsx">&lt;div&gt;</span>{user?.name}<span class="jsx">&lt;/div&gt;</span>;
+};</code></pre>
+
+        <div class="exercise-box">
+          <h4>🏋️ Exercises</h4>
+          <ol>
+            <li>Build a component that fetches a user profile when an ID prop changes</li>
+            <li>Create a custom <code>useWindowSize</code> hook using useEffect + event listener</li>
+            <li>Build a countdown timer with cleanup to prevent memory leaks</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: Forms -->
+    <div class="topic-card" id="forms">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--level2)">📋</div>
+          <div>
+            <div class="topic-title">Forms in React</div>
+            <div class="topic-subtitle">controlled inputs · validation · react-hook-form · Zod</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Controlled Form Pattern</div>
+<pre><code><span class="kw">import</span> { useState } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">const</span> <span class="cls">LoginForm</span> = ({ onSubmit }) => {
+  <span class="kw">const</span> [values, setValues] = <span class="fn">useState</span>({ email: <span class="str">""</span>, password: <span class="str">""</span> });
+  <span class="kw">const</span> [errors, setErrors] = <span class="fn">useState</span>({});
+
+  <span class="kw">const</span> <span class="fn">handleChange</span> = (e) => {
+    <span class="kw">const</span> { name, value } = e.target;
+    <span class="fn">setValues</span>(prev => ({ ...prev, [name]: value }));
+    <span class="kw">if</span> (errors[name]) <span class="fn">setErrors</span>(prev => ({ ...prev, [name]: <span class="str">""</span> }));
+  };
+
+  <span class="kw">const</span> <span class="fn">validate</span> = () => {
+    <span class="kw">const</span> errs = {};
+    <span class="kw">if</span> (!values.email.<span class="fn">includes</span>(<span class="str">"@"</span>)) errs.email = <span class="str">"Invalid email"</span>;
+    <span class="kw">if</span> (values.password.length < <span class="num">8</span>) errs.password = <span class="str">"Min 8 characters"</span>;
+    <span class="kw">return</span> errs;
+  };
+
+  <span class="kw">const</span> <span class="fn">handleSubmit</span> = (e) => {
+    e.<span class="fn">preventDefault</span>();
+    <span class="kw">const</span> errs = <span class="fn">validate</span>();
+    <span class="kw">if</span> (<span class="fn">Object</span>.<span class="fn">keys</span>(errs).length) <span class="kw">return</span> <span class="fn">setErrors</span>(errs);
+    <span class="fn">onSubmit</span>(values);
+  };
+
+  <span class="kw">return</span> (
+    <span class="jsx">&lt;form</span> onSubmit={handleSubmit}<span class="jsx">&gt;</span>
+      <span class="jsx">&lt;input</span> name="email" value={values.email} onChange={handleChange} <span class="jsx">/&gt;</span>
+      {errors.email <span class="op">&amp;&amp;</span> <span class="jsx">&lt;span&gt;</span>{errors.email}<span class="jsx">&lt;/span&gt;</span>}
+      <span class="jsx">&lt;input</span> name="password" type="password" value={values.password} onChange={handleChange} <span class="jsx">/&gt;</span>
+      {errors.password <span class="op">&amp;&amp;</span> <span class="jsx">&lt;span&gt;</span>{errors.password}<span class="jsx">&lt;/span&gt;</span>}
+      <span class="jsx">&lt;button</span> type="submit"<span class="jsx">&gt;</span>Login<span class="jsx">&lt;/button&gt;</span>
+    <span class="jsx">&lt;/form&gt;</span>
+  );
+};</code></pre>
+      </div>
+    </div>
+
+    <!-- TOPIC: React Router -->
+    <div class="topic-card" id="routing">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--level2)">🗺️</div>
+          <div>
+            <div class="topic-title">React Router v6</div>
+            <div class="topic-subtitle">BrowserRouter · Route · Link · useNavigate · useParams · protected routes</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// React Router Complete Setup</div>
+<pre><code><span class="kw">import</span> { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useParams, useSearchParams } <span class="kw">from</span> <span class="str">'react-router-dom'</span>;
+
+<span class="cmt">// App setup</span>
+<span class="kw">const</span> <span class="cls">App</span> = () => (
+  <span class="jsx">&lt;BrowserRouter&gt;</span>
+    <span class="jsx">&lt;nav&gt;</span>
+      <span class="jsx">&lt;Link</span> to="/"<span class="jsx">&gt;</span>Home<span class="jsx">&lt;/Link&gt;</span>
+      <span class="jsx">&lt;Link</span> to="/about"<span class="jsx">&gt;</span>About<span class="jsx">&lt;/Link&gt;</span>
+    <span class="jsx">&lt;/nav&gt;</span>
+    <span class="jsx">&lt;Routes&gt;</span>
+      <span class="jsx">&lt;Route</span> path="/" element={<span class="jsx">&lt;Home /&gt;</span>} <span class="jsx">/&gt;</span>
+      <span class="jsx">&lt;Route</span> path="/about" element={<span class="jsx">&lt;About /&gt;</span>} <span class="jsx">/&gt;</span>
+      <span class="jsx">&lt;Route</span> path="/users/:id" element={<span class="jsx">&lt;UserProfile /&gt;</span>} <span class="jsx">/&gt;</span>
+      <span class="jsx">&lt;Route</span> path="/dashboard" element={
+        <span class="jsx">&lt;ProtectedRoute&gt;</span><span class="jsx">&lt;Dashboard /&gt;</span><span class="jsx">&lt;/ProtectedRoute&gt;</span>
+      } <span class="jsx">/&gt;</span>
+      <span class="jsx">&lt;Route</span> path="*" element={<span class="jsx">&lt;NotFound /&gt;</span>} <span class="jsx">/&gt;</span>
+    <span class="jsx">&lt;/Routes&gt;</span>
+  <span class="jsx">&lt;/BrowserRouter&gt;</span>
+);
+
+<span class="cmt">// Read URL params</span>
+<span class="kw">const</span> <span class="cls">UserProfile</span> = () => {
+  <span class="kw">const</span> { id } = <span class="fn">useParams</span>();          <span class="cmt">// /users/42 → id = "42"</span>
+  <span class="kw">const</span> [search] = <span class="fn">useSearchParams</span>(); <span class="cmt">// ?tab=posts</span>
+  <span class="kw">const</span> tab = search.<span class="fn">get</span>(<span class="str">"tab"</span>);
+  <span class="kw">return</span> <span class="jsx">&lt;div&gt;</span>User: {id}, Tab: {tab}<span class="jsx">&lt;/div&gt;</span>;
+};
+
+<span class="cmt">// Programmatic navigation</span>
+<span class="kw">const</span> navigate = <span class="fn">useNavigate</span>();
+navigate(<span class="str">"/dashboard"</span>);              <span class="cmt">// push</span>
+navigate(<span class="str">-1</span>);                          <span class="cmt">// back</span>
+navigate(<span class="str">"/login"</span>, { replace: <span class="kw">true</span> }); <span class="cmt">// replace history entry</span>
+
+<span class="cmt">// Protected Route pattern</span>
+<span class="kw">const</span> <span class="cls">ProtectedRoute</span> = ({ children }) => {
+  <span class="kw">const</span> isAuth = <span class="fn">useAuth</span>(); <span class="cmt">// custom hook</span>
+  <span class="kw">return</span> isAuth ? children : <span class="jsx">&lt;Navigate</span> to="/login" replace <span class="jsx">/&gt;</span>;
+};</code></pre>
+      </div>
+    </div>
+
+    <!-- TOPIC: API Integration in React -->
+    <div class="topic-card" id="api-react">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--level2)">🔌</div>
+          <div>
+            <div class="topic-title">API Integration in React</div>
+            <div class="topic-subtitle">fetch · axios · loading states · error states · React Query</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Data Fetching Patterns</div>
+<pre><code><span class="cmt">// Pattern 1: Manual fetch with loading/error state</span>
+<span class="kw">const</span> <span class="cls">UserList</span> = () => {
+  <span class="kw">const</span> [users, setUsers] = <span class="fn">useState</span>([]);
+  <span class="kw">const</span> [loading, setLoading] = <span class="fn">useState</span>(<span class="kw">true</span>);
+  <span class="kw">const</span> [error, setError] = <span class="fn">useState</span>(<span class="kw">null</span>);
+
+  <span class="fn">useEffect</span>(() => {
+    <span class="fn">fetch</span>(<span class="str">"/api/users"</span>)
+      .<span class="fn">then</span>(r => r.<span class="fn">json</span>())
+      .<span class="fn">then</span>(data => <span class="fn">setUsers</span>(data))
+      .<span class="fn">catch</span>(err => <span class="fn">setError</span>(err.message))
+      .<span class="fn">finally</span>(() => <span class="fn">setLoading</span>(<span class="kw">false</span>));
+  }, []);
+
+  <span class="kw">if</span> (loading) <span class="kw">return</span> <span class="jsx">&lt;Spinner /&gt;</span>;
+  <span class="kw">if</span> (error) <span class="kw">return</span> <span class="jsx">&lt;Error</span> message={error} <span class="jsx">/&gt;</span>;
+  <span class="kw">return</span> <span class="jsx">&lt;ul&gt;</span>{users.<span class="fn">map</span>(u => <span class="jsx">&lt;li</span> key={u.id}<span class="jsx">&gt;</span>{u.name}<span class="jsx">&lt;/li&gt;</span>)}<span class="jsx">&lt;/ul&gt;</span>;
+};
+
+<span class="cmt">// Pattern 2: React Query (TanStack Query) — industry standard</span>
+<span class="kw">import</span> { useQuery, useMutation } <span class="kw">from</span> <span class="str">'@tanstack/react-query'</span>;
+
+<span class="kw">const</span> { data: users, isLoading, error, refetch } = <span class="fn">useQuery</span>({
+  queryKey: [<span class="str">'users'</span>],
+  queryFn: () => <span class="fn">fetch</span>(<span class="str">'/api/users'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>()),
+  staleTime: <span class="num">5</span> * <span class="num">60</span> * <span class="num">1000</span>, <span class="cmt">// 5 minutes</span>
+});
+
+<span class="cmt">// Mutation with optimistic update</span>
+<span class="kw">const</span> mutation = <span class="fn">useMutation</span>({
+  mutationFn: (newUser) => <span class="fn">fetch</span>(<span class="str">'/api/users'</span>, { method: <span class="str">'POST'</span>, body: <span class="fn">JSON</span>.<span class="fn">stringify</span>(newUser) }),
+  onSuccess: () => <span class="fn">queryClient</span>.<span class="fn">invalidateQueries</span>({ queryKey: [<span class="str">'users'</span>] })
+});</code></pre>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ LEVEL 3 ═══════════════════════════════ -->
+    <div class="level-header" style="border-color:rgba(247,201,72,0.3);background:rgba(247,201,72,0.04)">
+      <div>
+        <div class="level-badge" style="background:rgba(247,201,72,0.15);color:var(--level3)">LEVEL 3</div>
+      </div>
+      <div>
+        <h2 style="color:var(--level3)">Advanced — Patterns &amp; Performance</h2>
+        <p>Event loop, functional programming, DSA, state management, performance optimization.</p>
+      </div>
+    </div>
+
+    <!-- TOPIC: Event Loop -->
+    <div class="topic-card" id="event-loop">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(247,201,72,0.1);color:var(--level3)">🔁</div>
+          <div>
+            <div class="topic-title">Event Loop &amp; Concurrency</div>
+            <div class="topic-subtitle">call stack · heap · queue · microtasks · macrotasks · Web Workers</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="info-box full">
+          <h4 style="color:var(--level3)">📖 How JavaScript Actually Works</h4>
+          <p>JavaScript is <strong>single-threaded</strong> — it can only do one thing at a time. The Event Loop manages asynchronous operations. The <strong>Call Stack</strong> executes code. The <strong>Web APIs</strong> handle async tasks (timers, fetch). Completed callbacks go to the <strong>Task Queue</strong>. The Event Loop moves tasks from the queue to the stack when the stack is empty.</p>
+        </div>
+
+        <div class="code-label">// Event Loop Order — predict the output!</div>
+<pre><code>console.<span class="fn">log</span>(<span class="str">"1 - Start"</span>);            <span class="cmt">// synchronous</span>
+
+<span class="fn">setTimeout</span>(() => {
+  console.<span class="fn">log</span>(<span class="str">"2 - setTimeout"</span>);      <span class="cmt">// macrotask queue</span>
+}, <span class="num">0</span>);
+
+Promise.<span class="fn">resolve</span>().<span class="fn">then</span>(() => {
+  console.<span class="fn">log</span>(<span class="str">"3 - Promise"</span>);          <span class="cmt">// microtask queue</span>
+});
+
+<span class="fn">queueMicrotask</span>(() => {
+  console.<span class="fn">log</span>(<span class="str">"4 - queueMicrotask"</span>);   <span class="cmt">// microtask queue</span>
+});
+
+console.<span class="fn">log</span>(<span class="str">"5 - End"</span>);              <span class="cmt">// synchronous</span>
+
+<span class="cmt">// Output order: 1, 5, 3, 4, 2</span>
+<span class="cmt">// WHY: Sync first → Microtasks (Promises) → Macrotasks (setTimeout)</span>
+
+<span class="cmt">// Blocking the event loop — BAD practice</span>
+<span class="kw">const</span> <span class="fn">heavyWork</span> = () => {
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < <span class="num">1_000_000_000</span>; i++) {} <span class="cmt">// ← freezes the UI!</span>
+};
+
+<span class="cmt">// Solution: Web Worker for CPU-intensive tasks</span>
+<span class="kw">const</span> worker = <span class="kw">new</span> <span class="cls">Worker</span>(<span class="str">"./worker.js"</span>);
+worker.<span class="fn">postMessage</span>({ data: largeArray });
+worker.<span class="fn">onmessage</span> = (e) => console.<span class="fn">log</span>(<span class="str">"Done:"</span>, e.data);</code></pre>
+
+        <div class="info-box full" style="margin-top:12px">
+          <h4 style="color:var(--accent2)">❓ Interview Q&amp;A</h4>
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the difference between microtasks and macrotasks?</span><span class="arrow">▶</span></div>
+              <div class="qa-a"><strong>Microtasks</strong> (Promise callbacks, queueMicrotask, MutationObserver) run after the current task completes but BEFORE the next macrotask. <strong>Macrotasks</strong> (setTimeout, setInterval, I/O callbacks) are processed one per event loop iteration. The engine drains the entire microtask queue before moving to the next macrotask.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>How would you avoid blocking the event loop with heavy computation?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">Options: (1) <strong>Web Workers</strong> — run code in a separate thread. (2) <strong>Chunking</strong> — break work into pieces with <code>setTimeout(fn, 0)</code> between each. (3) <strong>requestIdleCallback</strong> — run during browser idle periods. (4) Move computation to the server. The key is never running synchronous loops that take longer than ~16ms (one frame).</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: Functional Programming -->
+    <div class="topic-card" id="fp">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(247,201,72,0.1);color:var(--level3)">λ</div>
+          <div>
+            <div class="topic-title">Functional Programming</div>
+            <div class="topic-subtitle">pure functions · immutability · composition · currying · point-free</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// FP Concepts in JavaScript</div>
+<pre><code><span class="cmt">// 1. Pure Functions — same input → same output, no side effects</span>
+<span class="kw">const</span> <span class="fn">add</span> = (a, b) => a + b;  <span class="cmt">// ✅ pure</span>
+<span class="kw">let</span> total = <span class="num">0</span>;
+<span class="kw">const</span> <span class="fn">addToTotal</span> = (n) => total += n; <span class="cmt">// ❌ impure (mutates external state)</span>
+
+<span class="cmt">// 2. Immutability — never mutate, always create new</span>
+<span class="kw">const</span> <span class="fn">addItem</span> = (list, item) => [...list, item];         <span class="cmt">// ✅</span>
+<span class="kw">const</span> <span class="fn">removeItem</span> = (list, id) => list.<span class="fn">filter</span>(i => i.id !== id); <span class="cmt">// ✅</span>
+<span class="kw">const</span> <span class="fn">updateItem</span> = (list, id, changes) =>
+  list.<span class="fn">map</span>(i => i.id === id ? { ...i, ...changes } : i);   <span class="cmt">// ✅</span>
+
+<span class="cmt">// 3. Function Composition</span>
+<span class="kw">const</span> <span class="fn">compose</span> = (...fns) => (x) => fns.<span class="fn">reduceRight</span>((acc, fn) => <span class="fn">fn</span>(acc), x);
+<span class="kw">const</span> <span class="fn">pipe</span>    = (...fns) => (x) => fns.<span class="fn">reduce</span>((acc, fn) => <span class="fn">fn</span>(acc), x);
+
+<span class="kw">const</span> <span class="fn">double</span> = x => x * <span class="num">2</span>;
+<span class="kw">const</span> <span class="fn">addTen</span> = x => x + <span class="num">10</span>;
+<span class="kw">const</span> <span class="fn">square</span> = x => x * x;
+
+<span class="kw">const</span> transform = <span class="fn">pipe</span>(double, addTen, square);
+<span class="fn">transform</span>(<span class="num">5</span>); <span class="cmt">// (5*2+10)² = 400</span>
+
+<span class="cmt">// 4. Currying — converting multi-arg function to single-arg chain</span>
+<span class="kw">const</span> <span class="fn">curry</span> = (fn) => (...args) =>
+  args.length >= fn.length ? <span class="fn">fn</span>(...args) : <span class="fn">curry</span>(<span class="fn">fn</span>.<span class="fn">bind</span>(<span class="kw">null</span>, ...args));
+
+<span class="kw">const</span> <span class="fn">multiply</span> = <span class="fn">curry</span>((a, b) => a * b);
+<span class="kw">const</span> double2 = <span class="fn">multiply</span>(<span class="num">2</span>);  <span class="cmt">// partially applied</span>
+double2(<span class="num">5</span>);                    <span class="cmt">// 10</span>
+
+<span class="cmt">// 5. Memoization — cache results of pure functions</span>
+<span class="kw">const</span> <span class="fn">memoize</span> = (fn) => {
+  <span class="kw">const</span> cache = <span class="kw">new</span> <span class="cls">Map</span>();
+  <span class="kw">return</span> (...args) => {
+    <span class="kw">const</span> key = <span class="fn">JSON</span>.<span class="fn">stringify</span>(args);
+    <span class="kw">if</span> (cache.<span class="fn">has</span>(key)) <span class="kw">return</span> cache.<span class="fn">get</span>(key);
+    <span class="kw">const</span> result = <span class="fn">fn</span>(...args);
+    cache.<span class="fn">set</span>(key, result);
+    <span class="kw">return</span> result;
+  };
+};</code></pre>
+      </div>
+    </div>
+
+    <!-- TOPIC: DSA -->
+    <div class="topic-card" id="dsa">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(247,201,72,0.1);color:var(--level3)">🌳</div>
+          <div>
+            <div class="topic-title">Data Structures &amp; Algorithms in JS</div>
+            <div class="topic-subtitle">Big O · arrays · hash maps · stacks · queues · trees · sorting · searching</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Essential DS&A Implementations</div>
+<pre><code><span class="cmt">// Big O Notation — how performance scales with input size</span>
+<span class="cmt">// O(1) constant, O(log n) log, O(n) linear, O(n log n), O(n²) quadratic</span>
+
+<span class="cmt">// Stack — LIFO (Last In, First Out)</span>
+<span class="kw">class</span> <span class="cls">Stack</span> {
+  #items = [];
+  <span class="fn">push</span>(item) { <span class="kw">this</span>.#items.<span class="fn">push</span>(item); }
+  <span class="fn">pop</span>()       { <span class="kw">return</span> <span class="kw">this</span>.#items.<span class="fn">pop</span>(); }
+  <span class="fn">peek</span>()      { <span class="kw">return</span> <span class="kw">this</span>.#items[<span class="kw">this</span>.#items.length - <span class="num">1</span>]; }
+  <span class="fn">isEmpty</span>()   { <span class="kw">return</span> <span class="kw">this</span>.#items.length === <span class="num">0</span>; }
+}
+
+<span class="cmt">// HashMap — O(1) average lookup</span>
+<span class="kw">const</span> freq = {};
+<span class="kw">const</span> arr = [<span class="str">"a"</span>, <span class="str">"b"</span>, <span class="str">"a"</span>, <span class="str">"c"</span>, <span class="str">"b"</span>, <span class="str">"a"</span>];
+<span class="kw">for</span> (<span class="kw">const</span> char <span class="kw">of</span> arr) freq[char] = (freq[char] || <span class="num">0</span>) + <span class="num">1</span>;
+<span class="cmt">// { a: 3, b: 2, c: 1 }</span>
+
+<span class="cmt">// Binary Search — O(log n)</span>
+<span class="kw">function</span> <span class="fn">binarySearch</span>(arr, target) {
+  <span class="kw">let</span> left = <span class="num">0</span>, right = arr.length - <span class="num">1</span>;
+  <span class="kw">while</span> (left <= right) {
+    <span class="kw">const</span> mid = Math.<span class="fn">floor</span>((left + right) / <span class="num">2</span>);
+    <span class="kw">if</span> (arr[mid] === target) <span class="kw">return</span> mid;
+    <span class="kw">else if</span> (arr[mid] < target) left = mid + <span class="num">1</span>;
+    <span class="kw">else</span> right = mid - <span class="num">1</span>;
+  }
+  <span class="kw">return</span> -<span class="num">1</span>;
+}
+
+<span class="cmt">// Two-Pointer — classic pattern for sorted arrays</span>
+<span class="kw">function</span> <span class="fn">twoSum</span>(nums, target) {
+  <span class="kw">let</span> left = <span class="num">0</span>, right = nums.length - <span class="num">1</span>;
+  <span class="kw">while</span> (left < right) {
+    <span class="kw">const</span> sum = nums[left] + nums[right];
+    <span class="kw">if</span> (sum === target) <span class="kw">return</span> [left, right];
+    <span class="kw">else if</span> (sum < target) left++;
+    <span class="kw">else</span> right--;
+  }
+}
+
+<span class="cmt">// Sliding Window — O(n) instead of O(n²)</span>
+<span class="kw">function</span> <span class="fn">maxSumSubarray</span>(arr, k) {
+  <span class="kw">let</span> sum = arr.<span class="fn">slice</span>(<span class="num">0</span>, k).<span class="fn">reduce</span>((a, b) => a + b, <span class="num">0</span>);
+  <span class="kw">let</span> max = sum;
+  <span class="kw">for</span> (<span class="kw">let</span> i = k; i < arr.length; i++) {
+    sum += arr[i] - arr[i - k];
+    max = Math.<span class="fn">max</span>(max, sum);
+  }
+  <span class="kw">return</span> max;
+}</code></pre>
+
+        <div class="exercise-box">
+          <h4>🏋️ LeetCode-Style Exercises</h4>
+          <ol>
+            <li>Reverse a string without built-in methods</li>
+            <li>Check if a string is a palindrome</li>
+            <li>Find two numbers in array that sum to target — O(n) solution</li>
+            <li>Flatten a nested array without Array.flat()</li>
+            <li>Implement debounce and throttle functions</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: State Management -->
+    <div class="topic-card" id="state-mgmt">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(247,201,72,0.1);color:var(--level3)">🏗️</div>
+          <div>
+            <div class="topic-title">State Management Strategy</div>
+            <div class="topic-subtitle">local → lifted → context → Zustand/Redux — when to use what</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="info-box full">
+          <h4 style="color:var(--level3)">📖 State Management Decision Tree</h4>
+          <ul>
+            <li><strong>Component-only state</strong> → <code>useState</code> / <code>useReducer</code></li>
+            <li><strong>Shared between siblings</strong> → Lift state to common parent</li>
+            <li><strong>Cross-cutting concerns</strong> (theme, auth, locale) → <code>Context API</code></li>
+            <li><strong>Complex app-wide state</strong> with many updates → <code>Zustand</code> or <code>Redux Toolkit</code></li>
+            <li><strong>Server state</strong> (API data) → <code>React Query</code> / <code>SWR</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC: Context & Redux -->
+    <div class="topic-card" id="context-redux">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(247,201,72,0.1);color:var(--level3)">🔮</div>
+          <div>
+            <div class="topic-title">Context API &amp; Redux Toolkit</div>
+            <div class="topic-subtitle">createContext · Provider · Redux slices · selectors · thunks</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Context API Pattern</div>
+<pre><code><span class="kw">import</span> { createContext, useContext, useReducer } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">const</span> AuthContext = <span class="fn">createContext</span>(<span class="kw">null</span>);
+
+<span class="kw">export const</span> <span class="cls">AuthProvider</span> = ({ children }) => {
+  <span class="kw">const</span> [user, setUser] = <span class="fn">useState</span>(<span class="kw">null</span>);
+
+  <span class="kw">const</span> <span class="fn">login</span> = <span class="kw">async</span> (credentials) => {
+    <span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">authService</span>.<span class="fn">login</span>(credentials);
+    <span class="fn">setUser</span>(user);
+  };
+
+  <span class="kw">const</span> <span class="fn">logout</span> = () => <span class="fn">setUser</span>(<span class="kw">null</span>);
+
+  <span class="kw">return</span> (
+    <span class="jsx">&lt;AuthContext.Provider</span> value={{ user, login, logout }}<span class="jsx">&gt;</span>
+      {children}
+    <span class="jsx">&lt;/AuthContext.Provider&gt;</span>
+  );
+};
+
+<span class="kw">export const</span> <span class="fn">useAuth</span> = () => {
+  <span class="kw">const</span> ctx = <span class="fn">useContext</span>(AuthContext);
+  <span class="kw">if</span> (!ctx) <span class="kw">throw new</span> <span class="cls">Error</span>(<span class="str">"useAuth must be inside AuthProvider"</span>);
+  <span class="kw">return</span> ctx;
+};</code></pre>
+
+        <div class="code-label">// Redux Toolkit (RTK) — modern Redux</div>
+<pre><code><span class="kw">import</span> { createSlice, createAsyncThunk } <span class="kw">from</span> <span class="str">'@reduxjs/toolkit'</span>;
+
+<span class="cmt">// Async thunk for API call</span>
+<span class="kw">export const</span> <span class="fn">fetchUsers</span> = <span class="fn">createAsyncThunk</span>(<span class="str">"users/fetchAll"</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"/api/users"</span>);
+  <span class="kw">return</span> res.<span class="fn">json</span>();
+});
+
+<span class="cmt">// Slice — combines reducer + actions</span>
+<span class="kw">const</span> usersSlice = <span class="fn">createSlice</span>({
+  name: <span class="str">"users"</span>,
+  initialState: { list: [], loading: <span class="kw">false</span>, error: <span class="kw">null</span> },
+  reducers: {
+    <span class="fn">addUser</span>(state, action) {
+      state.list.<span class="fn">push</span>(action.payload); <span class="cmt">// RTK uses Immer — mutation is OK here!</span>
+    },
+    <span class="fn">removeUser</span>(state, action) {
+      state.list = state.list.<span class="fn">filter</span>(u => u.id !== action.payload);
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      .<span class="fn">addCase</span>(fetchUsers.pending,   (state) => { state.loading = <span class="kw">true</span>; })
+      .<span class="fn">addCase</span>(fetchUsers.fulfilled, (state, action) => {
+        state.loading = <span class="kw">false</span>;
+        state.list = action.payload;
+      })
+      .<span class="fn">addCase</span>(fetchUsers.rejected,  (state, action) => {
+        state.loading = <span class="kw">false</span>;
+        state.error = action.error.message;
+      });
+  }
+});</code></pre>
+      </div>
+    </div>
+
+    <!-- TOPIC: JS Performance -->
+    <div class="topic-card" id="perf-js">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(247,201,72,0.1);color:var(--level3)">⚡</div>
+          <div>
+            <div class="topic-title">JavaScript Performance</div>
+            <div class="topic-subtitle">debounce · throttle · memoization · Web Workers · memory leaks</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Essential Performance Utilities</div>
+<pre><code><span class="cmt">// Debounce — wait until user STOPS typing</span>
+<span class="kw">function</span> <span class="fn">debounce</span>(fn, delay) {
+  <span class="kw">let</span> timer;
+  <span class="kw">return</span> (...args) => {
+    <span class="fn">clearTimeout</span>(timer);
+    timer = <span class="fn">setTimeout</span>(() => <span class="fn">fn</span>(...args), delay);
+  };
+}
+<span class="kw">const</span> debouncedSearch = <span class="fn">debounce</span>(<span class="fn">searchAPI</span>, <span class="num">300</span>);
+
+<span class="cmt">// Throttle — limit to once per time window</span>
+<span class="kw">function</span> <span class="fn">throttle</span>(fn, limit) {
+  <span class="kw">let</span> inThrottle;
+  <span class="kw">return</span> (...args) => {
+    <span class="kw">if</span> (!inThrottle) {
+      <span class="fn">fn</span>(...args);
+      inThrottle = <span class="kw">true</span>;
+      <span class="fn">setTimeout</span>(() => inThrottle = <span class="kw">false</span>, limit);
+    }
+  };
+}
+<span class="kw">const</span> throttledScroll = <span class="fn">throttle</span>(<span class="fn">handleScroll</span>, <span class="num">100</span>);
+
+<span class="cmt">// Lazy loading images with IntersectionObserver</span>
+<span class="kw">const</span> observer = <span class="kw">new</span> <span class="cls">IntersectionObserver</span>((entries) => {
+  entries.<span class="fn">forEach</span>(entry => {
+    <span class="kw">if</span> (entry.isIntersecting) {
+      entry.target.src = entry.target.dataset.src;
+      observer.<span class="fn">unobserve</span>(entry.target);
+    }
+  });
+});
+
+document.<span class="fn">querySelectorAll</span>(<span class="str">"img[data-src]"</span>).<span class="fn">forEach</span>(img => observer.<span class="fn">observe</span>(img));</code></pre>
+      </div>
+    </div>
+
+    <!-- TOPIC: React Performance -->
+    <div class="topic-card" id="react-perf">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(247,201,72,0.1);color:var(--level3)">🚀</div>
+          <div>
+            <div class="topic-title">React Performance Optimization</div>
+            <div class="topic-subtitle">React.memo · code splitting · lazy · Suspense · virtualization</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// All React Performance Techniques</div>
+<pre><code><span class="kw">import</span> { memo, lazy, Suspense, useTransition, useDeferredValue } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="cmt">// React.memo — prevent re-render if props unchanged</span>
+<span class="kw">const</span> <span class="cls">ExpensiveChild</span> = <span class="fn">memo</span>(({ data, onAction }) => {
+  <span class="kw">return</span> <span class="jsx">&lt;div&gt;</span>{data.<span class="fn">map</span>(item => <span class="jsx">&lt;Item</span> key={item.id} {...item} <span class="jsx">/&gt;</span>)}<span class="jsx">&lt;/div&gt;</span>;
+});
+
+<span class="cmt">// Code splitting — load only what's needed</span>
+<span class="kw">const</span> <span class="cls">Dashboard</span> = <span class="fn">lazy</span>(() => <span class="kw">import</span>(<span class="str">"./Dashboard"</span>));
+<span class="kw">const</span> <span class="cls">Settings</span>  = <span class="fn">lazy</span>(() => <span class="kw">import</span>(<span class="str">"./Settings"</span>));
+
+<span class="jsx">&lt;Suspense</span> fallback={<span class="jsx">&lt;Spinner /&gt;</span>}<span class="jsx">&gt;</span>
+  <span class="jsx">&lt;Routes&gt;</span>
+    <span class="jsx">&lt;Route</span> path="/dashboard" element={<span class="jsx">&lt;Dashboard /&gt;</span>} <span class="jsx">/&gt;</span>
+    <span class="jsx">&lt;Route</span> path="/settings"  element={<span class="jsx">&lt;Settings /&gt;</span>}  <span class="jsx">/&gt;</span>
+  <span class="jsx">&lt;/Routes&gt;</span>
+<span class="jsx">&lt;/Suspense&gt;</span>
+
+<span class="cmt">// useTransition — mark updates as non-urgent</span>
+<span class="kw">const</span> [isPending, startTransition] = <span class="fn">useTransition</span>();
+<span class="fn">startTransition</span>(() => {
+  <span class="fn">setSearchResults</span>(<span class="fn">filterLargeList</span>(query)); <span class="cmt">// won't block typing</span>
+});
+
+<span class="cmt">// useDeferredValue — defer non-critical renders</span>
+<span class="kw">const</span> deferredQuery = <span class="fn">useDeferredValue</span>(query);
+<span class="kw">const</span> results = <span class="fn">useMemo</span>(() => <span class="fn">filter</span>(list, deferredQuery), [list, deferredQuery]);
+
+<span class="cmt">// Virtual lists — render only visible items (react-window)</span>
+<span class="kw">import</span> { FixedSizeList } <span class="kw">from</span> <span class="str">'react-window'</span>;
+
+<span class="jsx">&lt;FixedSizeList</span>
+  height={400} itemCount={10000} itemSize={50} width="100%"
+<span class="jsx">&gt;</span>
+  {({ index, style }) => <span class="jsx">&lt;div</span> style={style}<span class="jsx">&gt;</span>Row {index}<span class="jsx">&lt;/div&gt;</span>}
+<span class="jsx">&lt;/FixedSizeList&gt;</span></code></pre>
+
+        <div class="info-box full" style="margin-top:12px">
+          <h4 style="color:var(--accent2)">❓ Interview Q&amp;A</h4>
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>When does a React component re-render?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">A component re-renders when: (1) its state changes, (2) its props change, (3) its parent re-renders (even if props didn't change!), (4) context it consumes changes. Use <code>React.memo</code> to prevent re-renders when props haven't changed. Note: React.memo is a shallow comparison by default.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is reconciliation in React?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">Reconciliation is React's diffing algorithm that determines the minimum DOM changes needed. React compares the new Virtual DOM tree with the previous one. It uses the component type and <code>key</code> prop to identify which elements have changed. Same type = update props. Different type = destroy and create. Keys help React match list items across renders.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ LEVEL 4 ═══════════════════════════════ -->
+    <div class="level-header" style="border-color:rgba(255,107,107,0.3);background:rgba(255,107,107,0.04)">
+      <div>
+        <div class="level-badge" style="background:rgba(255,107,107,0.15);color:var(--level4)">LEVEL 4</div>
+      </div>
+      <div>
+        <h2 style="color:var(--level4)">Expert — Architecture &amp; Testing</h2>
+        <p>Custom hooks, design patterns, testing, folder structure, and production best practices.</p>
+      </div>
+    </div>
+
+    <!-- TOPIC: Custom Hooks -->
+    <div class="topic-card" id="custom-hooks">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(255,107,107,0.1);color:var(--level4)">🎣</div>
+          <div>
+            <div class="topic-title">Custom Hooks</div>
+            <div class="topic-subtitle">useLocalStorage · useFetch · useDebounce · useIntersectionObserver</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Production-Ready Custom Hooks</div>
+<pre><code><span class="cmt">// useLocalStorage — persists state in localStorage</span>
+<span class="kw">function</span> <span class="fn">useLocalStorage</span>(key, initialValue) {
+  <span class="kw">const</span> [value, setValue] = <span class="fn">useState</span>(() => {
+    <span class="kw">try</span> {
+      <span class="kw">const</span> stored = localStorage.<span class="fn">getItem</span>(key);
+      <span class="kw">return</span> stored ? <span class="fn">JSON</span>.<span class="fn">parse</span>(stored) : initialValue;
+    } <span class="kw">catch</span> { <span class="kw">return</span> initialValue; }
+  });
+
+  <span class="kw">const</span> set = <span class="fn">useCallback</span>((val) => {
+    <span class="fn">setValue</span>(val);
+    localStorage.<span class="fn">setItem</span>(key, <span class="fn">JSON</span>.<span class="fn">stringify</span>(val));
+  }, [key]);
+
+  <span class="kw">return</span> [value, set];
+}
+
+<span class="cmt">// useDebounce — debounces a value</span>
+<span class="kw">function</span> <span class="fn">useDebounce</span>(value, delay = <span class="num">300</span>) {
+  <span class="kw">const</span> [debounced, setDebounced] = <span class="fn">useState</span>(value);
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">const</span> t = <span class="fn">setTimeout</span>(() => <span class="fn">setDebounced</span>(value), delay);
+    <span class="kw">return</span> () => <span class="fn">clearTimeout</span>(t);
+  }, [value, delay]);
+  <span class="kw">return</span> debounced;
+}
+
+<span class="cmt">// useFetch — reusable data fetching</span>
+<span class="kw">function</span> <span class="fn">useFetch</span>(url) {
+  <span class="kw">const</span> [state, dispatch] = <span class="fn">useReducer</span>(
+    (s, a) => ({ ...s, ...a }),
+    { data: <span class="kw">null</span>, loading: <span class="kw">true</span>, error: <span class="kw">null</span> }
+  );
+
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">if</span> (!url) <span class="kw">return</span>;
+    <span class="kw">let</span> active = <span class="kw">true</span>;
+    <span class="fn">dispatch</span>({ loading: <span class="kw">true</span>, error: <span class="kw">null</span> });
+    <span class="fn">fetch</span>(url)
+      .<span class="fn">then</span>(r => r.<span class="fn">json</span>())
+      .<span class="fn">then</span>(data => active <span class="op">&amp;&amp;</span> <span class="fn">dispatch</span>({ data, loading: <span class="kw">false</span> }))
+      .<span class="fn">catch</span>(error => active <span class="op">&amp;&amp;</span> <span class="fn">dispatch</span>({ error: error.message, loading: <span class="kw">false</span> }));
+    <span class="kw">return</span> () => { active = <span class="kw">false</span>; };
+  }, [url]);
+
+  <span class="kw">return</span> state;
+}
+
+<span class="cmt">// Usage</span>
+<span class="kw">const</span> { data, loading, error } = <span class="fn">useFetch</span>(<span class="str">"/api/users"</span>);</code></pre>
+      </div>
+    </div>
+
+    <!-- TOPIC: Design Patterns -->
+    <div class="topic-card" id="patterns">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(255,107,107,0.1);color:var(--level4)">🧠</div>
+          <div>
+            <div class="topic-title">React Design Patterns</div>
+            <div class="topic-subtitle">compound components · render props · HOC · provider pattern · container/presenter</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Compound Component Pattern</div>
+<pre><code><span class="cmt">// Flexible, composable APIs (like &lt;select&gt; + &lt;option&gt;)</span>
+<span class="kw">const</span> <span class="cls">Dropdown</span> = ({ children }) => {
+  <span class="kw">const</span> [open, setOpen] = <span class="fn">useState</span>(<span class="kw">false</span>);
+  <span class="kw">return</span> (
+    <span class="jsx">&lt;DropdownContext.Provider</span> value={{ open, setOpen }}<span class="jsx">&gt;</span>
+      <span class="jsx">&lt;div</span> className="dropdown"<span class="jsx">&gt;</span>{children}<span class="jsx">&lt;/div&gt;</span>
+    <span class="jsx">&lt;/DropdownContext.Provider&gt;</span>
+  );
+};
+<span class="cls">Dropdown</span>.Trigger = ({ children }) => { <span class="cmt">/* ... */</span> };
+<span class="cls">Dropdown</span>.Menu = ({ children }) => { <span class="cmt">/* ... */</span> };
+<span class="cls">Dropdown</span>.Item = ({ children, onClick }) => { <span class="cmt">/* ... */</span> };
+
+<span class="cmt">// Usage — declarative and flexible</span>
+<span class="jsx">&lt;Dropdown&gt;</span>
+  <span class="jsx">&lt;Dropdown.Trigger&gt;</span>Options<span class="jsx">&lt;/Dropdown.Trigger&gt;</span>
+  <span class="jsx">&lt;Dropdown.Menu&gt;</span>
+    <span class="jsx">&lt;Dropdown.Item</span> onClick={() => {}}<span class="jsx">&gt;</span>Edit<span class="jsx">&lt;/Dropdown.Item&gt;</span>
+    <span class="jsx">&lt;Dropdown.Item</span> onClick={() => {}}<span class="jsx">&gt;</span>Delete<span class="jsx">&lt;/Dropdown.Item&gt;</span>
+  <span class="jsx">&lt;/Dropdown.Menu&gt;</span>
+<span class="jsx">&lt;/Dropdown&gt;</span>
+
+<span class="cmt">// Higher-Order Component (HOC)</span>
+<span class="kw">const</span> <span class="fn">withAuth</span> = (WrappedComponent) => {
+  <span class="kw">return function</span> <span class="fn">AuthenticatedComponent</span>(props) {
+    <span class="kw">const</span> { user } = <span class="fn">useAuth</span>();
+    <span class="kw">if</span> (!user) <span class="kw">return</span> <span class="jsx">&lt;Navigate</span> to="/login" <span class="jsx">/&gt;</span>;
+    <span class="kw">return</span> <span class="jsx">&lt;WrappedComponent</span> {...props} user={user} <span class="jsx">/&gt;</span>;
+  };
+};
+<span class="kw">export default</span> <span class="fn">withAuth</span>(<span class="cls">Dashboard</span>);</code></pre>
+      </div>
+    </div>
+
+    <!-- TOPIC: Testing -->
+    <div class="topic-card" id="testing">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(255,107,107,0.1);color:var(--level4)">🧪</div>
+          <div>
+            <div class="topic-title">Testing React Applications</div>
+            <div class="topic-subtitle">Jest · React Testing Library · mocking · integration tests · Cypress</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// React Testing Library — test user behavior, not implementation</div>
+<pre><code><span class="kw">import</span> { render, screen, fireEvent, waitFor } <span class="kw">from</span> <span class="str">"@testing-library/react"</span>;
+<span class="kw">import</span> userEvent <span class="kw">from</span> <span class="str">"@testing-library/user-event"</span>;
+
+<span class="cmt">// Test a Button component</span>
+<span class="fn">describe</span>(<span class="str">"Button"</span>, () => {
+  <span class="fn">it</span>(<span class="str">"calls onClick when clicked"</span>, () => {
+    <span class="kw">const</span> handleClick = jest.<span class="fn">fn</span>();
+    <span class="fn">render</span>(<span class="jsx">&lt;Button</span> label="Submit" onClick={handleClick} <span class="jsx">/&gt;</span>);
+    
+    fireEvent.<span class="fn">click</span>(screen.<span class="fn">getByText</span>(<span class="str">"Submit"</span>));
+    expect(handleClick).<span class="fn">toHaveBeenCalledTimes</span>(<span class="num">1</span>);
+  });
+});
+
+<span class="cmt">// Test async data fetching</span>
+<span class="fn">it</span>(<span class="str">"shows users after loading"</span>, <span class="kw">async</span> () => {
+  jest.<span class="fn">spyOn</span>(global, <span class="str">"fetch"</span>).<span class="fn">mockResolvedValue</span>({
+    ok: <span class="kw">true</span>,
+    <span class="fn">json</span>: () => Promise.<span class="fn">resolve</span>([{ id: <span class="num">1</span>, name: <span class="str">"Alice"</span> }])
+  });
+
+  <span class="fn">render</span>(<span class="jsx">&lt;UserList /&gt;</span>);
+  
+  expect(screen.<span class="fn">getByText</span>(<span class="str">/loading/i</span>)).<span class="fn">toBeInTheDocument</span>();
+  
+  <span class="kw">await</span> <span class="fn">waitFor</span>(() => {
+    expect(screen.<span class="fn">getByText</span>(<span class="str">"Alice"</span>)).<span class="fn">toBeInTheDocument</span>();
+  });
+});
+
+<span class="cmt">// Test form interaction</span>
+<span class="fn">it</span>(<span class="str">"submits form with user input"</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> user = userEvent.<span class="fn">setup</span>();
+  <span class="kw">const</span> onSubmit = jest.<span class="fn">fn</span>();
+  <span class="fn">render</span>(<span class="jsx">&lt;LoginForm</span> onSubmit={onSubmit} <span class="jsx">/&gt;</span>);
+
+  <span class="kw">await</span> user.<span class="fn">type</span>(screen.<span class="fn">getByLabelText</span>(<span class="str">/email/i</span>), <span class="str">"alice@test.com"</span>);
+  <span class="kw">await</span> user.<span class="fn">type</span>(screen.<span class="fn">getByLabelText</span>(<span class="str">/password/i</span>), <span class="str">"password123"</span>);
+  <span class="kw">await</span> user.<span class="fn">click</span>(screen.<span class="fn">getByRole</span>(<span class="str">"button"</span>, { name: <span class="str">/login/i</span> }));
+
+  expect(onSubmit).<span class="fn">toHaveBeenCalledWith</span>({
+    email: <span class="str">"alice@test.com"</span>,
+    password: <span class="str">"password123"</span>
+  });
+});</code></pre>
+      </div>
+    </div>
+
+    <!-- TOPIC: Architecture -->
+    <div class="topic-card" id="architecture">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(255,107,107,0.1);color:var(--level4)">🏛️</div>
+          <div>
+            <div class="topic-title">Architecture &amp; Folder Structure</div>
+            <div class="topic-subtitle">feature-based · atomic design · barrel exports · SOLID in React</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Recommended Production Folder Structure</div>
+<pre><code>src/
+├── assets/              <span class="cmt"># images, fonts, global CSS</span>
+├── components/          <span class="cmt"># shared, reusable UI components</span>
+│   ├── ui/              <span class="cmt"># Button, Input, Modal, Card...</span>
+│   └── layout/          <span class="cmt"># Header, Sidebar, Footer...</span>
+├── features/            <span class="cmt"># feature-based modules (the core)</span>
+│   ├── auth/
+│   │   ├── components/  <span class="cmt"># LoginForm, RegisterForm</span>
+│   │   ├── hooks/       <span class="cmt"># useAuth, useLogin</span>
+│   │   ├── services/    <span class="cmt"># authApi.ts</span>
+│   │   ├── store/       <span class="cmt"># authSlice.ts</span>
+│   │   └── types.ts
+│   └── users/
+│       ├── components/
+│       ├── hooks/
+│       └── ...
+├── hooks/               <span class="cmt"># global custom hooks</span>
+├── lib/                 <span class="cmt"># third-party configurations (axios, queryClient)</span>
+├── pages/               <span class="cmt"># route-level components</span>
+├── services/            <span class="cmt"># API layer / data fetching</span>
+├── store/               <span class="cmt"># global Redux store</span>
+├── types/               <span class="cmt"># TypeScript types</span>
+└── utils/               <span class="cmt"># pure helper functions</span></code></pre>
+
+        <div class="exercise-box">
+          <h4>🏋️ Architecture Exercises</h4>
+          <ol>
+            <li>Refactor a monolithic component into smaller, single-responsibility components</li>
+            <li>Extract all API calls into a <code>services/</code> layer</li>
+            <li>Build a feature module for authentication with components, hooks, and a slice</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ LEVEL 5 ═══════════════════════════════ -->
+    <div class="level-header" style="border-color:rgba(255,77,166,0.3);background:rgba(255,77,166,0.04)">
+      <div>
+        <div class="level-badge" style="background:rgba(255,77,166,0.15);color:var(--level5)">LEVEL 5</div>
+      </div>
+      <div>
+        <h2 style="color:var(--level5)">Master — Internals &amp; Interview Domination</h2>
+        <p>React internals, Fiber, Concurrent Mode, and the most-asked interview questions.</p>
+      </div>
+    </div>
+
+    <!-- TOPIC: React Internals -->
+    <div class="topic-card" id="compiler-internals">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(255,77,166,0.1);color:var(--level5)">🔬</div>
+          <div>
+            <div class="topic-title">React Internals</div>
+            <div class="topic-subtitle">Fiber · reconciliation · Concurrent Mode · Server Components · hydration</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="section-grid">
+          <div class="info-box">
+            <h4 style="color:var(--level5)">🧵 React Fiber</h4>
+            <p>Fiber is React's reimplemented reconciliation engine (React 16+). It represents work as a linked list of "fibers" (units of work) that can be paused, resumed, or abandoned. This enables Concurrent Features.</p>
+          </div>
+          <div class="info-box">
+            <h4 style="color:var(--level5)">⚡ Concurrent Mode</h4>
+            <p>Allows React to work on multiple state updates simultaneously. Low-priority renders can be interrupted by high-priority ones. Powers <code>useTransition</code>, <code>useDeferredValue</code>, and Suspense.</p>
+          </div>
+          <div class="info-box full">
+            <h4 style="color:var(--level5)">🌐 React Server Components (RSC)</h4>
+            <p>Components that run <strong>only on the server</strong> — they can access databases directly, have zero bundle size impact, and can be mixed with Client Components. The paradigm shift: "async components" that await data without hooks or loading states. Next.js App Router is built on RSC.</p>
+          </div>
+        </div>
+
+        <div class="code-label">// Module & Bundling Concepts</div>
+<pre><code><span class="cmt">// ES Modules — native browser module system</span>
+<span class="kw">export const</span> PI = <span class="num">3.14</span>;
+<span class="kw">export default function</span> <span class="fn">main</span>() {}
+
+<span class="kw">import</span> main, { PI } <span class="kw">from</span> <span class="str">"./module.js"</span>;
+<span class="kw">import</span> * <span class="kw">as</span> utils <span class="kw">from</span> <span class="str">"./utils.js"</span>;
+<span class="kw">const</span> { default: Chart } = <span class="kw">await import</span>(<span class="str">"./Chart.js"</span>); <span class="cmt">// dynamic import</span>
+
+<span class="cmt">// Tree shaking — dead code elimination by bundlers (Vite/Webpack)</span>
+<span class="cmt">// Import only what you use → smaller bundle</span>
+<span class="kw">import</span> { debounce } <span class="kw">from</span> <span class="str">"lodash-es"</span>; <span class="cmt">// ✅ tree-shakeable</span>
+<span class="kw">import</span> _ <span class="kw">from</span> <span class="str">"lodash"</span>;             <span class="cmt">// ❌ imports entire library</span></code></pre>
+      </div>
+    </div>
+
+    <!-- TOPIC: Interview Prep -->
+    <div class="topic-card" id="interview-prep">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(255,77,166,0.1);color:var(--level5)">🎯</div>
+          <div>
+            <div class="topic-title">Master Interview Q&amp;A</div>
+            <div class="topic-subtitle">Top 30 most-asked JavaScript & React interview questions</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="info-box full">
+          <h4 style="color:var(--accent2)">🔥 JavaScript — Senior Level</h4>
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>Explain the prototype chain.</span><span class="arrow">▶</span></div>
+              <div class="qa-a">Every JavaScript object has an internal <code>[[Prototype]]</code> property pointing to another object. When you access a property, JS first looks at the object itself, then walks up the chain through prototypes until it finds it or reaches <code>null</code>. This is how inheritance works. <code>Object.prototype</code> is at the top of the chain.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the difference between call, apply, and bind?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">All three set the <code>this</code> context. <code>call(ctx, arg1, arg2)</code> invokes immediately with individual args. <code>apply(ctx, [arg1, arg2])</code> invokes immediately with array of args. <code>bind(ctx, arg1)</code> returns a NEW function with <code>this</code> permanently set, useful for event handlers.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is hoisting?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">Variable and function declarations are moved to the top of their scope during compilation. <code>var</code> declarations are hoisted AND initialized as <code>undefined</code>. <code>let</code>/<code>const</code> are hoisted but NOT initialized — accessing them before declaration causes a ReferenceError (the "Temporal Dead Zone"). Function declarations are fully hoisted (name + body).</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What are WeakMap and WeakSet used for?</span><span class="arrow">▶</span></div>
+              <div class="qa-a"><code>WeakMap</code>/<code>WeakSet</code> hold "weak" references — if the key (object) has no other references, it can be garbage collected. Regular <code>Map</code>/<code>Set</code> would prevent GC. Use cases: caching computed values without memory leaks, storing private data for class instances, tracking DOM nodes that may be removed.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>Explain generators and iterators.</span><span class="arrow">▶</span></div>
+              <div class="qa-a">An <strong>iterator</strong> is any object with a <code>next()</code> method returning <code>{value, done}</code>. A <strong>generator</strong> is a function that produces an iterator using <code>function*</code> and <code>yield</code>. Generators are lazy — they only compute values when requested. Use cases: infinite sequences, async iteration, implementing data pipelines.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box full" style="margin-top:12px">
+          <h4 style="color:var(--accent)">⚛️ React — Senior Level</h4>
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the rules of hooks and why do they exist?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">Two rules: (1) Only call hooks at the top level — not inside conditionals, loops, or nested functions. (2) Only call hooks from React functions. WHY: React relies on the ORDER of hook calls to track state between renders. If you call hooks conditionally, the order can change across renders, breaking React's ability to associate state with the right hook.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>How does React handle updates? What is batching?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">React groups multiple state updates into a single re-render for performance. In React 18, ALL updates are batched by default (including inside setTimeout, Promises, event handlers). Previously, only updates inside React event handlers were batched. Use <code>flushSync</code> if you need to force an immediate synchronous update.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the difference between controlled and uncontrolled components?</span><span class="arrow">▶</span></div>
+              <div class="qa-a"><strong>Controlled</strong>: form value is controlled by React state. React is the single source of truth. Requires <code>value</code> + <code>onChange</code>. <strong>Uncontrolled</strong>: DOM is the source of truth. Access values via <code>ref</code>. Controlled components give you more control and validation. Uncontrolled are simpler for file inputs or integrating non-React libraries.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is the Context API and when NOT to use it?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">Context provides a way to pass data through the component tree without prop drilling. BUT: any component consuming context re-renders whenever the context value changes, even if they only use a small part of it. Don't use context for frequently-changing state (e.g., mouse position, animation values) — it will cause excessive re-renders. Use Zustand or Redux for that.</div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-q" onclick="toggleQA(this)"><span>What is React.StrictMode and what does it do?</span><span class="arrow">▶</span></div>
+              <div class="qa-a">A tool for catching potential issues. In development only (not production), it: (1) double-invokes components to detect side effects in render, (2) double-invokes effects to detect missing cleanups, (3) warns about deprecated APIs. This is why effects run twice in dev — it's intentional to surface bugs.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box full" style="margin-top:12px;background:rgba(63,232,197,0.04);border-color:rgba(63,232,197,0.2)">
+          <h4 style="color:var(--accent3)">🎓 Coding Challenges to Master</h4>
+          <ul>
+            <li>Implement <code>Array.prototype.flat</code> from scratch</li>
+            <li>Implement <code>Promise.all</code> from scratch</li>
+            <li>Implement <code>debounce</code> and <code>throttle</code></li>
+            <li>Deep clone an object without <code>JSON.parse</code></li>
+            <li>Implement a basic event emitter</li>
+            <li>Build a virtual DOM diffing algorithm (simplified)</li>
+            <li>Implement <code>curry</code> function</li>
+            <li>Find the longest substring without repeating characters (O(n))</li>
+            <li>Implement LRU Cache using Map</li>
+            <li>Build a React component with infinite scroll</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- MODULES & TOOLING section -->
+    <div class="topic-card" id="modules">
+      <div class="topic-header" onclick="toggleTopic(this)">
+        <div class="topic-header-left">
+          <div class="topic-icon" style="background:rgba(124,109,250,0.1);color:var(--level2)">📦</div>
+          <div>
+            <div class="topic-title">Modules, Bundling &amp; Tooling</div>
+            <div class="topic-subtitle">ES Modules · Vite · Webpack · tree shaking · environments</div>
+          </div>
+        </div>
+        <span class="topic-toggle">+</span>
+      </div>
+      <div class="topic-body">
+        <div class="code-label">// Modern Toolchain Overview</div>
+<pre><code><span class="cmt">// Vite config (modern standard)</span>
+<span class="cmt">// vite.config.js</span>
+<span class="kw">import</span> { defineConfig } <span class="kw">from</span> <span class="str">"vite"</span>;
+<span class="kw">import</span> react <span class="kw">from</span> <span class="str">"@vitejs/plugin-react"</span>;
+
+<span class="kw">export default</span> <span class="fn">defineConfig</span>({
+  plugins: [<span class="fn">react</span>()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          <span class="cmt">// Split vendor libraries into separate chunk</span>
+          vendor: [<span class="str">"react"</span>, <span class="str">"react-dom"</span>],
+          router: [<span class="str">"react-router-dom"</span>]
+        }
+      }
+    }
+  }
+});
+
+<span class="cmt">// Environment variables</span>
+<span class="cmt">// .env file:</span>
+VITE_API_URL=https://api.example.com
+
+<span class="cmt">// Access in code:</span>
+<span class="kw">const</span> apiUrl = <span class="kw">import</span>.meta.env.VITE_API_URL;</code></pre>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:60px 0 20px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:0.75rem">
+      <p style="margin-bottom:8px;color:var(--text-muted);font-size:1rem;font-family:'Syne',sans-serif;font-weight:700">You're now interview-ready. 🚀</p>
+      <p>// Built with ❤️ for JavaScript &amp; React developers</p>
+    </div>
+
+  </div>
+</main>
+
+<!-- Scroll to top -->
+<button id="scrolltop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+  // Toggle topic cards
+  function toggleTopic(header) {
+    const card = header.closest('.topic-card');
+    card.classList.toggle('open');
+  }
+
+  // Toggle Q&A items
+  function toggleQA(qEl) {
+    const item = qEl.closest('.qa-item');
+    item.classList.toggle('open');
+  }
+
+  // Sidebar navigation
+  function jumpTo(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Auto-open the card if it's a topic card
+      const card = el.classList.contains('topic-card') ? el : el;
+      if (card.classList.contains('topic-card') && !card.classList.contains('open')) {
+        card.classList.add('open');
+      }
+      if (window.innerWidth <= 900) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+    }
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  // Search
+  function filterNav(q) {
+    const query = q.toLowerCase();
+    document.querySelectorAll('.nav-item').forEach(item => {
+      const text = item.textContent.toLowerCase();
+      item.style.display = text.includes(query) ? 'flex' : 'none';
+    });
+    document.querySelectorAll('.nav-section-label').forEach(label => {
+      label.style.display = q ? 'none' : 'block';
+    });
+  }
+
+  // Progress bar
+  const progressBar = document.getElementById('progress-bar');
+  const scrollBtn = document.getElementById('scrolltop');
+  
+  window.addEventListener('scroll', () => {
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = window.scrollY / total;
+    progressBar.style.transform = `scaleX(${progress})`;
+    scrollBtn.classList.toggle('visible', window.scrollY > 400);
+  });
+
+  // Close sidebar on outside click (mobile)
+  document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('nav-toggle');
+    if (window.innerWidth <= 900 && sidebar.classList.contains('open') &&
+        !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

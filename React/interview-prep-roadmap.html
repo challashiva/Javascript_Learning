@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep Roadmap — Frontend + AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #f5f2eb;
+    --surface:  #edeae0;
+    --surface2: #e4e0d4;
+    --ink:      #1a1814;
+    --ink2:     #4a453c;
+    --ink3:     #8a8278;
+    --rule:     rgba(26,24,20,0.1);
+
+    --m1: #c84b2f;   /* month 1 — terracotta */
+    --m2: #2d6a4f;   /* month 2 — forest */
+    --m3: #1e3f6e;   /* month 3 — navy */
+    --m4: #7b3f9e;   /* month 4 — plum */
+    --m5: #b5770d;   /* month 5 — amber */
+    --m6: #1a1814;   /* month 6 — ink */
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Cabinet Grotesk', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  /* ── TEXTURE ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    border-bottom: 2px solid var(--ink);
+    padding: 64px 48px 48px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: end;
+  }
+
+  .hero-kicker {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hero-kicker::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--ink3);
+  }
+
+  .hero h1 {
+    font-family: 'Clash Display', sans-serif;
+    font-size: clamp(38px, 5.5vw, 72px);
+    font-weight: 700;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+  }
+
+  .hero h1 em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .hero-right {
+    text-align: right;
+    padding-bottom: 6px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+
+  .hero-meta {
+    font-size: 13px;
+    color: var(--ink3);
+    line-height: 1.8;
+  }
+
+  /* ── PROFILE STRIP ── */
+  .profile-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .profile-item {
+    padding: 20px 32px;
+    border-right: 1px solid var(--rule);
+  }
+
+  .profile-item:last-child { border-right: none; }
+
+  .profile-item-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 4px;
+  }
+
+  .profile-item-value {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /* ── NAV ── */
+  .sticky-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .sticky-nav::-webkit-scrollbar { display: none; }
+
+  .nav-pill {
+    flex-shrink: 0;
+    padding: 12px 24px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .nav-pill:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+  .nav-month-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── MAIN ── */
+  .container { max-width: 1120px; margin: 0 auto; padding: 0 48px; }
+
+  /* ── MONTH SECTION ── */
+  .month {
+    padding: 72px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .month-header {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 48px;
+    margin-bottom: 48px;
+    align-items: start;
+  }
+
+  .month-num-wrap {
+    text-align: center;
+    padding-top: 4px;
+  }
+
+  .month-num {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 72px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.05em;
+  }
+
+  .month-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink3);
+  }
+
+  .month-title {
+    font-family: 'Clash Display', sans-serif;
+    font-size: clamp(24px, 3.5vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+
+  .month-tagline {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink3);
+    margin-bottom: 16px;
+  }
+
+  .month-goal {
+    font-size: 13px;
+    color: var(--ink2);
+    background: var(--surface);
+    border-left: 3px solid;
+    padding: 10px 16px;
+    max-width: 560px;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* ── WEEK GRID ── */
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .week-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .week-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .week-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 8px;
+  }
+
+  .week-title {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .week-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .week-items li {
+    font-size: 13px;
+    color: var(--ink2);
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    line-height: 1.4;
+  }
+
+  .week-items li::before {
+    content: '–';
+    flex-shrink: 0;
+    color: var(--ink3);
+  }
+
+  /* ── DELIVERABLE ── */
+  .deliverable {
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .deliverable-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .deliverable-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-bottom: 4px;
+  }
+
+  .deliverable-title {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .deliverable-desc {
+    font-size: 13px;
+    opacity: 0.7;
+    line-height: 1.5;
+  }
+
+  /* ── DAILY SCHEDULE ── */
+  .daily-schedule {
+    background: var(--surface2);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+
+  .schedule-title {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 16px;
+  }
+
+  .schedule-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .schedule-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 16px;
+    font-size: 13px;
+    align-items: center;
+  }
+
+  .schedule-time {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink3);
+  }
+
+  .schedule-task {
+    color: var(--ink2);
+    padding: 6px 10px;
+    background: var(--bg);
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+  }
+
+  /* ── RESOURCES ── */
+  .resources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .resource-chip {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink2);
+  }
+
+  /* ── INTERVIEW CHECKLIST ── */
+  .checklist {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+
+  .checklist-title {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 16px;
+  }
+
+  .check-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .check-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 13px;
+    color: var(--ink2);
+    line-height: 1.5;
+  }
+
+  .check-box {
+    width: 18px;
+    height: 18px;
+    border: 2px solid;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    transition: background 0.15s;
+    user-select: none;
+  }
+
+  .check-box.checked {
+    color: var(--bg);
+  }
+
+  .check-item.done .check-text {
+    text-decoration: line-through;
+    opacity: 0.4;
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .sec-divider {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sec-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  /* ── COLOR OVERRIDES per month ── */
+  .m1 .month-num { color: var(--m1); }
+  .m1 .month-goal { border-color: var(--m1); }
+  .m1 .week-card::before { background: var(--m1); }
+  .m1 .check-box { border-color: var(--m1); }
+  .m1 .check-box.checked { background: var(--m1); }
+
+  .m2 .month-num { color: var(--m2); }
+  .m2 .month-goal { border-color: var(--m2); }
+  .m2 .week-card::before { background: var(--m2); }
+  .m2 .check-box { border-color: var(--m2); }
+  .m2 .check-box.checked { background: var(--m2); }
+
+  .m3 .month-num { color: var(--m3); }
+  .m3 .month-goal { border-color: var(--m3); }
+  .m3 .week-card::before { background: var(--m3); }
+  .m3 .check-box { border-color: var(--m3); }
+  .m3 .check-box.checked { background: var(--m3); }
+
+  .m4 .month-num { color: var(--m4); }
+  .m4 .month-goal { border-color: var(--m4); }
+  .m4 .week-card::before { background: var(--m4); }
+  .m4 .check-box { border-color: var(--m4); }
+  .m4 .check-box.checked { background: var(--m4); }
+
+  .m5 .month-num { color: var(--m5); }
+  .m5 .month-goal { border-color: var(--m5); }
+  .m5 .week-card::before { background: var(--m5); }
+  .m5 .check-box { border-color: var(--m5); }
+  .m5 .check-box.checked { background: var(--m5); }
+
+  .m6 .month-num { color: var(--m6); }
+  .m6 .month-goal { border-color: var(--m6); }
+  .m6 .week-card::before { background: var(--m6); }
+  .m6 .check-box { border-color: var(--m6); }
+  .m6 .check-box.checked { background: var(--m6); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar-wrap {
+    padding: 24px 48px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface);
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 10px;
+  }
+
+  .progress-track {
+    height: 6px;
+    background: var(--rule);
+    border-radius: 100px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-segments {
+    display: flex;
+    height: 100%;
+  }
+
+  .progress-seg {
+    height: 100%;
+    flex: 1;
+    border-right: 2px solid var(--bg);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 48px;
+    border-top: 2px solid var(--ink);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+
+  .footer-motto {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--ink2);
+    line-height: 1.4;
+  }
+
+  .footer-tips {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .footer-tip {
+    font-size: 13px;
+    color: var(--ink2);
+    display: flex;
+    gap: 8px;
+  }
+
+  .footer-tip::before { content: '✦'; color: var(--ink3); flex-shrink: 0; }
+
+  @media (max-width: 700px) {
+    .hero { grid-template-columns: 1fr; padding: 32px 24px 24px; }
+    .hero-right { text-align: left; }
+    .profile-strip { grid-template-columns: 1fr 1fr; }
+    .month-header { grid-template-columns: 1fr; gap: 16px; }
+    .container { padding: 0 24px; }
+    .progress-bar-wrap { padding: 20px 24px; }
+    footer { grid-template-columns: 1fr; padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div>
+    <div class="hero-kicker">Interview Prep Roadmap · 8 yrs experience</div>
+    <h1>Land Your<br><em>Dream</em> Role in<br>3–6 Months</h1>
+  </div>
+  <div class="hero-right">
+    <div class="hero-badge">Personalized Plan</div>
+    <div class="hero-meta">
+      Target: Frontend + AI Integration<br>
+      Background: Angular · Ext JS · CSS · JS<br>
+      Learning: React · Python · Gen AI<br>
+      Timeline: 24 weeks
+    </div>
+  </div>
+</header>
+
+<!-- PROFILE STRIP -->
+<div class="profile-strip">
+  <div class="profile-item">
+    <div class="profile-item-label">Experience</div>
+    <div class="profile-item-value">8+ Years</div>
+  </div>
+  <div class="profile-item">
+    <div class="profile-item-label">Target Role</div>
+    <div class="profile-item-value">Frontend + AI</div>
+  </div>
+  <div class="profile-item">
+    <div class="profile-item-label">Prep Timeline</div>
+    <div class="profile-item-value">3–6 Months</div>
+  </div>
+  <div class="profile-item">
+    <div class="profile-item-label">Biggest Gaps</div>
+    <div class="profile-item-value">React · AI · DSA</div>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar-wrap">
+  <div class="progress-label">
+    <span>Month 1 — Foundation</span>
+    <span>Month 6 — Interview Ready ✦</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-segments">
+      <div class="progress-seg" style="background:var(--m1)"></div>
+      <div class="progress-seg" style="background:var(--m2)"></div>
+      <div class="progress-seg" style="background:var(--m3)"></div>
+      <div class="progress-seg" style="background:var(--m4)"></div>
+      <div class="progress-seg" style="background:var(--m5)"></div>
+      <div class="progress-seg" style="background:var(--m6)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- STICKY NAV -->
+<nav class="sticky-nav">
+  <a class="nav-pill" href="#m1"><span class="nav-month-dot" style="background:var(--m1)"></span>Month 1</a>
+  <a class="nav-pill" href="#m2"><span class="nav-month-dot" style="background:var(--m2)"></span>Month 2</a>
+  <a class="nav-pill" href="#m3"><span class="nav-month-dot" style="background:var(--m3)"></span>Month 3</a>
+  <a class="nav-pill" href="#m4"><span class="nav-month-dot" style="background:var(--m4)"></span>Month 4</a>
+  <a class="nav-pill" href="#m5"><span class="nav-month-dot" style="background:var(--m5)"></span>Month 5</a>
+  <a class="nav-pill" href="#m6"><span class="nav-month-dot" style="background:var(--m6)"></span>Month 6</a>
+</nav>
+
+<main class="container">
+
+  <!-- ══════════════════════════════════ MONTH 1 ══ -->
+  <section class="month m1" id="m1">
+    <div class="month-header">
+      <div class="month-num-wrap">
+        <div class="month-num">01</div>
+        <div class="month-label">Month One</div>
+      </div>
+      <div>
+        <h2 class="month-title">React Foundations + JS Deep Dive</h2>
+        <p class="month-tagline">Bridge your Angular expertise into the React world</p>
+        <div class="month-goal">🎯 Goal: Build 1 complete React app. Write JS from memory without Googling basics. Start DSA habit.</div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Weekly Breakdown</div>
+    <div class="week-grid">
+      <div class="week-card">
+        <div class="week-label">Week 1</div>
+        <div class="week-title">Modern JS Mastery</div>
+        <ul class="week-items">
+          <li>ES6+: destructuring, spread, rest</li>
+          <li>Promises, async/await, error handling</li>
+          <li>Array methods: map, filter, reduce, find</li>
+          <li>Modules: import/export patterns</li>
+          <li>Closures, hoisting, event loop</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 2</div>
+        <div class="week-title">React Core Concepts</div>
+        <ul class="week-items">
+          <li>JSX, props, state — Angular vs React mental model</li>
+          <li>useState, useEffect hooks</li>
+          <li>Component lifecycle equivalents</li>
+          <li>React Router v6 navigation</li>
+          <li>Event handling and forms</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 3</div>
+        <div class="week-title">React Intermediate</div>
+        <ul class="week-items">
+          <li>Custom hooks — extract reusable logic</li>
+          <li>Context API for shared state</li>
+          <li>useRef, useMemo, useCallback</li>
+          <li>Fetching data + loading/error states</li>
+          <li>Conditional rendering patterns</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 4</div>
+        <div class="week-title">DSA Start + Project</div>
+        <ul class="week-items">
+          <li>DSA: Arrays, Strings — 2 problems/day on LeetCode</li>
+          <li>Big O notation basics</li>
+          <li>Build: Movie Search App (React + TMDB API)</li>
+          <li>Deploy to Vercel — live URL for your portfolio</li>
+          <li>Write a README with what you learned</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sec-divider">Suggested Daily Schedule</div>
+    <div class="daily-schedule">
+      <div class="schedule-title">⏰ Recommended Daily Routine (2–3 hrs)</div>
+      <div class="schedule-rows">
+        <div class="schedule-row">
+          <span class="schedule-time">30 min</span>
+          <span class="schedule-task">1 LeetCode Easy problem (Arrays/Strings) — don't skip this</span>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-time">90 min</span>
+          <span class="schedule-task">Study + code: React / JS topic of the week</span>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-time">30 min</span>
+          <span class="schedule-task">Work on that week's project feature</span>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-time">15 min</span>
+          <span class="schedule-task">Review what you learned — write 3 bullet notes</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Month 1 Deliverable</div>
+    <div class="deliverable">
+      <div class="deliverable-icon">🎬</div>
+      <div>
+        <div class="deliverable-label">Ship This</div>
+        <div class="deliverable-title">Movie / TV Search App</div>
+        <div class="deliverable-desc">React + TMDB API. Search, results grid, detail page, favorites with localStorage. Deployed live on Vercel. This proves React fundamentals to any interviewer.</div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Resources</div>
+    <div class="resources">
+      <span class="resource-chip">react.dev (official docs)</span>
+      <span class="resource-chip">javascript.info</span>
+      <span class="resource-chip">LeetCode Easy — NeetCode list</span>
+      <span class="resource-chip">Kevin Powell (CSS YouTube)</span>
+      <span class="resource-chip">Scrimba React course</span>
+    </div>
+
+    <div class="sec-divider">Month 1 Completion Checklist</div>
+    <div class="checklist">
+      <div class="checklist-title">✅ Tick these off before moving to Month 2</div>
+      <div class="check-items">
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m1)"></div><span class="check-text">Can explain React hooks without reading docs</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m1)"></div><span class="check-text">Solved 20+ LeetCode Easy problems (Arrays & Strings)</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m1)"></div><span class="check-text">Deployed a live React app on Vercel</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m1)"></div><span class="check-text">Can explain async/await and Promises confidently</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m1)"></div><span class="check-text">Understand the Angular → React mental model shift</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════ MONTH 2 ══ -->
+  <section class="month m2" id="m2">
+    <div class="month-header">
+      <div class="month-num-wrap">
+        <div class="month-num">02</div>
+        <div class="month-label">Month Two</div>
+      </div>
+      <div>
+        <h2 class="month-title">TypeScript + Advanced React + DSA</h2>
+        <p class="month-tagline">Become the React developer companies actually hire</p>
+        <div class="month-goal">🎯 Goal: Write React in TypeScript fluently. Solve Medium DSA problems. Build a full-featured app.</div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Weekly Breakdown</div>
+    <div class="week-grid">
+      <div class="week-card">
+        <div class="week-label">Week 5</div>
+        <div class="week-title">TypeScript Essentials</div>
+        <ul class="week-items">
+          <li>Types, interfaces, unions, generics</li>
+          <li>Typing React components and props</li>
+          <li>Utility types: Partial, Required, Pick, Omit</li>
+          <li>Type narrowing and type guards</li>
+          <li>Strict mode — get comfortable with it</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 6</div>
+        <div class="week-title">State Management</div>
+        <ul class="week-items">
+          <li>Redux Toolkit: createSlice, createAsyncThunk</li>
+          <li>Zustand as a lighter alternative</li>
+          <li>React Query for server state (crucial for interviews)</li>
+          <li>When to use global vs local vs server state</li>
+          <li>Cache invalidation and optimistic updates</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 7</div>
+        <div class="week-title">DSA: Two Pointers + Hashmaps</div>
+        <ul class="week-items">
+          <li>Two pointer technique — 10 problems</li>
+          <li>Sliding window problems</li>
+          <li>HashMap patterns — frequency counts, lookups</li>
+          <li>Move from Easy → Medium LeetCode</li>
+          <li>Time yourself: 25 min per problem</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 8</div>
+        <div class="week-title">Build + Polish</div>
+        <ul class="week-items">
+          <li>Build: Finance / Expense Tracker in TypeScript</li>
+          <li>Add React Query for data fetching</li>
+          <li>Add Zustand for UI state</li>
+          <li>Responsive design with Tailwind CSS</li>
+          <li>Write unit tests with React Testing Library</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sec-divider">Month 2 Deliverable</div>
+    <div class="deliverable">
+      <div class="deliverable-icon">💰</div>
+      <div>
+        <div class="deliverable-label">Ship This</div>
+        <div class="deliverable-title">Expense Tracker Dashboard</div>
+        <div class="deliverable-desc">Full TypeScript React app. Categories, charts (Recharts), filters, monthly summaries. Zustand for state, React Query for data, Tailwind for UI. Shows you can build real product features.</div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Resources</div>
+    <div class="resources">
+      <span class="resource-chip">typescriptlang.org handbook</span>
+      <span class="resource-chip">TanStack Query docs</span>
+      <span class="resource-chip">Redux Toolkit docs</span>
+      <span class="resource-chip">NeetCode.io roadmap</span>
+      <span class="resource-chip">LeetCode Blind 75 list</span>
+    </div>
+
+    <div class="sec-divider">Month 2 Completion Checklist</div>
+    <div class="checklist">
+      <div class="checklist-title">✅ Tick these off before moving to Month 3</div>
+      <div class="check-items">
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m2)"></div><span class="check-text">Can write React components in TypeScript without using "any"</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m2)"></div><span class="check-text">Understand Redux vs Zustand vs React Query — and when to use each</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m2)"></div><span class="check-text">Solved 40+ LeetCode problems (mix of Easy + Medium)</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m2)"></div><span class="check-text">Shipped a TypeScript app with real state management</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m2)"></div><span class="check-text">Written at least a few component tests</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════ MONTH 3 ══ -->
+  <section class="month m3" id="m3">
+    <div class="month-header">
+      <div class="month-num-wrap">
+        <div class="month-num">03</div>
+        <div class="month-label">Month Three</div>
+      </div>
+      <div>
+        <h2 class="month-title">Gen AI Integration + System Design Intro</h2>
+        <p class="month-tagline">Build your first AI-powered product — this is your differentiator</p>
+        <div class="month-goal">🎯 Goal: Integrate an LLM API into a working React app. Start talking about system design confidently.</div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Weekly Breakdown</div>
+    <div class="week-grid">
+      <div class="week-card">
+        <div class="week-label">Week 9</div>
+        <div class="week-title">LLM APIs & Prompt Engineering</div>
+        <ul class="week-items">
+          <li>OpenAI / Anthropic Claude API — call from JS</li>
+          <li>Prompt engineering: system prompts, few-shot</li>
+          <li>Streaming responses with SSE</li>
+          <li>Token counting and cost awareness</li>
+          <li>Vercel AI SDK — the easy React integration</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 10</div>
+        <div class="week-title">Python for AI Backends</div>
+        <ul class="week-items">
+          <li>Python basics: functions, lists, dicts, classes</li>
+          <li>FastAPI: build a simple AI proxy endpoint</li>
+          <li>Call OpenAI from Python backend</li>
+          <li>Return streaming response to React frontend</li>
+          <li>Environment variables and .env management</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 11</div>
+        <div class="week-title">System Design Fundamentals</div>
+        <ul class="week-items">
+          <li>Frontend system design: component architecture</li>
+          <li>State management at scale</li>
+          <li>Performance: Core Web Vitals, lazy loading</li>
+          <li>Design a scalable search-as-you-type feature</li>
+          <li>Caching strategies: client, CDN, server</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 12</div>
+        <div class="week-title">AI App Build + DSA Trees</div>
+        <ul class="week-items">
+          <li>Build your AI project (see deliverable)</li>
+          <li>DSA: Binary trees — traversal, BFS, DFS</li>
+          <li>Practice 8–10 tree problems</li>
+          <li>DeepLearning.AI: "ChatGPT Prompt Engineering" course (free)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sec-divider">Month 3 Deliverable</div>
+    <div class="deliverable">
+      <div class="deliverable-icon">🤖</div>
+      <div>
+        <div class="deliverable-label">Ship This — Your Star Portfolio Piece</div>
+        <div class="deliverable-title">AI Document Chat App (RAG)</div>
+        <div class="deliverable-desc">Upload a PDF → ask questions about it → get AI answers with sources cited. React frontend + Python FastAPI backend + OpenAI API. This single project answers 80% of "AI experience" interview questions.</div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Resources</div>
+    <div class="resources">
+      <span class="resource-chip">platform.openai.com docs</span>
+      <span class="resource-chip">Vercel AI SDK docs</span>
+      <span class="resource-chip">DeepLearning.AI free courses</span>
+      <span class="resource-chip">FastAPI docs</span>
+      <span class="resource-chip">Frontend System Design — GreatFrontend</span>
+      <span class="resource-chip">NeetCode Trees playlist</span>
+    </div>
+
+    <div class="sec-divider">Month 3 Completion Checklist</div>
+    <div class="checklist">
+      <div class="checklist-title">✅ Tick these off before moving to Month 4</div>
+      <div class="check-items">
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m3)"></div><span class="check-text">Called an LLM API from both JavaScript and Python</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m3)"></div><span class="check-text">Built and deployed an AI-powered web app (live URL)</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m3)"></div><span class="check-text">Can whiteboard a frontend architecture for a chat interface</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m3)"></div><span class="check-text">Solved 60+ total LeetCode problems including trees</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m3)"></div><span class="check-text">Completed at least 1 DeepLearning.AI short course</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════ MONTH 4 ══ -->
+  <section class="month m4" id="m4">
+    <div class="month-header">
+      <div class="month-num-wrap">
+        <div class="month-num">04</div>
+        <div class="month-label">Month Four</div>
+      </div>
+      <div>
+        <h2 class="month-title">Next.js + Advanced AI + Interview Prep Begins</h2>
+        <p class="month-tagline">Tie everything together and start applying</p>
+        <div class="month-goal">🎯 Goal: Be comfortable in mock interviews. Understand SSR/SSG. Know RAG and agentic patterns.</div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Weekly Breakdown</div>
+    <div class="week-grid">
+      <div class="week-card">
+        <div class="week-label">Week 13</div>
+        <div class="week-title">Next.js Deep Dive</div>
+        <ul class="week-items">
+          <li>App Router: layouts, loading, error states</li>
+          <li>Server Components vs Client Components</li>
+          <li>SSR, SSG, ISR — when to use which</li>
+          <li>API routes and middleware</li>
+          <li>Next.js Image + Font optimization</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 14</div>
+        <div class="week-title">Advanced AI Patterns</div>
+        <ul class="week-items">
+          <li>Vector databases: embeddings + semantic search</li>
+          <li>RAG pipeline: chunk → embed → retrieve → generate</li>
+          <li>LangChain basics for Python agents</li>
+          <li>Function calling / tool use with LLMs</li>
+          <li>AI UI patterns: streaming, citations, regenerate</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 15</div>
+        <div class="week-title">Interview Coding Practice</div>
+        <ul class="week-items">
+          <li>DSA: Dynamic Programming — start easy problems</li>
+          <li>Practice "think aloud" coding — talk while you solve</li>
+          <li>JavaScript interview questions: closures, this, prototype</li>
+          <li>React interview: reconciliation, virtual DOM, re-renders</li>
+          <li>Do 3 timed mock sessions this week</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 16</div>
+        <div class="week-title">Portfolio Polish + Applying</div>
+        <ul class="week-items">
+          <li>Update GitHub profile — pin 3 best projects</li>
+          <li>Write project READMEs with architecture diagrams</li>
+          <li>Update LinkedIn with AI skills and new projects</li>
+          <li>Draft 2-sentence elevator pitch for interviews</li>
+          <li>Start applying — don't wait for "perfect"</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sec-divider">Month 4 Deliverable</div>
+    <div class="deliverable">
+      <div class="deliverable-icon">🏢</div>
+      <div>
+        <div class="deliverable-label">Ship This</div>
+        <div class="deliverable-title">AI-Powered SaaS Dashboard (Next.js)</div>
+        <div class="deliverable-desc">Next.js app with auth (NextAuth), an AI assistant feature (LLM), a data dashboard, and deployed to Vercel. Demonstrates full-stack Next.js + AI in one project. Your most impressive portfolio piece.</div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Resources</div>
+    <div class="resources">
+      <span class="resource-chip">nextjs.org docs</span>
+      <span class="resource-chip">GreatFrontend interview prep</span>
+      <span class="resource-chip">Frontend Interview Handbook</span>
+      <span class="resource-chip">Pinecone docs (vector DB)</span>
+      <span class="resource-chip">Pramp.com (mock interviews)</span>
+      <span class="resource-chip">interviewing.io</span>
+    </div>
+
+    <div class="sec-divider">Month 4 Completion Checklist</div>
+    <div class="checklist">
+      <div class="checklist-title">✅ Tick these off before moving to Month 5</div>
+      <div class="check-items">
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m4)"></div><span class="check-text">Can explain Server Components vs Client Components without hesitating</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m4)"></div><span class="check-text">Built and deployed a Next.js app with AI features</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m4)"></div><span class="check-text">Done at least 5 mock interview sessions (coding + behavioral)</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m4)"></div><span class="check-text">Applied to at least 10–15 roles</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m4)"></div><span class="check-text">GitHub profile looks polished with pinned projects</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════ MONTH 5 ══ -->
+  <section class="month m5" id="m5">
+    <div class="month-header">
+      <div class="month-num-wrap">
+        <div class="month-num">05</div>
+        <div class="month-label">Month Five</div>
+      </div>
+      <div>
+        <h2 class="month-title">Interview Simulation + Weak Area Blitz</h2>
+        <p class="month-tagline">Stop learning. Start performing under pressure.</p>
+        <div class="month-goal">🎯 Goal: Simulate real interview conditions weekly. Crush system design rounds. Close skill gaps fast.</div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Weekly Breakdown</div>
+    <div class="week-grid">
+      <div class="week-card">
+        <div class="week-label">Week 17</div>
+        <div class="week-title">Behavioral Interview Mastery</div>
+        <ul class="week-items">
+          <li>STAR method for storytelling (Situation, Task, Action, Result)</li>
+          <li>Map your 8 yrs into 8–10 strong STAR stories</li>
+          <li>Prep: leadership, conflict, failure, innovation questions</li>
+          <li>"Tell me about yourself" — craft a 90-second version</li>
+          <li>Research target companies: products, tech stack, mission</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 18</div>
+        <div class="week-title">System Design Deep Practice</div>
+        <ul class="week-items">
+          <li>Design: Twitter/X frontend architecture</li>
+          <li>Design: Infinite scroll feed</li>
+          <li>Design: Real-time collaborative editor</li>
+          <li>Design: AI chat product — your unique edge</li>
+          <li>Watch: Frontend System Design interviews on YouTube</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 19</div>
+        <div class="week-title">Coding Interview Sprint</div>
+        <ul class="week-items">
+          <li>Solve 3 problems per day — timed sessions</li>
+          <li>Review patterns: sliding window, BFS/DFS, DP</li>
+          <li>JS-specific: implement debounce, throttle, Promise.all</li>
+          <li>React-specific: build a custom hook in 10 minutes</li>
+          <li>Record yourself — watch your think-aloud flow</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 20</div>
+        <div class="week-title">Full Mock Interview Week</div>
+        <ul class="week-items">
+          <li>3 full mock interviews (Pramp, peers, or interviewing.io)</li>
+          <li>1 take-home assignment simulation (3-hour build)</li>
+          <li>Refine answers based on feedback</li>
+          <li>Negotiate salary research — know your market rate</li>
+          <li>Follow up on all applications in pipeline</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sec-divider">Key Interview Questions to Own</div>
+    <div class="checklist">
+      <div class="checklist-title">🎯 Master These — They Will Come Up</div>
+      <div class="check-items">
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m5)"></div><span class="check-text"><strong>React:</strong> Explain virtual DOM, reconciliation, and why keys matter in lists</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m5)"></div><span class="check-text"><strong>JS:</strong> What is the event loop? Explain with an example involving setTimeout and Promises</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m5)"></div><span class="check-text"><strong>Performance:</strong> How would you optimize a React app that re-renders too often?</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m5)"></div><span class="check-text"><strong>AI:</strong> What is RAG? How would you build a document Q&A system?</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m5)"></div><span class="check-text"><strong>System Design:</strong> How would you architect a real-time AI chat UI at scale?</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m5)"></div><span class="check-text"><strong>Behavioral:</strong> Tell me about a time you led a technically difficult migration</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m5)"></div><span class="check-text"><strong>Your story:</strong> Why are you transitioning toward AI-integrated frontend roles?</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════ MONTH 6 ══ -->
+  <section class="month m6" id="m6">
+    <div class="month-header">
+      <div class="month-num-wrap">
+        <div class="month-num">06</div>
+        <div class="month-label">Month Six</div>
+      </div>
+      <div>
+        <h2 class="month-title">Final Polish + Active Interviews</h2>
+        <p class="month-tagline">You're ready. Now execute.</p>
+        <div class="month-goal">🎯 Goal: Be in active interview loops. Close an offer. Negotiate confidently using your 8-yr experience as leverage.</div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Weekly Breakdown</div>
+    <div class="week-grid">
+      <div class="week-card">
+        <div class="week-label">Week 21</div>
+        <div class="week-title">Application Blitz</div>
+        <ul class="week-items">
+          <li>Apply to 20–30 roles — don't be selective yet</li>
+          <li>Target: AI startups, product companies, enterprises with AI teams</li>
+          <li>LinkedIn outreach to engineering managers directly</li>
+          <li>Resume: 1 page, bullet results not responsibilities</li>
+          <li>Track every application in a spreadsheet</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 22–23</div>
+        <div class="week-title">Interview Execution</div>
+        <ul class="week-items">
+          <li>Treat every interview as practice — not life-or-death</li>
+          <li>Ask good questions: team structure, tech decisions, AI roadmap</li>
+          <li>Send thank-you notes within 24 hours</li>
+          <li>After each interview: write what went well + what to improve</li>
+          <li>Keep applying — never stop the pipeline</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Week 24</div>
+        <div class="week-title">Offer & Negotiation</div>
+        <ul class="week-items">
+          <li>Never accept the first number — always negotiate</li>
+          <li>Use your 8 yrs as anchor: "based on my experience…"</li>
+          <li>Compare offers: salary, equity, AI learning opportunity</li>
+          <li>Get everything in writing before resigning</li>
+          <li>Celebrate — you earned this.</li>
+        </ul>
+      </div>
+      <div class="week-card">
+        <div class="week-label">Ongoing</div>
+        <div class="week-title">Keep Your Edge</div>
+        <ul class="week-items">
+          <li>Continue 1 LeetCode per day — even while interviewing</li>
+          <li>Follow AI news: Anthropic, OpenAI blogs weekly</li>
+          <li>Ship at least 1 side project in the AI space</li>
+          <li>Write on LinkedIn about what you're building — visibility matters</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sec-divider">Your Unique Value Proposition</div>
+    <div class="deliverable">
+      <div class="deliverable-icon">⭐</div>
+      <div>
+        <div class="deliverable-label">How to Position Yourself</div>
+        <div class="deliverable-title">"I bridge frontend engineering and AI integration"</div>
+        <div class="deliverable-desc">You have 8 years of deep frontend experience (Angular, Ext JS, CSS, JS) + new skills in React, Python, and Gen AI. That combination is rare and valuable. Most AI engineers can't build polished UIs. Most frontend devs don't understand AI. You do both — lead with that story in every interview.</div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Final Readiness Checklist</div>
+    <div class="checklist">
+      <div class="checklist-title">✅ You Are Interview Ready When…</div>
+      <div class="check-items">
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m6)"></div><span class="check-text">3 live portfolio projects deployed (including 1 AI-powered app)</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m6)"></div><span class="check-text">Solved 100+ LeetCode problems (60% Easy, 40% Medium)</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m6)"></div><span class="check-text">Can whiteboard a frontend system design in 30 minutes</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m6)"></div><span class="check-text">10+ mock interviews done — comfortable under pressure</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m6)"></div><span class="check-text">GitHub + LinkedIn updated, professional, and shows AI skills</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m6)"></div><span class="check-text">Strong STAR stories covering leadership, complexity, and AI work</span></div>
+        <div class="check-item"><div class="check-box" onclick="toggle(this)" style="border-color:var(--m6)"></div><span class="check-text">Clear elevator pitch: who you are, what you build, why AI + Frontend</span></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-motto">"Your 8 years aren't a starting point — they're your competitive advantage. Use them."</div>
+  </div>
+  <div class="footer-tips">
+    <div class="footer-tip">Ship projects publicly — a live URL is worth 10 bullet points on a resume</div>
+    <div class="footer-tip">Apply before you feel ready — interviews are practice too</div>
+    <div class="footer-tip">AI knowledge + frontend depth is a rare combo — own that story</div>
+    <div class="footer-tip">Consistency beats intensity — 2 hrs daily beats 14 hrs Sunday</div>
+    <div class="footer-tip">Your Angular/Ext JS experience shows you can handle complexity — leverage it</div>
+  </div>
+</footer>
+
+<script>
+  function toggle(el) {
+    const item = el.closest('.check-item');
+    el.classList.toggle('checked');
+    item.classList.toggle('done');
+    if (el.classList.contains('checked')) {
+      el.textContent = '✓';
+      el.style.background = el.style.borderColor;
+      el.style.color = '#f5f2eb';
+    } else {
+      el.textContent = '';
+      el.style.background = '';
+      el.style.color = '';
+    }
+  }
+</script>
+</body>
+</html>

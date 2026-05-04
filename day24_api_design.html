@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 24 — API Design &amp; REST</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --api:#f97316;--api-dim:rgba(249,115,22,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --emerald:#10b981;--emerald-dim:rgba(16,185,129,0.09);
+  --indigo:#6366f1;--indigo-dim:rgba(99,102,241,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--api);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--api);border-bottom-color:var(--api);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--api);font-weight:600;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;display:inline-block;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--api);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--api-dim);color:var(--api);border-color:rgba(249,115,22,.3);}
+.day-btn.primary:hover{background:rgba(249,115,22,.18);}
+
+.week-banner{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(45,212,191,.04));border-bottom:1px solid var(--border);padding:12px 48px;}
+.week-banner-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.week-badge{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--emerald-dim);color:var(--emerald);border:1px solid rgba(16,185,129,.25);white-space:nowrap;}
+.week-text{font-size:13px;color:var(--muted);}
+.week-text strong{color:var(--text);}
+
+.hero{padding:56px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--api);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--api);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--api);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.topics-strip{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;}
+.topic-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.topic-sub{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--api);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--api-dim);color:var(--api);border-color:rgba(249,115,22,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--api);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--api);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+.ty{color:#38bdf8;}
+
+.status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:14px 0;}
+.status-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.status-code{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;margin-bottom:4px;}
+.status-name{font-size:12px;font-weight:600;margin-bottom:6px;}
+.status-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--api);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--api);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--api-dim);color:var(--api);border:1px solid rgba(249,115,22,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(249,115,22,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:200px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(249,115,22,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--api);}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:14px 20px;background:var(--surface2);border-top:1px solid var(--border);}
+.sol-content.open{display:block;}
+.sol-content code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--api);line-height:1.8;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--api-dim);color:var(--api);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--api);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--api);border-color:var(--api);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--api);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--api-dim);color:var(--api);border-color:rgba(249,115,22,.3);}
+.footer-btn.primary:hover{background:rgba(249,115,22,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--api);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.topics-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav,.week-banner{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 24 · API Design</div>
+  <a href="#rest">REST Principles</a>
+  <a href="#routes">Route Design</a>
+  <a href="#status">Status Codes</a>
+  <a href="#handlers">Route Handlers</a>
+  <a href="#validation">Validation</a>
+  <a href="#errors">Error Handling</a>
+  <a href="#versioning">Versioning</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="week-banner">
+  <div class="week-banner-inner">
+    <span class="week-badge">Week 4 · Day 5</span>
+    <span class="week-text"><strong>API Design &amp; REST</strong> — design APIs that are intuitive, consistent, and a pleasure to consume. The principles that separate hobbyist APIs from production APIs.</span>
+  </div>
+</div>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 4 · <span>Day 24 of 56</span> · API Design &amp; REST</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="display:flex;gap:5px;align-items:center;" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day23_prisma_database.html',23)">← Day 23</button>
+      <button class="day-btn primary" onclick="navigateTo('day25_week4_review.html',25)">Day 25 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 4 · Day 24 · Production APIs</div>
+  <h1><em>API Design</em><br>&amp; REST</h1>
+  <p class="hero-sub">Great APIs are designed, not just written. REST conventions, consistent naming, the right status codes, thoughtful error responses, versioning strategy — these are the skills that separate APIs other developers love to use from ones they dread.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(249,115,22,.3);color:var(--api);">REST constraints</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">resource naming</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">HTTP status codes</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">Next.js Route Handlers</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">input validation</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">error response shape</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">rate limiting</span>
+    <span class="topic-pill" style="border-color:rgba(16,185,129,.3);color:var(--emerald);">versioning strategies</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">focus time</div></div>
+  </div>
+</div>
+
+<!-- TOPICS -->
+<div class="topics-strip">
+  <div class="topics-grid">
+    <div class="topic-card"><span class="topic-icon">📐</span><div><div class="topic-name">REST Principles</div><div class="topic-sub">stateless, uniform interface</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🗺️</span><div><div class="topic-name">Resource Naming</div><div class="topic-sub">nouns, plural, hierarchy</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🔢</span><div><div class="topic-name">HTTP Status Codes</div><div class="topic-sub">2xx, 4xx, 5xx — which when</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🛣️</span><div><div class="topic-name">Route Handlers</div><div class="topic-sub">Next.js GET/POST/PUT/DELETE</div></div></div>
+    <div class="topic-card"><span class="topic-icon">✅</span><div><div class="topic-name">Input Validation</div><div class="topic-sub">Zod + request parsing</div></div></div>
+    <div class="topic-card"><span class="topic-icon">❌</span><div><div class="topic-name">Error Responses</div><div class="topic-sub">consistent error shape</div></div></div>
+    <div class="topic-card"><span class="topic-icon">⏱️</span><div><div class="topic-name">Rate Limiting</div><div class="topic-sub">headers, retry-after</div></div></div>
+    <div class="topic-card"><span class="topic-icon">📦</span><div><div class="topic-name">Versioning</div><div class="topic-sub">URL vs header strategies</div></div></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 24 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">REST principles</span>
+    <span class="tdot" onclick="markDone(this)">Resource naming</span>
+    <span class="tdot" onclick="markDone(this)">Status codes</span>
+    <span class="tdot" onclick="markDone(this)">Route handlers</span>
+    <span class="tdot" onclick="markDone(this)">Validation</span>
+    <span class="tdot" onclick="markDone(this)">Error handling</span>
+    <span class="tdot" onclick="markDone(this)">Rate limiting</span>
+    <span class="tdot" onclick="markDone(this)">Versioning</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. REST PRINCIPLES -->
+<div class="section" id="rest">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">REST principles — what REST actually means</span>
+    <span class="sec-badge" style="background:var(--api-dim);color:var(--api);">foundations</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--api-dim);color:var(--api);">stateless</span>
+      <div class="cc-title">Each request contains all necessary information</div>
+      <div class="cc-body">The server stores no session state between requests. Every request must include everything needed — auth token, required parameters, body data. This makes APIs horizontally scalable (any server can handle any request) and predictable (the same request always produces the same outcome).</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">uniform interface</span>
+      <div class="cc-title">Consistent rules applied everywhere</div>
+      <div class="cc-body">Resources are identified by URLs. Representations (JSON) are separate from resources (database records). Actions are performed via HTTP methods — <code>GET</code> to read, <code>POST</code> to create, <code>PUT</code>/<code>PATCH</code> to update, <code>DELETE</code> to remove. No custom verbs in URLs like <code>/getUserById</code> or <code>/deleteProduct</code>.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">resource-oriented</span>
+      <div class="cc-title">Think in nouns, not verbs</div>
+      <div class="cc-body">REST APIs expose <strong>resources</strong> (things), not operations (actions). <code>/products</code> is a resource. <code>/products/42</code> is a specific resource. The HTTP method expresses the action. Bad: <code>POST /createProduct</code>. Good: <code>POST /products</code>. Bad: <code>GET /getUser?id=5</code>. Good: <code>GET /users/5</code>.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">client-server separation</span>
+      <div class="cc-title">Frontend and backend evolve independently</div>
+      <div class="cc-body">The API contract (routes, request/response shapes) is the only coupling between client and server. The React frontend can be rewritten without touching the API. A mobile app can consume the same API. The database can be replaced. This separation is what makes REST APIs reusable across multiple clients.</div>
+    </div>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">HTTP methods — what each means and when to use each</div>
+    <table class="comp-table">
+      <tr><th>Method</th><th>Meaning</th><th>Idempotent?</th><th>Has body?</th><th>Example</th></tr>
+      <tr><td><code>GET</code></td><td>Read a resource or collection</td><td style="color:var(--green);">Yes</td><td>No</td><td><code>GET /products/42</code></td></tr>
+      <tr><td><code>POST</code></td><td>Create a new resource</td><td style="color:var(--coral);">No</td><td>Yes</td><td><code>POST /products</code></td></tr>
+      <tr><td><code>PUT</code></td><td>Replace a resource entirely</td><td style="color:var(--green);">Yes</td><td>Yes</td><td><code>PUT /products/42</code> (full replacement)</td></tr>
+      <tr><td><code>PATCH</code></td><td>Partially update a resource</td><td style="color:var(--amber);">Sometimes</td><td>Yes</td><td><code>PATCH /products/42</code> (send only changed fields)</td></tr>
+      <tr><td><code>DELETE</code></td><td>Remove a resource</td><td style="color:var(--green);">Yes</td><td>No</td><td><code>DELETE /products/42</code></td></tr>
+      <tr><td><code>HEAD</code></td><td>Like GET but returns only headers</td><td style="color:var(--green);">Yes</td><td>No</td><td>Check if resource exists without downloading</td></tr>
+      <tr><td><code>OPTIONS</code></td><td>What methods does this resource support?</td><td style="color:var(--green);">Yes</td><td>No</td><td>CORS preflight check</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 02. ROUTE DESIGN -->
+<div class="section" id="routes">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Resource naming — URL design that makes sense</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">naming</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">text</span><span class="cb-desc">Good vs bad URL design — the rules that make APIs intuitive</span></div>
+    <div class="cb-body"><pre style="font-size:13px;color:var(--muted);line-height:2.0;"><span class="cm">// ── Rule 1: Nouns not verbs ───────────────────────────────</span>
+❌  GET  /getProducts          ✅  GET  /products
+❌  POST /createProduct        ✅  POST /products
+❌  GET  /deleteUser?id=5      ✅  DELETE /users/5
+
+<span class="cm">// ── Rule 2: Plural nouns for collections ──────────────────</span>
+❌  GET  /product              ✅  GET  /products
+❌  GET  /user/42              ✅  GET  /users/42
+❌  GET  /order-item           ✅  GET  /order-items
+
+<span class="cm">// ── Rule 3: Hierarchical for owned resources ──────────────</span>
+✅  GET  /users/42/orders           <span class="cm">← orders belonging to user 42</span>
+✅  GET  /orders/99/items           <span class="cm">← items in order 99</span>
+✅  GET  /products/42/reviews       <span class="cm">← reviews for product 42</span>
+✅  POST /products/42/reviews       <span class="cm">← create a review for product 42</span>
+❌  GET  /getUserOrders?userId=42   <span class="cm">← wrong: verb + query param</span>
+
+<span class="cm">// ── Rule 4: Query params for filtering/sorting/pagination ─</span>
+✅  GET  /products?category=laptops&sort=price&order=asc&page=2&limit=20
+✅  GET  /orders?status=PENDING&userId=42
+✅  GET  /products?q=macbook          <span class="cm">← search</span>
+❌  GET  /products/filterByCategory/laptops
+
+<span class="cm">// ── Rule 5: Actions as sub-resources (when needed) ────────</span>
+✅  POST /orders/99/cancel          <span class="cm">← cancel an order (not PATCH status)</span>
+✅  POST /users/42/password/reset   <span class="cm">← trigger password reset</span>
+✅  POST /products/42/publish       <span class="cm">← publish a draft</span>
+
+<span class="cm">// ── Rule 6: kebab-case, lowercase ────────────────────────</span>
+❌  GET /orderItems              ✅  GET /order-items
+❌  GET /ProductCategories       ✅  GET /product-categories
+❌  GET /user_profile            ✅  GET /user-profiles
+
+<span class="cm">// ── Full React Shop API surface ───────────────────────────</span>
+GET    /api/products               → list (paginated, filterable)
+POST   /api/products               → create (admin only)
+GET    /api/products/:id           → get one
+PATCH  /api/products/:id           → update (admin only)
+DELETE /api/products/:id           → delete (admin only)
+GET    /api/products/:id/reviews   → product's reviews
+
+GET    /api/users/me               → current user profile
+PATCH  /api/users/me               → update profile
+GET    /api/users/me/orders        → my orders
+
+POST   /api/orders                 → place order
+GET    /api/orders/:id             → get order details
+POST   /api/orders/:id/cancel      → cancel order</pre></div>
+  </div>
+</div>
+
+<!-- 03. STATUS CODES -->
+<div class="section" id="status">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">HTTP status codes — the right code for every response</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">status codes</span>
+  </div>
+
+  <div class="status-grid">
+    <div class="status-card">
+      <div class="status-code" style="color:var(--green);">200</div>
+      <div class="status-name">OK</div>
+      <div class="status-desc">Successful GET, PATCH, DELETE. Body contains requested data or updated resource.</div>
+    </div>
+    <div class="status-card">
+      <div class="status-code" style="color:var(--green);">201</div>
+      <div class="status-name">Created</div>
+      <div class="status-desc">Successful POST — resource created. Include <code>Location</code> header with new resource URL.</div>
+    </div>
+    <div class="status-card">
+      <div class="status-code" style="color:var(--green);">204</div>
+      <div class="status-name">No Content</div>
+      <div class="status-desc">Successful DELETE or action with no response body. Empty response — no JSON.</div>
+    </div>
+    <div class="status-card">
+      <div class="status-code" style="color:var(--blue);">400</div>
+      <div class="status-name">Bad Request</div>
+      <div class="status-desc">Invalid input — missing fields, wrong types, validation failure. Return which fields failed.</div>
+    </div>
+    <div class="status-card">
+      <div class="status-code" style="color:var(--blue);">401</div>
+      <div class="status-name">Unauthorized</div>
+      <div class="status-desc">Not authenticated — no token or expired token. Misleadingly named (it's really "unauthenticated").</div>
+    </div>
+    <div class="status-card">
+      <div class="status-code" style="color:var(--blue);">403</div>
+      <div class="status-name">Forbidden</div>
+      <div class="status-desc">Authenticated but not authorised — wrong role, not the resource owner.</div>
+    </div>
+    <div class="status-card">
+      <div class="status-code" style="color:var(--blue);">404</div>
+      <div class="status-name">Not Found</div>
+      <div class="status-desc">Resource doesn't exist. Don't return 403 when you mean 404 (privacy leak).</div>
+    </div>
+    <div class="status-card">
+      <div class="status-code" style="color:var(--blue);">409</div>
+      <div class="status-name">Conflict</div>
+      <div class="status-desc">Duplicate resource — email already exists, unique constraint violated.</div>
+    </div>
+    <div class="status-card">
+      <div class="status-code" style="color:var(--blue);">422</div>
+      <div class="status-name">Unprocessable</div>
+      <div class="status-desc">Well-formed request but semantically invalid — e.g., end date before start date.</div>
+    </div>
+    <div class="status-card">
+      <div class="status-code" style="color:var(--amber);">429</div>
+      <div class="status-name">Too Many Requests</div>
+      <div class="status-desc">Rate limit exceeded. Include <code>Retry-After</code> header with seconds to wait.</div>
+    </div>
+    <div class="status-card">
+      <div class="status-code" style="color:var(--coral);">500</div>
+      <div class="status-name">Internal Server Error</div>
+      <div class="status-desc">Unexpected server error. Never expose stack traces. Log internally, return generic message.</div>
+    </div>
+    <div class="status-card">
+      <div class="status-code" style="color:var(--coral);">503</div>
+      <div class="status-name">Service Unavailable</div>
+      <div class="status-desc">Server overloaded or down for maintenance. Include <code>Retry-After</code> header.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 04. ROUTE HANDLERS -->
+<div class="section" id="handlers">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Route Handlers — production-grade Next.js API endpoints</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">implementation</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">Complete products API — GET list, GET one, POST, PATCH, DELETE with auth + validation</span></div>
+    <div class="cb-body"><pre><span class="cm">// app/api/products/route.ts — Collection endpoint</span>
+<span class="kw">import</span> { <span class="ty">NextResponse</span>, <span class="kw">type</span> <span class="ty">NextRequest</span> } <span class="kw">from</span> <span class="str">"next/server"</span>
+<span class="kw">import</span> { <span class="fn">auth</span> }         <span class="kw">from</span> <span class="str">"@clerk/nextjs/server"</span>
+<span class="kw">import</span> { <span class="var">db</span> }           <span class="kw">from</span> <span class="str">"@/lib/db"</span>
+<span class="kw">import</span> { <span class="var">z</span> }           <span class="kw">from</span> <span class="str">"zod"</span>
+<span class="kw">import</span> { <span class="fn">apiError</span>, <span class="fn">apiSuccess</span> } <span class="kw">from</span> <span class="str">"@/lib/api"</span>
+
+<span class="kw">const</span> <span class="var">listSchema</span> = <span class="var">z</span>.<span class="fn">object</span>({
+  <span class="prop">page</span>:     <span class="var">z</span>.<span class="fn">coerce</span>.<span class="fn">number</span>().<span class="fn">int</span>().<span class="fn">positive</span>().<span class="fn">default</span>(<span class="num">1</span>),
+  <span class="prop">limit</span>:    <span class="var">z</span>.<span class="fn">coerce</span>.<span class="fn">number</span>().<span class="fn">int</span>().<span class="fn">min</span>(<span class="num">1</span>).<span class="fn">max</span>(<span class="num">100</span>).<span class="fn">default</span>(<span class="num">20</span>),
+  <span class="prop">category</span>: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">optional</span>(),
+  <span class="prop">q</span>:        <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">optional</span>(),
+  <span class="prop">sort</span>:     <span class="var">z</span>.<span class="fn">enum</span>([<span class="str">"price"</span>, <span class="str">"name"</span>, <span class="str">"createdAt"</span>, <span class="str">"rating"</span>]).<span class="fn">default</span>(<span class="str">"createdAt"</span>),
+  <span class="prop">order</span>:    <span class="var">z</span>.<span class="fn">enum</span>([<span class="str">"asc"</span>, <span class="str">"desc"</span>]).<span class="fn">default</span>(<span class="str">"desc"</span>),
+})
+
+<span class="kw">export async function</span> <span class="fn">GET</span>(<span class="var">req</span>: <span class="ty">NextRequest</span>) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> <span class="var">params</span> = <span class="fn">Object</span>.<span class="fn">fromEntries</span>(<span class="kw">new</span> <span class="fn">URL</span>(<span class="var">req</span>.<span class="prop">url</span>).<span class="prop">searchParams</span>)
+    <span class="kw">const</span> <span class="var">parsed</span> = <span class="var">listSchema</span>.<span class="fn">safeParse</span>(<span class="var">params</span>)
+    <span class="kw">if</span> (!<span class="var">parsed</span>.<span class="prop">success</span>) <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">400</span>, <span class="str">"Invalid query parameters"</span>, <span class="var">parsed</span>.<span class="prop">error</span>.<span class="fn">flatten</span>())
+
+    <span class="kw">const</span> { <span class="var">page</span>, <span class="var">limit</span>, <span class="var">category</span>, <span class="var">q</span>, <span class="var">sort</span>, <span class="var">order</span> } = <span class="var">parsed</span>.<span class="prop">data</span>
+
+    <span class="kw">const</span> [<span class="var">items</span>, <span class="var">total</span>] = <span class="kw">await</span> <span class="fn">Promise</span>.<span class="fn">all</span>([
+      <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({
+        <span class="prop">where</span>: {
+          <span class="prop">published</span>: <span class="kw">true</span>,
+          ...<span class="var">category</span> &amp;&amp; { <span class="prop">categoryId</span>: <span class="var">category</span> },
+          ...<span class="var">q</span>        &amp;&amp; { <span class="prop">name</span>: { <span class="prop">contains</span>: <span class="var">q</span>, <span class="prop">mode</span>: <span class="str">"insensitive"</span> } },
+        },
+        <span class="prop">orderBy</span>: { [<span class="var">sort</span>]: <span class="var">order</span> },
+        <span class="prop">skip</span>:    (<span class="var">page</span> - <span class="num">1</span>) * <span class="var">limit</span>,
+        <span class="prop">take</span>:    <span class="var">limit</span>,
+        <span class="prop">select</span>:  { <span class="prop">id</span>: <span class="kw">true</span>, <span class="prop">name</span>: <span class="kw">true</span>, <span class="prop">price</span>: <span class="kw">true</span>, <span class="prop">images</span>: <span class="kw">true</span>, <span class="prop">rating</span>: <span class="kw">true</span> },
+      }),
+      <span class="var">db</span>.<span class="var">product</span>.<span class="fn">count</span>({ <span class="prop">where</span>: { <span class="prop">published</span>: <span class="kw">true</span> } }),
+    ])
+
+    <span class="kw">return</span> <span class="fn">apiSuccess</span>({
+      <span class="var">items</span>, <span class="var">total</span>, <span class="var">page</span>,
+      <span class="prop">totalPages</span>: <span class="fn">Math</span>.<span class="fn">ceil</span>(<span class="var">total</span> / <span class="var">limit</span>),
+      <span class="prop">hasMore</span>:    <span class="var">page</span> * <span class="var">limit</span> < <span class="var">total</span>,
+    })
+  } <span class="kw">catch</span> (<span class="var">err</span>) {
+    <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"[GET /api/products]"</span>, <span class="var">err</span>)
+    <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">500</span>, <span class="str">"Failed to fetch products"</span>)
+  }
+}
+
+<span class="kw">const</span> <span class="var">createSchema</span> = <span class="var">z</span>.<span class="fn">object</span>({
+  <span class="prop">name</span>:       <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">1</span>).<span class="fn">max</span>(<span class="num">255</span>),
+  <span class="prop">price</span>:      <span class="var">z</span>.<span class="fn">number</span>().<span class="fn">positive</span>(),
+  <span class="prop">categoryId</span>: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">cuid</span>(),
+  <span class="prop">description</span>:<span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">10</span>),
+})
+
+<span class="kw">export async function</span> <span class="fn">POST</span>(<span class="var">req</span>: <span class="ty">NextRequest</span>) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> { <span class="var">userId</span>, <span class="var">sessionClaims</span> } = <span class="kw">await</span> <span class="fn">auth</span>()
+    <span class="kw">if</span> (!<span class="var">userId</span>)                             <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">401</span>, <span class="str">"Unauthorized"</span>)
+    <span class="kw">if</span> (<span class="var">sessionClaims</span>?.<span class="prop">metadata</span>?.<span class="prop">role</span> !== <span class="str">"admin"</span>) <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">403</span>, <span class="str">"Forbidden"</span>)
+
+    <span class="kw">const</span> <span class="var">body</span>   = <span class="kw">await</span> <span class="var">req</span>.<span class="fn">json</span>()
+    <span class="kw">const</span> <span class="var">parsed</span> = <span class="var">createSchema</span>.<span class="fn">safeParse</span>(<span class="var">body</span>)
+    <span class="kw">if</span> (!<span class="var">parsed</span>.<span class="prop">success</span>) <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">400</span>, <span class="str">"Validation failed"</span>, <span class="var">parsed</span>.<span class="prop">error</span>.<span class="fn">flatten</span>())
+
+    <span class="kw">const</span> <span class="var">product</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">create</span>({ <span class="prop">data</span>: { ...<span class="var">parsed</span>.<span class="prop">data</span>, <span class="prop">slug</span>: <span class="fn">slugify</span>(<span class="var">parsed</span>.<span class="prop">data</span>.<span class="prop">name</span>) } })
+
+    <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">json</span>({ <span class="prop">data</span>: <span class="var">product</span> }, {
+      <span class="prop">status</span>:  <span class="num">201</span>,
+      <span class="prop">headers</span>: { <span class="str">"Location"</span>: `/api/products/${<span class="var">product</span>.<span class="prop">id</span>}` }
+    })
+  } <span class="kw">catch</span> (<span class="var">err</span>: <span class="kw">unknown</span>) {
+    <span class="kw">if</span> (<span class="fn">isPrismaUniqueError</span>(<span class="var">err</span>)) <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">409</span>, <span class="str">"Product with this slug already exists"</span>)
+    <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">500</span>, <span class="str">"Failed to create product"</span>)
+  }
+}</pre></div>
+  </div>
+</div>
+
+<!-- 05. VALIDATION + ERROR HANDLING -->
+<div class="section" id="validation">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Validation &amp; consistent error responses</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">validation</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">lib/api.ts — helper functions for consistent API responses and error handling</span></div>
+    <div class="cb-body"><pre><span class="cm">// lib/api.ts — centralise all response shaping</span>
+<span class="kw">import</span> { <span class="ty">NextResponse</span> } <span class="kw">from</span> <span class="str">"next/server"</span>
+<span class="kw">import</span> { <span class="ty">Prisma</span> }      <span class="kw">from</span> <span class="str">"@prisma/client"</span>
+<span class="kw">import</span> { <span class="ty">ZodError</span> }   <span class="kw">from</span> <span class="str">"zod"</span>
+
+<span class="cm">// ── Standard response shapes ──────────────────────────────</span>
+<span class="cm">// Success: { data: T, meta?: object }</span>
+<span class="cm">// Error:   { error: string, details?: object, code?: string }</span>
+
+<span class="kw">export function</span> <span class="fn">apiSuccess</span>&lt;<span class="ty">T</span>&gt;(<span class="var">data</span>: <span class="ty">T</span>, <span class="var">meta</span>?: <span class="kw">object</span>, <span class="var">status</span> = <span class="num">200</span>) {
+  <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">json</span>({ <span class="var">data</span>, ...<span class="var">meta</span> &amp;&amp; { <span class="var">meta</span> } }, { <span class="var">status</span> })
+}
+
+<span class="kw">export function</span> <span class="fn">apiError</span>(<span class="var">status</span>: <span class="ty">number</span>, <span class="var">message</span>: <span class="ty">string</span>, <span class="var">details</span>?: <span class="kw">unknown</span>) {
+  <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">json</span>(
+    { <span class="prop">error</span>: <span class="var">message</span>, ...<span class="var">details</span> &amp;&amp; { <span class="var">details</span> } },
+    { <span class="var">status</span> }
+  )
+}
+
+<span class="cm">// ── Global error handler — wrap every route in this ───────</span>
+<span class="kw">export function</span> <span class="fn">withErrorHandler</span>(
+  <span class="var">handler</span>: (<span class="var">req</span>: <span class="ty">NextRequest</span>) =&gt; <span class="ty">Promise</span>&lt;<span class="ty">Response</span>&gt;
+) {
+  <span class="kw">return async</span> (<span class="var">req</span>: <span class="ty">NextRequest</span>) =&gt; {
+    <span class="kw">try</span> {
+      <span class="kw">return</span> <span class="kw">await</span> <span class="fn">handler</span>(<span class="var">req</span>)
+    } <span class="kw">catch</span> (<span class="var">err</span>) {
+      <span class="cm">// Zod validation error</span>
+      <span class="kw">if</span> (<span class="var">err</span> <span class="kw">instanceof</span> <span class="ty">ZodError</span>) {
+        <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">400</span>, <span class="str">"Validation failed"</span>, <span class="var">err</span>.<span class="fn">flatten</span>())
+      }
+      <span class="cm">// Prisma unique constraint</span>
+      <span class="kw">if</span> (<span class="var">err</span> <span class="kw">instanceof</span> <span class="ty">Prisma</span>.<span class="ty">PrismaClientKnownRequestError</span>) {
+        <span class="kw">if</span> (<span class="var">err</span>.<span class="prop">code</span> === <span class="str">"P2002"</span>) <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">409</span>, <span class="str">"Resource already exists"</span>)
+        <span class="kw">if</span> (<span class="var">err</span>.<span class="prop">code</span> === <span class="str">"P2025"</span>) <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">404</span>, <span class="str">"Resource not found"</span>)
+      }
+      <span class="cm">// Unknown — log and return generic error</span>
+      <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"[API Error]"</span>, <span class="var">err</span>)
+      <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">500</span>, <span class="str">"Internal server error"</span>)
+    }
+  }
+}
+
+<span class="cm">// ── Standard error response bodies ────────────────────────</span>
+<span class="cm">// 400 Validation:</span>
+<span class="cm">// { "error": "Validation failed",</span>
+<span class="cm">//   "details": { "fieldErrors": { "name": ["Required"], "price": ["Must be positive"] } } }</span>
+
+<span class="cm">// 401 Unauthorized:</span>
+<span class="cm">// { "error": "Unauthorized" }</span>
+
+<span class="cm">// 404 Not Found:</span>
+<span class="cm">// { "error": "Product not found" }</span>
+
+<span class="cm">// 409 Conflict:</span>
+<span class="cm">// { "error": "Email already registered" }</span>
+
+<span class="cm">// 500 Server Error:</span>
+<span class="cm">// { "error": "Internal server error" }  ← never expose details in prod!</span>
+
+<span class="cm">// ── Usage — cleaner routes with the wrapper ────────────────</span>
+<span class="kw">export const</span> <span class="fn">GET</span> = <span class="fn">withErrorHandler</span>(<span class="kw">async</span> (<span class="var">req</span>) =&gt; {
+  <span class="kw">const</span> { <span class="var">userId</span> } = <span class="kw">await</span> <span class="fn">auth</span>()
+  <span class="kw">if</span> (!<span class="var">userId</span>) <span class="kw">return</span> <span class="fn">apiError</span>(<span class="num">401</span>, <span class="str">"Unauthorized"</span>)
+
+  <span class="kw">const</span> <span class="var">products</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>()   <span class="cm">// throws → caught by wrapper</span>
+  <span class="kw">return</span> <span class="fn">apiSuccess</span>(<span class="var">products</span>)
+})</pre></div>
+  </div>
+</div>
+
+<!-- 06. RATE LIMITING + VERSIONING -->
+<div class="section" id="errors">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Rate limiting, CORS &amp; versioning strategies</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">production</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">Rate limiting headers, CORS setup, and API versioning approaches</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Rate limiting — headers-based approach ────────────────</span>
+<span class="cm">// npm install @upstash/ratelimit @upstash/redis</span>
+<span class="kw">import</span> { <span class="ty">Ratelimit</span> } <span class="kw">from</span> <span class="str">"@upstash/ratelimit"</span>
+<span class="kw">import</span> { <span class="ty">Redis</span> }     <span class="kw">from</span> <span class="str">"@upstash/redis"</span>
+
+<span class="kw">const</span> <span class="var">ratelimit</span> = <span class="kw">new</span> <span class="fn">Ratelimit</span>({
+  <span class="prop">redis</span>:     <span class="ty">Redis</span>.<span class="fn">fromEnv</span>(),
+  <span class="prop">limiter</span>:   <span class="ty">Ratelimit</span>.<span class="fn">slidingWindow</span>(<span class="num">100</span>, <span class="str">"1 m"</span>),  <span class="cm">// 100 req/min</span>
+  <span class="prop">analytics</span>: <span class="kw">true</span>,
+})
+
+<span class="kw">export async function</span> <span class="fn">GET</span>(<span class="var">req</span>: <span class="ty">NextRequest</span>) {
+  <span class="kw">const</span> <span class="var">ip</span>  = <span class="var">req</span>.<span class="prop">headers</span>.<span class="fn">get</span>(<span class="str">"x-forwarded-for"</span>) ?? <span class="str">"anonymous"</span>
+  <span class="kw">const</span> { <span class="var">success</span>, <span class="var">limit</span>, <span class="var">remaining</span>, <span class="var">reset</span> } = <span class="kw">await</span> <span class="var">ratelimit</span>.<span class="fn">limit</span>(<span class="var">ip</span>)
+
+  <span class="kw">const</span> <span class="var">rateLimitHeaders</span> = {
+    <span class="str">"X-RateLimit-Limit"</span>:     <span class="fn">String</span>(<span class="var">limit</span>),
+    <span class="str">"X-RateLimit-Remaining"</span>: <span class="fn">String</span>(<span class="var">remaining</span>),
+    <span class="str">"X-RateLimit-Reset"</span>:     <span class="fn">String</span>(<span class="var">reset</span>),
+  }
+
+  <span class="kw">if</span> (!<span class="var">success</span>) {
+    <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">json</span>(
+      { <span class="prop">error</span>: <span class="str">"Too many requests"</span>, <span class="prop">retryAfter</span>: <span class="fn">Math</span>.<span class="fn">ceil</span>((<span class="var">reset</span> - <span class="fn">Date</span>.<span class="fn">now</span>()) / <span class="num">1000</span>) },
+      { <span class="prop">status</span>: <span class="num">429</span>, <span class="prop">headers</span>: { ...<span class="var">rateLimitHeaders</span>, <span class="str">"Retry-After"</span>: <span class="fn">String</span>(<span class="fn">Math</span>.<span class="fn">ceil</span>((<span class="var">reset</span>-<span class="fn">Date</span>.<span class="fn">now</span>())/<span class="num">1000</span>)) } }
+    )
+  }
+
+  <span class="cm">// Proceed with request, add rate limit headers to response</span>
+  <span class="kw">const</span> <span class="var">response</span> = <span class="kw">await</span> <span class="fn">handleRequest</span>(<span class="var">req</span>)
+  <span class="fn">Object</span>.<span class="fn">entries</span>(<span class="var">rateLimitHeaders</span>).<span class="fn">forEach</span>(([<span class="var">k</span>,<span class="var">v</span>]) =&gt; <span class="var">response</span>.<span class="prop">headers</span>.<span class="fn">set</span>(<span class="var">k</span>,<span class="var">v</span>))
+  <span class="kw">return</span> <span class="var">response</span>
+}
+
+<span class="cm">// ── CORS — for APIs consumed by external clients ──────────</span>
+<span class="cm">// next.config.js — add CORS headers globally:</span>
+<span class="kw">const</span> <span class="fn">nextConfig</span> = {
+  <span class="kw">async</span> <span class="fn">headers</span>() {
+    <span class="kw">return</span> [{ <span class="prop">source</span>: <span class="str">"/api/:path*"</span>, <span class="prop">headers</span>: [
+      { <span class="prop">key</span>: <span class="str">"Access-Control-Allow-Origin"</span>,  <span class="prop">value</span>: <span class="str">"https://yourapp.com"</span> },
+      { <span class="prop">key</span>: <span class="str">"Access-Control-Allow-Methods"</span>, <span class="prop">value</span>: <span class="str">"GET,POST,PATCH,DELETE,OPTIONS"</span> },
+      { <span class="prop">key</span>: <span class="str">"Access-Control-Allow-Headers"</span>, <span class="prop">value</span>: <span class="str">"Content-Type,Authorization"</span> },
+    ]}]
+  }
+}
+<span class="cm">// Handle OPTIONS preflight in route handlers:</span>
+<span class="kw">export function</span> <span class="fn">OPTIONS</span>() {
+  <span class="kw">return</span> <span class="kw">new</span> <span class="fn">Response</span>(<span class="kw">null</span>, { <span class="prop">status</span>: <span class="num">204</span>, <span class="prop">headers</span>: { <span class="str">"Access-Control-Allow-Origin"</span>: <span class="str">"*"</span> } })
+}
+
+<span class="cm">// ── API Versioning ────────────────────────────────────────</span>
+<span class="cm">// Option A: URL versioning (most common, most explicit)</span>
+<span class="cm">// app/api/v1/products/route.ts → /api/v1/products</span>
+<span class="cm">// app/api/v2/products/route.ts → /api/v2/products</span>
+
+<span class="cm">// Option B: Header versioning</span>
+<span class="cm">// GET /api/products   Accept: application/vnd.shopco.v2+json</span>
+<span class="kw">export async function</span> <span class="fn">GET</span>(<span class="var">req</span>: <span class="ty">NextRequest</span>) {
+  <span class="kw">const</span> <span class="var">version</span> = <span class="var">req</span>.<span class="prop">headers</span>.<span class="fn">get</span>(<span class="str">"API-Version"</span>) ?? <span class="str">"1"</span>
+  <span class="kw">if</span> (<span class="var">version</span> === <span class="str">"2"</span>) <span class="kw">return</span> <span class="fn">handleV2</span>(<span class="var">req</span>)
+  <span class="kw">return</span> <span class="fn">handleV1</span>(<span class="var">req</span>)
+}
+
+<span class="cm">// Deprecation: add Deprecation header to old version responses</span>
+<span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">json</span>(<span class="var">data</span>, {
+  <span class="prop">headers</span>: {
+    <span class="str">"Deprecation"</span>: <span class="str">"true"</span>,
+    <span class="str">"Sunset"</span>:      <span class="str">"2025-12-31"</span>,  <span class="cm">// date when v1 is removed</span>
+    <span class="str">"Link"</span>:        <span class="str">'&lt;/api/v2/products&gt;; rel="successor-version"'</span>,
+  }
+})</pre></div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — API design logic in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">URL router — design and validate REST routes</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>validateAPIDesign(routes)</code> function that checks a list of route definitions against REST conventions: no verbs in URLs, plural nouns, correct HTTP methods per operation, and consistent naming. Return violations with specific reasons.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — REST route validator</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">function validateAPIDesign(routes) {
+  const violations = []
+  const VERBS = ["get","create","update","delete","fetch","retrieve","add","remove","list","find","search","make","set"]
+  const METHODS_FOR_CRUD = {
+    "list":   ["GET"],
+    "create": ["POST"],
+    "read":   ["GET"],
+    "update": ["PUT","PATCH"],
+    "delete": ["DELETE"],
+  }
+
+  for (const route of routes) {
+    const { method, path, operation } = route
+    const pathParts = path.toLowerCase().split("/").filter(Boolean)
+    const issues = []
+
+    // Check for verbs in URL segments (excluding dynamic parts like :id)
+    for (const part of pathParts) {
+      if (part.startsWith(":")) continue  // dynamic segment
+      if (VERBS.some(v => part === v || part.startsWith(v + "-") || part.endsWith("-" + v))) {
+        issues.push(`URL contains verb "${part}" — use nouns with HTTP methods instead`)
+      }
+    }
+
+    // Check for camelCase (should be kebab-case)
+    for (const part of pathParts) {
+      if (part.startsWith(":")) continue
+      if (/[A-Z]/.test(part)) issues.push(`"${part}" uses uppercase — URLs should be lowercase kebab-case`)
+      if (/_/.test(part)) issues.push(`"${part}" uses underscore — prefer kebab-case`)
+    }
+
+    // Check collection routes use plural nouns
+    const staticParts = pathParts.filter(p => !p.startsWith(":"))
+    const lastStatic = staticParts[staticParts.length - 1]
+    if (lastStatic && !lastStatic.endsWith("s") && method === "GET" && !path.includes("/:")) {
+      // Collection GET should be plural (heuristic — not exhaustive)
+      if (!["me","auth","health","search"].includes(lastStatic)) {
+        issues.push(`Collection route "${lastStatic}" should be plural (e.g. "${lastStatic}s")`)
+      }
+    }
+
+    // Check correct method for operation
+    if (operation && METHODS_FOR_CRUD[operation]) {
+      if (!METHODS_FOR_CRUD[operation].includes(method)) {
+        issues.push(`Operation "${operation}" should use ${METHODS_FOR_CRUD[operation].join(" or ")}, not ${method}`)
+      }
+    }
+
+    // POST should not be on a specific resource (that's PUT/PATCH)
+    if (method === "POST" && path.match(/\/:[a-zA-Z]+$/)) {
+      issues.push(`POST on a specific resource (${path}) is unusual — use PUT or PATCH`)
+    }
+
+    if (issues.length) violations.push({ route: `${method} ${path}`, issues })
+  }
+
+  return violations
+}
+
+// Test routes — mix of good and bad
+const routes = [
+  { method:"GET",    path:"/api/products",           operation:"list"   },
+  { method:"POST",   path:"/api/products",           operation:"create" },
+  { method:"GET",    path:"/api/products/:id",       operation:"read"   },
+  { method:"DELETE", path:"/api/products/:id",       operation:"delete" },
+  // Bad routes:
+  { method:"GET",    path:"/api/getProducts" },
+  { method:"POST",   path:"/api/createProduct" },
+  { method:"GET",    path:"/api/product" },             // not plural
+  { method:"GET",    path:"/api/orderItems" },          // camelCase
+  { method:"POST",   path:"/api/product/:id",       operation:"update" },  // wrong method + shape
+  { method:"GET",    path:"/api/deleteUser/:id" },   // verb in URL
+  { method:"PUT",    path:"/api/users",             operation:"list"   },  // wrong method
+  // Actions (acceptable exceptions):
+  { method:"POST",   path:"/api/orders/:id/cancel" },
+  { method:"POST",   path:"/api/users/me/password/reset" },
+]
+
+const violations = validateAPIDesign(routes)
+
+if (violations.length === 0) {
+  console.log("✅ All routes follow REST conventions")
+} else {
+  console.log(`Found ${violations.length} violations:\n`)
+  violations.forEach(v => {
+    console.log(`❌ ${v.route}`)
+    v.issues.forEach(i => console.log(`   → ${i}`))
+  })
+}
+
+console.log("\n✓ Good routes (no violations):")
+const goodRoutes = routes.filter(r =>
+  !violations.find(v => v.route === `${r.method} ${r.path}`)
+)
+goodRoutes.forEach(r => console.log(`  ✓ ${r.method} ${r.path}`))</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Status code selector — right code for every scenario</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build <code>selectStatusCode(scenario)</code> that returns the correct HTTP status code and a reason for a given API scenario. Cover all common cases: auth errors, validation failures, not found, conflicts, rate limiting, and server errors. Test against 20 different scenarios.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — HTTP status code logic</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">function selectStatusCode(scenario) {
+  const {
+    authenticated,  // is the user authenticated?
+    authorized,     // does the user have permission?
+    resourceFound,  // does the resource exist?
+    inputValid,     // is the request body valid?
+    conflict,       // does a duplicate resource exist?
+    serverError,    // did something unexpected go wrong?
+    created,        // was a new resource created (POST)?
+    deleted,        // was a resource deleted?
+    rateLimited,    // has the user exceeded rate limit?
+    semanticError,  // valid format but invalid meaning (e.g. end < start)?
+    noContent,      // successful but nothing to return?
+    method,         // HTTP method
+  } = scenario
+
+  // Check in priority order
+  if (serverError)  return { code: 500, reason: "Internal server error — unexpected failure" }
+  if (rateLimited)  return { code: 429, reason: "Too many requests — include Retry-After header" }
+  if (!authenticated) return { code: 401, reason: "Not authenticated — missing or invalid token" }
+  if (!authorized)    return { code: 403, reason: "Authenticated but forbidden — wrong role or not owner" }
+  if (!inputValid)    return { code: 400, reason: "Bad request — validation failed, return field errors" }
+  if (semanticError)  return { code: 422, reason: "Unprocessable — valid format but invalid semantics" }
+  if (conflict)       return { code: 409, reason: "Conflict — duplicate resource (unique constraint)" }
+  if (!resourceFound) return { code: 404, reason: "Not found — resource doesn't exist" }
+  if (deleted || noContent) return { code: 204, reason: "No content — success with no response body" }
+  if (created)        return { code: 201, reason: "Created — include Location header" }
+  return { code: 200, reason: "OK — success with response body" }
+}
+
+const scenarios = [
+  { name:"List products (public)",       scenario:{ authenticated:true, authorized:true, resourceFound:true } },
+  { name:"Get product",                  scenario:{ authenticated:true, authorized:true, resourceFound:true } },
+  { name:"Product not found",            scenario:{ authenticated:true, authorized:true, resourceFound:false } },
+  { name:"Create product (admin)",       scenario:{ authenticated:true, authorized:true, inputValid:true, conflict:false, created:true } },
+  { name:"Create — validation error",   scenario:{ authenticated:true, authorized:true, inputValid:false } },
+  { name:"Create — duplicate slug",     scenario:{ authenticated:true, authorized:true, inputValid:true, conflict:true } },
+  { name:"Update product",               scenario:{ authenticated:true, authorized:true, resourceFound:true, inputValid:true } },
+  { name:"Delete product",               scenario:{ authenticated:true, authorized:true, resourceFound:true, deleted:true } },
+  { name:"Not authenticated",            scenario:{ authenticated:false } },
+  { name:"Not admin (user role)",        scenario:{ authenticated:true, authorized:false } },
+  { name:"Rate limit exceeded",          scenario:{ authenticated:true, rateLimited:true } },
+  { name:"Server error",                 scenario:{ authenticated:true, authorized:true, serverError:true } },
+  { name:"Date range invalid (end<start)",scenario:{ authenticated:true, authorized:true, inputValid:true, semanticError:true } },
+  { name:"Place order (created)",        scenario:{ authenticated:true, authorized:true, inputValid:true, created:true } },
+  { name:"Cancel order (no body)",       scenario:{ authenticated:true, authorized:true, resourceFound:true, noContent:true } },
+]
+
+console.log("=== HTTP Status Code Selection ===\n")
+scenarios.forEach(({ name, scenario }) => {
+  const { code, reason } = selectStatusCode(scenario)
+  const emoji = code < 300 ? "✅" : code < 500 ? "⚠️" : "🔴"
+  console.log(`${emoji} ${String(code)} — ${name}`)
+  console.log(`         ${reason}`)
+})
+
+// Verify key rules
+const tests = [
+  [selectStatusCode({ authenticated:false }).code,                    401],
+  [selectStatusCode({ authenticated:true, authorized:false }).code,   403],
+  [selectStatusCode({ authenticated:true, authorized:true, resourceFound:false }).code, 404],
+  [selectStatusCode({ authenticated:true, authorized:true, inputValid:false }).code,    400],
+  [selectStatusCode({ authenticated:true, authorized:true, inputValid:true, created:true }).code, 201],
+  [selectStatusCode({ authenticated:true, authorized:true, deleted:true }).code,        204],
+  [selectStatusCode({ authenticated:true, rateLimited:true }).code,  429],
+  [selectStatusCode({ serverError:true }).code,                       500],
+]
+
+console.log("\n=== Verification ===")
+const pass = tests.every(([got, expected]) => got === expected)
+tests.forEach(([got, expected]) => console.log(`  ${got === expected ? "✓" : "✗"} Expected ${expected}, got ${got}`))
+console.log(pass ? "✅ All status codes correct!" : "❌ Some codes wrong")</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Request validator — Zod + consistent error responses</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build <code>createRequestValidator(schema)</code> that wraps Zod validation with the standard API error shape. Validate query params (as strings that need coercion), request bodies, and route params. Return consistent error objects that a React Query error handler can display.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — request validator</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">// Simulate Zod's schema validation + standard API error shape
+function createSchema(rules) {
+  function coerce(value, type) {
+    if (type === "number") return isNaN(Number(value)) ? undefined : Number(value)
+    if (type === "boolean") return value === "true" ? true : value === "false" ? false : undefined
+    return value
+  }
+
+  return {
+    safeParse(data) {
+      const errors = {}, result = {}
+      for (const [field, rule] of Object.entries(rules)) {
+        let val = data[field]
+        // Coerce query param strings
+        if (rule.coerce) val = coerce(val, rule.type)
+        if (val === undefined && rule.default !== undefined) val = rule.default
+        const empty = val === undefined || val === null || val === ""
+        if (rule.required && empty) { errors[field] = [rule.required]; continue }
+        if (!empty) {
+          if (rule.type === "number" && typeof val !== "number") { errors[field] = ["Must be a number"]; continue }
+          if (rule.min !== undefined && val < rule.min.value) { errors[field] = [rule.min.message]; continue }
+          if (rule.max !== undefined && val > rule.max.value) { errors[field] = [rule.max.message]; continue }
+          if (rule.minLength && String(val).length < rule.minLength.value) { errors[field] = [rule.minLength.message]; continue }
+          if (rule.enum && !rule.enum.includes(val)) { errors[field] = [`Must be one of: ${rule.enum.join(", ")}`]; continue }
+          if (rule.pattern && !rule.pattern.test(String(val))) { errors[field] = [rule.patternMessage || "Invalid format"]; continue }
+        }
+        if (!empty) result[field] = val
+        else if (rule.default !== undefined) result[field] = rule.default
+      }
+      return Object.keys(errors).length
+        ? { success: false, error: { fieldErrors: errors } }
+        : { success: true, data: result }
+    }
+  }
+}
+
+function createRequestValidator(schema) {
+  return function validate(input) {
+    const result = schema.safeParse(input)
+    if (!result.success) {
+      return {
+        valid:    false,
+        status:   400,
+        response: {
+          error:   "Validation failed",
+          details: result.error,
+          message: Object.entries(result.error.fieldErrors)
+            .map(([f,msgs]) => `${f}: ${msgs[0]}`)
+            .join("; "),
+        },
+      }
+    }
+    return { valid: true, data: result.data }
+  }
+}
+
+// Validators for different endpoints
+const queryValidator = createRequestValidator(createSchema({
+  page:     { coerce:true, type:"number", default:1,  min:{ value:1, message:"Min page 1" } },
+  limit:    { coerce:true, type:"number", default:20, min:{ value:1, message:"Min 1" }, max:{ value:100, message:"Max 100" } },
+  sort:     { enum:["price","name","createdAt","rating"], default:"createdAt" },
+  order:    { enum:["asc","desc"], default:"desc" },
+}))
+
+const bodyValidator = createRequestValidator(createSchema({
+  name:        { required:"Name is required", minLength:{ value:2, message:"Min 2 chars" } },
+  price:       { required:"Price is required", coerce:true, type:"number", min:{ value:0.01, message:"Price must be positive" } },
+  categoryId:  { required:"Category required", pattern:/^[a-z0-9]+$/i, patternMessage:"Invalid ID format" },
+  description: { minLength:{ value:10, message:"Description too short" } },
+}))
+
+// Test query params (all strings from URL)
+console.log("=== Query param validation ===")
+const q1 = queryValidator({ page:"2", limit:"10", sort:"price", order:"asc" })
+console.log("Valid query:", q1.valid, "| page:", q1.data?.page, "limit:", q1.data?.limit)
+console.log("Types coerced:", typeof q1.data?.page)  // number
+
+const q2 = queryValidator({ page:"abc", limit:"200", sort:"invalid" })
+console.log("Invalid query:", !q2.valid)
+console.log("Error message:", q2.response?.message)
+
+const q3 = queryValidator({})  // all defaults
+console.log("Defaults:", q3.data?.page, q3.data?.limit, q3.data?.sort)
+
+// Test request body
+console.log("\n=== Body validation ===")
+const b1 = bodyValidator({ name:"MacBook Pro", price:"1999.99", categoryId:"abc123", description:"The best laptop ever made" })
+console.log("Valid body:", b1.valid, "price coerced:", b1.data?.price)
+
+const b2 = bodyValidator({ name:"X", price:"-5", categoryId:"" })
+console.log("Invalid body:", !b2.valid)
+console.log("Field errors:", b2.response?.details?.fieldErrors)
+
+// Simulate full request handling
+function simulateRouteHandler(queryParams, body) {
+  const queryResult = queryValidator(queryParams)
+  if (!queryResult.valid) return queryResult.response
+
+  const bodyResult = bodyValidator(body)
+  if (!bodyResult.valid) return bodyResult.response
+
+  return { data: { ...bodyResult.data, ...queryResult.data }, message:"Success!" }
+}
+
+console.log("\n=== Full request simulation ===")
+const r1 = simulateRouteHandler({ page:"1" }, { name:"iPad", price:"799", categoryId:"cat123", description:"Amazing tablet device" })
+console.log("Success:", r1.message ?? "no message", r1.data?.name)
+
+const r2 = simulateRouteHandler({ limit:"999" }, { name:"A" })
+console.log("Error (limit):", r2?.message)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Rate limiter — sliding window algorithm</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>createRateLimiter(limit, windowMs)</code> using a sliding window algorithm. Track requests per identifier (IP or user ID), enforce the limit, and return proper headers — <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, <code>X-RateLimit-Reset</code>, and <code>Retry-After</code>.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — sliding window rate limiter</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">function createRateLimiter(limit, windowMs) {
+  // Store: identifier → [timestamps of requests in current window]
+  const store = new Map()
+  let mockNow = Date.now()
+
+  // Sliding window: keep all request timestamps within the window
+  function check(identifier) {
+    const now = mockNow
+    const windowStart = now - windowMs
+
+    if (!store.has(identifier)) store.set(identifier, [])
+    const timestamps = store.get(identifier)
+
+    // Remove timestamps outside the window
+    const inWindow = timestamps.filter(t => t > windowStart)
+    store.set(identifier, inWindow)
+
+    const remaining = Math.max(0, limit - inWindow.length)
+    const reset = inWindow.length > 0
+      ? Math.ceil((inWindow[0] + windowMs) / 1000)  // when oldest request expires
+      : Math.ceil((now + windowMs) / 1000)
+    const allowed = inWindow.length < limit
+
+    if (allowed) {
+      inWindow.push(now)
+      store.set(identifier, inWindow)
+    }
+
+    return {
+      allowed,
+      limit,
+      remaining: allowed ? remaining - 1 : 0,
+      reset,
+      retryAfter: allowed ? null : Math.ceil((inWindow[0] + windowMs - now) / 1000),
+      headers: {
+        "X-RateLimit-Limit":     String(limit),
+        "X-RateLimit-Remaining": String(allowed ? remaining - 1 : 0),
+        "X-RateLimit-Reset":     String(reset),
+        ...(allowed ? {} : { "Retry-After": String(Math.ceil((inWindow[0] + windowMs - now) / 1000)) }),
+      }
+    }
+  }
+
+  function advance(ms) { mockNow += ms }
+  function reset(id) { store.delete(id) }
+
+  return { check, advance, reset }
+}
+
+async function runTests() {
+  const rl = createRateLimiter(5, 60_000)  // 5 req per minute
+
+  console.log("=== Basic rate limiting (5 req/min) ===")
+
+  // First 5 requests should succeed
+  for (let i = 1; i <= 5; i++) {
+    const result = rl.check("user_123")
+    console.log(`Request ${i}: ${result.allowed ? "✓ allowed" : "✗ blocked"} | remaining: ${result.remaining}`)
+  }
+
+  // 6th should fail
+  const blocked = rl.check("user_123")
+  console.log(`Request 6: ${blocked.allowed ? "✓" : "✗ blocked (rate limited)"} | retryAfter: ${blocked.retryAfter}s`)
+  console.log("Headers:", JSON.stringify(blocked.headers))
+
+  // Different user — not affected
+  const other = rl.check("user_456")
+  console.log(`\nDifferent user: ${other.allowed ? "✓ allowed" : "✗"} (independent limit)`)
+
+  // Advance 61 seconds — window resets
+  rl.advance(61_000)
+  const afterReset = rl.check("user_123")
+  console.log(`\nAfter window reset (61s): ${afterReset.allowed ? "✓ allowed again" : "✗"} | remaining: ${afterReset.remaining}`)
+
+  // Sliding window: partial reset
+  rl.reset("user_123")
+  rl.check("user_123")  // t=0
+  rl.check("user_123")  // t=0
+  rl.advance(30_000)    // advance 30s
+  rl.check("user_123")  // t=30s
+  rl.check("user_123")  // t=30s
+  rl.check("user_123")  // t=30s → 5 total, limit reached
+  const sliding = rl.check("user_123")  // should be blocked
+  console.log(`\nSliding window test: ${!sliding.allowed ? "✓ correctly blocked" : "✗"} (5 in window)`)
+
+  rl.advance(31_000)   // first 2 requests (t=0) now expire
+  const afterSlide = rl.check("user_123")
+  console.log(`After 31s slide: ${afterSlide.allowed ? "✓ 2 expired, slot available" : "✗"} | remaining: ${afterSlide.remaining}`)
+
+  // Test header format
+  console.log("\n=== Headers for allowed request ===")
+  rl.reset("ip_1.2.3.4")
+  const resp = rl.check("ip_1.2.3.4")
+  Object.entries(resp.headers).forEach(([k,v]) => console.log(`  ${k}: ${v}`))
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">API response builder — consistent shape across all endpoints</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a complete <code>createAPIResponse()</code> factory that produces consistently shaped responses for all scenarios: success (with pagination meta), errors (with field details), and partial success (batch operations). Show that the shape is predictable enough for React Query to handle generically.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — API response builder</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">function createAPIResponse() {
+  function success(data, meta = null, status = 200) {
+    return {
+      ok:     true,
+      status,
+      body:   { data, ...(meta && { meta }) },
+      headers: { "Content-Type": "application/json" },
+    }
+  }
+
+  function paginated(items, { page, pageSize, total }) {
+    return success(items, {
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages:  Math.ceil(total / pageSize),
+        hasNext:     page * pageSize < total,
+        hasPrev:     page > 1,
+        nextPage:    page * pageSize < total ? page + 1 : null,
+        prevPage:    page > 1 ? page - 1 : null,
+      }
+    })
+  }
+
+  function error(status, message, details = null, code = null) {
+    return {
+      ok:     false,
+      status,
+      body:   {
+        error: message,
+        ...(code    && { code }),
+        ...(details && { details }),
+      },
+      headers: { "Content-Type": "application/json" },
+    }
+  }
+
+  function validationError(fieldErrors) {
+    return error(400, "Validation failed", { fieldErrors }, "VALIDATION_ERROR")
+  }
+
+  function notFound(resource = "Resource") {
+    return error(404, `${resource} not found`, null, "NOT_FOUND")
+  }
+
+  function unauthorized() {
+    return error(401, "Authentication required", null, "UNAUTHORIZED")
+  }
+
+  function forbidden() {
+    return error(403, "Insufficient permissions", null, "FORBIDDEN")
+  }
+
+  function conflict(message = "Resource already exists") {
+    return error(409, message, null, "CONFLICT")
+  }
+
+  function batchResult(results) {
+    // Batch operations: { succeeded: [...], failed: [...] }
+    const succeeded = results.filter(r => r.ok).map(r => r.data)
+    const failed    = results.filter(r => !r.ok).map(r => ({ id:r.id, error:r.error }))
+    const allOk     = failed.length === 0
+    const status    = allOk ? 200 : succeeded.length > 0 ? 207 : 400  // 207 = Multi-Status
+
+    return {
+      ok:     allOk,
+      status,
+      body:   {
+        succeeded: succeeded,
+        failed:    failed,
+        summary:   { total: results.length, succeeded: succeeded.length, failed: failed.length }
+      },
+      headers: { "Content-Type": "application/json" },
+    }
+  }
+
+  function created(data, location) {
+    return {
+      ...success(data, null, 201),
+      headers: { "Content-Type": "application/json", "Location": location },
+    }
+  }
+
+  function noContent() {
+    return { ok: true, status: 204, body: null, headers: {} }
+  }
+
+  return { success, paginated, error, validationError, notFound, unauthorized, forbidden, conflict, batchResult, created, noContent }
+}
+
+const api = createAPIResponse()
+
+// Test all response types
+console.log("=== Standard responses ===")
+
+const products = [{ id:1,name:"MacBook" }, { id:2,name:"iPad" }]
+const list = api.paginated(products, { page:1, pageSize:2, total:47 })
+console.log("Paginated:", list.status, "| totalPages:", list.body.meta.pagination.totalPages, "| hasNext:", list.body.meta.pagination.hasNext)
+
+const single = api.success({ id:1, name:"MacBook", price:1999 })
+console.log("Success:", single.status, "| data:", single.body.data.name)
+
+const newProduct = api.created({ id:"p_new", name:"AirPods" }, "/api/products/p_new")
+console.log("Created:", newProduct.status, "| Location:", newProduct.headers.Location)
+
+const del = api.noContent()
+console.log("Deleted:", del.status, "| body:", del.body)
+
+console.log("\n=== Error responses ===")
+const ve = api.validationError({ name:["Required"], price:["Must be positive"] })
+console.log("Validation:", ve.status, ve.body.code, "| fields:", Object.keys(ve.body.details.fieldErrors).join(", "))
+
+const nf = api.notFound("Product")
+console.log("Not found:", nf.status, nf.body.error, nf.body.code)
+
+const auth = api.unauthorized()
+console.log("Unauthorized:", auth.status, auth.body.code)
+
+const forbid = api.forbidden()
+console.log("Forbidden:", forbid.status, forbid.body.code)
+
+const dup = api.conflict("Email already registered")
+console.log("Conflict:", dup.status, dup.body.error)
+
+console.log("\n=== Batch operation (207 Multi-Status) ===")
+const batchRes = api.batchResult([
+  { ok:true,  data:{ id:1, name:"Created!" } },
+  { ok:false, id:"p99", error:"Duplicate slug" },
+  { ok:true,  data:{ id:2, name:"Also created" } },
+  { ok:false, id:"p98", error:"Category not found" },
+])
+console.log("Batch status:", batchRes.status)  // 207
+console.log("Summary:", batchRes.body.summary)
+console.log("Succeeded:", batchRes.body.succeeded.map(p=>p.name).join(", "))
+console.log("Failed:", batchRes.body.failed.map(f=>`${f.id}: ${f.error}`).join(", "))</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Complete API — products CRUD + auth + rate limiting</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build the complete React Shop products API layer: GET list (filterable, paginated), GET single, POST create (admin only), PATCH update (admin), DELETE (admin). Each endpoint does: auth check → rate limit → validate → DB operation → consistent response. Verify all flows end-to-end.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — full products API simulation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// Full products API — all middlewares + operations
+const DB = {
+  products: [
+    { id:"p1", name:"MacBook Pro", price:1999, stock:5, categoryId:"c1", published:true, slug:"macbook-pro" },
+    { id:"p2", name:"iPad Pro",    price:799,  stock:10,categoryId:"c2", published:true, slug:"ipad-pro" },
+    { id:"p3", name:"Draft Item",  price:99,   stock:0, categoryId:"c1", published:false,slug:"draft" },
+  ],
+  nextId: 4,
+}
+
+// Middleware simulations
+const sessions = {
+  "tok_user":  { userId:"u1", role:"user",  email:"alice@test.com" },
+  "tok_admin": { userId:"u2", role:"admin", email:"admin@test.com" },
+}
+function getSession(token) { return sessions[token] ?? null }
+
+const rl = (() => {
+  const store = new Map()
+  return { check: (id, limit=10) => {
+    const count = (store.get(id) || 0) + 1
+    store.set(id, count)
+    return { allowed: count <= limit, remaining: Math.max(0, limit-count), reset: Date.now()+60000 }
+  }}
+})()
+
+function validate(data, rules) {
+  const errors = {}
+  for (const [k,rule] of Object.entries(rules)) {
+    const v = data[k]
+    if (rule.required && (v===undefined||v===null||v==="")) errors[k]=rule.required
+    else if (v!==undefined && v!==null && v!=="") {
+      if (rule.min!==undefined && Number(v)<rule.min) errors[k]=`Min ${rule.min}`
+      if (rule.minLen!==undefined && String(v).length<rule.minLen) errors[k]=`Min ${rule.minLen} chars`
+    }
+  }
+  return Object.keys(errors).length ? { valid:false, errors } : { valid:true, data }
+}
+
+function response(status, body, headers={}) {
+  return { status, body:JSON.stringify(body), headers:{"Content-Type":"application/json",...headers} }
+}
+
+// Products API
+const ProductsAPI = {
+  async GET(req) {
+    const rlResult = rl.check(req.ip || "anon")
+    if (!rlResult.allowed) return response(429, { error:"Too many requests" }, { "Retry-After":"60" })
+
+    let items = DB.products.filter(p => p.published)
+    if (req.query?.category) items = items.filter(p => p.categoryId === req.query.category)
+    if (req.query?.q) items = items.filter(p => p.name.toLowerCase().includes(req.query.q.toLowerCase()))
+    const page = parseInt(req.query?.page || "1"), limit = parseInt(req.query?.limit || "20")
+    const total = items.length
+    const paged = items.slice((page-1)*limit, page*limit).map(({id,name,price})=>({id,name,price}))
+    return response(200, { data:paged, meta:{ page, limit, total, totalPages:Math.ceil(total/limit) } })
+  },
+
+  async GET_ONE(req, id) {
+    const product = DB.products.find(p => p.id === id)
+    if (!product || !product.published) return response(404, { error:"Product not found", code:"NOT_FOUND" })
+    return response(200, { data: product })
+  },
+
+  async POST(req) {
+    const session = getSession(req.headers?.authorization?.replace("Bearer ",""))
+    if (!session) return response(401, { error:"Unauthorized", code:"UNAUTHORIZED" })
+    if (session.role !== "admin") return response(403, { error:"Forbidden", code:"FORBIDDEN" })
+
+    const v = validate(req.body, {
+      name:       { required:"Name required", minLen:2 },
+      price:      { required:"Price required", min:0.01 },
+      categoryId: { required:"Category required" },
+    })
+    if (!v.valid) return response(400, { error:"Validation failed", details:{ fieldErrors:v.errors } })
+
+    if (DB.products.find(p=>p.slug===req.body.name.toLowerCase().replace(/\s+/g,"-"))) {
+      return response(409, { error:"Product already exists", code:"CONFLICT" })
+    }
+
+    const product = { id:`p${DB.nextId++}`, ...req.body, slug:req.body.name.toLowerCase().replace(/\s+/g,"-"), published:false, stock:0 }
+    DB.products.push(product)
+    return response(201, { data:product }, { "Location":`/api/products/${product.id}` })
+  },
+
+  async PATCH(req, id) {
+    const session = getSession(req.headers?.authorization?.replace("Bearer ",""))
+    if (!session) return response(401, { error:"Unauthorized" })
+    if (session.role !== "admin") return response(403, { error:"Forbidden" })
+    const idx = DB.products.findIndex(p=>p.id===id)
+    if (idx===-1) return response(404, { error:"Product not found" })
+    Object.assign(DB.products[idx], req.body)
+    return response(200, { data:DB.products[idx] })
+  },
+
+  async DELETE(req, id) {
+    const session = getSession(req.headers?.authorization?.replace("Bearer ",""))
+    if (!session) return response(401, { error:"Unauthorized" })
+    if (session.role !== "admin") return response(403, { error:"Forbidden" })
+    const idx = DB.products.findIndex(p=>p.id===id)
+    if (idx===-1) return response(404, { error:"Product not found" })
+    DB.products.splice(idx, 1)
+    return response(204, null)
+  }
+}
+
+async function runTests() {
+  console.log("=== GET /api/products ===")
+  const list = await ProductsAPI.GET({ ip:"1.2.3.4", query:{} })
+  console.log(list.status, "— items:", JSON.parse(list.body).data.length)
+
+  const filtered = await ProductsAPI.GET({ ip:"1.2.3.4", query:{category:"c2"} })
+  console.log("Filtered by c2:", JSON.parse(filtered.body).data.length, "items")
+
+  console.log("\n=== GET /api/products/:id ===")
+  const one = await ProductsAPI.GET_ONE({ ip:"1.2.3.4" }, "p1")
+  console.log(one.status, "—", JSON.parse(one.body).data.name)
+  const notFound = await ProductsAPI.GET_ONE({ ip:"1.2.3.4" }, "p99")
+  console.log(notFound.status, "—", JSON.parse(notFound.body).code)
+
+  console.log("\n=== POST /api/products ===")
+  const noAuth = await ProductsAPI.POST({ headers:{} })
+  console.log("No auth:", noAuth.status)
+  const userAuth = await ProductsAPI.POST({ headers:{ authorization:"Bearer tok_user" }, body:{ name:"X", price:99, categoryId:"c1" } })
+  console.log("User role:", userAuth.status)  // 403
+  const created = await ProductsAPI.POST({ headers:{ authorization:"Bearer tok_admin" }, body:{ name:"AirPods Pro", price:249, categoryId:"c1" } })
+  console.log("Admin create:", created.status, "— Location:", created.headers.Location)
+  const badBody = await ProductsAPI.POST({ headers:{ authorization:"Bearer tok_admin" }, body:{ name:"X" } })
+  console.log("Bad body:", badBody.status, "—", JSON.parse(badBody.body).details?.fieldErrors?.price?.[0]||JSON.parse(badBody.body).details?.fieldErrors?.price)
+
+  console.log("\n=== PATCH + DELETE ===")
+  const updated = await ProductsAPI.PATCH({ headers:{ authorization:"Bearer tok_admin" }, body:{ price:1799 } }, "p1")
+  console.log("Patched:", updated.status, "new price:", JSON.parse(updated.body).data.price)
+  const deleted = await ProductsAPI.DELETE({ headers:{ authorization:"Bearer tok_admin" } }, "p2")
+  console.log("Deleted:", deleted.status, "body:", deleted.body)
+  console.log("Products remaining:", DB.products.filter(p=>p.published).length)
+
+  console.log("\n✅ Full API verified!")
+}
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">What are the key principles of RESTful API design?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">REST has six guiding constraints. The most practically important are: <strong>statelessness</strong> — each request contains all the information needed; the server stores no session state between requests, enabling horizontal scaling. <strong>Uniform interface</strong> — resources are identified by URLs, HTTP methods express the action (GET reads, POST creates, PUT/PATCH updates, DELETE removes), and responses use a consistent shape. <strong>Client-server separation</strong> — the API contract is the only coupling; frontend and backend evolve independently.<br><br>In practice, this means: use nouns in URLs (not verbs), use plural nouns for collections, use HTTP methods correctly, use standard status codes semantically, and keep your response shape consistent across all endpoints. The "REST" label is overloaded — most "REST APIs" are actually REST-ish, which is fine as long as they're consistent.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">What's the difference between 401 and 403? Between 400 and 422?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><strong>401 vs 403</strong>: 401 (Unauthorized, confusingly named) means "you haven't identified yourself yet" — there's no valid token, or the token has expired. The user should log in. 403 (Forbidden) means "I know who you are but you don't have permission" — the user is authenticated but lacks the required role or doesn't own the resource. Don't return 403 when you mean 404 — that leaks information about the existence of resources.<br><br><strong>400 vs 422</strong>: 400 (Bad Request) means the request is malformed — missing required fields, wrong data types, invalid JSON. 422 (Unprocessable Entity) means the request is syntactically valid but semantically invalid — the data makes sense structurally but fails business logic validation (e.g., an end date that precedes the start date, or a negative price). In practice, many APIs use 400 for both and reserve 422 only for complex cross-field validation errors.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">How do you design a consistent error response shape?</span><span class="qa-chev">▶</span></div>
+    <div class="ans-text"><div class="ans-label">model answer</div>
+    The most important thing is consistency — every error in your API should have the same top-level shape. A good pattern: <code>{ "error": "human-readable message", "code": "MACHINE_READABLE_CODE", "details": { ... } }</code>.<br><br>The <code>error</code> field is the user-facing message. The <code>code</code> is a string constant your frontend can programmatically check (like <code>"INSUFFICIENT_STOCK"</code> or <code>"EMAIL_TAKEN"</code>) to show tailored UI. The <code>details</code> object carries context-specific information — for validation errors, it should contain <code>{ "fieldErrors": { "email": ["Invalid format"], "price": ["Must be positive"] } }</code>.<br><br>Never expose stack traces in production — that's a security vulnerability. Log the full error internally, return only a generic message. Never invent your own status codes — use the 4xx/5xx range semantically. The investment in a consistent error shape pays off when every error boundary and React Query <code>onError</code> handler can process errors identically.</div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">What is idempotency and which HTTP methods are idempotent?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">An idempotent operation produces the same result when executed once or multiple times. If a network error causes a client to retry a request, an idempotent endpoint produces the same outcome — no duplicate data, no double charges.<br><br>Idempotent: GET (read-only, always same data), PUT (replace entire resource — same request = same result), DELETE (delete twice = resource still deleted), HEAD, OPTIONS. Not idempotent: POST (each call creates a new resource — two POST calls create two products). PATCH can be idempotent if it sets absolute values (<code>{ price: 1999 }</code>) but not if it uses relative operations (<code>{ stock: { increment: 1 } }</code> twice = incremented twice).<br><br>Practical implication: when building retry logic (like React Query's automatic retries), only retry idempotent requests automatically. For POST, require the user to explicitly retry to avoid duplicates. Alternatively, implement idempotency keys for POST — the client sends a unique key, the server stores it, and duplicate requests with the same key return the same response without re-executing.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">How do you implement rate limiting in a Next.js API?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Rate limiting requires a shared store across serverless function invocations — an in-memory Map doesn't work because each invocation may be on a different server instance. The standard solution is Redis, which maintains state across all instances.<br><br>For Next.js: use Upstash Redis (serverless-friendly, HTTP-based) with the <code>@upstash/ratelimit</code> package. Configure a sliding window limiter (100 requests per minute per IP, for example). In each Route Handler, check the rate limit before processing. If exceeded, return 429 with the appropriate headers: <code>X-RateLimit-Limit</code> (total limit), <code>X-RateLimit-Remaining</code> (left in current window), <code>X-RateLimit-Reset</code> (epoch when window resets), and <code>Retry-After</code> (seconds until retry is allowed).<br><br>Different limits for different endpoints: public endpoints can be generous (1000/min), authenticated endpoints moderate (100/min), write operations strict (10/min for POST, 5/min for payment endpoints). Use user ID for authenticated users, IP for anonymous — per-IP for anonymous helps prevent bot scraping.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">What is CORS and when do you need to handle it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">CORS (Cross-Origin Resource Sharing) is a browser security mechanism that blocks JavaScript from making requests to a different origin (domain/port/protocol) than the page that loaded it. The browser sends an <code>OPTIONS</code> preflight request first, and the server must respond with the appropriate <code>Access-Control-Allow-*</code> headers for the actual request to proceed.<br><br>When do you need it: when your API is consumed by a browser-based client from a different origin. If your Next.js frontend and API are on the same domain (e.g., both on <code>shopco.vercel.app</code>), you don't need CORS — same-origin requests are always allowed. You do need CORS if: a React Native app or external website calls your API, you build a public API that others can use, or you serve your API from a different subdomain than your frontend.<br><br>In Next.js: add the <code>Access-Control-Allow-Origin</code> header to your Route Handlers (or globally in next.config.js), and add an <code>OPTIONS</code> export that returns 204 for the preflight. Be specific about the allowed origins — <code>*</code> allows any site, which may not be what you want for authenticated endpoints.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">What are the different API versioning strategies and which do you prefer?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Three common approaches. <strong>URL versioning</strong> (<code>/api/v1/products</code>, <code>/api/v2/products</code>) is the most explicit and cacheable — clients can bookmark exact versions, and old versions continue to work after new ones are deployed. Downside: URL proliferation, maintaining multiple code paths.<br><br><strong>Header versioning</strong> (<code>Accept: application/vnd.shopco.v2+json</code> or <code>API-Version: 2</code>) keeps URLs clean but is invisible in browser history and harder to test without tooling. Preferred by API purists for following REST principles more closely.<br><br><strong>Query parameter versioning</strong> (<code>/api/products?v=2</code>) is easy to test but breaks caching and looks messy.<br><br>My preference: URL versioning for public APIs (explicit, debuggable, cacheable). For internal APIs between your own services or frontend, I prefer no versioning at all — use Server Actions or tRPC where the client and server types are always in sync by definition, eliminating versioning concerns entirely.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">How do you validate request bodies in Next.js Route Handlers?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Use Zod for all input validation — it handles both runtime validation and TypeScript type inference simultaneously. The pattern: define a schema, call <code>safeParse(body)</code> on the parsed request body, check <code>result.success</code>, and return 400 with the flattened errors if it fails.<br><br><code>const body = await req.json(); const result = schema.safeParse(body); if (!result.success) return NextResponse.json({ error: "Validation failed", details: result.error.flatten() }, { status: 400 })</code><br><br>For query parameters (which arrive as strings from the URL), use <code>z.coerce.number()</code>, <code>z.coerce.boolean()</code> etc. to automatically convert strings to the right types. Use <code>.default()</code> to provide fallbacks.<br><br>Centralise the error handling in a wrapper function so every route handler gets automatic Zod error → 400 mapping without repeating the check. Also catch Prisma's <code>P2002</code> (unique constraint) error and return 409, and <code>P2025</code> (not found) → 404.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">When should you use Server Actions vs Route Handlers?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Server Actions are for mutations triggered by your own React UI. They're called directly from components — no fetch needed, no API endpoint to design, and they work with progressive enhancement (native form POST works without JS). They handle authentication automatically through Clerk's <code>auth()</code> and can revalidate the React Query or Next.js cache. Use them for: form submissions, cart operations, user profile updates, any write operation triggered by your own frontend.<br><br>Route Handlers (<code>route.ts</code>) are for building an actual HTTP API — when you need the endpoint to be consumed by external clients: a mobile app, a third-party webhook, another service, or a public API that other developers can use. Also use them for: webhooks from external services (like Clerk or Stripe), CORS-sensitive endpoints, cases where you need explicit control over HTTP headers and status codes.<br><br>Rule of thumb: if only your own Next.js UI calls it, use a Server Action. If anything outside your Next.js app calls it, use a Route Handler.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">How do you document an API and what tools do you use?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">The best API documentation is generated from the code itself — never maintained separately. Three approaches depending on the stack. <strong>TypeScript + tRPC or Server Actions</strong>: the type system IS the documentation. Consumers see exact input/output types in their IDE with zero manual effort. <strong>Zod schemas</strong>: since schemas define validation and types simultaneously, tools like <code>zod-to-json-schema</code> and <code>swagger-jsdoc</code> can generate OpenAPI specs from them automatically. <strong>OpenAPI/Swagger</strong>: for public REST APIs, write an OpenAPI spec (YAML) and use Swagger UI to serve interactive documentation — clients can try endpoints directly from the docs.<br><br>At minimum, any public API should document: all endpoints with their URL and method, all request parameters with types and validation rules, all response shapes with examples (both success and error), authentication requirements, rate limits, and changelog. Keep docs in the same repo as the code and treat documentation failures as bugs — stale docs are worse than no docs because they actively mislead consumers.</div>
+    <div class="tip-box">For Next.js internal APIs, consider switching to Server Actions or tRPC — they eliminate the documentation problem by making the TypeScript types the documentation, auto-synced with the implementation.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Night review — self-assessment</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">14 items</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain REST's key constraints — stateless, uniform interface, resource-oriented</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the HTTP methods and their semantics — idempotent vs not, has body vs not</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can design a full API surface for a CRUD resource — correct URL patterns, HTTP methods</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the key status codes: 200, 201, 204, 400, 401, 403, 404, 409, 422, 429, 500</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between 401 and 403, and between 400 and 422</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a complete Next.js Route Handler with auth, validation, DB query, and consistent response</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can build a <code>withErrorHandler</code> wrapper that catches Zod errors, Prisma errors, and unknown errors</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement a sliding window rate limiter with proper response headers</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use CORS headers and how to handle the OPTIONS preflight</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the three versioning strategies and can argue for URL versioning as the practical default</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the difference between Server Actions and Route Handlers and when to use each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed the full products CRUD Route Handler for the React Shop today</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My API follows REST conventions — nouns, plural, correct methods, consistent error shapes</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My code is committed, pushed, and the API is accessible on the deployed Vercel URL</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(249,115,22,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--api);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank Next.js project</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Design the full URL surface for the React Shop from memory — products, orders, users, reviews<br>
+      2. Write <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">app/api/products/route.ts</code> — GET (paginated+filtered) and POST (admin, Zod validation, 201+Location)<br>
+      3. Write <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">lib/api.ts</code> — <code>apiSuccess()</code>, <code>apiError()</code>, and <code>withErrorHandler()</code> wrapper<br>
+      4. List every status code you know and name one real scenario for each
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 4 · Day 24</div>
+      <div class="footer-day-name">API Design &amp; REST</div>
+      <div class="footer-day-next">Next up: <strong>Day 25 — Week 4 Review Project</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 4 progress</span><span>Day 5 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:71%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day23_prisma_database.html',23)">← Day 23</button>
+      <button class="footer-btn primary" onclick="navigateTo('day25_week4_review.html',25)">Day 25 — Week 4 Review →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design.html",current:true},
+]
+const CURRENT=24
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+  "day18_tailwind_css.html","day19_week3_review.html",
+  "day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html","day24_api_design.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep building! 🧪`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

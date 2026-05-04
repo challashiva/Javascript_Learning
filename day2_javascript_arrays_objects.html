@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 2 — Arrays, Objects & Modern JS Patterns</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #09090f;
+  --surface: #111118;
+  --surface2: #18181f;
+  --surface3: #1f1f28;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.11);
+  --text: #e2e2ee;
+  --muted: #6e6e8a;
+  --hint: #3a3a50;
+  --js: #f7df1e;
+  --js-dim: rgba(247,223,30,0.09);
+  --teal: #2dd4bf;
+  --teal-dim: rgba(45,212,191,0.09);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.09);
+  --coral: #fb7185;
+  --coral-dim: rgba(251,113,133,0.09);
+  --green: #4ade80;
+  --green-dim: rgba(74,222,128,0.09);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251,191,36,0.09);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96,165,250,0.09);
+  --pink: #f472b6;
+  --pink-dim: rgba(244,114,182,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre,.mono{font-family:'JetBrains Mono',monospace;}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.94);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;gap:0;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--js);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;letter-spacing:0.01em;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--js);border-bottom-color:var(--js);}
+
+/* HERO */
+.hero{padding:72px 48px 52px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--js);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--js);}
+.hero h1{font-size:clamp(38px,5.5vw,72px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--js);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin-bottom:36px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 26px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+/* SCHEDULE STRIP */
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+/* PROGRESS */
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 48px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--js);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.25);}
+
+/* SECTION */
+.section{max-width:1120px;margin:0 auto;padding:0 48px 60px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:28px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+/* CONCEPT CARDS */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;margin-bottom:24px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+/* CODE BLOCKS */
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--js);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;} .str{color:#86efac;} .num{color:#f9a8d4;} .fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;} .var{color:#5eead4;} .op{color:#fcd34d;}
+.prop{color:#fbbf24;} .rx{color:#fb923c;}
+
+/* VISUAL DIAGRAM */
+.diagram-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.diagram-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.diagram-title::before{content:'';width:8px;height:8px;border-radius:2px;background:var(--js);flex-shrink:0;}
+
+/* INTERACTIVE RUNNER */
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--js-dim);color:var(--js);border:1px solid rgba(247,223,30,.25);border-radius:6px;cursor:pointer;transition:background .15s;}
+.run-btn:hover{background:rgba(247,223,30,.18);}
+.runner-code{padding:18px 20px;border-bottom:1px solid var(--border);}
+.runner-code textarea{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:14px 16px;resize:vertical;min-height:160px;outline:none;}
+.runner-code textarea:focus{border-color:rgba(247,223,30,.3);}
+.runner-output{padding:14px 20px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+/* EXERCISE */
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--js);}
+.ex-hint{font-size:12px;color:var(--muted);border-left:2px solid var(--border2);padding-left:12px;border-radius:0;margin-bottom:14px;line-height:1.7;}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;transition:color .15s;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+/* INTERVIEW QA */
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+/* MENTAL MODEL */
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+/* COMPARISON TABLE */
+.comp-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+
+/* CHECKLIST */
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--js);border-color:var(--js);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+
+/* CHEATSHEET */
+.cheat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:14px 0;}
+.cheat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.cheat-head{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.cheat-label{font-size:12px;font-weight:600;}
+.cheat-sub{font-size:11px;color:var(--muted);margin-left:auto;font-family:'JetBrains Mono',monospace;}
+
+/* FOOTER */
+footer{max-width:1120px;margin:0 auto;padding:36px 48px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+footer p{font-size:12px;color:var(--hint);font-family:'JetBrains Mono',monospace;}
+.next-btn{font-size:13px;font-weight:600;padding:10px 20px;background:var(--js-dim);color:var(--js);border:1px solid rgba(247,223,30,.25);border-radius:8px;cursor:pointer;text-decoration:none;}
+.next-btn:hover{background:rgba(247,223,30,.17);}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,footer{padding-left:20px;padding-right:20px;}
+  .nav{padding:0 16px;}
+  .hero h1{font-size:36px;}
+  .schedule-grid{grid-template-columns:1fr;}
+  .hstat{padding:11px 14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 02 · JS</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#arrays">Arrays</a>
+  <a href="#objects">Objects</a>
+  <a href="#destructuring">Destructuring</a>
+  <a href="#spread">Spread/Rest</a>
+  <a href="#chaining">Chaining</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 1 · Day 2 · 8-week plan</div>
+  <h1>Arrays, Objects &amp;<br><em>Modern JS Patterns</em></h1>
+  <p class="hero-sub">The methods and syntax that appear in virtually every React component, API handler, and JavaScript codebase in production. Master these and you think in JS.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.25);color:var(--green);">map / filter / reduce</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.25);color:var(--amber);">objects deep dive</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.25);color:var(--purple);">destructuring</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.25);color:var(--teal);">spread / rest</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.25);color:var(--blue);">optional chaining</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.25);color:var(--coral);">nullish coalescing</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">5</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--js);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>Arrays — map, filter, reduce in depth</li>
+        <li>Chaining array methods</li>
+        <li>Other key methods: find, some, every, flat</li>
+        <li>Mental model: pure transformations</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--teal);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>Objects deep dive + prototype basics</li>
+        <li>Destructuring: objects, arrays, nested, params</li>
+        <li>Spread and rest operators</li>
+        <li>Optional chaining + nullish coalescing</li>
+        <li>Exercises 1–5 (runnable)</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As — read + memorise patterns</li>
+        <li>Review checklist (12 items)</li>
+        <li>Recall exercise: write from blank</li>
+        <li>Push today's code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 2 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots">
+    <span class="tdot" onclick="markDone(this)">Arrays</span>
+    <span class="tdot" onclick="markDone(this)">map/filter/reduce</span>
+    <span class="tdot" onclick="markDone(this)">Objects</span>
+    <span class="tdot" onclick="markDone(this)">Destructuring</span>
+    <span class="tdot" onclick="markDone(this)">Spread/Rest</span>
+    <span class="tdot" onclick="markDone(this)">Optional chaining</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- ══════════ 01. ARRAYS ══════════ -->
+<div class="section" id="arrays">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Arrays — structure, mutation, and core methods</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">foundation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">what arrays are</span>
+      <div class="cc-title">Ordered, zero-indexed lists</div>
+      <div class="cc-body">Arrays hold values in a specific <strong>order</strong>, accessed by index starting at 0. They are actually <strong>objects under the hood</strong> — <code>typeof [] === "object"</code>. Use <code>Array.isArray()</code> to check. Length updates automatically. Arrays can hold <strong>mixed types</strong>, though this is rarely a good idea in real code.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">mutation trap</span>
+      <div class="cc-title">Mutating vs non-mutating methods</div>
+      <div class="cc-body">Some array methods <strong>mutate the original</strong> (push, pop, sort, splice, reverse). Others return a <strong>new array</strong> (map, filter, slice, concat, spread). In React, <strong>you must never mutate state directly</strong> — always use non-mutating patterns. Knowing which methods mutate is essential to avoid bugs.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">mental model</span>
+      <div class="cc-title">Arrays as data pipelines</div>
+      <div class="cc-body">Think of array methods as <strong>pipeline stages</strong>: your data flows through a series of transforms. Each method returns a new array, so you can chain them. This pattern — immutable transformations chained together — is the core mental model of both functional JavaScript and React state updates.</div>
+    </div>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">mutating vs non-mutating — know which is which</div>
+    <table class="comp-table">
+      <tr><th>Method</th><th>Mutates original?</th><th>Returns</th><th>React-safe?</th></tr>
+      <tr><td><code>push / pop</code></td><td style="color:var(--coral);">yes</td><td>new length / removed item</td><td style="color:var(--coral);">no — use spread</td></tr>
+      <tr><td><code>splice</code></td><td style="color:var(--coral);">yes</td><td>removed items</td><td style="color:var(--coral);">no — use filter</td></tr>
+      <tr><td><code>sort / reverse</code></td><td style="color:var(--coral);">yes</td><td>same array (sorted)</td><td style="color:var(--coral);">no — spread first</td></tr>
+      <tr><td><code>map</code></td><td style="color:var(--green);">no</td><td>new array, same length</td><td style="color:var(--green);">yes</td></tr>
+      <tr><td><code>filter</code></td><td style="color:var(--green);">no</td><td>new array, shorter</td><td style="color:var(--green);">yes</td></tr>
+      <tr><td><code>reduce</code></td><td style="color:var(--green);">no</td><td>single accumulated value</td><td style="color:var(--green);">yes</td></tr>
+      <tr><td><code>slice</code></td><td style="color:var(--green);">no</td><td>new subarray</td><td style="color:var(--green);">yes</td></tr>
+      <tr><td><code>concat / spread</code></td><td style="color:var(--green);">no</td><td>new combined array</td><td style="color:var(--green);">yes</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ 02. MAP FILTER REDUCE ══════════ -->
+<div class="section" id="arrays">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">map · filter · reduce — in exhaustive depth</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">critical</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">map — transform every element</span></div>
+    <div class="cb-body"><pre><span class="cm">// .map(callback) — runs callback on each item, builds new array from return values</span>
+<span class="cm">// Signature: array.map((currentValue, index, array) => newValue)</span>
+
+<span class="kw">const</span> <span class="var">orders</span> = [
+  { <span class="prop">id</span>: <span class="num">1</span>, <span class="prop">product</span>: <span class="str">"Laptop"</span>,  <span class="prop">price</span>: <span class="num">999</span>,  <span class="prop">qty</span>: <span class="num">1</span> },
+  { <span class="prop">id</span>: <span class="num">2</span>, <span class="prop">product</span>: <span class="str">"Mouse"</span>,   <span class="prop">price</span>: <span class="num">29</span>,   <span class="prop">qty</span>: <span class="num">3</span> },
+  { <span class="prop">id</span>: <span class="num">3</span>, <span class="prop">product</span>: <span class="str">"Monitor"</span>, <span class="prop">price</span>: <span class="num">349</span>,  <span class="prop">qty</span>: <span class="num">2</span> },
+]
+
+<span class="cm">// Simple extraction</span>
+<span class="kw">const</span> <span class="var">productNames</span> = <span class="var">orders</span>.<span class="fn">map</span>(<span class="var">o</span> => <span class="var">o</span>.<span class="prop">product</span>)
+<span class="cm">// ["Laptop", "Mouse", "Monitor"]</span>
+
+<span class="cm">// Computing new values</span>
+<span class="kw">const</span> <span class="var">withTotals</span> = <span class="var">orders</span>.<span class="fn">map</span>(<span class="var">o</span> => ({
+  ...<span class="var">o</span>,
+  <span class="prop">total</span>: <span class="var">o</span>.<span class="prop">price</span> * <span class="var">o</span>.<span class="prop">qty</span>
+}))
+<span class="cm">// Each order now has a total field. Original array unchanged.</span>
+
+<span class="cm">// Using index parameter</span>
+<span class="kw">const</span> <span class="var">numbered</span> = <span class="var">orders</span>.<span class="fn">map</span>((<span class="var">o</span>, <span class="var">i</span>) => `<span class="rx">${</span><span class="var">i</span> + <span class="num">1</span><span class="rx">}</span>. <span class="rx">${</span><span class="var">o</span>.<span class="prop">product</span><span class="rx">}</span>`)
+<span class="cm">// ["1. Laptop", "2. Mouse", "3. Monitor"]</span>
+
+<span class="cm">// React pattern — render JSX from data (what you'll write every day)</span>
+<span class="cm">// orders.map(order => &lt;OrderCard key={order.id} {...order} /&gt;)</span>
+
+<span class="cm">// Common mistake: forgetting to return in multi-line arrow functions</span>
+<span class="kw">const</span> <span class="var">wrong</span> = <span class="var">orders</span>.<span class="fn">map</span>(<span class="var">o</span> => {
+  <span class="var">o</span>.<span class="prop">price</span> * <span class="num">2</span>       <span class="cm">// forgot return! Every element → undefined</span>
+})
+<span class="kw">const</span> <span class="var">right</span> = <span class="var">orders</span>.<span class="fn">map</span>(<span class="var">o</span> => {
+  <span class="kw">return</span> <span class="var">o</span>.<span class="prop">price</span> * <span class="num">2</span>  <span class="cm">// explicit return needed in block body</span>
+})</pre></div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">filter — keep only matching elements</span></div>
+    <div class="cb-body"><pre><span class="cm">// .filter(callback) — keeps items where callback returns truthy</span>
+<span class="cm">// Signature: array.filter((currentValue, index, array) => boolean)</span>
+
+<span class="kw">const</span> <span class="var">products</span> = [
+  { <span class="prop">id</span>: <span class="num">1</span>, <span class="prop">name</span>: <span class="str">"Laptop"</span>,  <span class="prop">price</span>: <span class="num">999</span>, <span class="prop">category</span>: <span class="str">"electronics"</span>, <span class="prop">inStock</span>: <span class="kw">true</span>  },
+  { <span class="prop">id</span>: <span class="num">2</span>, <span class="prop">name</span>: <span class="str">"T-shirt"</span>, <span class="prop">price</span>: <span class="num">25</span>,  <span class="prop">category</span>: <span class="str">"clothing"</span>,     <span class="prop">inStock</span>: <span class="kw">true</span>  },
+  { <span class="prop">id</span>: <span class="num">3</span>, <span class="prop">name</span>: <span class="str">"Phone"</span>,   <span class="prop">price</span>: <span class="num">699</span>, <span class="prop">category</span>: <span class="str">"electronics"</span>, <span class="prop">inStock</span>: <span class="kw">false</span> },
+  { <span class="prop">id</span>: <span class="num">4</span>, <span class="prop">name</span>: <span class="str">"Jeans"</span>,   <span class="prop">price</span>: <span class="num">59</span>,  <span class="prop">category</span>: <span class="str">"clothing"</span>,     <span class="prop">inStock</span>: <span class="kw">true</span>  },
+  { <span class="prop">id</span>: <span class="num">5</span>, <span class="prop">name</span>: <span class="str">"Tablet"</span>,  <span class="prop">price</span>: <span class="num">449</span>, <span class="prop">category</span>: <span class="str">"electronics"</span>, <span class="prop">inStock</span>: <span class="kw">true</span>  },
+]
+
+<span class="cm">// Single condition</span>
+<span class="kw">const</span> <span class="var">available</span>    = <span class="var">products</span>.<span class="fn">filter</span>(<span class="var">p</span> => <span class="var">p</span>.<span class="prop">inStock</span>)
+<span class="kw">const</span> <span class="var">electronics</span>  = <span class="var">products</span>.<span class="fn">filter</span>(<span class="var">p</span> => <span class="var">p</span>.<span class="prop">category</span> === <span class="str">"electronics"</span>)
+<span class="kw">const</span> <span class="var">affordable</span>   = <span class="var">products</span>.<span class="fn">filter</span>(<span class="var">p</span> => <span class="var">p</span>.<span class="prop">price</span> < <span class="num">100</span>)
+
+<span class="cm">// Multiple conditions (AND)</span>
+<span class="kw">const</span> <span class="var">availElec</span> = <span class="var">products</span>.<span class="fn">filter</span>(<span class="var">p</span> => <span class="var">p</span>.<span class="prop">inStock</span> && <span class="var">p</span>.<span class="prop">category</span> === <span class="str">"electronics"</span>)
+
+<span class="cm">// Dynamic search filter (what a search bar does)</span>
+<span class="kw">const</span> <span class="fn">searchProducts</span> = (<span class="var">query</span>) =>
+  <span class="var">products</span>.<span class="fn">filter</span>(<span class="var">p</span> => <span class="var">p</span>.<span class="prop">name</span>.<span class="fn">toLowerCase</span>().<span class="fn">includes</span>(<span class="var">query</span>.<span class="fn">toLowerCase</span>()))
+
+<span class="cm">// Remove an item by id (React pattern for deleting from state)</span>
+<span class="kw">const</span> <span class="fn">removeItem</span> = (<span class="var">id</span>) => <span class="var">products</span>.<span class="fn">filter</span>(<span class="var">p</span> => <span class="var">p</span>.<span class="prop">id</span> !== <span class="var">id</span>)
+
+<span class="cm">// Deduplicate array of primitives</span>
+<span class="kw">const</span> <span class="var">tags</span>       = [<span class="str">"js"</span>, <span class="str">"react"</span>, <span class="str">"js"</span>, <span class="str">"css"</span>, <span class="str">"react"</span>]
+<span class="kw">const</span> <span class="var">uniqueTags</span> = [...<span class="kw">new</span> <span class="fn">Set</span>(<span class="var">tags</span>)]  <span class="cm">// ["js", "react", "css"]</span></pre></div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">reduce — the Swiss Army knife</span></div>
+    <div class="cb-body"><pre><span class="cm">// .reduce(callback, initialValue)</span>
+<span class="cm">// callback receives: (accumulator, currentValue, index, array)</span>
+<span class="cm">// accumulator = running result. initialValue = what it starts as.</span>
+
+<span class="kw">const</span> <span class="var">cart</span> = [
+  { <span class="prop">name</span>: <span class="str">"Book"</span>,     <span class="prop">price</span>: <span class="num">15</span>, <span class="prop">qty</span>: <span class="num">2</span> },
+  { <span class="prop">name</span>: <span class="str">"Notebook"</span>, <span class="prop">price</span>: <span class="num">8</span>,  <span class="prop">qty</span>: <span class="num">3</span> },
+  { <span class="prop">name</span>: <span class="str">"Pen"</span>,      <span class="prop">price</span>: <span class="num">3</span>,  <span class="prop">qty</span>: <span class="num">5</span> },
+]
+
+<span class="cm">// 1. Sum — reduce to a number</span>
+<span class="kw">const</span> <span class="var">total</span> = <span class="var">cart</span>.<span class="fn">reduce</span>((<span class="var">sum</span>, <span class="var">item</span>) => <span class="var">sum</span> + <span class="var">item</span>.<span class="prop">price</span> * <span class="var">item</span>.<span class="prop">qty</span>, <span class="num">0</span>)
+<span class="cm">// 0 + (15*2) + (8*3) + (3*5) = 0 + 30 + 24 + 15 = 69</span>
+
+<span class="cm">// 2. Group by — reduce to an object (very common pattern)</span>
+<span class="kw">const</span> <span class="var">transactions</span> = [
+  { <span class="prop">type</span>: <span class="str">"food"</span>,      <span class="prop">amount</span>: <span class="num">45</span> },
+  { <span class="prop">type</span>: <span class="str">"transport"</span>, <span class="prop">amount</span>: <span class="num">20</span> },
+  { <span class="prop">type</span>: <span class="str">"food"</span>,      <span class="prop">amount</span>: <span class="num">30</span> },
+  { <span class="prop">type</span>: <span class="str">"transport"</span>, <span class="prop">amount</span>: <span class="num">15</span> },
+  { <span class="prop">type</span>: <span class="str">"leisure"</span>,   <span class="prop">amount</span>: <span class="num">60</span> },
+]
+
+<span class="kw">const</span> <span class="var">byCategory</span> = <span class="var">transactions</span>.<span class="fn">reduce</span>((<span class="var">acc</span>, <span class="var">t</span>) => {
+  <span class="var">acc</span>[<span class="var">t</span>.<span class="prop">type</span>] = (<span class="var">acc</span>[<span class="var">t</span>.<span class="prop">type</span>] || <span class="num">0</span>) + <span class="var">t</span>.<span class="prop">amount</span>
+  <span class="kw">return</span> <span class="var">acc</span>
+}, {})
+<span class="cm">// { food: 75, transport: 35, leisure: 60 }</span>
+
+<span class="cm">// 3. Flatten array of arrays</span>
+<span class="kw">const</span> <span class="var">nested</span>    = [[<span class="num">1</span>, <span class="num">2</span>], [<span class="num">3</span>, <span class="num">4</span>], [<span class="num">5</span>]]
+<span class="kw">const</span> <span class="var">flat</span>      = <span class="var">nested</span>.<span class="fn">reduce</span>((<span class="var">acc</span>, <span class="var">arr</span>) => [...<span class="var">acc</span>, ...<span class="var">arr</span>], [])
+<span class="cm">// [1, 2, 3, 4, 5]  (or just use .flat())</span>
+
+<span class="cm">// 4. Build a lookup map (id → object) — massive performance gain</span>
+<span class="kw">const</span> <span class="var">users</span> = [{ <span class="prop">id</span>: <span class="num">1</span>, <span class="prop">name</span>: <span class="str">"Alice"</span> }, { <span class="prop">id</span>: <span class="num">2</span>, <span class="prop">name</span>: <span class="str">"Bob"</span> }]
+<span class="kw">const</span> <span class="var">usersById</span> = <span class="var">users</span>.<span class="fn">reduce</span>((<span class="var">acc</span>, <span class="var">u</span>) => ({ ...<span class="var">acc</span>, [<span class="var">u</span>.<span class="prop">id</span>]: <span class="var">u</span> }), {})
+<span class="cm">// { 1: { id:1, name:"Alice" }, 2: { id:2, name:"Bob" } }</span>
+<span class="cm">// Now: usersById[1] → user in O(1) instead of O(n) find()</span>
+
+<span class="cm">// 5. Pipeline of transforms (advanced but elegant)</span>
+<span class="kw">const</span> <span class="var">pipeline</span> = [<span class="var">double</span>, <span class="var">addTen</span>, <span class="var">square</span>]
+<span class="kw">const</span> <span class="var">result</span>   = <span class="var">pipeline</span>.<span class="fn">reduce</span>((<span class="var">val</span>, <span class="var">fn</span>) => <span class="fn">fn</span>(<span class="var">val</span>), <span class="num">5</span>)
+<span class="cm">// Runs: square(addTen(double(5))) = square(addTen(10)) = square(20) = 400</span></pre></div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">other essential methods + method chaining</span></div>
+    <div class="cb-body"><pre><span class="kw">const</span> <span class="var">employees</span> = [
+  { <span class="prop">name</span>: <span class="str">"Alice"</span>, <span class="prop">dept</span>: <span class="str">"eng"</span>,     <span class="prop">salary</span>: <span class="num">95000</span>, <span class="prop">active</span>: <span class="kw">true</span>  },
+  { <span class="prop">name</span>: <span class="str">"Bob"</span>,   <span class="prop">dept</span>: <span class="str">"design"</span>,  <span class="prop">salary</span>: <span class="num">82000</span>, <span class="prop">active</span>: <span class="kw">true</span>  },
+  { <span class="prop">name</span>: <span class="str">"Carol"</span>, <span class="prop">dept</span>: <span class="str">"eng"</span>,     <span class="prop">salary</span>: <span class="num">110000</span>,<span class="prop">active</span>: <span class="kw">false</span> },
+  { <span class="prop">name</span>: <span class="str">"Dan"</span>,   <span class="prop">dept</span>: <span class="str">"design"</span>,  <span class="prop">salary</span>: <span class="num">78000</span>, <span class="prop">active</span>: <span class="kw">true</span>  },
+  { <span class="prop">name</span>: <span class="str">"Eve"</span>,   <span class="prop">dept</span>: <span class="str">"eng"</span>,     <span class="prop">salary</span>: <span class="num">105000</span>,<span class="prop">active</span>: <span class="kw">true</span>  },
+]
+
+<span class="cm">// .find() — first match or undefined</span>
+<span class="kw">const</span> <span class="var">designer</span> = <span class="var">employees</span>.<span class="fn">find</span>(<span class="var">e</span> => <span class="var">e</span>.<span class="prop">dept</span> === <span class="str">"design"</span>)   <span class="cm">// Bob</span>
+<span class="kw">const</span> <span class="var">notFound</span> = <span class="var">employees</span>.<span class="fn">find</span>(<span class="var">e</span> => <span class="var">e</span>.<span class="prop">dept</span> === <span class="str">"sales"</span>)    <span class="cm">// undefined</span>
+
+<span class="cm">// .findIndex() — index of first match or -1</span>
+<span class="kw">const</span> <span class="var">idx</span> = <span class="var">employees</span>.<span class="fn">findIndex</span>(<span class="var">e</span> => <span class="var">e</span>.<span class="prop">name</span> === <span class="str">"Carol"</span>)   <span class="cm">// 2</span>
+
+<span class="cm">// .some() / .every() — boolean tests</span>
+<span class="var">employees</span>.<span class="fn">some</span>(<span class="var">e</span>  => <span class="var">e</span>.<span class="prop">salary</span> > <span class="num">100000</span>)   <span class="cm">// true — at least one earns > 100k</span>
+<span class="var">employees</span>.<span class="fn">every</span>(<span class="var">e</span> => <span class="var">e</span>.<span class="prop">active</span>)            <span class="cm">// false — not all are active</span>
+
+<span class="cm">// .sort() — mutates! spread first for React safety</span>
+<span class="kw">const</span> <span class="var">sorted</span> = [...<span class="var">employees</span>].<span class="fn">sort</span>((<span class="var">a</span>, <span class="var">b</span>) => <span class="var">b</span>.<span class="prop">salary</span> - <span class="var">a</span>.<span class="prop">salary</span>)
+<span class="cm">// Sorted high→low salary. Original unchanged.</span>
+
+<span class="cm">// .flat() / .flatMap()</span>
+<span class="kw">const</span> <span class="var">tags</span>     = [[<span class="str">"js"</span>, <span class="str">"react"</span>], [<span class="str">"css"</span>], [<span class="str">"node"</span>, <span class="str">"ts"</span>]]
+<span class="kw">const</span> <span class="var">allTags</span>  = <span class="var">tags</span>.<span class="fn">flat</span>()               <span class="cm">// ["js","react","css","node","ts"]</span>
+<span class="kw">const</span> <span class="var">doubled</span>  = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>].<span class="fn">flatMap</span>(<span class="var">n</span> => [<span class="var">n</span>, <span class="var">n</span> * <span class="num">2</span>])  <span class="cm">// [1,2,2,4,3,6]</span>
+
+<span class="cm">// CHAINING — the real power (read top to bottom like a sentence)</span>
+<span class="kw">const</span> <span class="var">topEngNames</span> = <span class="var">employees</span>
+  .<span class="fn">filter</span>(<span class="var">e</span> => <span class="var">e</span>.<span class="prop">dept</span> === <span class="str">"eng"</span> && <span class="var">e</span>.<span class="prop">active</span>)     <span class="cm">// active engineers only</span>
+  .<span class="fn">sort</span>((<span class="var">a</span>, <span class="var">b</span>) => <span class="var">b</span>.<span class="prop">salary</span> - <span class="var">a</span>.<span class="prop">salary</span>)            <span class="cm">// sort by salary desc</span>
+  .<span class="fn">slice</span>(<span class="num">0</span>, <span class="num">2</span>)                                       <span class="cm">// top 2</span>
+  .<span class="fn">map</span>(<span class="var">e</span> => <span class="var">e</span>.<span class="prop">name</span>)                                  <span class="cm">// extract names</span>
+<span class="cm">// ["Eve", "Alice"]</span></pre></div>
+  </div>
+</div>
+
+<!-- ══════════ 03. OBJECTS ══════════ -->
+<div class="section" id="objects">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Objects — deep dive, patterns and prototype</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">daily use</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">key patterns</span>
+      <div class="cc-title">Object creation patterns</div>
+      <div class="cc-body"><strong>Object literal</strong> <code>{}</code> — by far the most common. <strong>Object.create(proto)</strong> — creates object with specific prototype. <strong>Constructor function / class</strong> — when you need many objects of the same shape. <strong>Factory function</strong> — returns plain objects, no <code>new</code> needed. In React, you'll use object literals and factory functions almost exclusively.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--blue-dim);color:var(--blue);">key methods</span>
+      <div class="cc-title">Object utility methods</div>
+      <div class="cc-body"><code>Object.keys(obj)</code> — array of property names. <code>Object.values(obj)</code> — array of values. <code>Object.entries(obj)</code> — array of <code>[key, value]</code> pairs. <code>Object.assign(target, src)</code> — shallow merge. <code>Object.freeze(obj)</code> — make immutable. These come up in interviews and real data transforms constantly.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">important</span>
+      <div class="cc-title">Shallow vs deep copy</div>
+      <div class="cc-body">Spread (<code>{...obj}</code>) and <code>Object.assign</code> create <strong>shallow copies</strong> — nested objects are still references. If you need a true independent copy at all depths, use <code>structuredClone(obj)</code> (modern, built-in) or <code>JSON.parse(JSON.stringify(obj))</code> (older hack, loses functions/dates). In practice, Immer handles this in React apps.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Object methods, iteration, and immutable update patterns</span></div>
+    <div class="cb-body"><pre><span class="kw">const</span> <span class="var">config</span> = {
+  <span class="prop">apiUrl</span>:   <span class="str">"https://api.example.com"</span>,
+  <span class="prop">timeout</span>:  <span class="num">5000</span>,
+  <span class="prop">retries</span>:  <span class="num">3</span>,
+  <span class="prop">headers</span>:  { <span class="prop">Authorization</span>: <span class="str">"Bearer token123"</span>, <span class="prop">ContentType</span>: <span class="str">"application/json"</span> }
+}
+
+<span class="cm">// Object.keys / values / entries</span>
+<span class="fn">Object</span>.<span class="fn">keys</span>(<span class="var">config</span>)     <span class="cm">// ["apiUrl", "timeout", "retries", "headers"]</span>
+<span class="fn">Object</span>.<span class="fn">values</span>(<span class="var">config</span>)   <span class="cm">// ["https://...", 5000, 3, { ... }]</span>
+<span class="fn">Object</span>.<span class="fn">entries</span>(<span class="var">config</span>)  <span class="cm">// [["apiUrl","https://..."], ["timeout",5000], ...]</span>
+
+<span class="cm">// Iterating over object entries (common in data transforms)</span>
+<span class="fn">Object</span>.<span class="fn">entries</span>(<span class="var">config</span>).<span class="fn">forEach</span>(([<span class="var">key</span>, <span class="var">value</span>]) => {
+  <span class="fn">console</span>.<span class="fn">log</span>(`<span class="rx">${</span><span class="var">key</span><span class="rx">}</span>: <span class="rx">${</span><span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="var">value</span>)<span class="rx">}</span>`)
+})
+
+<span class="cm">// Convert object to array, transform, convert back (powerful pattern)</span>
+<span class="kw">const</span> <span class="var">prices</span>     = { <span class="prop">apple</span>: <span class="num">1.5</span>, <span class="prop">banana</span>: <span class="num">0.8</span>, <span class="prop">cherry</span>: <span class="num">3.0</span> }
+<span class="kw">const</span> <span class="var">increased</span>  = <span class="fn">Object</span>.<span class="fn">fromEntries</span>(
+  <span class="fn">Object</span>.<span class="fn">entries</span>(<span class="var">prices</span>).<span class="fn">map</span>(([<span class="var">k</span>, <span class="var">v</span>]) => [<span class="var">k</span>, <span class="var">v</span> * <span class="num">1.1</span>])
+)
+<span class="cm">// { apple: 1.65, banana: 0.88, cherry: 3.3 }</span>
+
+<span class="cm">// Immutable update patterns (critical for React state)</span>
+<span class="cm">// Update a top-level property</span>
+<span class="kw">const</span> <span class="var">newConfig</span>  = { ...<span class="var">config</span>, <span class="prop">timeout</span>: <span class="num">8000</span> }
+
+<span class="cm">// Update a nested property — must spread at every level!</span>
+<span class="kw">const</span> <span class="var">newConfig2</span> = {
+  ...<span class="var">config</span>,
+  <span class="prop">headers</span>: { ...<span class="var">config</span>.<span class="prop">headers</span>, <span class="prop">Authorization</span>: <span class="str">"Bearer newtoken"</span> }
+}
+
+<span class="cm">// Delete a property immutably (destructure it away)</span>
+<span class="kw">const</span> { <span class="prop">Authorization</span>, ...<span class="var">publicHeaders</span> } = <span class="var">config</span>.<span class="prop">headers</span>
+<span class="cm">// publicHeaders = { ContentType: "application/json" }  — no auth header</span>
+
+<span class="cm">// Check if property exists</span>
+<span class="str">"timeout"</span> <span class="kw">in</span> <span class="var">config</span>           <span class="cm">// true</span>
+<span class="var">config</span>.<span class="fn">hasOwnProperty</span>(<span class="str">"timeout"</span>) <span class="cm">// true (own, not inherited)</span>
+
+<span class="cm">// Computed / dynamic keys</span>
+<span class="kw">const</span> <span class="var">field</span>    = <span class="str">"email"</span>
+<span class="kw">const</span> <span class="var">partial</span>  = { [<span class="var">field</span>]: <span class="str">"alice@example.com"</span> }  <span class="cm">// { email: "..." }</span>
+
+<span class="cm">// React form state update pattern (uses computed key)</span>
+<span class="kw">const</span> <span class="fn">handleChange</span> = (<span class="var">e</span>) => {
+  <span class="fn">setForm</span>(<span class="var">prev</span> => ({ ...<span class="var">prev</span>, [<span class="var">e</span>.<span class="prop">target</span>.<span class="prop">name</span>]: <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span> }))
+}</pre></div>
+  </div>
+</div>
+
+<!-- ══════════ 04. DESTRUCTURING ══════════ -->
+<div class="section" id="destructuring">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Destructuring — objects, arrays, nested + params</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">React daily</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Every destructuring pattern you'll use in production</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── OBJECT DESTRUCTURING ──────────────────────────────────────────</span>
+
+<span class="kw">const</span> <span class="var">user</span> = {
+  <span class="prop">id</span>: <span class="num">42</span>, <span class="prop">name</span>: <span class="str">"Alice"</span>, <span class="prop">role</span>: <span class="str">"admin"</span>,
+  <span class="prop">address</span>: { <span class="prop">city</span>: <span class="str">"Austin"</span>, <span class="prop">state</span>: <span class="str">"TX"</span>, <span class="prop">zip</span>: <span class="str">"78701"</span> },
+  <span class="prop">scores</span>: [<span class="num">88</span>, <span class="num">92</span>, <span class="num">76</span>]
+}
+
+<span class="cm">// Basic extraction</span>
+<span class="kw">const</span> { <span class="var">name</span>, <span class="var">role</span> } = <span class="var">user</span>
+
+<span class="cm">// Rename while destructuring</span>
+<span class="kw">const</span> { <span class="prop">name</span>: <span class="var">fullName</span>, <span class="prop">id</span>: <span class="var">userId</span> } = <span class="var">user</span>
+
+<span class="cm">// Default value (used when property is undefined)</span>
+<span class="kw">const</span> { <span class="var">name</span>, <span class="prop">avatar</span>: <span class="var">pic</span> = <span class="str">"default.png"</span>, <span class="prop">premium</span> = <span class="kw">false</span> } = <span class="var">user</span>
+
+<span class="cm">// Nested destructuring</span>
+<span class="kw">const</span> { <span class="prop">address</span>: { <span class="var">city</span>, <span class="var">state</span> } } = <span class="var">user</span>
+<span class="cm">// city → "Austin", state → "TX"</span>
+
+<span class="cm">// Rest in object destructuring (collect remaining props)</span>
+<span class="kw">const</span> { <span class="var">id</span>, <span class="var">name</span>, ...<span class="var">rest</span> } = <span class="var">user</span>
+<span class="cm">// rest → { role, address, scores } — everything except id and name</span>
+
+<span class="cm">// ── ARRAY DESTRUCTURING ───────────────────────────────────────────</span>
+
+<span class="kw">const</span> [<span class="var">first</span>, <span class="var">second</span>, <span class="var">third</span>] = [<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>]
+
+<span class="cm">// Skip elements with commas</span>
+<span class="kw">const</span> [, <span class="var">second</span>, , <span class="var">fourth</span>] = [<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>]
+
+<span class="cm">// Default values</span>
+<span class="kw">const</span> [<span class="var">x</span> = <span class="num">0</span>, <span class="var">y</span> = <span class="num">0</span>, <span class="var">z</span> = <span class="num">0</span>] = [<span class="num">5</span>, <span class="num">10</span>]  <span class="cm">// z → 0</span>
+
+<span class="cm">// Rest in array destructuring</span>
+<span class="kw">const</span> [<span class="var">head</span>, ...<span class="var">tail</span>] = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>]
+<span class="cm">// head → 1, tail → [2, 3, 4]</span>
+
+<span class="cm">// Swap variables — no temp variable needed</span>
+<span class="kw">let</span> <span class="var">a</span> = <span class="num">1</span>, <span class="var">b</span> = <span class="num">2</span>
+;[<span class="var">a</span>, <span class="var">b</span>] = [<span class="var">b</span>, <span class="var">a</span>]   <span class="cm">// a → 2, b → 1</span>
+
+<span class="cm">// React useState — most common array destructuring you'll write</span>
+<span class="kw">const</span> [<span class="var">count</span>, <span class="var">setCount</span>] = <span class="fn">useState</span>(<span class="num">0</span>)
+<span class="kw">const</span> [<span class="var">user</span>,  <span class="var">setUser</span>]  = <span class="fn">useState</span>(<span class="kw">null</span>)
+
+<span class="cm">// ── DESTRUCTURING IN FUNCTION PARAMS ─────────────────────────────</span>
+
+<span class="cm">// Object params — every React component does this</span>
+<span class="kw">const</span> <span class="fn">UserCard</span> = ({ <span class="var">name</span>, <span class="var">role</span>, <span class="prop">avatar</span>: <span class="var">pic</span> = <span class="str">"default.png"</span> }) => {
+  <span class="kw">return</span> `<span class="rx">${</span><span class="var">name</span><span class="rx">}</span> | <span class="rx">${</span><span class="var">role</span><span class="rx">}</span> | <span class="rx">${</span><span class="var">pic</span><span class="rx">}</span>`
+}
+
+<span class="cm">// Nested in params</span>
+<span class="kw">const</span> <span class="fn">formatAddress</span> = ({ <span class="prop">address</span>: { <span class="var">city</span>, <span class="var">state</span>, <span class="prop">zip</span>: <span class="var">postal</span> } }) =>
+  `<span class="rx">${</span><span class="var">city</span><span class="rx">}</span>, <span class="rx">${</span><span class="var">state</span><span class="rx">}</span> <span class="rx">${</span><span class="var">postal</span><span class="rx">}</span>`
+
+<span class="cm">// Array entries pattern (used with Object.entries)</span>
+<span class="fn">Object</span>.<span class="fn">entries</span>({ <span class="prop">a</span>: <span class="num">1</span>, <span class="prop">b</span>: <span class="num">2</span> }).<span class="fn">map</span>(([<span class="var">key</span>, <span class="var">value</span>]) => `<span class="rx">${</span><span class="var">key</span><span class="rx">}</span>=<span class="rx">${</span><span class="var">value</span><span class="rx">}</span>`)</pre></div>
+  </div>
+</div>
+
+<!-- ══════════ 05. SPREAD / REST ══════════ -->
+<div class="section" id="spread">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Spread &amp; Rest — same syntax, opposite directions</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">essential</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--teal);"></span>Mental model: spread expands, rest collects</div>
+    <div class="mm-grid">
+      <div class="mm-item"><div class="mm-label" style="color:var(--teal);">Spread (...)</div><div class="mm-value">Expands an iterable into individual values. Used when <strong>calling functions</strong> or <strong>building arrays/objects</strong>.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--purple);">Rest (...)</div><div class="mm-value">Collects multiple values into a single array or object. Used in <strong>function parameters</strong> and <strong>destructuring</strong>.</div></div>
+      <div class="mm-item"><div class="mm-label">Same syntax</div><div class="mm-value">Both use <code>...</code>. Context determines which it is: left side of assignment = rest. Right side = spread.</div></div>
+      <div class="mm-item"><div class="mm-label">Key rule</div><div class="mm-value">Rest parameter must be <strong>last</strong>. <code>(...a, b)</code> is invalid. Only one rest per destructure.</div></div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Spread and rest — every pattern you'll encounter</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── SPREAD ────────────────────────────────────────────────────────</span>
+
+<span class="cm">// 1. Copy + extend arrays (non-mutating)</span>
+<span class="kw">const</span> <span class="var">nums</span>       = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]
+<span class="kw">const</span> <span class="var">moreNums</span>   = [...<span class="var">nums</span>, <span class="num">4</span>, <span class="num">5</span>]       <span class="cm">// [1,2,3,4,5]</span>
+<span class="kw">const</span> <span class="var">prepended</span>  = [<span class="num">0</span>, ...<span class="var">nums</span>]           <span class="cm">// [0,1,2,3]</span>
+<span class="kw">const</span> <span class="var">combined</span>   = [...<span class="var">nums</span>, ...[<span class="num">4</span>,<span class="num">5</span>]]    <span class="cm">// [1,2,3,4,5]</span>
+<span class="kw">const</span> <span class="var">copy</span>       = [...<span class="var">nums</span>]              <span class="cm">// shallow copy</span>
+
+<span class="cm">// React: add item to state array</span>
+<span class="cm">// setItems(prev => [...prev, newItem])</span>
+
+<span class="cm">// React: remove item from state array</span>
+<span class="cm">// setItems(prev => prev.filter(i => i.id !== targetId))</span>
+
+<span class="cm">// React: update item in state array</span>
+<span class="cm">// setItems(prev => prev.map(i => i.id === id ? { ...i, ...changes } : i))</span>
+
+<span class="cm">// 2. Copy + extend objects (the immutable update pattern)</span>
+<span class="kw">const</span> <span class="var">defaults</span>    = { <span class="prop">theme</span>: <span class="str">"light"</span>, <span class="prop">lang</span>: <span class="str">"en"</span>, <span class="prop">fontSize</span>: <span class="num">16</span> }
+<span class="kw">const</span> <span class="var">userPrefs</span>   = { <span class="prop">theme</span>: <span class="str">"dark"</span>, <span class="prop">fontSize</span>: <span class="num">18</span> }
+<span class="kw">const</span> <span class="var">merged</span>      = { ...<span class="var">defaults</span>, ...<span class="var">userPrefs</span> }
+<span class="cm">// { theme: "dark", lang: "en", fontSize: 18 } — userPrefs wins conflicts</span>
+
+<span class="cm">// Update nested state immutably</span>
+<span class="kw">const</span> <span class="var">state</span> = { <span class="prop">user</span>: { <span class="prop">name</span>: <span class="str">"Alice"</span>, <span class="prop">prefs</span>: { <span class="prop">theme</span>: <span class="str">"light"</span> } } }
+<span class="kw">const</span> <span class="var">newState</span> = {
+  ...<span class="var">state</span>,
+  <span class="prop">user</span>: {
+    ...<span class="var">state</span>.<span class="prop">user</span>,
+    <span class="prop">prefs</span>: { ...<span class="var">state</span>.<span class="prop">user</span>.<span class="prop">prefs</span>, <span class="prop">theme</span>: <span class="str">"dark"</span> }
+  }
+}
+
+<span class="cm">// 3. Spread into function calls</span>
+<span class="kw">const</span> <span class="var">nums2</span>   = [<span class="num">3</span>, <span class="num">1</span>, <span class="num">4</span>, <span class="num">1</span>, <span class="num">5</span>, <span class="num">9</span>]
+<span class="fn">Math</span>.<span class="fn">max</span>(...<span class="var">nums2</span>)           <span class="cm">// 9 — spread as individual args</span>
+<span class="fn">console</span>.<span class="fn">log</span>(...<span class="var">nums2</span>)        <span class="cm">// 3 1 4 1 5 9</span>
+
+<span class="cm">// ── REST ──────────────────────────────────────────────────────────</span>
+
+<span class="cm">// 1. Variadic functions — accept any number of arguments</span>
+<span class="kw">const</span> <span class="fn">sum</span>       = (...<span class="var">nums</span>) => <span class="var">nums</span>.<span class="fn">reduce</span>((<span class="var">a</span>, <span class="var">b</span>) => <span class="var">a</span> + <span class="var">b</span>, <span class="num">0</span>)
+<span class="fn">sum</span>(<span class="num">1</span>)          <span class="cm">// 1</span>
+<span class="fn">sum</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>)    <span class="cm">// 6</span>
+<span class="fn">sum</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>)  <span class="cm">// 15</span>
+
+<span class="cm">// 2. First param + rest pattern</span>
+<span class="kw">const</span> <span class="fn">logWithPrefix</span> = (<span class="var">prefix</span>, ...<span class="var">messages</span>) =>
+  <span class="var">messages</span>.<span class="fn">forEach</span>(<span class="var">m</span> => <span class="fn">console</span>.<span class="fn">log</span>(`[<span class="rx">${</span><span class="var">prefix</span><span class="rx">}</span>] <span class="rx">${</span><span class="var">m</span><span class="rx">}</span>`))
+
+<span class="fn">logWithPrefix</span>(<span class="str">"ERROR"</span>, <span class="str">"File not found"</span>, <span class="str">"Line 42"</span>)
+
+<span class="cm">// 3. Rest in destructuring (collect remaining properties)</span>
+<span class="kw">const</span> { <span class="var">id</span>, <span class="var">password</span>, ...<span class="var">publicData</span> } = <span class="var">userRecord</span>
+<span class="cm">// publicData has everything except id and password — safe to send to client</span></pre></div>
+  </div>
+</div>
+
+<!-- ══════════ 06. OPTIONAL CHAINING ══════════ -->
+<div class="section" id="chaining">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Optional chaining · Nullish coalescing · Short-circuit</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">defensive coding</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Safe property access patterns — essential for real APIs</span></div>
+    <div class="cb-body"><pre><span class="cm">// The problem: deeply nested API data that might be partially missing</span>
+<span class="kw">const</span> <span class="var">response</span> = {
+  <span class="prop">data</span>: {
+    <span class="prop">user</span>: {
+      <span class="prop">profile</span>: {
+        <span class="prop">name</span>: <span class="str">"Alice"</span>,
+        <span class="prop">social</span>: { <span class="prop">twitter</span>: <span class="str">"@alice" </span>}  <span class="cm">// instagram is missing</span>
+      }
+      <span class="cm">// settings is missing entirely</span>
+    }
+  }
+}
+
+<span class="cm">// Old way — verbose and crashes on undefined</span>
+<span class="kw">const</span> <span class="var">name1</span> = <span class="var">response</span> &&
+              <span class="var">response</span>.<span class="prop">data</span> &&
+              <span class="var">response</span>.<span class="prop">data</span>.<span class="prop">user</span> &&
+              <span class="var">response</span>.<span class="prop">data</span>.<span class="prop">user</span>.<span class="prop">profile</span> &&
+              <span class="var">response</span>.<span class="prop">data</span>.<span class="prop">user</span>.<span class="prop">profile</span>.<span class="prop">name</span>
+
+<span class="cm">// Modern way — optional chaining (?.) — returns undefined instead of throwing</span>
+<span class="kw">const</span> <span class="var">name2</span>     = <span class="var">response</span>?.<span class="prop">data</span>?.<span class="prop">user</span>?.<span class="prop">profile</span>?.<span class="prop">name</span>
+<span class="kw">const</span> <span class="var">twitter</span>   = <span class="var">response</span>?.<span class="prop">data</span>?.<span class="prop">user</span>?.<span class="prop">profile</span>?.<span class="prop">social</span>?.<span class="prop">twitter</span>  <span class="cm">// "@alice"</span>
+<span class="kw">const</span> <span class="var">instagram</span> = <span class="var">response</span>?.<span class="prop">data</span>?.<span class="prop">user</span>?.<span class="prop">profile</span>?.<span class="prop">social</span>?.<span class="prop">instagram</span> <span class="cm">// undefined (no crash)</span>
+<span class="kw">const</span> <span class="var">darkMode</span>  = <span class="var">response</span>?.<span class="prop">data</span>?.<span class="prop">user</span>?.<span class="prop">settings</span>?.<span class="prop">darkMode</span>         <span class="cm">// undefined (no crash)</span>
+
+<span class="cm">// Optional chaining with methods</span>
+<span class="kw">const</span> <span class="var">upper</span>     = <span class="var">response</span>?.<span class="prop">data</span>?.<span class="prop">user</span>?.<span class="prop">profile</span>?.<span class="prop">name</span>?.<span class="fn">toUpperCase</span>()  <span class="cm">// "ALICE"</span>
+<span class="kw">const</span> <span class="var">result</span>    = <span class="var">obj</span>?.<span class="fn">compute</span>?.()   <span class="cm">// call method only if obj exists and compute is a function</span>
+
+<span class="cm">// Optional chaining with arrays</span>
+<span class="kw">const</span> <span class="var">firstTag</span>  = <span class="var">post</span>?.<span class="prop">tags</span>?.[<span class="num">0</span>]   <span class="cm">// safe array access</span>
+
+<span class="cm">// ── NULLISH COALESCING (??) ───────────────────────────────────────</span>
+<span class="cm">// Returns right side only when left side is null OR undefined</span>
+<span class="cm">// (Unlike || which returns right side for ANY falsy value)</span>
+
+<span class="kw">const</span> <span class="var">theme</span>  = <span class="var">userPref</span> ?? <span class="str">"light"</span>   <span class="cm">// "light" only if userPref is null/undefined</span>
+<span class="kw">const</span> <span class="var">count</span>  = <span class="var">data</span>.<span class="prop">count</span> ?? <span class="num">0</span>       <span class="cm">// 0 if count is null/undefined — NOT if it's 0!</span>
+<span class="kw">const</span> <span class="var">label</span>  = <span class="var">item</span>.<span class="prop">label</span> ?? <span class="str">""</span>       <span class="cm">// "" if null/undefined — NOT if label is ""</span>
+
+<span class="cm">// Critical difference from ||</span>
+<span class="kw">const</span> <span class="var">score</span>  = <span class="num">0</span>
+<span class="var">score</span> || <span class="num">100</span>    <span class="cm">// 100  ← wrong! 0 is falsy, falls to right side</span>
+<span class="var">score</span> ?? <span class="num">100</span>    <span class="cm">// 0   ← correct! 0 is a valid value, not null/undefined</span>
+
+<span class="cm">// Combine optional chaining + nullish coalescing (the power combo)</span>
+<span class="kw">const</span> <span class="var">displayName</span> = <span class="var">user</span>?.<span class="prop">profile</span>?.<span class="prop">displayName</span> ?? <span class="var">user</span>?.<span class="prop">name</span> ?? <span class="str">"Anonymous"</span>
+<span class="kw">const</span> <span class="var">pageSize</span>    = <span class="var">config</span>?.<span class="prop">pagination</span>?.<span class="prop">pageSize</span>  ?? <span class="num">20</span>
+<span class="kw">const</span> <span class="var">userCity</span>    = <span class="var">response</span>?.<span class="prop">data</span>?.<span class="prop">user</span>?.<span class="prop">address</span>?.<span class="prop">city</span> ?? <span class="str">"Unknown"</span>
+
+<span class="cm">// Nullish assignment (??=) — assign only if currently null/undefined</span>
+<span class="var">user</span>.<span class="prop">bio</span>    ??= <span class="str">"No bio provided"</span>
+<span class="var">config</span>.<span class="prop">timeout</span> ??= <span class="num">5000</span></pre></div>
+  </div>
+</div>
+
+<!-- ══════════ 07. EXERCISES ══════════ -->
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — run in the browser</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">hands-on</span>
+  </div>
+
+  <!-- Exercise 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">E-commerce order pipeline</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Using only <code>filter</code>, <code>map</code>, and <code>reduce</code> — no loops — write a single chained expression that calculates the <strong>total revenue from completed electronics orders</strong>. Then use <code>map</code> to add a <code>discount</code> field (10% off) to every item.</div>
+      <div class="ex-hint">Chain: filter by status AND category → map to add total (price * qty) → reduce to sum all totals.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — runnable</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">const orders = [
+  { id:1, product:"Laptop",  category:"electronics", price:999,  qty:1, status:"completed" },
+  { id:2, product:"T-shirt", category:"clothing",    price:25,   qty:2, status:"completed" },
+  { id:3, product:"Phone",   category:"electronics", price:699,  qty:1, status:"pending"   },
+  { id:4, product:"Tablet",  category:"electronics", price:449,  qty:2, status:"completed" },
+  { id:5, product:"Jeans",   category:"clothing",    price:59,   qty:1, status:"completed" },
+  { id:6, product:"Monitor", category:"electronics", price:349,  qty:1, status:"completed" },
+]
+
+// Step 1: Total revenue from completed electronics orders
+const electronicsRevenue = orders
+  // YOUR CODE HERE
+
+console.log("Electronics revenue:", electronicsRevenue)
+
+// Step 2: Add a 'discount' field (price * 0.9) to every order
+const withDiscount = orders.map(/* YOUR CODE HERE */)
+
+console.log("First order with discount:", withDiscount[0])</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run to execute</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;">
+        <div class="cb-body"><pre><span class="kw">const</span> <span class="var">electronicsRevenue</span> = <span class="var">orders</span>
+  .<span class="fn">filter</span>(<span class="var">o</span> => <span class="var">o</span>.<span class="prop">status</span> === <span class="str">"completed"</span> && <span class="var">o</span>.<span class="prop">category</span> === <span class="str">"electronics"</span>)
+  .<span class="fn">map</span>(<span class="var">o</span>  => <span class="var">o</span>.<span class="prop">price</span> * <span class="var">o</span>.<span class="prop">qty</span>)
+  .<span class="fn">reduce</span>((<span class="var">sum</span>, <span class="var">total</span>) => <span class="var">sum</span> + <span class="var">total</span>, <span class="num">0</span>)
+<span class="cm">// Completed electronics: Laptop(999), Tablet(449*2=898), Monitor(349) = 2246</span>
+
+<span class="kw">const</span> <span class="var">withDiscount</span> = <span class="var">orders</span>.<span class="fn">map</span>(<span class="var">o</span> => ({
+  ...<span class="var">o</span>,
+  <span class="prop">discount</span>: <span class="fn">Math</span>.<span class="fn">round</span>(<span class="var">o</span>.<span class="prop">price</span> * <span class="num">0.9</span> * <span class="num">100</span>) / <span class="num">100</span>
+}))</pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exercise 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">2</div>
+      <div class="ex-title">Group transactions by category</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Use <code>reduce</code> to transform the transactions array into an object grouped by category, where each category holds its total spending and item count. Output shape: <code>{ food: { total: 75, count: 2 }, ... }</code></div>
+      <div class="ex-hint">Start with <code>{}</code> as initial value. For each transaction, either create the category key or add to its existing total.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — runnable</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">const transactions = [
+  { id:1, category:"food",      amount:45, desc:"Groceries"  },
+  { id:2, category:"transport", amount:20, desc:"Uber"        },
+  { id:3, category:"food",      amount:30, desc:"Restaurant"  },
+  { id:4, category:"transport", amount:15, desc:"Bus pass"    },
+  { id:5, category:"leisure",   amount:60, desc:"Cinema"      },
+  { id:6, category:"food",      amount:12, desc:"Coffee"      },
+  { id:7, category:"leisure",   amount:35, desc:"Books"       },
+]
+
+const grouped = transactions.reduce((acc, t) => {
+  // YOUR CODE HERE
+  // Hint: check if acc[t.category] exists, then update total and count
+  return acc
+}, {})
+
+console.log(JSON.stringify(grouped, null, 2))
+
+// BONUS: Find the category with highest total spending
+const topCategory = Object.entries(grouped)
+  // YOUR CODE HERE (sort + find)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run to execute</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;">
+        <div class="cb-body"><pre><span class="kw">const</span> <span class="var">grouped</span> = <span class="var">transactions</span>.<span class="fn">reduce</span>((<span class="var">acc</span>, <span class="var">t</span>) => {
+  <span class="kw">if</span> (!<span class="var">acc</span>[<span class="var">t</span>.<span class="prop">category</span>]) {
+    <span class="var">acc</span>[<span class="var">t</span>.<span class="prop">category</span>] = { <span class="prop">total</span>: <span class="num">0</span>, <span class="prop">count</span>: <span class="num">0</span> }
+  }
+  <span class="var">acc</span>[<span class="var">t</span>.<span class="prop">category</span>].<span class="prop">total</span> += <span class="var">t</span>.<span class="prop">amount</span>
+  <span class="var">acc</span>[<span class="var">t</span>.<span class="prop">category</span>].<span class="prop">count</span>++
+  <span class="kw">return</span> <span class="var">acc</span>
+}, {})
+
+<span class="cm">// Concise version using optional chaining + nullish assignment</span>
+<span class="kw">const</span> <span class="var">grouped2</span> = <span class="var">transactions</span>.<span class="fn">reduce</span>((<span class="var">acc</span>, <span class="var">t</span>) => ({
+  ...<span class="var">acc</span>,
+  [<span class="var">t</span>.<span class="prop">category</span>]: {
+    <span class="prop">total</span>: (<span class="var">acc</span>[<span class="var">t</span>.<span class="prop">category</span>]?.<span class="prop">total</span> ?? <span class="num">0</span>) + <span class="var">t</span>.<span class="prop">amount</span>,
+    <span class="prop">count</span>: (<span class="var">acc</span>[<span class="var">t</span>.<span class="prop">category</span>]?.<span class="prop">count</span> ?? <span class="num">0</span>) + <span class="num">1</span>
+  }
+}), {})
+
+<span class="kw">const</span> <span class="var">topCategory</span> = <span class="fn">Object</span>.<span class="fn">entries</span>(<span class="var">grouped</span>)
+  .<span class="fn">sort</span>(([,<span class="var">a</span>], [,<span class="var">b</span>]) => <span class="var">b</span>.<span class="prop">total</span> - <span class="var">a</span>.<span class="prop">total</span>)[<span class="num">0</span>][<span class="num">0</span>]
+<span class="cm">// "food" (total: 87)</span></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exercise 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">3</div>
+      <div class="ex-title">Deep destructuring challenge</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Use a <strong>single destructuring statement</strong> in the function parameter to extract: <code>id</code>, rename <code>first_name</code> to <code>firstName</code>, rename <code>last_name</code> to <code>lastName</code>, get the user's city from <code>address.city</code>, get the first permission from the <code>permissions</code> array, and default <code>isActive</code> to <code>false</code>.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — runnable</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">const apiUser = {
+  id: 99,
+  first_name: "Maria",
+  last_name: "Santos",
+  address: {
+    city: "São Paulo",
+    country: "Brazil"
+  },
+  permissions: ["read", "write", "admin"],
+  isActive: true
+}
+
+// Write a function that uses ONE destructuring statement in its param
+// to extract: id, firstName (from first_name), lastName (from last_name),
+// city (from address.city), firstPermission (from permissions[0]),
+// isActive (default false)
+
+function formatUser({ /* YOUR DESTRUCTURING HERE */ }) {
+  return `${firstName} ${lastName} (${city}) — ${firstPermission} — active: ${isActive}`
+}
+
+console.log(formatUser(apiUser))
+// Expected: "Maria Santos (São Paulo) — read — active: true"
+
+// Test with partial data
+console.log(formatUser({ id: 1, first_name: "Bob", last_name: "Lee",
+  address: { city: "NYC" }, permissions: ["read"] }))
+// Expected: "Bob Lee (NYC) — read — active: false"</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run to execute</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;">
+        <div class="cb-body"><pre><span class="kw">function</span> <span class="fn">formatUser</span>({
+  <span class="var">id</span>,
+  <span class="prop">first_name</span>: <span class="var">firstName</span>,
+  <span class="prop">last_name</span>:  <span class="var">lastName</span>,
+  <span class="prop">address</span>:    { <span class="var">city</span> },
+  <span class="prop">permissions</span>: [<span class="var">firstPermission</span>],
+  <span class="prop">isActive</span>    = <span class="kw">false</span>
+}) {
+  <span class="kw">return</span> `<span class="rx">${</span><span class="var">firstName</span><span class="rx">}</span> <span class="rx">${</span><span class="var">lastName</span><span class="rx">}</span> (<span class="rx">${</span><span class="var">city</span><span class="rx">}</span>) — <span class="rx">${</span><span class="var">firstPermission</span><span class="rx">}</span> — active: <span class="rx">${</span><span class="var">isActive</span><span class="rx">}</span>`
+}</pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exercise 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">4</div>
+      <div class="ex-title">Immutable state update simulator</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Simulate React state updates using <strong>only spread and array methods</strong> — no direct mutation. Implement three operations: <code>addProduct</code>, <code>updateProduct</code>, and <code>removeProduct</code>. Verify the original state is unchanged after each operation.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — runnable</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">const initialState = {
+  products: [
+    { id: 1, name: "Laptop",  price: 999, inStock: true  },
+    { id: 2, name: "Mouse",   price: 29,  inStock: true  },
+    { id: 3, name: "Monitor", price: 349, inStock: false },
+  ],
+  total: 0,
+  lastUpdated: "2024-01-01"
+}
+
+// Implement these three pure functions (no mutation!)
+// Each receives current state and returns NEW state
+
+const addProduct = (state, newProduct) => {
+  // YOUR CODE: return new state with product added to array
+}
+
+const updateProduct = (state, id, changes) => {
+  // YOUR CODE: return new state with matching product updated
+}
+
+const removeProduct = (state, id) => {
+  // YOUR CODE: return new state with matching product removed
+}
+
+// Test it
+const state1 = addProduct(initialState, { id:4, name:"Keyboard", price:79, inStock:true })
+const state2 = updateProduct(state1, 3, { inStock: true, price: 329 })
+const state3 = removeProduct(state2, 2)
+
+console.log("Products after all operations:", state3.products.length)
+console.log("Monitor in stock:", state3.products.find(p => p.id === 3)?.inStock)
+console.log("Mouse removed:", !state3.products.find(p => p.id === 2))
+console.log("Original unchanged:", initialState.products.length === 3)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run to execute</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;">
+        <div class="cb-body"><pre><span class="kw">const</span> <span class="fn">addProduct</span> = (<span class="var">state</span>, <span class="var">newProduct</span>) => ({
+  ...<span class="var">state</span>,
+  <span class="prop">products</span>:    [...<span class="var">state</span>.<span class="prop">products</span>, <span class="var">newProduct</span>],
+  <span class="prop">lastUpdated</span>: <span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">toISOString</span>()
+})
+
+<span class="kw">const</span> <span class="fn">updateProduct</span> = (<span class="var">state</span>, <span class="var">id</span>, <span class="var">changes</span>) => ({
+  ...<span class="var">state</span>,
+  <span class="prop">products</span>: <span class="var">state</span>.<span class="prop">products</span>.<span class="fn">map</span>(<span class="var">p</span> =>
+    <span class="var">p</span>.<span class="prop">id</span> === <span class="var">id</span> ? { ...<span class="var">p</span>, ...<span class="var">changes</span> } : <span class="var">p</span>
+  ),
+  <span class="prop">lastUpdated</span>: <span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">toISOString</span>()
+})
+
+<span class="kw">const</span> <span class="fn">removeProduct</span> = (<span class="var">state</span>, <span class="var">id</span>) => ({
+  ...<span class="var">state</span>,
+  <span class="prop">products</span>:    <span class="var">state</span>.<span class="prop">products</span>.<span class="fn">filter</span>(<span class="var">p</span> => <span class="var">p</span>.<span class="prop">id</span> !== <span class="var">id</span>),
+  <span class="prop">lastUpdated</span>: <span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">toISOString</span>()
+})</pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exercise 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--blue-dim);color:var(--blue);">5</div>
+      <div class="ex-title">Safe API response normaliser</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Use <strong>optional chaining + nullish coalescing + destructuring + spread</strong> to write a <code>normaliseApiResponse</code> function that safely transforms a messy, potentially incomplete API response into a clean, predictable UI object — without ever throwing a TypeError for missing data.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — runnable</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">// Messy API response — fields may be missing, null, or wrong type
+const rawResponse = {
+  data: {
+    user_id: 42,
+    display_name: "alice_dev",
+    email: "alice@example.com",
+    // profile is missing entirely
+    stats: { posts: 128, followers: null, following: 54 },
+    tags: ["javascript", "react"],
+  },
+  meta: { version: "2.1", cached: true }
+}
+
+// Also test with a totally empty response:
+const emptyResponse = {}
+const partialResponse = { data: { user_id: 7 } }
+
+// Write normaliseApiResponse(response) that always returns:
+// {
+//   id:         number   (default: 0)
+//   username:   string   (default: "anonymous")
+//   email:      string   (default: "")
+//   avatar:     string   (default: "default.png")
+//   bio:        string   (default: "")
+//   postCount:  number   (default: 0)
+//   followers:  number   (default: 0)
+//   following:  number   (default: 0)
+//   tags:       array    (default: [])
+//   apiVersion: string   (default: "unknown")
+// }
+
+const normaliseApiResponse = (response) => {
+  // YOUR CODE HERE
+}
+
+console.log(normaliseApiResponse(rawResponse))
+console.log(normaliseApiResponse(emptyResponse))
+console.log(normaliseApiResponse(partialResponse))</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run to execute</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;">
+        <div class="cb-body"><pre><span class="kw">const</span> <span class="fn">normaliseApiResponse</span> = (<span class="var">response</span>) => {
+  <span class="kw">const</span> <span class="var">data</span>  = <span class="var">response</span>?.<span class="prop">data</span>  ?? {}
+  <span class="kw">const</span> <span class="var">meta</span>  = <span class="var">response</span>?.<span class="prop">meta</span>  ?? {}
+  <span class="kw">const</span> <span class="var">stats</span> = <span class="var">data</span>?.<span class="prop">stats</span>   ?? {}
+
+  <span class="kw">return</span> {
+    <span class="prop">id</span>:         <span class="var">data</span>.<span class="prop">user_id</span>        ?? <span class="num">0</span>,
+    <span class="prop">username</span>:   <span class="var">data</span>.<span class="prop">display_name</span>   ?? <span class="str">"anonymous"</span>,
+    <span class="prop">email</span>:      <span class="var">data</span>.<span class="prop">email</span>          ?? <span class="str">""</span>,
+    <span class="prop">avatar</span>:     <span class="var">data</span>?.<span class="prop">profile</span>?.<span class="prop">avatar_url</span> ?? <span class="str">"default.png"</span>,
+    <span class="prop">bio</span>:        <span class="var">data</span>?.<span class="prop">profile</span>?.<span class="prop">bio</span>        ?? <span class="str">""</span>,
+    <span class="prop">postCount</span>:  <span class="var">stats</span>.<span class="prop">posts</span>           ?? <span class="num">0</span>,
+    <span class="prop">followers</span>:  <span class="var">stats</span>.<span class="prop">followers</span>       ?? <span class="num">0</span>,
+    <span class="prop">following</span>:  <span class="var">stats</span>.<span class="prop">following</span>       ?? <span class="num">0</span>,
+    <span class="prop">tags</span>:       <span class="fn">Array</span>.<span class="fn">isArray</span>(<span class="var">data</span>.<span class="prop">tags</span>) ? [...<span class="var">data</span>.<span class="prop">tags</span>] : [],
+    <span class="prop">apiVersion</span>: <span class="var">meta</span>.<span class="prop">version</span>          ?? <span class="str">"unknown"</span>
+  }
+}</pre></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 08. CHEATSHEET ══════════ -->
+<div class="section">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Quick reference cheatsheet</span>
+    <span class="sec-badge" style="background:var(--js-dim);color:var(--js);">reference</span>
+  </div>
+  <div class="cheat-grid">
+    <div class="cheat-card">
+      <div class="cheat-head"><span class="cheat-label" style="color:var(--green);">Array methods</span><span class="cheat-sub">quick ref</span></div>
+      <div class="cb" style="margin:0;border:none;border-radius:0;background:var(--surface2);">
+        <div class="cb-body" style="padding:14px 16px;"><pre style="font-size:12px;"><span class="fn">map</span>(<span class="var">fn</span>)         <span class="cm">→ new array, same length</span>
+<span class="fn">filter</span>(<span class="var">fn</span>)      <span class="cm">→ new array, shorter</span>
+<span class="fn">reduce</span>(<span class="var">fn</span>, <span class="var">init</span>) <span class="cm">→ single value</span>
+<span class="fn">find</span>(<span class="var">fn</span>)        <span class="cm">→ first match | undefined</span>
+<span class="fn">findIndex</span>(<span class="var">fn</span>)   <span class="cm">→ first index | -1</span>
+<span class="fn">some</span>(<span class="var">fn</span>)        <span class="cm">→ true if ≥1 match</span>
+<span class="fn">every</span>(<span class="var">fn</span>)       <span class="cm">→ true if ALL match</span>
+<span class="fn">flat</span>(<span class="var">depth</span>)     <span class="cm">→ flatten nested arrays</span>
+<span class="fn">flatMap</span>(<span class="var">fn</span>)     <span class="cm">→ map then flatten 1 level</span>
+<span class="fn">includes</span>(<span class="var">val</span>)  <span class="cm">→ boolean presence check</span></pre></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-head"><span class="cheat-label" style="color:var(--amber);">Object methods</span><span class="cheat-sub">quick ref</span></div>
+      <div class="cb" style="margin:0;border:none;border-radius:0;background:var(--surface2);">
+        <div class="cb-body" style="padding:14px 16px;"><pre style="font-size:12px;"><span class="fn">Object</span>.<span class="fn">keys</span>(<span class="var">o</span>)      <span class="cm">→ ["key1","key2"]</span>
+<span class="fn">Object</span>.<span class="fn">values</span>(<span class="var">o</span>)    <span class="cm">→ [val1, val2]</span>
+<span class="fn">Object</span>.<span class="fn">entries</span>(<span class="var">o</span>)   <span class="cm">→ [["k",v], ...]</span>
+<span class="fn">Object</span>.<span class="fn">fromEntries</span>  <span class="cm">→ entries → object</span>
+<span class="fn">Object</span>.<span class="fn">assign</span>(<span class="var">t</span>,<span class="var">s</span>) <span class="cm">→ shallow merge (mutates t)</span>
+<span class="fn">Object</span>.<span class="fn">freeze</span>(<span class="var">o</span>)   <span class="cm">→ prevent modification</span>
+<span class="fn">Object</span>.<span class="fn">keys</span>(<span class="var">o</span>).<span class="fn">length</span> <span class="cm">→ count properties</span>
+<span class="str">"k"</span> <span class="kw">in</span> <span class="var">o</span>            <span class="cm">→ check key existence</span>
+<span class="fn">structuredClone</span>(<span class="var">o</span>) <span class="cm">→ deep copy</span></pre></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-head"><span class="cheat-label" style="color:var(--purple);">Destructuring</span><span class="cheat-sub">patterns</span></div>
+      <div class="cb" style="margin:0;border:none;border-radius:0;background:var(--surface2);">
+        <div class="cb-body" style="padding:14px 16px;"><pre style="font-size:12px;"><span class="kw">const</span> { <span class="var">a</span>, <span class="var">b</span> } = <span class="var">obj</span>         <span class="cm">basic</span>
+<span class="kw">const</span> { <span class="prop">a</span>: <span class="var">x</span> } = <span class="var">obj</span>         <span class="cm">rename</span>
+<span class="kw">const</span> { <span class="var">a</span> = <span class="num">0</span> } = <span class="var">obj</span>         <span class="cm">default</span>
+<span class="kw">const</span> { <span class="var">a</span>, ...<span class="var">r</span> } = <span class="var">obj</span>       <span class="cm">rest</span>
+<span class="kw">const</span> { <span class="prop">a</span>: { <span class="var">b</span> } } = <span class="var">obj</span>      <span class="cm">nested</span>
+<span class="kw">const</span> [<span class="var">x</span>, <span class="var">y</span>] = <span class="var">arr</span>            <span class="cm">array</span>
+<span class="kw">const</span> [<span class="var">h</span>, ...<span class="var">t</span>] = <span class="var">arr</span>         <span class="cm">head/tail</span>
+<span class="kw">const</span> [,<span class="var">b</span>,,<span class="var">d</span>] = <span class="var">arr</span>           <span class="cm">skip elements</span>
+;[<span class="var">a</span>, <span class="var">b</span>] = [<span class="var">b</span>, <span class="var">a</span>]              <span class="cm">swap</span></pre></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-head"><span class="cheat-label" style="color:var(--teal);">Spread / Rest / Chaining</span><span class="cheat-sub">patterns</span></div>
+      <div class="cb" style="margin:0;border:none;border-radius:0;background:var(--surface2);">
+        <div class="cb-body" style="padding:14px 16px;"><pre style="font-size:12px;">[...<span class="var">arr</span>]           <span class="cm">array copy</span>
+[...<span class="var">a</span>, ...<span class="var">b</span>]       <span class="cm">merge arrays</span>
+{ ...<span class="var">obj</span> }          <span class="cm">object copy</span>
+{ ...<span class="var">o</span>, <span class="var">k</span>: <span class="var">v</span> }     <span class="cm">update property</span>
+<span class="fn">fn</span>(...<span class="var">args</span>)        <span class="cm">spread as args</span>
+(<span class="op">...</span><span class="var">args</span>) =>       <span class="cm">rest params</span>
+<span class="var">a</span>?.<span class="prop">b</span>?.<span class="prop">c</span>            <span class="cm">optional chain</span>
+<span class="var">a</span>?.[<span class="num">0</span>]             <span class="cm">optional index</span>
+<span class="var">a</span>?.()              <span class="cm">optional call</span>
+<span class="var">x</span> ?? <span class="var">y</span>             <span class="cm">nullish coalesce</span>
+<span class="var">x</span> ??= <span class="var">y</span>            <span class="cm">nullish assign</span></pre></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 09. INTERVIEW ══════════ -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">interview prep</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q1</span><span class="q-text">What is the difference between map, filter, and forEach? Why doesn't forEach get chained?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text"><strong><code>map</code></strong> transforms every element and returns a new array of the same length. <strong><code>filter</code></strong> keeps only elements where the callback returns truthy, returning a new shorter array. <strong><code>forEach</code></strong> iterates for side effects only — it always returns <code>undefined</code>, so it cannot be chained.<br><br><strong>Why forEach can't chain</strong>: chaining works because each method returns an array. <code>forEach</code> returns <code>undefined</code>, so calling <code>.map()</code> after it would throw a TypeError. Use <code>forEach</code> only for side effects (logging, DOM updates, API calls) where you don't need the result array. For everything transformative, use <code>map</code> or <code>filter</code>.</div>
+      <div class="tip-box">Depth signal: mention that using map for side effects (logging inside map) is a code smell — it confuses intent and returns an array of undefined values that nobody uses.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q2</span><span class="q-text">Explain how reduce works. What is the accumulator and what happens if you omit the initial value?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text"><code>reduce(callback, initialValue)</code> iterates the array, calling the callback on each element with two main arguments: the <strong>accumulator</strong> (the running result) and the <strong>current value</strong>. The return value of each callback call becomes the accumulator for the next iteration. The final accumulator is what <code>reduce</code> returns.<br><br><strong>Without initialValue</strong>: the first element becomes the accumulator and iteration starts from index 1. On an empty array this throws a TypeError. <strong>Always provide an initial value</strong> — it makes the function's intent clear and prevents crashes. Initial value also determines the return type: <code>[]</code> → map, <code>{}</code> → groupBy, <code>0</code> → sum.</div>
+      <div class="tip-box">Strong answer: "I use reduce when I need to collapse an array into something that isn't another array — a sum, an object keyed by ID, a grouped structure. If the output is still an array, I reach for map or filter first."</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q3</span><span class="q-text">Why does mutating arrays matter in React? How do you add, update, and remove items from state?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">React detects state changes by comparing object references. If you mutate an array directly (<code>arr.push(item)</code>, <code>arr[0] = x</code>), the reference stays the same — React sees the same object and skips re-rendering. This creates bugs where the UI doesn't update even though your data changed.<br><br>The solution is always return a <strong>new array</strong>:<br>— <strong>Add</strong>: <code>[...prev, newItem]</code><br>— <strong>Remove</strong>: <code>prev.filter(item => item.id !== targetId)</code><br>— <strong>Update</strong>: <code>prev.map(item => item.id === id ? {...item, ...changes} : item)</code><br><br>These patterns are safe because each creates a new array reference, which React can detect.</div>
+      <div class="warn-box">Common mistake: <code>const arr = [...state]; arr.push(x); setState(arr)</code> — the push mutates arr, but since setState receives a new reference it still works. However this habit will cause bugs in more complex scenarios. Always compute the new array without mutation.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q4</span><span class="q-text">What is object destructuring? How does renaming and setting defaults work?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">Destructuring is ES6 syntax that extracts properties from an object into local variables in a single expression. It reduces repetition and makes component props more readable.<br><br><strong>Renaming</strong>: <code>const { firstName: name } = user</code> — the property is <code>firstName</code> but the local variable is named <code>name</code>. The colon separates "source property" from "local variable name".<br><br><strong>Default values</strong>: <code>const { role = "user" } = person</code> — if <code>role</code> is <code>undefined</code>, it defaults to <code>"user"</code>. Defaults only apply for <code>undefined</code>, not for <code>null</code> or <code>""</code>.<br><br><strong>Combined</strong>: <code>const { user_id: id = 0 } = data</code> — extract <code>user_id</code>, rename to <code>id</code>, default to 0.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q5</span><span class="q-text">What is the spread operator? What does "shallow copy" mean and when is it a problem?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">The spread operator (<code>...</code>) expands an iterable's elements. For objects it copies own enumerable properties into a new object. For arrays it copies elements into a new array.<br><br><strong>Shallow copy</strong> means top-level primitive values are copied by value, but nested objects and arrays are still copied by reference — both the original and the copy point to the same nested object.<br><br>This becomes a problem with nested state in React: <code>const newState = {...state}</code> — if you then do <code>newState.user.name = "Bob"</code>, you've also mutated <code>state.user.name</code> because <code>user</code> is a shared reference. Fix: spread at every level — <code>{...state, user: {...state.user, name: "Bob"}}</code> — or use <code>structuredClone()</code> for full deep copy.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q6</span><span class="q-text">What is the difference between rest and spread? Give an example of each in context.</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">Same syntax (<code>...</code>), opposite directions. <strong>Spread expands</strong> a collection into individual elements — used on the right side when building arrays/objects or passing arguments. <strong>Rest collects</strong> multiple individual values into a single array or object — used on the left side in destructuring or in function parameters.<br><br>Context determines which it is: <code>fn(...args)</code> is spread (expanding array into args). <code>function fn(...args)</code> is rest (collecting individual args into array). <code>const [first, ...rest] = arr</code> is rest in destructuring. <code>[...arr, newItem]</code> is spread into array literal.</div>
+      <div class="tip-box">Memorable one-liner: "Spread breaks things apart. Rest bundles things together."</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q7</span><span class="q-text">What does optional chaining (?.) do? How does it differ from checking with &&?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">Optional chaining short-circuits and returns <code>undefined</code> if the value before <code>?.</code> is <code>null</code> or <code>undefined</code>, instead of throwing a TypeError. It safely accesses nested properties, array indices, and method calls.<br><br><strong>vs <code>&&</code></strong>: <code>user && user.profile && user.profile.name</code> also short-circuits, but returns the <em>falsy value itself</em> when the check fails — so if <code>user</code> is <code>0</code> or <code>""</code>, it returns those falsy values rather than continuing. Optional chaining only stops on <code>null</code> or <code>undefined</code> — making it safer for data that might legitimately be <code>0</code> or <code>false</code>.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q8</span><span class="q-text">What is the difference between ?? (nullish coalescing) and || (logical OR) for default values?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text"><code>||</code> returns the right side when the left side is any <strong>falsy value</strong> — including <code>0</code>, <code>""</code>, and <code>false</code>. <code>??</code> only returns the right side when the left is specifically <strong><code>null</code> or <code>undefined</code></strong>.<br><br>This matters when <code>0</code>, <code>""</code>, or <code>false</code> are valid values: <code>count || 10</code> gives <code>10</code> when count is <code>0</code> — probably wrong. <code>count ?? 10</code> gives <code>0</code> — correct. Use <code>??</code> for "provide a default when nothing was set" and <code>||</code> for "provide a fallback when the value is considered empty".</div>
+      <div class="warn-box">Gotcha in the wild: a form field that allows the user to enter 0 or an empty string — using <code>||</code> as a default will override their valid input. Always use <code>??</code> for form field defaults.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q9</span><span class="q-text">How do you sort an array of objects by a property? What are the gotchas with .sort()?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text"><code>.sort(compareFn)</code> sorts in-place. The compare function returns a negative number (a before b), 0 (equal), or positive (b before a).<br><br><strong>Number sort</strong>: <code>(a, b) => a.price - b.price</code> (ascending). <code>(a, b) => b.price - a.price</code> (descending).<br><br><strong>String sort</strong>: <code>(a, b) => a.name.localeCompare(b.name)</code> — handles accents and locale correctly. Don't use <code>a.name &lt; b.name ? -1 : 1</code> — it fails for equal strings and doesn't handle locale.<br><br><strong>Gotchas</strong>: 1) mutates the original array — always spread first in React: <code>[...arr].sort(...)</code>. 2) Without a compareFn, sort converts elements to strings — <code>[10, 9, 100].sort()</code> gives <code>[10, 100, 9]</code>. Always provide compareFn for non-string arrays.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q10</span><span class="q-text">How would you convert an array of objects into a lookup map keyed by ID? Why would you do this?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">Use <code>reduce</code> with an empty object as the initial value:<br><code>const map = users.reduce((acc, u) => ({...acc, [u.id]: u}), {})</code><br><br>Or more efficiently (avoids creating many intermediate objects):<br><code>const map = Object.fromEntries(users.map(u => [u.id, u]))</code><br><br><strong>Why</strong>: looking up an item in an array with <code>find()</code> is O(n) — it scans the whole array each time. A lookup map gives O(1) access: <code>map[userId]</code>. In a component that renders a list and frequently needs to look up details by ID (e.g. connecting order IDs to user objects), converting to a map once can improve performance from O(n²) to O(n).<br><br>This is a very common pattern in Redux stores, React Query caches, and normalised state structures.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 10. REVIEW ══════════ -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">10</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check each item only if you can do it <em>without looking</em>. Anything unchecked = tomorrow's warm-up (5 min each).</p>
+
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain what map, filter, and reduce do without confusing them, and say when to use each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a reduce that groups an array of objects by a property into <code style="font-family:monospace;font-size:12px;">{category: {total, count}}</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can name 4 array methods that mutate and 4 that don't — from memory</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can add, update, and remove an item in a React state array without mutation</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can destructure a nested object with renaming and defaults in a function parameter</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the difference between spread (right side) and rest (left side / params)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use optional chaining to safely access 4 levels of nested properties without crashing</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain — with a concrete example — why <code style="font-family:monospace;font-size:12px;">??</code> is safer than <code style="font-family:monospace;font-size:12px;">||</code> for numeric defaults</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed exercises 4 and 5 (the advanced ones) without looking at solutions first</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can chain filter + sort + slice + map in a single expression without intermediate variables</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why <code style="font-family:monospace;font-size:12px;">[10, 9, 100].sort()</code> gives the wrong result without a compareFn</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">Today's exercise code is pushed to GitHub with a descriptive commit message</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--js);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall exercise — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2;">
+      1. Write a function that takes an array of orders and returns total revenue grouped by category<br>
+      2. Write the three React state update patterns: add / update / remove — all non-mutating<br>
+      3. Write a function that safely extracts nested data from an API response with defaults for every field<br>
+      4. Implement <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">map</code> and <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">filter</code> using only <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">reduce</code>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>day 02 of 56 · arrays, objects, destructuring, spread/rest, optional chaining</p>
+  <a class="next-btn" href="day3_functions_async_js.html">Day 3: Functions, Scope & Closures →</a>
+</footer>
+
+<script>
+function runCode(btn) {
+  const wrapper = btn.closest('.runner')
+  const ta = wrapper.querySelector('textarea')
+  const out = wrapper.querySelector('.output-box')
+  const logs = []
+  const origLog = console.log
+  console.log = (...args) => {
+    logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' '))
+  }
+  out.classList.remove('err')
+  try {
+    new Function(ta.value)()
+    out.textContent = logs.length ? logs.join('\n') : '(no output — did you call console.log?)'
+  } catch(e) {
+    out.classList.add('err')
+    out.textContent = '✗ ' + e.message
+  }
+  console.log = origLog
+}
+
+function toggleSol(btn) {
+  const content = btn.nextElementSibling
+  const arrow = btn.querySelector('.arrow')
+  const open = content.classList.toggle('open')
+  arrow.style.transform = open ? 'rotate(90deg)' : ''
+  btn.style.color = open ? 'var(--text)' : ''
+}
+
+function toggleQA(el) {
+  const answer = el.nextElementSibling
+  const chev = el.querySelector('.qa-chev')
+  const open = answer.classList.toggle('open')
+  chev.style.transform = open ? 'rotate(90deg)' : ''
+  el.style.background = open ? 'var(--surface3)' : ''
+}
+
+function toggleCheck(el) {
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+
+function markDone(el) {
+  el.classList.toggle('done')
+  updateProgress()
+}
+
+function updateProgress() {
+  const dots   = document.querySelectorAll('.tdot.done').length
+  const checks = document.querySelectorAll('.cl-box.checked').length
+  const total  = document.querySelectorAll('.tdot').length + document.querySelectorAll('.cl-box').length
+  const pct    = Math.round(((dots + checks) / total) * 100)
+  document.getElementById('prog-fill').style.width = pct + '%'
+  document.getElementById('pct-label').textContent = pct + '%'
+}
+
+const sections  = document.querySelectorAll('.section')
+const navLinks  = document.querySelectorAll('.nav a')
+window.addEventListener('scroll', () => {
+  let cur = ''
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id })
+  navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur))
+})
+</script>
+</body>
+</html>

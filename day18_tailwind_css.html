@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 18 — Tailwind CSS</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --tw:#06b6d4;--tw-dim:rgba(6,182,212,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
+  --react:#61dafb;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--tw);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--tw);border-bottom-color:var(--tw);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--tw);font-weight:600;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--tw);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--tw-dim);color:var(--tw);border-color:rgba(6,182,212,.3);}
+.day-btn.primary:hover{background:rgba(6,182,212,.18);}
+
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--tw);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--tw);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--tw);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--tw);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--tw-dim);color:var(--tw);border-color:rgba(6,182,212,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--tw);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+
+/* Live Tailwind demo area */
+.tw-demo{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.tw-demo-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--tw);display:flex;align-items:center;justify-content:space-between;}
+.tw-demo-body{padding:24px;background:#fff;min-height:100px;}
+.tw-demo-code{padding:14px 16px;border-top:1px solid var(--border);background:var(--surface3);font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);overflow-x:auto;white-space:pre;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--tw-dim);color:var(--tw);border:1px solid rgba(6,182,212,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(6,182,212,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:180px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(6,182,212,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+/* Live preview exercises */
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:14px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--tw);}
+.preview-area{border:1px solid var(--border2);border-radius:10px;background:#f8fafc;padding:24px;margin-bottom:14px;min-height:80px;}
+.preview-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:8px;letter-spacing:.08em;text-transform:uppercase;}
+.class-input{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 14px;outline:none;margin-bottom:8px;}
+.class-input:focus{border-color:rgba(6,182,212,.4);}
+.apply-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 18px;background:var(--tw-dim);color:var(--tw);border:1px solid rgba(6,182,212,.25);border-radius:7px;cursor:pointer;}
+.apply-btn:hover{background:rgba(6,182,212,.18);}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:14px 20px;border-top:1px solid var(--border);background:var(--surface2);}
+.sol-content.open{display:block;}
+.sol-content code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--tw);word-break:break-all;line-height:1.8;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--tw-dim);color:var(--tw);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--tw);border-color:var(--tw);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--tw-dim);color:var(--tw);border-color:rgba(6,182,212,.3);}
+.footer-btn.primary:hover{background:rgba(6,182,212,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--tw);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid{grid-template-columns:1fr;}
+}
+</style>
+<!-- Load Tailwind from CDN for live demos -->
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 18 · Tailwind</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#why">Why Tailwind</a>
+  <a href="#setup">Setup</a>
+  <a href="#core">Core Utilities</a>
+  <a href="#layout">Layout</a>
+  <a href="#responsive">Responsive</a>
+  <a href="#dark">Dark Mode</a>
+  <a href="#components">Components</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 3 · <span>Day 18 of 56</span> · Tailwind CSS</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="display:flex;gap:5px;align-items:center;" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day17_typescript_react.html',17)">← Day 17</button>
+      <button class="day-btn primary" onclick="navigateTo('day19_week3_review.html',19)">Day 19 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 3 · Day 18 · 8-week plan</div>
+  <h1>Tailwind <em>CSS</em></h1>
+  <p class="hero-sub">A utility-first CSS framework that lets you build any design directly in your HTML. No more context switching between files — style everything inline with composable classes and ship production UIs in a fraction of the time.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(6,182,212,.3);color:var(--tw);">utility-first philosophy</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">spacing &amp; sizing</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">flexbox &amp; grid</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">responsive prefixes</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">dark mode</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">state variants</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">@apply + cva</span>
+    <span class="topic-pill" style="border-color:rgba(244,114,182,.3);color:var(--pink);">arbitrary values</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">9</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">live exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--tw);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>Why utility-first — the CSS at scale problem</li>
+        <li>Install Tailwind v4 in Vite + React + TS project</li>
+        <li>Spacing scale — p, m, gap, w, h</li>
+        <li>Typography — text, font, leading, tracking</li>
+        <li>Colours — bg, text, border, from/to gradients</li>
+        <li>Flexbox utilities — flex, items, justify, gap</li>
+        <li>Grid utilities — grid-cols, col-span</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>Responsive design — sm, md, lg, xl, 2xl prefixes</li>
+        <li>State variants — hover, focus, active, disabled</li>
+        <li>Dark mode — dark: prefix strategy</li>
+        <li>Building component classes — @apply &amp; cva</li>
+        <li>Arbitrary values — w-[342px], bg-[#1a1a2e]</li>
+        <li>tailwind.config customisation</li>
+        <li>Exercises 1–6 (live in browser!)</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Push code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 18 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Why Tailwind</span>
+    <span class="tdot" onclick="markDone(this)">Setup</span>
+    <span class="tdot" onclick="markDone(this)">Spacing &amp; sizing</span>
+    <span class="tdot" onclick="markDone(this)">Typography</span>
+    <span class="tdot" onclick="markDone(this)">Flex &amp; grid</span>
+    <span class="tdot" onclick="markDone(this)">Responsive</span>
+    <span class="tdot" onclick="markDone(this)">Dark mode</span>
+    <span class="tdot" onclick="markDone(this)">Components</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. WHY TAILWIND -->
+<div class="section" id="why">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Why utility-first — the CSS at scale problem</span>
+    <span class="sec-badge" style="background:var(--tw-dim);color:var(--tw);">motivation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">traditional CSS problem</span>
+      <div class="cc-title">CSS grows forever, never shrinks</div>
+      <div class="cc-body">With BEM or plain CSS, you write a class, use it, then never know if it's safe to delete. Stylesheets grow to hundreds of KB. Naming things is hard — <code>.card-header-title-secondary</code>. Context switching between HTML and CSS files. Style conflicts from specificity. CSS at scale is a maintenance nightmare.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">utility-first solution</span>
+      <div class="cc-title">Compose styles directly in HTML</div>
+      <div class="cc-body">Tailwind gives you small, single-purpose classes: <code>p-4</code>, <code>text-blue-500</code>, <code>flex</code>, <code>rounded-lg</code>. You compose them directly on elements. The CSS file stays the same small size forever — Tailwind's build tool scans your files and only includes classes you actually use. Dead CSS is impossible.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">design constraints</span>
+      <div class="cc-title">A design system built in</div>
+      <div class="cc-body">Tailwind ships with a <strong>curated design system</strong> — a spacing scale (4px base), a colour palette, font sizes, shadows, radii. Every team member uses the same tokens. Design inconsistencies become harder to introduce. You can still customise everything via config, but the defaults give you a beautiful starting point.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">the trade-off</span>
+      <div class="cc-title">HTML gets verbose; CSS becomes clean</div>
+      <div class="cc-body">A styled button looks like <code>className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"</code>. More HTML, essentially no CSS. This feels wrong at first — then you realise you never need to name things, switch files, or wonder what broke when you delete CSS. Most developers prefer it after a week.</div>
+    </div>
+  </div>
+
+  <!-- Live demo: before/after -->
+  <div class="tw-demo">
+    <div class="tw-demo-head">
+      <span>Live demo — same button, two approaches</span>
+      <span style="color:var(--green);font-size:11px;">● Rendered below</span>
+    </div>
+    <div class="tw-demo-body" style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap;">
+      <!-- Traditional CSS approach (inline to show contrast) -->
+      <div>
+        <p style="font-size:11px;color:#64748b;margin-bottom:8px;font-family:monospace;">Traditional CSS</p>
+        <button style="background:#2563eb;color:white;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;transition:background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+          Click me
+        </button>
+      </div>
+      <!-- Tailwind approach -->
+      <div>
+        <p style="font-size:11px;color:#64748b;margin-bottom:8px;font-family:monospace;">Tailwind CSS</p>
+        <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm cursor-pointer border-0">
+          Click me
+        </button>
+      </div>
+    </div>
+    <div class="tw-demo-code"><!-- Traditional CSS (separate file) -->
+.btn { background: #2563eb; color: white; padding: 8px 16px;
+       border-radius: 8px; border: none; cursor: pointer; }
+.btn:hover { background: #1d4ed8; }
+
+<!-- Tailwind (inline, no separate CSS needed) -->
+&lt;button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"&gt;</div>
+  </div>
+</div>
+
+<!-- 02. SETUP -->
+<div class="section" id="setup">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Setup — Tailwind v4 with Vite + React</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">setup</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + css + tsx</span><span class="cb-desc">Install Tailwind v4, configure, and use in React components</span></div>
+    <div class="cb-body"><pre><span class="cm"># Tailwind v4 — new CSS-first config (no tailwind.config.js needed)</span>
+npm install tailwindcss @tailwindcss/vite
+
+<span class="cm"># vite.config.ts — add the plugin</span>
+<span class="kw">import</span> { <span class="var">defineConfig</span> }  <span class="kw">from</span> <span class="str">"vite"</span>
+<span class="kw">import</span> <span class="var">react</span>              <span class="kw">from</span> <span class="str">"@vitejs/plugin-react"</span>
+<span class="kw">import</span> <span class="var">tailwindcss</span>       <span class="kw">from</span> <span class="str">"@tailwindcss/vite"</span>
+
+<span class="kw">export default</span> <span class="fn">defineConfig</span>({
+  <span class="prop">plugins</span>: [<span class="fn">react</span>(), <span class="fn">tailwindcss</span>()],
+})
+
+<span class="cm">/* src/index.css — one import, that's it */</span>
+<span class="attr">@import</span> <span class="str">"tailwindcss"</span>;
+
+<span class="cm">/* Optional: customise your theme with CSS variables */</span>
+<span class="attr">@theme</span> {
+  <span class="prop">--color-brand</span>:    <span class="num">#3b82f6</span>;
+  <span class="prop">--font-sans</span>:      <span class="str">"Inter"</span>, sans-serif;
+  <span class="prop">--radius-card</span>:    <span class="num">12px</span>;
+  <span class="prop">--spacing-section</span>:<span class="num">80px</span>;
+}
+
+<span class="cm">// main.tsx — import CSS once</span>
+<span class="kw">import</span> <span class="str">"./index.css"</span>
+
+<span class="cm">// Any component — use classes directly</span>
+<span class="kw">function</span> <span class="fn">Card</span>({ <span class="var">title</span>, <span class="var">children</span> }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"bg-white rounded-xl shadow-md p-6 border border-gray-100"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;h2</span> <span class="attr">className</span>=<span class="str">"text-xl font-semibold text-gray-900 mb-4"</span><span class="tag">&gt;</span>{<span class="var">title</span>}<span class="tag">&lt;/h2&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"text-gray-600 leading-relaxed"</span><span class="tag">&gt;</span>{<span class="var">children</span>}<span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 03. CORE UTILITIES -->
+<div class="section" id="core">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Core utilities — spacing, typography, colours, borders</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">core</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--tw);"></span>The spacing scale — every unit maps to 4px × N</div>
+    <div class="mm-grid">
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--tw);">Spacing classes</div>
+        <div class="mm-value"><code>p-4</code> = 16px padding all sides<br><code>px-4</code> = x-axis, <code>py-2</code> = y-axis<br><code>pt-</code> top, <code>pb-</code> bottom, <code>pl-</code>, <code>pr-</code><br><code>m-4</code> margin, <code>mx-auto</code> center</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--amber);">Sizing classes</div>
+        <div class="mm-value"><code>w-full</code> = 100%, <code>w-1/2</code> = 50%<br><code>w-64</code> = 256px (16rem)<br><code>h-screen</code> = 100vh<br><code>max-w-xl</code>, <code>min-h-0</code></div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--green);">Typography</div>
+        <div class="mm-value"><code>text-sm</code> 14px, <code>text-xl</code> 20px<br><code>font-bold</code>, <code>font-medium</code><br><code>leading-relaxed</code> line-height<br><code>tracking-wide</code> letter-spacing</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--purple);">Colours</div>
+        <div class="mm-value"><code>bg-blue-600</code> background<br><code>text-gray-900</code> text colour<br><code>border-red-300</code> border colour<br>Scale: 50 100 200 … 900 950</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--coral);">Borders &amp; shadows</div>
+        <div class="mm-value"><code>border</code> 1px, <code>border-2</code> 2px<br><code>rounded-lg</code>, <code>rounded-full</code><br><code>shadow-sm</code>, <code>shadow-xl</code><br><code>ring-2 ring-blue-500</code></div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--teal);">Display &amp; position</div>
+        <div class="mm-value"><code>hidden</code>, <code>block</code>, <code>inline-flex</code><br><code>relative</code>, <code>absolute</code>, <code>fixed</code><br><code>overflow-hidden</code><br><code>z-10</code>, <code>z-50</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Core utilities in action — typography, colour palette, spacing cheatsheet</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Typography ────────────────────────────────────────────</span>
+<span class="tag">&lt;h1</span> <span class="attr">className</span>=<span class="str">"text-4xl font-bold tracking-tight text-gray-900"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;h2</span> <span class="attr">className</span>=<span class="str">"text-2xl font-semibold text-gray-800"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;p</span>  <span class="attr">className</span>=<span class="str">"text-base text-gray-600 leading-relaxed"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;span</span> <span class="attr">className</span>=<span class="str">"text-sm font-medium text-blue-600 uppercase tracking-wide"</span><span class="tag">&gt;</span>
+
+<span class="cm">// ── Spacing — padding and margin ──────────────────────────</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"p-4"</span><span class="tag">&gt;</span>         <span class="cm">// 16px all sides</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"px-6 py-3"</span><span class="tag">&gt;</span>   <span class="cm">// 24px h / 12px v</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"mt-8 mb-4"</span><span class="tag">&gt;</span>  <span class="cm">// top 32px, bottom 16px</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"mx-auto"</span><span class="tag">&gt;</span>    <span class="cm">// center horizontally</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"space-y-4"</span><span class="tag">&gt;</span>  <span class="cm">// 16px between children (vertical)</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"space-x-2"</span><span class="tag">&gt;</span>  <span class="cm">// 8px between children (horizontal)</span>
+
+<span class="cm">// ── Colours ───────────────────────────────────────────────</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"bg-blue-600 text-white"</span><span class="tag">&gt;</span>         <span class="cm">// solid</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"bg-blue-50 text-blue-700"</span><span class="tag">&gt;</span>       <span class="cm">// tinted</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"bg-gradient-to-r from-blue-500 to-purple-600 text-white"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"border border-gray-200 text-gray-700"</span><span class="tag">&gt;</span>
+
+<span class="cm">// ── Sizing ────────────────────────────────────────────────</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"w-full max-w-2xl mx-auto"</span><span class="tag">&gt;</span>    <span class="cm">// contained, centered</span>
+<span class="tag">&lt;img</span> <span class="attr">className</span>=<span class="str">"w-12 h-12 rounded-full object-cover"</span><span class="tag">&gt;</span>  <span class="cm">// avatar</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"h-screen flex items-center justify-center"</span><span class="tag">&gt;</span>  <span class="cm">// full-page center</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"aspect-video w-full"</span><span class="tag">&gt;</span>           <span class="cm">// 16:9 aspect</span>
+
+<span class="cm">// ── Borders &amp; effects ─────────────────────────────────────</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"border border-gray-200 rounded-xl shadow-sm"</span><span class="tag">&gt;</span>   <span class="cm">// card</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"ring-2 ring-blue-500 ring-offset-2"</span><span class="tag">&gt;</span>           <span class="cm">// focus ring</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"divide-y divide-gray-100"</span><span class="tag">&gt;</span>                    <span class="cm">// list dividers</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"backdrop-blur-md bg-white/80"</span><span class="tag">&gt;</span>                <span class="cm">// glass effect</span></pre></div>
+  </div>
+
+  <!-- Live demo: colour scale -->
+  <div class="tw-demo">
+    <div class="tw-demo-head"><span>Colour scale — blue-50 to blue-950</span></div>
+    <div class="tw-demo-body" style="display:flex;gap:4px;flex-wrap:wrap;">
+      <div class="w-10 h-10 rounded bg-blue-50 flex items-center justify-center"><span style="font-size:9px;color:#1e3a5f;font-family:monospace;">50</span></div>
+      <div class="w-10 h-10 rounded bg-blue-100 flex items-center justify-center"><span style="font-size:9px;color:#1e3a5f;font-family:monospace;">100</span></div>
+      <div class="w-10 h-10 rounded bg-blue-200 flex items-center justify-center"><span style="font-size:9px;color:#1e3a5f;font-family:monospace;">200</span></div>
+      <div class="w-10 h-10 rounded bg-blue-300 flex items-center justify-center"><span style="font-size:9px;font-family:monospace;">300</span></div>
+      <div class="w-10 h-10 rounded bg-blue-400 flex items-center justify-center"><span style="font-size:9px;color:white;font-family:monospace;">400</span></div>
+      <div class="w-10 h-10 rounded bg-blue-500 flex items-center justify-center"><span style="font-size:9px;color:white;font-family:monospace;">500</span></div>
+      <div class="w-10 h-10 rounded bg-blue-600 flex items-center justify-center"><span style="font-size:9px;color:white;font-family:monospace;">600</span></div>
+      <div class="w-10 h-10 rounded bg-blue-700 flex items-center justify-center"><span style="font-size:9px;color:white;font-family:monospace;">700</span></div>
+      <div class="w-10 h-10 rounded bg-blue-800 flex items-center justify-center"><span style="font-size:9px;color:white;font-family:monospace;">800</span></div>
+      <div class="w-10 h-10 rounded bg-blue-900 flex items-center justify-center"><span style="font-size:9px;color:white;font-family:monospace;">900</span></div>
+      <div class="w-10 h-10 rounded bg-blue-950 flex items-center justify-center"><span style="font-size:9px;color:white;font-family:monospace;">950</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 04. LAYOUT -->
+<div class="section" id="layout">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Layout — flexbox, grid, and container</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">layout</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Flex and grid patterns — every layout you'll build</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Flexbox ───────────────────────────────────────────────</span>
+<span class="cm">// Horizontal navbar</span>
+<span class="tag">&lt;nav</span> <span class="attr">className</span>=<span class="str">"flex items-center justify-between px-6 py-4"</span><span class="tag">&gt;</span>
+
+<span class="cm">// Centered hero</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"flex flex-col items-center justify-center min-h-screen"</span><span class="tag">&gt;</span>
+
+<span class="cm">// Card with icon + text side by side</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"flex items-start gap-4"</span><span class="tag">&gt;</span>
+
+<span class="cm">// Wrapping tag list</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"flex flex-wrap gap-2"</span><span class="tag">&gt;</span>
+
+<span class="cm">// Push last item to end</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"flex items-center"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;span</span><span class="tag">&gt;</span>Logo<span class="tag">&lt;/span&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"ml-auto flex gap-4"</span><span class="tag">&gt;</span>Nav links<span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="cm">// ── Grid ─────────────────────────────────────────────────</span>
+<span class="cm">// 3-column product grid</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"grid grid-cols-3 gap-6"</span><span class="tag">&gt;</span>
+
+<span class="cm">// Auto-responsive grid (min 250px per item)</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4"</span><span class="tag">&gt;</span>
+
+<span class="cm">// Dashboard: sidebar + main</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"grid grid-cols-[240px_1fr] gap-0 min-h-screen"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;aside</span> <span class="attr">className</span>=<span class="str">"bg-gray-50 border-r border-gray-200"</span><span class="tag">&gt;</span>Sidebar<span class="tag">&lt;/aside&gt;</span>
+  <span class="tag">&lt;main</span>  <span class="attr">className</span>=<span class="str">"p-8"</span><span class="tag">&gt;</span>Content<span class="tag">&lt;/main&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="cm">// Spanning columns</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"col-span-2"</span><span class="tag">&gt;</span>         <span class="cm">// takes 2 columns</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"col-start-1 col-end-3"</span><span class="tag">&gt;</span>  <span class="cm">// explicit placement</span>
+
+<span class="cm">// ── Container + max-width ─────────────────────────────────</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"container mx-auto px-4"</span><span class="tag">&gt;</span>       <span class="cm">// responsive container</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"</span><span class="tag">&gt;</span>  <span class="cm">// custom</span></pre></div>
+  </div>
+
+  <!-- Live flex demo -->
+  <div class="tw-demo">
+    <div class="tw-demo-head"><span>Live flex demo — navbar, card, grid</span></div>
+    <div class="tw-demo-body" style="display:flex;flex-direction:column;gap:16px;">
+      <!-- Navbar -->
+      <div class="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
+        <span class="font-bold text-gray-900">Logo</span>
+        <div class="flex gap-6 text-sm text-gray-600">
+          <span class="hover:text-gray-900 cursor-pointer">Products</span>
+          <span class="hover:text-gray-900 cursor-pointer">Docs</span>
+          <span class="hover:text-gray-900 cursor-pointer">Blog</span>
+        </div>
+        <button class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors">Sign in</button>
+      </div>
+      <!-- Grid -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg text-sm font-medium">Card 1</div>
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-lg text-sm font-medium">Card 2</div>
+        <div class="bg-gradient-to-br from-pink-500 to-pink-600 text-white p-4 rounded-lg text-sm font-medium">Card 3</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 05. RESPONSIVE -->
+<div class="section" id="responsive">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Responsive design — mobile-first breakpoint prefixes</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">responsive</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--teal);"></span>Breakpoint prefixes — mobile-first (min-width)</div>
+    <div class="mm-grid">
+      <div class="mm-item"><div class="mm-label" style="color:var(--teal);">no prefix</div><div class="mm-value">All screens (0px+). Start here — default mobile styles. <code>text-sm</code> always applies.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--green);">sm:</div><div class="mm-value">≥ 640px. Tablets portrait. <code>sm:text-base</code> kicks in at 640px.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--amber);">md:</div><div class="mm-value">≥ 768px. Tablets landscape / small laptop. Most layout changes happen here.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--blue);">lg:</div><div class="mm-value">≥ 1024px. Desktop. Sidebars, wider grids, larger text.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--purple);">xl:</div><div class="mm-value">≥ 1280px. Large desktop. Fine-tuning for wide screens.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--coral);">2xl:</div><div class="mm-value">≥ 1536px. Ultra-wide. Usually just max-width constraints.</div></div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Responsive patterns — mobile-first grid, typography, navigation</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Mobile-first grid ─────────────────────────────────────</span>
+<span class="cm">// 1 col on mobile → 2 on tablet → 3 on desktop → 4 on large</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"</span><span class="tag">&gt;</span>
+
+<span class="cm">// ── Responsive typography ─────────────────────────────────</span>
+<span class="tag">&lt;h1</span> <span class="attr">className</span>=<span class="str">"text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold"</span><span class="tag">&gt;</span>
+
+<span class="cm">// ── Responsive sidebar layout ─────────────────────────────</span>
+<span class="cm">// Stack on mobile, side-by-side on desktop</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"flex flex-col lg:flex-row gap-8"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;aside</span> <span class="attr">className</span>=<span class="str">"w-full lg:w-64 shrink-0"</span><span class="tag">&gt;</span>Sidebar<span class="tag">&lt;/aside&gt;</span>
+  <span class="tag">&lt;main</span>  <span class="attr">className</span>=<span class="str">"flex-1"</span><span class="tag">&gt;</span>Content<span class="tag">&lt;/main&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="cm">// ── Show/hide at breakpoints ──────────────────────────────</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"block md:hidden"</span><span class="tag">&gt;</span>Mobile only<span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"hidden md:block"</span><span class="tag">&gt;</span>Desktop only<span class="tag">&lt;/div&gt;</span>
+
+<span class="cm">// ── Responsive padding ────────────────────────────────────</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"px-4 sm:px-6 lg:px-8"</span><span class="tag">&gt;</span>    <span class="cm">// 16→24→32px padding</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"py-12 md:py-20 lg:py-32"</span><span class="tag">&gt;</span>  <span class="cm">// section vertical spacing</span>
+
+<span class="cm">// ── Responsive text alignment ─────────────────────────────</span>
+<span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"text-center md:text-left"</span><span class="tag">&gt;</span>
+
+<span class="cm">// ── Responsive images ─────────────────────────────────────</span>
+<span class="tag">&lt;img</span> <span class="attr">className</span>=<span class="str">"w-full h-48 sm:h-64 lg:h-80 object-cover rounded-xl"</span><span class="tag">&gt;</span></pre></div>
+  </div>
+</div>
+
+<!-- 06. DARK MODE + STATE VARIANTS -->
+<div class="section" id="dark">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">State variants &amp; dark mode</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">variants</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">hover, focus, active, disabled, group, peer — and dark: mode</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── State variants — prefix:class ────────────────────────</span>
+<span class="tag">&lt;button</span> <span class="attr">className</span>=<span class="str">"
+  bg-blue-600 text-white px-4 py-2 rounded-lg
+  hover:bg-blue-700              /* hover */
+  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2  /* focus */
+  active:scale-95                /* click feedback */
+  disabled:opacity-50 disabled:cursor-not-allowed   /* disabled */
+  transition-all duration-150    /* smooth */
+"</span><span class="tag">&gt;</span>
+
+<span class="cm">// ── group — parent triggers child styles ─────────────────</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"group relative overflow-hidden rounded-xl"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;img</span> <span class="attr">className</span>=<span class="str">"w-full transition-transform group-hover:scale-105"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;button</span> <span class="attr">className</span>=<span class="str">"opacity-0 group-hover:opacity-100 transition-opacity"</span><span class="tag">&gt;</span>View<span class="tag">&lt;/button&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="cm">// ── peer — sibling triggers sibling styles ───────────────</span>
+<span class="tag">&lt;input</span> <span class="attr">className</span>=<span class="str">"peer border rounded px-3 py-2"</span> <span class="attr">placeholder</span>=<span class="str">" "</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;label</span> <span class="attr">className</span>=<span class="str">"
+  absolute left-3 top-2 text-gray-400 pointer-events-none
+  peer-focus:-translate-y-5 peer-focus:text-xs peer-focus:text-blue-600
+  peer-[:not(:placeholder-shown)]:-translate-y-5
+  transition-all
+"</span><span class="tag">&gt;</span>Email address<span class="tag">&lt;/label&gt;</span>
+
+<span class="cm">// ── Dark mode (dark: prefix) ──────────────────────────────</span>
+<span class="cm">// Strategy: class-based (recommended — toggle "dark" on &lt;html&gt;)</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"bg-white text-gray-900 dark:bg-gray-900 dark:text-white"</span><span class="tag">&gt;</span>
+
+<span class="cm">// Enabling class-based dark mode in tailwind.config.js (v3) or CSS (v4)</span>
+<span class="cm">/* @theme { --dark-mode: class; } */</span>
+
+<span class="cm">// Toggle with a button:</span>
+<span class="kw">function</span> <span class="fn">ThemeToggle</span>() {
+  <span class="kw">const</span> <span class="fn">toggle</span> = () =&gt; <span class="fn">document</span>.<span class="prop">documentElement</span>.<span class="prop">classList</span>.<span class="fn">toggle</span>(<span class="str">"dark"</span>)
+  <span class="kw">return</span> <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="fn">toggle</span>}<span class="tag">&gt;</span>Toggle theme<span class="tag">&lt;/button&gt;</span>
+}
+
+<span class="cm">// Full dark mode card:</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"
+  bg-white border border-gray-200 rounded-xl p-6
+  dark:bg-gray-800 dark:border-gray-700
+"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;h2</span> <span class="attr">className</span>=<span class="str">"text-gray-900 dark:text-white font-semibold"</span><span class="tag">&gt;</span>Title<span class="tag">&lt;/h2&gt;</span>
+  <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"text-gray-600 dark:text-gray-400 mt-2"</span><span class="tag">&gt;</span>Body text<span class="tag">&lt;/p&gt;</span>
+<span class="tag">&lt;/div&gt;</span></pre></div>
+  </div>
+
+  <!-- Live state demo -->
+  <div class="tw-demo">
+    <div class="tw-demo-head"><span>Live state variants — hover, focus, group</span></div>
+    <div class="tw-demo-body" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+      <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95 transition-all text-sm font-medium">Hover me</button>
+      <input class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Focus me">
+      <button disabled class="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium">Disabled</button>
+      <div class="group relative inline-block cursor-pointer">
+        <div class="px-4 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 group-hover:bg-gray-200 transition-colors">Hover for group effect</div>
+        <div class="absolute -top-8 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Tooltip via group!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 07. COMPONENTS & CVA -->
+<div class="section" id="components">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Building components — @apply, cva, cn utility, arbitrary values</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">components</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx + css</span><span class="cb-desc">@apply, cva for variants, the cn() helper, arbitrary values, clsx</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── @apply — extract repeated utilities into a class ──────</span>
+<span class="cm">/* src/index.css */</span>
+<span class="attr">@layer</span> components {
+  <span class="prop">.btn</span> {
+    <span class="attr">@apply</span> px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none
+           focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  <span class="prop">.btn-primary</span> {
+    <span class="attr">@apply</span> btn bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+  }
+  <span class="prop">.input</span> {
+    <span class="attr">@apply</span> w-full px-3 py-2 border border-gray-300 rounded-lg text-sm
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+}
+
+<span class="cm">// ── cva — class-variance-authority (the pro approach) ────</span>
+<span class="cm">// npm install class-variance-authority</span>
+<span class="kw">import</span> { <span class="var">cva</span>, <span class="kw">type</span> <span class="var">VariantProps</span> } <span class="kw">from</span> <span class="str">"class-variance-authority"</span>
+
+<span class="kw">const</span> <span class="var">button</span> = <span class="fn">cva</span>(
+  <span class="str">"inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"</span>,
+  {
+    <span class="prop">variants</span>: {
+      <span class="prop">variant</span>: {
+        <span class="prop">primary</span>:   <span class="str">"bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"</span>,
+        <span class="prop">secondary</span>: <span class="str">"bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500"</span>,
+        <span class="prop">ghost</span>:     <span class="str">"text-gray-700 hover:bg-gray-100 focus:ring-gray-500"</span>,
+        <span class="prop">danger</span>:    <span class="str">"bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"</span>,
+      },
+      <span class="prop">size</span>: {
+        <span class="prop">sm</span>: <span class="str">"px-3 py-1.5 text-sm"</span>,
+        <span class="prop">md</span>: <span class="str">"px-4 py-2 text-sm"</span>,
+        <span class="prop">lg</span>: <span class="str">"px-6 py-3 text-base"</span>,
+      },
+    },
+    <span class="prop">defaultVariants</span>: { <span class="prop">variant</span>: <span class="str">"primary"</span>, <span class="prop">size</span>: <span class="str">"md"</span> },
+  }
+)
+
+<span class="kw">interface</span> <span class="var">ButtonProps</span>
+  <span class="kw">extends</span> <span class="var">React</span>.<span class="var">ButtonHTMLAttributes</span>&lt;<span class="var">HTMLButtonElement</span>&gt;,
+          <span class="var">VariantProps</span>&lt;<span class="kw">typeof</span> <span class="var">button</span>&gt; {}
+
+<span class="kw">function</span> <span class="fn">Button</span>({ <span class="var">variant</span>, <span class="var">size</span>, <span class="var">className</span>, ...<span class="var">props</span> }: <span class="var">ButtonProps</span>) {
+  <span class="kw">return</span> <span class="tag">&lt;button</span> <span class="attr">className</span>={<span class="fn">button</span>({ <span class="var">variant</span>, <span class="var">size</span>, <span class="var">className</span> })} {...<span class="var">props</span>} <span class="tag">/&gt;</span>
+}
+
+<span class="cm">// Usage — TypeScript enforces valid variants:</span>
+<span class="tag">&lt;Button</span> <span class="attr">variant</span>=<span class="str">"primary"</span>   <span class="attr">size</span>=<span class="str">"lg"</span><span class="tag">&gt;</span>Save<span class="tag">&lt;/Button&gt;</span>
+<span class="tag">&lt;Button</span> <span class="attr">variant</span>=<span class="str">"secondary"</span> <span class="attr">size</span>=<span class="str">"sm"</span><span class="tag">&gt;</span>Cancel<span class="tag">&lt;/Button&gt;</span>
+<span class="tag">&lt;Button</span> <span class="attr">variant</span>=<span class="str">"danger"</span><span class="tag">&gt;</span>Delete<span class="tag">&lt;/Button&gt;</span>
+
+<span class="cm">// ── cn() — merge classes safely ──────────────────────────</span>
+<span class="cm">// npm install clsx tailwind-merge</span>
+<span class="kw">import</span> { <span class="var">clsx</span> }         <span class="kw">from</span> <span class="str">"clsx"</span>
+<span class="kw">import</span> { <span class="var">twMerge</span> }      <span class="kw">from</span> <span class="str">"tailwind-merge"</span>
+
+<span class="kw">export function</span> <span class="fn">cn</span>(...<span class="var">inputs</span>: <span class="var">ClassValue</span>[]) {
+  <span class="kw">return</span> <span class="fn">twMerge</span>(<span class="fn">clsx</span>(...<span class="var">inputs</span>))
+}
+<span class="cm">// cn merges + deduplicates Tailwind classes safely</span>
+<span class="cm">// Without twMerge: cn("px-4", "px-6") → "px-4 px-6" (both apply, last wins unpredictably)</span>
+<span class="cm">// With    twMerge: cn("px-4", "px-6") → "px-6"       (correct — later class wins)</span>
+
+<span class="fn">cn</span>(<span class="str">"p-4 bg-blue-600"</span>, <span class="var">isActive</span> &amp;&amp; <span class="str">"ring-2 ring-blue-300"</span>, <span class="var">className</span>)
+
+<span class="cm">// ── Arbitrary values — escape hatch for custom values ────</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"w-[342px]"</span><span class="tag">&gt;</span>         <span class="cm">// exact width</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"bg-[#1a1a2e]"</span><span class="tag">&gt;</span>      <span class="cm">// custom hex colour</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"grid-cols-[1fr_2fr]"</span><span class="tag">&gt;</span><span class="cm">// custom grid template</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"top-[117px]"</span><span class="tag">&gt;</span>        <span class="cm">// pixel-perfect positioning</span>
+<span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"text-[clamp(1rem,4vw,2rem)]"</span><span class="tag">&gt;</span>  <span class="cm">// fluid type</span></pre></div>
+  </div>
+
+  <!-- Live cva demo -->
+  <div class="tw-demo">
+    <div class="tw-demo-head"><span>Live cva demo — button variants</span></div>
+    <div class="tw-demo-body" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <button class="inline-flex items-center justify-center px-4 py-2 text-sm rounded-lg font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700">Primary md</button>
+      <button class="inline-flex items-center justify-center px-3 py-1.5 text-sm rounded-lg font-medium transition-colors bg-gray-100 text-gray-900 hover:bg-gray-200">Secondary sm</button>
+      <button class="inline-flex items-center justify-center px-6 py-3 text-base rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100">Ghost lg</button>
+      <button class="inline-flex items-center justify-center px-4 py-2 text-sm rounded-lg font-medium transition-colors bg-red-600 text-white hover:bg-red-700">Danger md</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Live Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Live exercises — build with Tailwind classes in the browser</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">These exercises are <strong>live</strong> — type Tailwind classes into the input and click Apply to see the result rendered in real-time. Tailwind CSS is loaded on this page.</p>
+
+  <!-- EX 1: Badge component -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Build a badge component — colour, size, rounded</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Style the badge element below to look like a "Success" status badge — green background (tinted, not solid), dark green text, small rounded corners, small padding, small font size. Then try making an "Error" variant in red.</div>
+      <div class="preview-label">Preview</div>
+      <div class="preview-area" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <span id="badge1" class="">Success</span>
+        <span id="badge2" class="">Error</span>
+        <span id="badge3" class="">Warning</span>
+      </div>
+      <div class="preview-label" style="margin-top:12px;">Success badge classes</div>
+      <input class="class-input" id="ex1-success" value="" placeholder="e.g. bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+      <button class="apply-btn" onclick="applyBadge()">▶ Apply classes</button>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <code>Success: bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full<br>Error:   bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full<br>Warning: bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded-full</code>
+    </div>
+  </div>
+
+  <!-- EX 2: Card -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Product card — image, content, button</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">The HTML is already written below. Add Tailwind classes to each element to style a clean product card: white background, rounded corners, shadow, proper spacing, a tinted image area, title bold, price in blue, and an "Add to cart" button.</div>
+      <div class="preview-label">Preview</div>
+      <div class="preview-area">
+        <div id="card-wrap" class="w-64">
+          <div id="card-img" class="h-40 bg-gray-100 flex items-center justify-center text-4xl">🖥️</div>
+          <div id="card-body" class="">
+            <p id="card-title" class="">MacBook Pro</p>
+            <p id="card-price" class="">$1,999</p>
+            <button id="card-btn" class="">Add to cart</button>
+          </div>
+        </div>
+      </div>
+      <textarea class="class-input" id="ex2-classes" rows="5" placeholder="card wrapper, image area, body, title, price, button classes..."
+>Card: bg-white rounded-xl shadow-md overflow-hidden
+Body: p-4 space-y-3
+Title: font-semibold text-gray-900
+Price: text-blue-600 font-bold text-lg
+Button: w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium</textarea>
+      <button class="apply-btn" onclick="applyCard()">▶ Apply classes</button>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <code>Card wrapper: bg-white rounded-xl shadow-md overflow-hidden<br>Image area:   h-40 bg-gray-100 flex items-center justify-center text-4xl<br>Body:         p-4 space-y-3<br>Title:        font-semibold text-gray-900 text-lg<br>Price:        text-blue-600 font-bold text-xl<br>Button:       w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer border-0</code>
+    </div>
+  </div>
+
+  <!-- EX 3: Navbar -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Responsive navbar — mobile hamburger + desktop links</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a navbar that shows a logo on the left, nav links on the right on desktop. Use flexbox utilities, responsive prefixes, and hover states. The nav should have a subtle bottom border and white background.</div>
+      <div class="preview-label">Preview</div>
+      <div class="preview-area" style="padding:0;overflow:hidden;border-radius:8px;">
+        <nav id="navbar-ex" class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
+          <a class="text-xl font-bold text-gray-900 no-underline">ShopCo</a>
+          <div class="flex items-center gap-6">
+            <a class="text-sm text-gray-600 hover:text-gray-900 cursor-pointer no-underline transition-colors">Products</a>
+            <a class="text-sm text-gray-600 hover:text-gray-900 cursor-pointer no-underline transition-colors">About</a>
+            <a class="text-sm text-gray-600 hover:text-gray-900 cursor-pointer no-underline transition-colors">Blog</a>
+          </div>
+          <div class="flex items-center gap-3">
+            <button class="text-sm text-gray-600 hover:text-gray-900 transition-colors cursor-pointer border-0 bg-transparent font-medium">Log in</button>
+            <button class="text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors cursor-pointer border-0 font-medium">Sign up</button>
+          </div>
+        </nav>
+      </div>
+      <div class="runner">
+        <div class="runner-head"><span class="runner-title">Navbar class builder — run to see class count</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+        <div class="runner-code"><textarea id="ex3-run">// Calculate total CSS that would be generated vs Tailwind approach
+const navbarClasses = [
+  "flex", "items-center", "justify-between",
+  "px-6", "py-4", "bg-white",
+  "border-b", "border-gray-200",
+]
+const linkClasses = ["text-sm", "text-gray-600", "hover:text-gray-900", "transition-colors"]
+const btnClasses  = ["px-4", "py-2", "bg-gray-900", "text-white", "rounded-lg", "hover:bg-gray-800"]
+
+// How much CSS Tailwind generates (estimate)
+const uniqueClasses = new Set([...navbarClasses, ...linkClasses, ...btnClasses])
+console.log("Unique utility classes used:", uniqueClasses.size)
+console.log("With traditional CSS you'd write:", uniqueClasses.size * 3, "lines of CSS approx")
+console.log("With Tailwind you write: 0 lines of CSS (generated automatically)")
+console.log("CSS file size: same tiny bundle regardless of component count")
+
+// Contrast: traditional approach would be
+const traditionalCSS = `
+.navbar { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; background: white; border-bottom: 1px solid #e5e7eb; }
+.nav-link { font-size: 0.875rem; color: #4b5563; transition: color 150ms; }
+.nav-link:hover { color: #111827; }
+`.trim()
+console.log("\nTraditional CSS lines:", traditionalCSS.split('\n').length)
+console.log("And you'd need to maintain both HTML and CSS files separately")</textarea></div>
+        <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-run-out">Click ▶ Run</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EX 4: Dark mode card -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Dark mode — add dark: variants to a card</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">The card below has light-mode styles. Add <code>dark:</code> variants so it looks great in both modes. Click the toggle button to switch between light and dark. The <code>dark</code> class is toggled on <code>&lt;html&gt;</code>.</div>
+      <div class="preview-label">Preview (toggle dark mode)</div>
+      <div id="dark-preview" class="preview-area" style="background:#f8fafc;">
+        <div id="dark-card" class="bg-white border border-gray-200 rounded-xl p-6 max-w-sm dark:bg-gray-800 dark:border-gray-700">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">A</div>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white text-sm">Alice Smith</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Product Designer</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">Building beautiful interfaces with Tailwind CSS is genuinely one of the most enjoyable parts of my workflow.</p>
+          <div class="mt-4 flex items-center gap-2">
+            <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">Design</span>
+            <span class="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full">Tailwind</span>
+          </div>
+        </div>
+        <button onclick="toggleDark()" class="mt-4 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors cursor-pointer border-0 font-medium">Toggle dark mode</button>
+      </div>
+      <div class="runner">
+        <div class="runner-head"><span class="runner-title">Exercise 4 — dark mode class pattern verification</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+        <div class="runner-code"><textarea id="ex4-run">// Verify you understand the dark mode class pattern
+function parseDarkClasses(classString) {
+  const classes = classString.split(' ')
+  const dark    = classes.filter(c => c.startsWith('dark:'))
+  const light   = classes.filter(c => !c.startsWith('dark:'))
+  return { light, dark, total: classes.length }
+}
+
+// The card's classes
+const cardClasses = "bg-white border border-gray-200 rounded-xl p-6 max-w-sm dark:bg-gray-800 dark:border-gray-700"
+const titleClasses = "font-semibold text-gray-900 dark:text-white text-sm"
+const bodyClasses  = "text-sm text-gray-600 dark:text-gray-300 leading-relaxed"
+
+const cardResult  = parseDarkClasses(cardClasses)
+const titleResult = parseDarkClasses(titleClasses)
+
+console.log("Card — light:", cardResult.light.join(', '))
+console.log("Card — dark: ", cardResult.dark.join(', '))
+console.log("Title — light:", titleResult.light.join(', '))
+console.log("Title — dark: ", titleResult.dark.join(', '))
+console.log("\nPattern: every bg, text, border gets a dark: twin")
+console.log("100% of dark mode handled in className, zero JS needed")</textarea></div>
+        <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-run-out">Click ▶ Run</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EX 5: Responsive grid -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Responsive product grid — 1→2→3→4 cols</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build the responsive class string for a product grid that goes from 1 column on mobile → 2 on sm → 3 on lg → 4 on xl. Verify you understand each breakpoint prefix and its min-width.</div>
+      <div class="preview-label">Preview (resize window to see breakpoints)</div>
+      <div id="grid-preview" class="preview-area" style="padding:12px;">
+        <div id="resp-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div class="bg-blue-100 rounded-lg p-4 text-center text-sm font-medium text-blue-700">Item 1</div>
+          <div class="bg-blue-100 rounded-lg p-4 text-center text-sm font-medium text-blue-700">Item 2</div>
+          <div class="bg-blue-100 rounded-lg p-4 text-center text-sm font-medium text-blue-700">Item 3</div>
+          <div class="bg-blue-100 rounded-lg p-4 text-center text-sm font-medium text-blue-700">Item 4</div>
+          <div class="bg-blue-100 rounded-lg p-4 text-center text-sm font-medium text-blue-700">Item 5</div>
+          <div class="bg-blue-100 rounded-lg p-4 text-center text-sm font-medium text-blue-700">Item 6</div>
+        </div>
+      </div>
+      <div class="runner">
+        <div class="runner-head"><span class="runner-title">Exercise 5 — responsive breakpoints quiz</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+        <div class="runner-code"><textarea id="ex5-run">// Breakpoint quiz — fill in the answers
+const breakpoints = {
+  "sm":  { minWidth: 640,  desc: "Tablets portrait (≥640px)" },
+  "md":  { minWidth: 768,  desc: "Tablets landscape (≥768px)" },
+  "lg":  { minWidth: 1024, desc: "Desktop (≥1024px)" },
+  "xl":  { minWidth: 1280, desc: "Large desktop (≥1280px)" },
+  "2xl": { minWidth: 1536, desc: "Ultra-wide (≥1536px)" },
+}
+
+// Responsive class: grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
+const responsiveGrid = "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+const classes = responsiveGrid.split(' ')
+
+classes.forEach(cls => {
+  const [prefix, ...rest] = cls.includes(':') ? cls.split(':') : ['none', cls]
+  const utility = rest.join(':') || cls
+  const bp = breakpoints[prefix]
+  if (bp) {
+    console.log(`${cls}`)
+    console.log(`  → Applies at: ≥${bp.minWidth}px (${bp.desc})`)
+    console.log(`  → CSS: @media (min-width: ${bp.minWidth}px) { grid-template-columns: ... }`)
+  } else {
+    console.log(`${cls} → Applies always (mobile first, all screens)`)
+  }
+  console.log('')
+})
+
+console.log("Mobile-first principle: no prefix = all screens, prefixes = min-width overrides")</textarea></div>
+        <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-run-out">Click ▶ Run</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EX 6: Full component -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Complete login form — full Tailwind component</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">A complete, production-ready login form rendered live below using Tailwind classes. Study every class and understand why it's there. Then modify the classes in the runner to see changes.</div>
+      <div class="preview-label">Preview — Live login form</div>
+      <div class="preview-area" style="background:#f1f5f9;padding:32px;display:flex;justify-content:center;">
+        <div class="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8">
+          <div class="text-center mb-6">
+            <div class="w-12 h-12 bg-blue-600 rounded-xl mx-auto mb-4 flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900">Welcome back</h1>
+            <p class="text-sm text-gray-500 mt-1">Sign in to your account</p>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+              <input type="email" placeholder="alice@example.com" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400">
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-sm font-medium text-gray-700">Password</label>
+                <a class="text-xs text-blue-600 hover:text-blue-700 cursor-pointer">Forgot password?</a>
+              </div>
+              <input type="password" placeholder="••••••••" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400">
+            </div>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+              <span class="text-sm text-gray-600">Remember me for 30 days</span>
+            </label>
+            <button class="w-full py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Sign in</button>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-6">No account? <a class="text-blue-600 font-medium hover:text-blue-700 cursor-pointer">Create one free →</a></p>
+        </div>
+      </div>
+      <div class="runner">
+        <div class="runner-head"><span class="runner-title">Exercise 6 — analyse the login form classes</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+        <div class="runner-code"><textarea id="ex6-run">// Analyse the login form's Tailwind class usage
+const formComponents = {
+  "Card wrapper":  "w-full max-w-sm bg-white rounded-2xl shadow-lg p-8",
+  "Logo container":"w-12 h-12 bg-blue-600 rounded-xl mx-auto mb-4 flex items-center justify-center",
+  "Heading":       "text-2xl font-bold text-gray-900",
+  "Input":         "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all",
+  "Submit button": "w-full py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+}
+
+// Count classes and categorise
+Object.entries(formComponents).forEach(([name, classes]) => {
+  const list = classes.split(' ')
+  const categories = {
+    layout:     list.filter(c => /^(w-|h-|max-|min-|flex|grid|items-|justify-|gap-|space-|p[xytblr]?-|m[xytblr]?-)/.test(c)),
+    typography: list.filter(c => /^(text-|font-|leading-|tracking-)/.test(c)),
+    colour:     list.filter(c => /^(bg-|text-(gray|blue|red|green|white)|border-color|from-|to-)/.test(c)),
+    border:     list.filter(c => /^(border|rounded|ring|shadow)/.test(c)),
+    state:      list.filter(c => /^(hover:|focus:|active:|disabled:|dark:)/.test(c)),
+    misc:       list.filter(c => /^(transition|cursor|pointer|overflow|opacity|scale)/.test(c)),
+  }
+  console.log(`\n${name}: ${list.length} classes total`)
+  Object.entries(categories).forEach(([cat, cls]) => {
+    if (cls.length) console.log(`  ${cat}: ${cls.join(', ')}`)
+  })
+})
+
+const allClasses = Object.values(formComponents).flatMap(c => c.split(' '))
+console.log("\n=== Summary ===")
+console.log("Total class uses:", allClasses.length)
+console.log("Unique classes:  ", new Set(allClasses).size)
+console.log("Traditional CSS needed: ~0 lines (all from Tailwind)")
+</textarea></div>
+        <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-run-out">Click ▶ Run</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">What is utility-first CSS and how does Tailwind implement it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Utility-first CSS means styling elements with small, single-purpose classes rather than writing custom class names with custom CSS. Instead of <code>.card-header { font-size: 1.25rem; font-weight: 600; color: #111; }</code> you apply <code>text-xl font-semibold text-gray-900</code> directly in HTML.<br><br>Tailwind generates a large set of these utilities — covering every CSS property — and its build tool (PostCSS/Vite plugin) scans your files and only includes utilities you actually use. The resulting CSS file stays tiny regardless of how large your codebase grows.<br><br>The key advantage: CSS stops growing. With traditional CSS, every new component adds new CSS. With Tailwind, adding the 100th component adds zero new CSS because all the utilities already exist in the stylesheet. Dead CSS is structurally impossible.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">What does "mobile-first" mean in Tailwind's responsive system?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Mobile-first means classes without a breakpoint prefix apply to <em>all</em> screen sizes starting from mobile. Breakpoint prefixes (<code>sm:</code>, <code>md:</code>, <code>lg:</code>) add <em>min-width</em> media queries that override the base styles at larger screens.<br><br>So <code>grid-cols-1 md:grid-cols-2 lg:grid-cols-3</code> means: 1 column on all screens, then 2 columns at ≥768px, then 3 columns at ≥1024px. You build the mobile layout first (no prefix) then progressively enhance for larger screens.<br><br>The breakpoints: <code>sm</code> = 640px, <code>md</code> = 768px, <code>lg</code> = 1024px, <code>xl</code> = 1280px, <code>2xl</code> = 1536px. These are min-width, not max-width — there is no "mobile-only" prefix. To apply something only on mobile, style it with no prefix, then override at <code>sm:</code> or <code>md:</code>.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">How does Tailwind handle hover, focus, and other state variants?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Tailwind uses variant prefixes that compile to CSS pseudo-classes and pseudo-elements. <code>hover:bg-blue-700</code> compiles to <code>.hover\:bg-blue-700:hover { background-color: ... }</code>.<br><br>Common variants: <code>hover:</code>, <code>focus:</code>, <code>active:</code>, <code>disabled:</code>, <code>checked:</code>, <code>placeholder:</code>. These stack with breakpoints: <code>md:hover:bg-blue-700</code> means "on md+ screens, apply bg-blue-700 on hover."<br><br>Two powerful variants: <code>group</code> (mark a parent with <code>group</code>, then use <code>group-hover:</code> on children — children respond to the parent being hovered) and <code>peer</code> (mark a sibling with <code>peer</code>, use <code>peer-focus:</code> on the following sibling — floating labels, checkbox-driven UI). These replace complex JavaScript state management for common UI patterns.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">How do you implement dark mode in Tailwind?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Tailwind supports two dark mode strategies. <strong>Media strategy</strong> (default): respects the user's OS preference via <code>prefers-color-scheme: dark</code>. <strong>Class strategy</strong> (recommended for apps): toggles dark mode by adding/removing the <code>dark</code> class on the <code>&lt;html&gt;</code> element, giving you programmatic control.<br><br>With the class strategy, any class prefixed with <code>dark:</code> only applies when an ancestor has the <code>dark</code> class. You write pairs: <code>bg-white dark:bg-gray-900 text-gray-900 dark:text-white</code>. Every colour you set should have a dark twin.<br><br>Implementation: store the theme in localStorage, apply the class on page load (before hydration to prevent flash), and toggle with <code>document.documentElement.classList.toggle("dark")</code>. Wrap in a ThemeContext for React.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">When should you use @apply, and when should you not?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>@apply</code> lets you extract repeated utility combinations into a CSS class. Use it for: truly global base styles (buttons, inputs, links), elements you style from frameworks you can't modify (MDX content, third-party HTML), or design tokens that are repeated dozens of times across a large codebase.<br><br>Don't use it as a default escape hatch just because you're uncomfortable with long className strings. The whole point of utility-first is colocation — styles next to the element they apply to. Extracting to <code>@apply</code> brings back the problems Tailwind solves: you lose the ability to see what a component looks like by reading its JSX, and you create abstraction without encapsulation.<br><br>The correct abstraction in React is a <strong>component</strong>, not a CSS class. If a button style is repeated, extract a <code>Button</code> component with the Tailwind classes in it. Use <code>cva</code> for variant systems. Reserve <code>@apply</code> for the rare cases where a component can't be used.</div>
+    <div class="tip-box">Tailwind's own docs say: "If you find yourself wanting to create an abstract CSS class like .card, just make a card component instead."</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">What is class-variance-authority (cva) and why use it over template literals?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>cva</code> is a library for defining type-safe component variant systems. You define a base class string, then a variants object mapping variant names and values to class strings, plus default variants. It returns a function that accepts variant props and returns the correct class string.<br><br>Versus template literals: <code>`${variant === "primary" ? "bg-blue-600" : "bg-gray-100"}`</code> — this works but gets unreadable fast with multiple variants and combinations. With TypeScript, it also provides no autocomplete on variant values.<br><br>cva integrates with TypeScript: <code>VariantProps&lt;typeof button&gt;</code> gives you a typed interface for the component's props, so TypeScript will error if you pass an invalid variant. The variant logic stays in one place, the component stays clean, and every caller gets full autocomplete on <code>variant="primary"</code>.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">What is the cn() function and why is tailwind-merge necessary?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>cn()</code> is a helper that combines <code>clsx</code> (conditional class joining) with <code>tailwind-merge</code> (Tailwind-aware class conflict resolution). It's a pattern so common in the React + Tailwind ecosystem that virtually every project has it.<br><br>The problem: CSS specificity doesn't help when two Tailwind classes conflict — <code>px-4 px-6</code> both have the same specificity, so the result depends on which appears later in the stylesheet (which depends on Tailwind's build order, not your class order). <code>tailwind-merge</code> understands Tailwind's class naming conventions and removes earlier conflicting classes: <code>twMerge("px-4 px-6")</code> → <code>"px-6"</code>.<br><br>Use cn() for component APIs that accept a <code>className</code> prop: <code>cn("base-classes", isActive && "active-classes", className)</code>. The external className correctly overrides the defaults rather than conflicting unpredictably.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">How do you customise Tailwind's design tokens?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">In Tailwind v4, customisation happens in CSS using the <code>@theme</code> directive rather than a JavaScript config file. You define CSS custom properties under <code>@theme</code> and Tailwind generates utilities for them automatically.<br><br><code>@theme { --color-brand: #3b82f6; --font-display: "Cal Sans", sans-serif; --spacing-section: 80px; }</code> — this adds <code>bg-brand</code>, <code>text-brand</code>, <code>font-display</code>, and <code>section-section</code> (or however the naming maps) to your available utilities.<br><br>In v3, customisation goes in <code>tailwind.config.js</code> under <code>theme.extend</code> (to add to defaults) or <code>theme</code> (to replace defaults). The design token approach means your entire design system lives in one file, generating both utilities and the underlying CSS variables that components use.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">How does Tailwind's build process keep the CSS file small?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Tailwind v4 uses a Vite plugin (or PostCSS plugin) that scans your source files as they're compiled. It uses a content-scanning approach: every string that looks like a Tailwind class name gets included in the final CSS. Classes you don't use are simply not generated.<br><br>In development, a broader set of classes is available for DX. In production, the scanner runs over your final build output and only generates the classes that appear. The resulting CSS is typically 5–15KB for a medium-sized app — much smaller than a handwritten CSS file with similar coverage.<br><br>Important implication: <strong>never dynamically construct class names</strong>. <code>bg-${color}-500</code> won't work — the scanner sees a string template, not a valid class name. Always use full class names: <code>color === "blue" ? "bg-blue-500" : "bg-red-500"</code>. Tailwind's scanner matches these full strings correctly.</div>
+    <div class="warn-box">Don't do: <code>className={`bg-${color}-500`}</code> — the scanner won't find this and the class won't be generated. Always write complete class names.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">How do you handle arbitrary values and when should you use them?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Arbitrary values use square bracket notation to pass any valid CSS value to any utility: <code>w-[342px]</code>, <code>bg-[#1a1a2e]</code>, <code>text-[clamp(1rem,4vw,2rem)]</code>, <code>grid-cols-[1fr_2fr_1fr]</code>. Spaces in CSS values use underscores inside brackets.<br><br>When to use: pixel-perfect positioning from a design spec, custom brand colours not in the palette, complex grid templates, CSS functions like <code>clamp()</code> or <code>calc()</code>. They're a safety valve for the cases where the design system doesn't have the right value.<br><br>When not to use: if you find yourself using the same arbitrary value in 5 places (<code>w-[342px]</code> five times), add it to your theme instead (<code>--width-sidebar: 342px</code>) so it gets a proper utility class. Arbitrary values are for genuinely one-off values, not for circumventing the design system entirely.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">10</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain utility-first CSS and why Tailwind's CSS never grows with the codebase</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can install Tailwind v4 in a Vite + React project from memory (plugin + CSS import)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the spacing scale: <code>p-4</code> = 16px, <code>p-1</code> = 4px, base unit 4px</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can build a flex navbar (<code>flex items-center justify-between</code>) and a responsive grid from memory</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know all 5 breakpoint prefixes, their min-widths, and the mobile-first principle</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>hover:</code>, <code>focus:</code>, <code>active:</code>, <code>disabled:</code>, <code>group-hover:</code> state variants</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement dark mode — class strategy, toggling the <code>dark</code> class, writing <code>dark:</code> twins</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>cva</code> to build a typed Button component with primary/secondary/ghost/danger variants</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know what <code>cn()</code> does, why <code>tailwind-merge</code> is necessary, and how to implement it</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the arbitrary value syntax (<code>w-[342px]</code>) and when to use vs add to theme</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why <code>bg-${color}-500</code> breaks Tailwind's scanner (never do this)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I converted the React Shop to Tailwind today — all styled components with Tailwind utilities</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built a Button component with <code>cva</code> and a <code>cn()</code> helper today</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My code is committed and pushed to GitHub</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(6,182,212,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--tw);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Build a <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);">ProductCard</code> component from memory — image area, title, price, button, shadow, hover effect<br>
+      2. Build a responsive <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);">Navbar</code> — flex layout, logo left, links right, responsive hamburger concept<br>
+      3. Write a <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);">Button</code> with <code>cva</code> — 4 variants, 3 sizes, disabled state, and a <code>cn()</code> className merge<br>
+      4. Add dark mode to the card — every colour has a <code>dark:</code> twin, toggle via JS on <code>&lt;html&gt;</code>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 3 · Day 18</div>
+      <div class="footer-day-name">Tailwind CSS</div>
+      <div class="footer-day-next">Next up: <strong>Day 19 — Week 3 Review Project</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 3 progress</span><span>Day 5 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:71%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day17_typescript_react.html',17)">← Day 17</button>
+      <button class="footer-btn primary" onclick="navigateTo('day19_week3_review.html',19)">Day 19 — Week 3 Review →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Day navigation ── */
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html",current:true},
+]
+const CURRENT=18
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+  "day18_tailwind_css.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep building! 🎨`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.style.cssText='display:inline-block;'
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+
+/* ── Exercise interactivity ── */
+function applyBadge(){
+  const cls=document.getElementById('ex1-success').value.trim()
+  document.getElementById('badge1').className=cls
+  document.getElementById('badge2').className=cls.replace(/green/g,'red')
+  document.getElementById('badge3').className=cls.replace(/green/g,'amber')
+}
+
+function applyCard(){
+  const raw=document.getElementById('ex2-classes').value
+  const lines=raw.split('\n').filter(l=>l.trim())
+  const map={}
+  lines.forEach(l=>{
+    const [label,...rest]=l.split(':')
+    const cls=rest.join(':').trim()
+    map[label.trim().toLowerCase()]=cls
+  })
+  if(map['card']||map['card wrapper']) document.getElementById('card-wrap').className='w-64 '+(map['card']||map['card wrapper']||'')
+  if(map['body']) document.getElementById('card-body').className=map['body']
+  if(map['title']) document.getElementById('card-title').className=map['title']
+  if(map['price']) document.getElementById('card-price').className=map['price']
+  if(map['button']) document.getElementById('card-btn').className=map['button']
+}
+
+function toggleDark(){
+  document.documentElement.classList.toggle('dark')
+  const preview=document.getElementById('dark-preview')
+  const isDark=document.documentElement.classList.contains('dark')
+  preview.style.background=isDark?'#111827':'#f8fafc'
+}
+
+/* ── Code runner ── */
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+
+/* ── UI helpers ── */
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+
+/* ── Active nav ── */
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

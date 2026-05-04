@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 5 — DOM, Events & ES6 Classes</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --js:#f7df1e;--js-dim:rgba(247,223,30,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre,.mono{font-family:'JetBrains Mono',monospace;}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;gap:0;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--js);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--js);border-bottom-color:var(--js);}
+
+/* DAY NAV BAR */
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--js);font-weight:600;}
+.day-btns{display:flex;gap:8px;align-items:center;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;text-decoration:none;}
+.day-btn:hover{background:var(--surface3);color:var(--text);border-color:rgba(255,255,255,.2);}
+.day-btn.primary{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.3);}
+.day-btn.primary:hover{background:rgba(247,223,30,.18);}
+.day-btn:disabled,.day-btn.disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--js);width:22px;border-radius:4px;}
+.day-dot:hover{background:var(--muted);}
+
+/* HERO */
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--js);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--js);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--js);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+/* SCHEDULE */
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+/* PROGRESS */
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--js);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.25);}
+
+/* SECTION */
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+/* CONCEPT CARDS */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+/* CODE BLOCKS */
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--js);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.rx{color:#fb923c;}
+
+/* MENTAL MODEL */
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+/* DIVIDER */
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);position:relative;}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+/* LIVE DEMO */
+.live-demo{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.demo-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.demo-title{font-size:13px;font-weight:600;}
+.demo-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 9px;border-radius:20px;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,.2);}
+.demo-area{padding:20px;}
+
+/* RUNNER */
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--js-dim);color:var(--js);border:1px solid rgba(247,223,30,.25);border-radius:6px;cursor:pointer;transition:background .15s;}
+.run-btn:hover{background:rgba(247,223,30,.18);}
+.runner-code{padding:16px 18px;border-bottom:1px solid var(--border);}
+.runner-code textarea{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:14px 16px;resize:vertical;min-height:160px;outline:none;}
+.runner-code textarea:focus{border-color:rgba(247,223,30,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+/* EXERCISE */
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--js);}
+.ex-hint{font-size:12px;color:var(--muted);border-left:2px solid var(--border2);padding-left:12px;border-radius:0;margin-bottom:14px;line-height:1.7;}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+/* QA */
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+/* CHECKLIST */
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--js);border-color:var(--js);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+/* COMPARISON TABLE */
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+/* FOOTER WITH DAY NAV */
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-info{display:flex;flex-direction:column;gap:4px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;align-items:center;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.3);}
+.footer-btn.primary:hover{background:rgba(247,223,30,.18);}
+.footer-btn.disabled{opacity:.3;cursor:not-allowed;pointer-events:none;}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--js);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid{grid-template-columns:1fr;}
+  .footer-nav-inner{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 05 · JS</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#dom">DOM</a>
+  <a href="#selecting">Selecting</a>
+  <a href="#events">Events</a>
+  <a href="#delegation">Delegation</a>
+  <a href="#classes">ES6 Classes</a>
+  <a href="#inheritance">Inheritance</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<!-- DAY NAVIGATION BAR -->
+<div class="day-nav">
+  <div class="day-nav-title">Week 1 · <span>Day 5 of 56</span> · DOM, Events &amp; ES6 Classes</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div class="day-btns">
+      <a class="day-btn" id="prev-btn-top" href="day4_dom_events_classes.html">← Day 4</a>
+      <a class="day-btn primary" id="next-btn-top" href="day6_es6_modules_tooling.html">Day 6 →</a>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 1 · Day 5 · 8-week plan</div>
+  <h1>DOM, Events &amp;<br><em>ES6 Classes</em></h1>
+  <p class="hero-sub">How JavaScript interacts with the browser page — the foundation of every UI framework. Understanding the DOM and event system is what separates developers who truly understand React from those who just use it.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">DOM tree &amp; nodes</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">selecting elements</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">DOM manipulation</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">events &amp; listeners</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">event delegation</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">ES6 classes</span>
+    <span class="topic-pill" style="border-color:rgba(247,223,30,.3);color:var(--js);">inheritance &amp; super</span>
+    <span class="topic-pill" style="border-color:rgba(244,114,182,.3);color:var(--pink);">prototype chain</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--blue);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>DOM tree structure &amp; node types</li>
+        <li>Selecting elements — querySelector, getBy*</li>
+        <li>Reading &amp; writing DOM properties</li>
+        <li>Creating, inserting &amp; removing nodes</li>
+        <li>Traversing the DOM tree</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--teal);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>addEventListener — types, options, cleanup</li>
+        <li>Event object — target, currentTarget, bubbling</li>
+        <li>Event delegation pattern</li>
+        <li>ES6 Classes — syntax, constructor, methods</li>
+        <li>Inheritance with extends &amp; super</li>
+        <li>Static methods, private fields</li>
+        <li>Exercises 1–6 (all runnable)</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Push code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 5 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">DOM tree</span>
+    <span class="tdot" onclick="markDone(this)">Selecting</span>
+    <span class="tdot" onclick="markDone(this)">Manipulation</span>
+    <span class="tdot" onclick="markDone(this)">Events</span>
+    <span class="tdot" onclick="markDone(this)">Delegation</span>
+    <span class="tdot" onclick="markDone(this)">ES6 Classes</span>
+    <span class="tdot" onclick="markDone(this)">Inheritance</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- ════ PART 1 ════ -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Part 1 — The DOM</span></div>
+
+<!-- 01. DOM TREE -->
+<div class="section" id="dom">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">The DOM — Document Object Model</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">foundation</span>
+  </div>
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--blue-dim);color:var(--blue);">what it is</span>
+      <div class="cc-title">The DOM is a live tree of objects</div>
+      <div class="cc-body">When the browser parses HTML, it builds the <strong>Document Object Model</strong> — a tree of JavaScript objects representing every element, attribute, and piece of text. Changing these objects <strong>immediately updates what the user sees</strong>. React, Vue, and Angular all manipulate the DOM — either directly or via a virtual copy.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">node types</span>
+      <div class="cc-title">Node types in the tree</div>
+      <div class="cc-body"><strong>Element nodes</strong> — <code>&lt;div&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;button&gt;</code> — the ones you interact with most. <strong>Text nodes</strong> — the text content inside elements. <strong>Document node</strong> — the root (<code>document</code>). <strong>Attribute nodes</strong> — element attributes like <code>id</code>, <code>class</code>, <code>href</code>. <code>nodeType === 1</code> means element, <code>3</code> means text.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">React link</span>
+      <div class="cc-title">Why this matters for React</div>
+      <div class="cc-body">React uses a <strong>Virtual DOM</strong> — a lightweight copy of the real DOM in memory. When state changes, React diffs the new virtual DOM against the old one, and makes only the <strong>minimal real DOM updates</strong> needed. Understanding the real DOM tells you what React is optimising and why direct mutation is dangerous.</div>
+    </div>
+  </div>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">DOM navigation and node properties</span></div>
+    <div class="cb-body"><pre><span class="cm">// The document is the entry point to the entire DOM</span>
+<span class="fn">document</span>.<span class="prop">title</span>           <span class="cm">// get/set page title</span>
+<span class="fn">document</span>.<span class="prop">body</span>            <span class="cm">// the &lt;body&gt; element</span>
+<span class="fn">document</span>.<span class="prop">documentElement</span> <span class="cm">// the &lt;html&gt; element</span>
+
+<span class="cm">// Traversing the tree</span>
+<span class="kw">const</span> <span class="var">el</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".card"</span>)
+
+<span class="var">el</span>.<span class="prop">parentElement</span>          <span class="cm">// direct parent element</span>
+<span class="var">el</span>.<span class="prop">children</span>               <span class="cm">// HTMLCollection of child elements</span>
+<span class="var">el</span>.<span class="prop">firstElementChild</span>      <span class="cm">// first child element</span>
+<span class="var">el</span>.<span class="prop">lastElementChild</span>       <span class="cm">// last child element</span>
+<span class="var">el</span>.<span class="prop">nextElementSibling</span>     <span class="cm">// next sibling element</span>
+<span class="var">el</span>.<span class="prop">previousElementSibling</span> <span class="cm">// previous sibling element</span>
+
+<span class="cm">// Node properties</span>
+<span class="var">el</span>.<span class="prop">nodeName</span>               <span class="cm">// "DIV", "P", "BUTTON" etc</span>
+<span class="var">el</span>.<span class="prop">nodeType</span>               <span class="cm">// 1 = element, 3 = text</span>
+<span class="var">el</span>.<span class="prop">textContent</span>            <span class="cm">// all text content (safe, no HTML)</span>
+<span class="var">el</span>.<span class="prop">innerHTML</span>              <span class="cm">// HTML string of contents (careful: XSS risk!)</span>
+<span class="var">el</span>.<span class="prop">outerHTML</span>              <span class="cm">// HTML including the element itself</span>
+
+<span class="cm">// Element geometry</span>
+<span class="var">el</span>.<span class="prop">offsetWidth</span>            <span class="cm">// rendered width including padding/border</span>
+<span class="var">el</span>.<span class="prop">clientHeight</span>           <span class="cm">// inner height (padding but not border)</span>
+<span class="kw">const</span> <span class="var">rect</span> = <span class="var">el</span>.<span class="fn">getBoundingClientRect</span>()
+<span class="var">rect</span>.<span class="prop">top</span>; <span class="var">rect</span>.<span class="prop">left</span>; <span class="var">rect</span>.<span class="prop">width</span>; <span class="var">rect</span>.<span class="prop">height</span> <span class="cm">// relative to viewport</span></pre></div>
+  </div>
+</div>
+
+<!-- 02. SELECTING + MANIPULATING -->
+<div class="section" id="selecting">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Selecting &amp; manipulating DOM elements</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">daily use</span>
+  </div>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Selecting, reading, writing, creating and removing elements</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Selecting elements ───────────────────────────────────</span>
+<span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"app"</span>)          <span class="cm">// by id — fastest, returns element|null</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".btn.primary"</span>) <span class="cm">// first match — CSS selectors</span>
+<span class="fn">document</span>.<span class="fn">querySelectorAll</span>(<span class="str">"li.item"</span>)  <span class="cm">// all matches — static NodeList</span>
+<span class="fn">document</span>.<span class="fn">getElementsByClassName</span>(<span class="str">"card"</span>)<span class="cm">// live HTMLCollection (avoid)</span>
+<span class="fn">document</span>.<span class="fn">getElementsByTagName</span>(<span class="str">"input"</span>) <span class="cm">// live HTMLCollection (avoid)</span>
+
+<span class="cm">// Prefer querySelector/querySelectorAll — CSS selectors, static, predictable</span>
+<span class="kw">const</span> <span class="var">buttons</span>    = [...<span class="fn">document</span>.<span class="fn">querySelectorAll</span>(<span class="str">"button"</span>)]  <span class="cm">// convert to array</span>
+<span class="kw">const</span> <span class="var">firstInput</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"form input[type='text']"</span>)
+
+<span class="cm">// Scoped queries — search within an element</span>
+<span class="kw">const</span> <span class="var">card</span>    = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".card"</span>)
+<span class="kw">const</span> <span class="var">cardBtn</span> = <span class="var">card</span>.<span class="fn">querySelector</span>(<span class="str">"button"</span>)  <span class="cm">// button inside .card only</span>
+
+<span class="cm">// ── Reading and writing properties ────────────────────────</span>
+<span class="kw">const</span> <span class="var">el</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#title"</span>)
+
+<span class="cm">// Text content (safe — escapes HTML)</span>
+<span class="var">el</span>.<span class="prop">textContent</span> = <span class="str">"New title"</span>
+
+<span class="cm">// Attributes</span>
+<span class="var">el</span>.<span class="fn">setAttribute</span>(<span class="str">"data-id"</span>, <span class="str">"42"</span>)
+<span class="var">el</span>.<span class="fn">getAttribute</span>(<span class="str">"data-id"</span>)       <span class="cm">// "42"</span>
+<span class="var">el</span>.<span class="fn">removeAttribute</span>(<span class="str">"disabled"</span>)
+<span class="var">el</span>.<span class="fn">hasAttribute</span>(<span class="str">"hidden"</span>)        <span class="cm">// boolean</span>
+
+<span class="cm">// Classes</span>
+<span class="var">el</span>.<span class="prop">classList</span>.<span class="fn">add</span>(<span class="str">"active"</span>, <span class="str">"visible"</span>)
+<span class="var">el</span>.<span class="prop">classList</span>.<span class="fn">remove</span>(<span class="str">"hidden"</span>)
+<span class="var">el</span>.<span class="prop">classList</span>.<span class="fn">toggle</span>(<span class="str">"open"</span>)            <span class="cm">// add if absent, remove if present</span>
+<span class="var">el</span>.<span class="prop">classList</span>.<span class="fn">contains</span>(<span class="str">"active"</span>)       <span class="cm">// boolean</span>
+<span class="var">el</span>.<span class="prop">classList</span>.<span class="fn">replace</span>(<span class="str">"old"</span>, <span class="str">"new"</span>)
+
+<span class="cm">// Inline styles (use sparingly — prefer classes)</span>
+<span class="var">el</span>.<span class="prop">style</span>.<span class="prop">color</span>      = <span class="str">"red"</span>
+<span class="var">el</span>.<span class="prop">style</span>.<span class="prop">display</span>    = <span class="str">"none"</span>
+<span class="var">el</span>.<span class="prop">style</span>.<span class="prop">cssText</span>    = <span class="str">"color:red; font-size:16px"</span> <span class="cm">// bulk</span>
+
+<span class="cm">// ── Creating and inserting elements ───────────────────────</span>
+<span class="kw">const</span> <span class="var">li</span> = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"li"</span>)
+<span class="var">li</span>.<span class="prop">textContent</span> = <span class="str">"New item"</span>
+<span class="var">li</span>.<span class="prop">className</span>   = <span class="str">"item"</span>
+<span class="var">li</span>.<span class="fn">dataset</span>.<span class="prop">id</span>  = <span class="str">"99"</span>              <span class="cm">// sets data-id="99"</span>
+
+<span class="kw">const</span> <span class="var">list</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"ul"</span>)
+<span class="var">list</span>.<span class="fn">append</span>(<span class="var">li</span>)                    <span class="cm">// add at end</span>
+<span class="var">list</span>.<span class="fn">prepend</span>(<span class="var">li</span>)                   <span class="cm">// add at start</span>
+<span class="var">list</span>.<span class="fn">insertBefore</span>(<span class="var">li</span>, <span class="var">list</span>.<span class="prop">children</span>[<span class="num">2</span>])  <span class="cm">// insert at position 2</span>
+
+<span class="cm">// Modern insertAdjacentElement/HTML</span>
+<span class="var">el</span>.<span class="fn">insertAdjacentHTML</span>(<span class="str">"beforeend"</span>, <span class="str">`&lt;span&gt;injected&lt;/span&gt;`</span>)
+<span class="cm">// positions: "beforebegin","afterbegin","beforeend","afterend"</span>
+
+<span class="cm">// ── Removing elements ─────────────────────────────────────</span>
+<span class="var">li</span>.<span class="fn">remove</span>()                         <span class="cm">// removes itself (modern)</span>
+<span class="var">list</span>.<span class="fn">removeChild</span>(<span class="var">li</span>)               <span class="cm">// removes a specific child (older)</span>
+<span class="var">list</span>.<span class="prop">innerHTML</span> = <span class="str">""</span>                 <span class="cm">// clear all children (quick but lossy)</span>
+<span class="kw">while</span> (<span class="var">list</span>.<span class="prop">firstChild</span>) <span class="var">list</span>.<span class="prop">firstChild</span>.<span class="fn">remove</span>() <span class="cm">// safe clear (preserves listeners)</span></pre></div>
+  </div>
+</div>
+
+<!-- 03. EVENTS -->
+<div class="section" id="events">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Events — listening, the event object &amp; bubbling</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">core interaction</span>
+  </div>
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--teal);"></span>Event propagation — bubbling &amp; capturing</div>
+    <div class="mm-grid">
+      <div class="mm-item"><div class="mm-label" style="color:var(--blue);">1. Capture phase</div><div class="mm-value">Event travels down from <code>document</code> → target. Rarely used. Opt-in with <code>{capture: true}</code>.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--js);">2. Target phase</div><div class="mm-value">Event reaches the element that was clicked/interacted with. Handlers on the target fire here.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--teal);">3. Bubble phase</div><div class="mm-value">Event bubbles up from target → <code>document</code>. Most events bubble. This is what event delegation exploits.</div></div>
+      <div class="mm-item"><div class="mm-label">stopPropagation</div><div class="mm-value"><code>e.stopPropagation()</code> prevents further bubbling. Use sparingly — it can break event delegation.</div></div>
+    </div>
+  </div>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">addEventListener, event object, common patterns</span></div>
+    <div class="cb-body"><pre><span class="cm">// addEventListener(type, handler, options)</span>
+<span class="kw">const</span> <span class="var">btn</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#submit"</span>)
+
+<span class="cm">// Basic</span>
+<span class="var">btn</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, (<span class="var">event</span>) => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">event</span>.<span class="prop">type</span>)           <span class="cm">// "click"</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">event</span>.<span class="prop">target</span>)         <span class="cm">// element that was clicked</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">event</span>.<span class="prop">currentTarget</span>)  <span class="cm">// element the listener is on</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">event</span>.<span class="prop">timeStamp</span>)      <span class="cm">// ms since page load</span>
+})
+
+<span class="cm">// once — handler fires only once, then auto-removes</span>
+<span class="var">btn</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, <span class="fn">handleClick</span>, { <span class="prop">once</span>: <span class="kw">true</span> })
+
+<span class="cm">// Removing a listener — must pass the same function reference!</span>
+<span class="kw">function</span> <span class="fn">handleClick</span>(<span class="var">e</span>) { <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"clicked"</span>) }
+<span class="var">btn</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, <span class="fn">handleClick</span>)
+<span class="var">btn</span>.<span class="fn">removeEventListener</span>(<span class="str">"click"</span>, <span class="fn">handleClick</span>)  <span class="cm">// same reference = works</span>
+<span class="cm">// btn.removeEventListener("click", () => {}) // different reference — DOES NOT WORK</span>
+
+<span class="cm">// Common event types</span>
+<span class="cm">// Mouse:   click, dblclick, mousedown, mouseup, mousemove, mouseenter, mouseleave</span>
+<span class="cm">// Keyboard: keydown, keyup, keypress (deprecated)</span>
+<span class="cm">// Form:    submit, change, input, focus, blur, reset</span>
+<span class="cm">// Window:  load, DOMContentLoaded, resize, scroll, beforeunload</span>
+
+<span class="cm">// Keyboard events</span>
+<span class="fn">document</span>.<span class="fn">addEventListener</span>(<span class="str">"keydown"</span>, (<span class="var">e</span>) => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">e</span>.<span class="prop">key</span>)     <span class="cm">// "Enter", "Escape", "a", "ArrowUp"</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">e</span>.<span class="prop">code</span>)    <span class="cm">// "KeyA", "Enter" (physical key)</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">e</span>.<span class="prop">ctrlKey</span>) <span class="cm">// modifier keys</span>
+  <span class="kw">if</span> (<span class="var">e</span>.<span class="prop">key</span> === <span class="str">"Escape"</span>) <span class="fn">closeModal</span>()
+  <span class="kw">if</span> (<span class="var">e</span>.<span class="prop">key</span> === <span class="str">"Enter"</span> && <span class="var">e</span>.<span class="prop">ctrlKey</span>) <span class="fn">submitForm</span>()
+})
+
+<span class="cm">// Form events</span>
+<span class="kw">const</span> <span class="var">input</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"input"</span>)
+<span class="var">input</span>.<span class="fn">addEventListener</span>(<span class="str">"input"</span>, (<span class="var">e</span>) => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span>)  <span class="cm">// current value as user types</span>
+})
+
+<span class="cm">// Prevent default browser behaviour</span>
+<span class="kw">const</span> <span class="var">form</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"form"</span>)
+<span class="var">form</span>.<span class="fn">addEventListener</span>(<span class="str">"submit"</span>, (<span class="var">e</span>) => {
+  <span class="var">e</span>.<span class="fn">preventDefault</span>()     <span class="cm">// stops page reload</span>
+  <span class="kw">const</span> <span class="var">data</span> = <span class="kw">new</span> <span class="fn">FormData</span>(<span class="var">form</span>)
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">Object</span>.<span class="fn">fromEntries</span>(<span class="var">data</span>))
+})</pre></div>
+  </div>
+</div>
+
+<!-- 04. EVENT DELEGATION -->
+<div class="section" id="delegation">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Event delegation — one listener to rule them all</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">performance pattern</span>
+  </div>
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">what it is</span>
+      <div class="cc-title">Why delegation exists</div>
+      <div class="cc-body">Instead of attaching a listener to <strong>every single child element</strong>, attach <strong>one listener to a parent</strong> and use <code>event.target</code> to determine which child was interacted with. Because events bubble up, the parent receives all events from its descendants. This is <strong>dramatically more efficient</strong> for large lists and dynamic content.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">key benefit</span>
+      <div class="cc-title">Works for dynamic elements</div>
+      <div class="cc-body">If you add new list items after the page loads, a listener on each item would miss the new ones. A delegated listener on the parent <strong>automatically handles future elements</strong> because they bubble up to the same parent. This is exactly how React's synthetic event system works internally.</div>
+    </div>
+  </div>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Event delegation — the pattern and its practical uses</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Without delegation (bad for lists) ────────────────────</span>
+<span class="fn">document</span>.<span class="fn">querySelectorAll</span>(<span class="str">".todo-item button"</span>).<span class="fn">forEach</span>(<span class="var">btn</span> => {
+  <span class="var">btn</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, <span class="fn">deleteItem</span>)  <span class="cm">// n listeners for n items</span>
+})
+<span class="cm">// New items added later? Won't have listeners!</span>
+
+<span class="cm">// ── With delegation (correct pattern) ─────────────────────</span>
+<span class="kw">const</span> <span class="var">list</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#todo-list"</span>)
+
+<span class="var">list</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, (<span class="var">e</span>) => {
+  <span class="cm">// e.target = exact element clicked (might be inside a button)</span>
+  <span class="cm">// e.currentTarget = #todo-list (always the listener's element)</span>
+
+  <span class="cm">// closest() — walks up the tree to find the matching ancestor</span>
+  <span class="kw">const</span> <span class="var">deleteBtn</span> = <span class="var">e</span>.<span class="prop">target</span>.<span class="fn">closest</span>(<span class="str">"[data-action='delete']"</span>)
+  <span class="kw">const</span> <span class="var">editBtn</span>   = <span class="var">e</span>.<span class="prop">target</span>.<span class="fn">closest</span>(<span class="str">"[data-action='edit']"</span>)
+  <span class="kw">const</span> <span class="var">item</span>      = <span class="var">e</span>.<span class="prop">target</span>.<span class="fn">closest</span>(<span class="str">".todo-item"</span>)
+
+  <span class="kw">if</span> (<span class="var">deleteBtn</span> && <span class="var">item</span>) {
+    <span class="kw">const</span> <span class="var">id</span> = <span class="var">item</span>.<span class="fn">dataset</span>.<span class="prop">id</span>
+    <span class="fn">removeItem</span>(<span class="var">id</span>)
+    <span class="var">item</span>.<span class="fn">remove</span>()
+  }
+
+  <span class="kw">if</span> (<span class="var">editBtn</span> && <span class="var">item</span>) {
+    <span class="fn">startEditing</span>(<span class="var">item</span>)
+  }
+})
+
+<span class="cm">// ── Data attributes for action routing ────────────────────</span>
+<span class="cm">// &lt;ul id="todo-list"&gt;</span>
+<span class="cm">//   &lt;li class="todo-item" data-id="1"&gt;</span>
+<span class="cm">//     Buy milk</span>
+<span class="cm">//     &lt;button data-action="edit"&gt;Edit&lt;/button&gt;</span>
+<span class="cm">//     &lt;button data-action="delete"&gt;Delete&lt;/button&gt;</span>
+<span class="cm">//   &lt;/li&gt;</span>
+<span class="cm">// &lt;/ul&gt;</span>
+
+<span class="cm">// ── closest() vs matches() ─────────────────────────────────</span>
+<span class="cm">// closest(selector) — walks UP tree, returns first matching ancestor (or self)</span>
+<span class="cm">// matches(selector)  — returns true if the element itself matches</span>
+<span class="var">e</span>.<span class="prop">target</span>.<span class="fn">closest</span>(<span class="str">".card"</span>)      <span class="cm">// find nearest .card ancestor</span>
+<span class="var">e</span>.<span class="prop">target</span>.<span class="fn">matches</span>(<span class="str">"button.del"</span>) <span class="cm">// true if target IS a delete button</span></pre></div>
+  </div>
+</div>
+
+<!-- ════ PART 2 ════ -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Part 2 — ES6 Classes</span></div>
+
+<!-- 05. ES6 CLASSES -->
+<div class="section" id="classes">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">ES6 Classes — syntax, constructor &amp; methods</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">OOP in JS</span>
+  </div>
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">what classes are</span>
+      <div class="cc-title">Syntactic sugar over prototypes</div>
+      <div class="cc-body">ES6 classes are <strong>not a new object model</strong> — they're clean syntax over JavaScript's existing prototype-based inheritance. Under the hood, <code>class</code> creates a constructor function and assigns methods to its prototype. They make OOP patterns more readable, especially for people coming from other languages.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">key difference</span>
+      <div class="cc-title">Class vs function constructor</div>
+      <div class="cc-body">Classes are <strong>NOT hoisted</strong> like function declarations. They're in the TDZ just like <code>let</code>. Classes also always run in <strong>strict mode</strong> automatically. Methods defined in a class are non-enumerable (won't show up in <code>for...in</code>). Always use <code>new</code> to instantiate — calling without <code>new</code> throws.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--blue-dim);color:var(--blue);">React link</span>
+      <div class="cc-title">Where classes appear in React</div>
+      <div class="cc-body">Modern React uses function components and hooks almost exclusively. But <strong>class components still exist</strong> in many codebases, and understanding classes is essential for reading them. Error boundaries in React still <em>require</em> class components. Understanding prototype chains also explains how React hooks work under the hood.</div>
+    </div>
+  </div>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Class syntax — constructor, instance methods, getters/setters, static, private fields</span></div>
+    <div class="cb-body"><pre><span class="kw">class</span> <span class="fn">BankAccount</span> {
+  <span class="cm">// Private fields (ES2022) — only accessible inside the class</span>
+  #<span class="var">balance</span>
+  #<span class="var">transactions</span> = []
+
+  <span class="cm">// Static field — belongs to the class, not instances</span>
+  <span class="kw">static</span> <span class="var">interestRate</span> = <span class="num">0.03</span>
+  <span class="kw">static</span> <span class="var">instanceCount</span> = <span class="num">0</span>
+
+  <span class="cm">// Constructor — called when using new BankAccount()</span>
+  <span class="kw">constructor</span>(<span class="var">owner</span>, <span class="var">initialBalance</span> = <span class="num">0</span>) {
+    <span class="kw">this</span>.<span class="prop">owner</span>    = <span class="var">owner</span>
+    <span class="kw">this</span>.#<span class="var">balance</span> = <span class="var">initialBalance</span>
+    <span class="fn">BankAccount</span>.<span class="var">instanceCount</span>++
+  }
+
+  <span class="cm">// Instance method — available on every instance via prototype</span>
+  <span class="fn">deposit</span>(<span class="var">amount</span>) {
+    <span class="kw">if</span> (<span class="var">amount</span> <= <span class="num">0</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Amount must be positive"</span>)
+    <span class="kw">this</span>.#<span class="var">balance</span> += <span class="var">amount</span>
+    <span class="kw">this</span>.#<span class="var">transactions</span>.<span class="fn">push</span>({ <span class="prop">type</span>: <span class="str">"deposit"</span>, <span class="var">amount</span>, <span class="prop">date</span>: <span class="kw">new</span> <span class="fn">Date</span>() })
+    <span class="kw">return</span> <span class="kw">this</span>   <span class="cm">// enables chaining: acct.deposit(100).deposit(50)</span>
+  }
+
+  <span class="fn">withdraw</span>(<span class="var">amount</span>) {
+    <span class="kw">if</span> (<span class="var">amount</span> > <span class="kw">this</span>.#<span class="var">balance</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Insufficient funds"</span>)
+    <span class="kw">this</span>.#<span class="var">balance</span> -= <span class="var">amount</span>
+    <span class="kw">this</span>.#<span class="var">transactions</span>.<span class="fn">push</span>({ <span class="prop">type</span>: <span class="str">"withdrawal"</span>, <span class="var">amount</span>, <span class="prop">date</span>: <span class="kw">new</span> <span class="fn">Date</span>() })
+    <span class="kw">return</span> <span class="kw">this</span>
+  }
+
+  <span class="cm">// Getter — access like a property: acct.balance (no parentheses)</span>
+  <span class="kw">get</span> <span class="fn">balance</span>() { <span class="kw">return</span> <span class="kw">this</span>.#<span class="var">balance</span> }
+
+  <span class="cm">// Getter for computed value</span>
+  <span class="kw">get</span> <span class="fn">summary</span>() {
+    <span class="kw">return</span> `<span class="rx">${</span><span class="kw">this</span>.<span class="prop">owner</span><span class="rx">}</span>: $<span class="rx">${</span><span class="kw">this</span>.#<span class="var">balance</span>.<span class="fn">toFixed</span>(<span class="num">2</span>)<span class="rx">}</span>`
+  }
+
+  <span class="cm">// Static method — called on the class, not an instance</span>
+  <span class="kw">static</span> <span class="fn">fromJSON</span>(<span class="var">json</span>) {
+    <span class="kw">const</span> { <span class="var">owner</span>, <span class="var">balance</span> } = <span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="var">json</span>)
+    <span class="kw">return</span> <span class="kw">new</span> <span class="fn">BankAccount</span>(<span class="var">owner</span>, <span class="var">balance</span>)
+  }
+
+  <span class="cm">// toString — called automatically in string contexts</span>
+  <span class="fn">toString</span>() { <span class="kw">return</span> <span class="kw">this</span>.<span class="prop">summary</span> }
+}
+
+<span class="cm">// Usage</span>
+<span class="kw">const</span> <span class="var">acct</span> = <span class="kw">new</span> <span class="fn">BankAccount</span>(<span class="str">"Alice"</span>, <span class="num">1000</span>)
+<span class="var">acct</span>.<span class="fn">deposit</span>(<span class="num">500</span>).<span class="fn">deposit</span>(<span class="num">250</span>).<span class="fn">withdraw</span>(<span class="num">100</span>)
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">acct</span>.<span class="prop">balance</span>)   <span class="cm">// 1650 (getter, no ())</span>
+<span class="cm">// acct.#balance              // SyntaxError — private field!</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">BankAccount</span>.<span class="prop">interestRate</span>)  <span class="cm">// 0.03 (static)</span>
+<span class="kw">const</span> <span class="var">acct2</span> = <span class="fn">BankAccount</span>.<span class="fn">fromJSON</span>(<span class="str">'{"owner":"Bob","balance":500}'</span>)</pre></div>
+  </div>
+</div>
+
+<!-- 06. INHERITANCE -->
+<div class="section" id="inheritance">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Inheritance — extends, super &amp; the prototype chain</span>
+    <span class="sec-badge" style="background:var(--js-dim);color:var(--js);">advanced</span>
+  </div>
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">extends, super, overriding, instanceof, prototype chain</span></div>
+    <div class="cb-body"><pre><span class="kw">class</span> <span class="fn">Animal</span> {
+  <span class="kw">constructor</span>(<span class="var">name</span>, <span class="var">sound</span>) {
+    <span class="kw">this</span>.<span class="prop">name</span>  = <span class="var">name</span>
+    <span class="kw">this</span>.<span class="prop">sound</span> = <span class="var">sound</span>
+    <span class="kw">this</span>.<span class="prop">alive</span> = <span class="kw">true</span>
+  }
+
+  <span class="fn">speak</span>() {
+    <span class="kw">return</span> `<span class="rx">${</span><span class="kw">this</span>.<span class="prop">name</span><span class="rx">}</span> says <span class="rx">${</span><span class="kw">this</span>.<span class="prop">sound</span><span class="rx">}</span>!`
+  }
+
+  <span class="fn">toString</span>() { <span class="kw">return</span> `Animal: <span class="rx">${</span><span class="kw">this</span>.<span class="prop">name</span><span class="rx">}</span>` }
+}
+
+<span class="kw">class</span> <span class="fn">Dog</span> <span class="kw">extends</span> <span class="fn">Animal</span> {
+  <span class="kw">constructor</span>(<span class="var">name</span>, <span class="var">breed</span>) {
+    <span class="kw">super</span>(<span class="var">name</span>, <span class="str">"Woof"</span>)   <span class="cm">// MUST call super() before using 'this' in subclass</span>
+    <span class="kw">this</span>.<span class="prop">breed</span> = <span class="var">breed</span>
+    <span class="kw">this</span>.<span class="prop">tricks</span> = []
+  }
+
+  <span class="cm">// Override parent method</span>
+  <span class="fn">speak</span>() {
+    <span class="kw">return</span> `<span class="rx">${</span><span class="kw">super</span>.<span class="fn">speak</span>()<span class="rx">}</span> (tail wagging)`  <span class="cm">// call parent's speak() via super</span>
+  }
+
+  <span class="cm">// New method in subclass</span>
+  <span class="fn">learn</span>(<span class="var">trick</span>) {
+    <span class="kw">this</span>.<span class="prop">tricks</span>.<span class="fn">push</span>(<span class="var">trick</span>)
+    <span class="kw">return</span> <span class="kw">this</span>
+  }
+
+  <span class="kw">get</span> <span class="fn">profile</span>() {
+    <span class="kw">return</span> `<span class="rx">${</span><span class="kw">this</span>.<span class="prop">name</span><span class="rx">}</span> (<span class="rx">${</span><span class="kw">this</span>.<span class="prop">breed</span><span class="rx">}</span>) knows: <span class="rx">${</span><span class="kw">this</span>.<span class="prop">tricks</span>.<span class="fn">join</span>(<span class="str">", "</span>)<span class="rx">}</span>`
+  }
+}
+
+<span class="kw">class</span> <span class="fn">GuideDog</span> <span class="kw">extends</span> <span class="fn">Dog</span> {
+  <span class="kw">constructor</span>(<span class="var">name</span>, <span class="var">breed</span>, <span class="var">owner</span>) {
+    <span class="kw">super</span>(<span class="var">name</span>, <span class="var">breed</span>)    <span class="cm">// calls Dog's constructor</span>
+    <span class="kw">this</span>.<span class="prop">owner</span> = <span class="var">owner</span>
+  }
+}
+
+<span class="cm">// Usage</span>
+<span class="kw">const</span> <span class="var">rex</span> = <span class="kw">new</span> <span class="fn">Dog</span>(<span class="str">"Rex"</span>, <span class="str">"German Shepherd"</span>)
+<span class="var">rex</span>.<span class="fn">learn</span>(<span class="str">"sit"</span>).<span class="fn">learn</span>(<span class="str">"stay"</span>).<span class="fn">learn</span>(<span class="str">"fetch"</span>)
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">rex</span>.<span class="fn">speak</span>())   <span class="cm">// "Rex says Woof! (tail wagging)"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">rex</span>.<span class="prop">profile</span>)   <span class="cm">// "Rex (German Shepherd) knows: sit, stay, fetch"</span>
+
+<span class="cm">// instanceof — checks prototype chain</span>
+<span class="var">rex</span> <span class="kw">instanceof</span> <span class="fn">Dog</span>     <span class="cm">// true</span>
+<span class="var">rex</span> <span class="kw">instanceof</span> <span class="fn">Animal</span>  <span class="cm">// true — Dog extends Animal</span>
+<span class="var">rex</span> <span class="kw">instanceof</span> <span class="fn">GuideDog</span> <span class="cm">// false</span>
+
+<span class="cm">// Prototype chain: rex → Dog.prototype → Animal.prototype → Object.prototype → null</span>
+<span class="fn">Object</span>.<span class="fn">getPrototypeOf</span>(<span class="var">rex</span>) === <span class="fn">Dog</span>.<span class="prop">prototype</span>   <span class="cm">// true</span>
+
+<span class="cm">// Mixin pattern — add capabilities without inheritance</span>
+<span class="kw">const</span> <span class="var">Serialisable</span> = (<span class="var">Base</span>) => <span class="kw">class</span> <span class="kw">extends</span> <span class="var">Base</span> {
+  <span class="fn">toJSON</span>() { <span class="kw">return</span> <span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="kw">this</span>) }
+  <span class="kw">static</span> <span class="fn">fromJSON</span>(<span class="var">str</span>) { <span class="kw">return</span> <span class="fn">Object</span>.<span class="fn">assign</span>(<span class="kw">new</span> <span class="kw">this</span>(), <span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="var">str</span>)) }
+}
+
+<span class="kw">class</span> <span class="fn">SerializableDog</span> <span class="kw">extends</span> <span class="fn">Serialisable</span>(<span class="fn">Dog</span>) {}
+<span class="kw">const</span> <span class="var">dog2</span> = <span class="kw">new</span> <span class="fn">SerializableDog</span>(<span class="str">"Buddy"</span>, <span class="str">"Poodle"</span>)
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">dog2</span>.<span class="fn">toJSON</span>())</pre></div>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">class features quick reference</div>
+    <table class="comp-table">
+      <tr><th>Feature</th><th>Syntax</th><th>Notes</th></tr>
+      <tr><td>Constructor</td><td><code>constructor(args) {}</code></td><td>Runs on <code>new ClassName()</code>. One per class.</td></tr>
+      <tr><td>Instance method</td><td><code>methodName() {}</code></td><td>Lives on prototype, shared by all instances.</td></tr>
+      <tr><td>Getter</td><td><code>get propName() {}</code></td><td>Access as property: <code>obj.propName</code>, no <code>()</code>.</td></tr>
+      <tr><td>Setter</td><td><code>set propName(v) {}</code></td><td>Assign as property: <code>obj.propName = x</code>.</td></tr>
+      <tr><td>Static method</td><td><code>static methodName() {}</code></td><td>Called on class itself: <code>ClassName.method()</code>.</td></tr>
+      <tr><td>Private field</td><td><code>#fieldName</code></td><td>Only accessible inside class body. ES2022.</td></tr>
+      <tr><td>Inheritance</td><td><code>class B extends A</code></td><td>B gets all of A's methods via prototype chain.</td></tr>
+      <tr><td>Super call</td><td><code>super(args)</code></td><td>Must call in subclass constructor before <code>this</code>.</td></tr>
+      <tr><td>Super method</td><td><code>super.methodName()</code></td><td>Call parent's version of an overridden method.</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ EXERCISES ═══ -->
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — all runnable in browser</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">DOM traversal &amp; manipulation</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Complete the functions below that manipulate a virtual DOM-like structure. Practice selecting, reading, writing and traversing elements.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — runnable</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">// Simulated DOM element factory (since we can't access real DOM in runner)
+function makeEl(tag, props = {}, children = []) {
+  return {
+    tag, ...props,
+    children: [...children],
+    classList: { list: (props.class || "").split(" ").filter(Boolean),
+      add(c)     { this.list.push(c) },
+      remove(c)  { this.list = this.list.filter(x => x !== c) },
+      contains(c){ return this.list.includes(c) },
+      toggle(c)  { this.contains(c) ? this.remove(c) : this.add(c) }
+    },
+    getAttribute(k) { return this[k] ?? null },
+    querySelector(sel) { return this.children.find(c => c.tag === sel.replace('.','')) || null }
+  }
+}
+
+const ul = makeEl("ul", { id: "list" }, [
+  makeEl("li", { "data-id": "1", text: "Buy milk",    class: "item" }),
+  makeEl("li", { "data-id": "2", text: "Walk dog",    class: "item active" }),
+  makeEl("li", { "data-id": "3", text: "Read a book", class: "item" }),
+])
+
+// Task 1: Get all items with class "item" and print their text
+const items = ul.children.filter(/* YOUR CODE */)
+console.log("Items:", items.map(i => i.text))
+
+// Task 2: Find the active item (has class "active")
+const activeItem = ul.children.find(/* YOUR CODE */)
+console.log("Active:", activeItem?.text)
+
+// Task 3: Toggle "done" class on the first item
+ul.children[0].classList.toggle("done")
+console.log("First item classes:", ul.children[0].classList.list)
+
+// Task 4: Add a new item to the list
+const newItem = makeEl("li", { "data-id": "4", text: "Learn JS", class: "item" })
+ul.children.push(newItem)
+console.log("Total items:", ul.children.length)
+
+// Task 5: Remove items where data-id is "2"
+ul.children = ul.children.filter(/* YOUR CODE */)
+console.log("After remove:", ul.children.map(i => i["data-id"]))</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">const</span> <span class="var">items</span>      = <span class="var">ul</span>.<span class="prop">children</span>.<span class="fn">filter</span>(<span class="var">c</span> => <span class="var">c</span>.<span class="prop">classList</span>.<span class="fn">contains</span>(<span class="str">"item"</span>))
+<span class="kw">const</span> <span class="var">activeItem</span> = <span class="var">ul</span>.<span class="prop">children</span>.<span class="fn">find</span>(<span class="var">c</span>  => <span class="var">c</span>.<span class="prop">classList</span>.<span class="fn">contains</span>(<span class="str">"active"</span>))
+<span class="var">ul</span>.<span class="prop">children</span> = <span class="var">ul</span>.<span class="prop">children</span>.<span class="fn">filter</span>(<span class="var">c</span> => <span class="var">c</span>[<span class="str">"data-id"</span>] !== <span class="str">"2"</span>)</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Event delegation — todo list manager</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Simulate an event delegation system. Implement <code>handleListClick(event, items)</code> that routes clicks to the correct action (<code>toggle</code>, <code>delete</code>, <code>edit</code>) based on the <code>data-action</code> attribute of the clicked element, using the <code>closest</code> pattern.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — event delegation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">// Simulated event system
+function makeEvent(action, itemId) {
+  return {
+    target: {
+      dataset: { action },
+      closest(selector) {
+        if (selector === "[data-action]")
+          return action ? { dataset: { action }, closest: this.closest } : null
+        if (selector === ".todo-item")
+          return { dataset: { id: itemId }, classList: { toggle: (c) => console.log(`toggled ${c} on item ${itemId}`) } }
+        return null
+      }
+    },
+    preventDefault() {}
+  }
+}
+
+let items = [
+  { id: "1", text: "Buy groceries", done: false },
+  { id: "2", text: "Walk the dog",  done: false },
+  { id: "3", text: "Read 30 mins",  done: true  },
+]
+
+function handleListClick(event, items) {
+  const actionEl = event.target.closest("[data-action]")
+  if (!actionEl) return items
+
+  const action = actionEl.dataset.action
+  const itemEl = event.target.closest(".todo-item")
+  const id     = itemEl?.dataset?.id
+  if (!id) return items
+
+  if (action === "toggle") {
+    // YOUR CODE: return new items array with matching item's done toggled
+  }
+  if (action === "delete") {
+    // YOUR CODE: return new items array with matching item removed
+  }
+  if (action === "edit") {
+    console.log("Editing item:", items.find(i => i.id === id)?.text)
+    return items
+  }
+  return items
+}
+
+// Test toggle
+items = handleListClick(makeEvent("toggle", "1"), items)
+console.log("After toggle id=1:", items.find(i => i.id === "1").done)  // true
+
+// Test delete
+items = handleListClick(makeEvent("delete", "2"), items)
+console.log("After delete id=2:", items.length)  // 2
+
+// Test edit
+handleListClick(makeEvent("edit", "3"), items)  // logs editing message</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">if</span> (<span class="var">action</span> === <span class="str">"toggle"</span>) {
+  <span class="kw">return</span> <span class="var">items</span>.<span class="fn">map</span>(<span class="var">i</span> => <span class="var">i</span>.<span class="prop">id</span> === <span class="var">id</span> ? { ...<span class="var">i</span>, <span class="prop">done</span>: !<span class="var">i</span>.<span class="prop">done</span> } : <span class="var">i</span>)
+}
+<span class="kw">if</span> (<span class="var">action</span> === <span class="str">"delete"</span>) {
+  <span class="kw">return</span> <span class="var">items</span>.<span class="fn">filter</span>(<span class="var">i</span> => <span class="var">i</span>.<span class="prop">id</span> !== <span class="var">id</span>)
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Build a Shape class hierarchy</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Create a <code>Shape</code> base class with <code>color</code> and an abstract <code>area()</code> method that throws if not overridden. Create <code>Circle</code>, <code>Rectangle</code>, and <code>Triangle</code> subclasses, each overriding <code>area()</code> and <code>toString()</code>. Add a <code>static compare(s1, s2)</code> method to Shape that returns the larger shape.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — classes &amp; inheritance</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">class Shape {
+  constructor(color = "black") {
+    if (new.target === Shape) throw new Error("Shape is abstract — use a subclass")
+    this.color = color
+  }
+
+  area() {
+    throw new Error(`${this.constructor.name} must implement area()`)
+  }
+
+  toString() {
+    return `${this.constructor.name}(color=${this.color}, area=${this.area().toFixed(2)})`
+  }
+
+  static compare(s1, s2) {
+    // YOUR CODE: return the shape with the larger area
+  }
+}
+
+class Circle extends Shape {
+  // YOUR CODE: constructor(radius, color), area() = π*r²
+}
+
+class Rectangle extends Shape {
+  // YOUR CODE: constructor(width, height, color), area() = w*h
+}
+
+class Triangle extends Shape {
+  // YOUR CODE: constructor(base, height, color), area() = 0.5*b*h
+}
+
+// Test it
+const c = new Circle(5, "red")
+const r = new Rectangle(4, 6, "blue")
+const t = new Triangle(3, 8, "green")
+
+console.log(c.toString())
+console.log(r.toString())
+console.log(t.toString())
+
+const bigger = Shape.compare(c, r)
+console.log("Bigger shape:", bigger.toString())
+
+console.log("Circle instanceof Shape:", c instanceof Shape)
+console.log("Circle instanceof Rectangle:", c instanceof Rectangle)
+
+// Should throw
+try { new Shape() } catch(e) { console.log("Caught:", e.message) }</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">static</span> <span class="fn">compare</span>(<span class="var">s1</span>, <span class="var">s2</span>) { <span class="kw">return</span> <span class="var">s1</span>.<span class="fn">area</span>() >= <span class="var">s2</span>.<span class="fn">area</span>() ? <span class="var">s1</span> : <span class="var">s2</span> }
+
+<span class="kw">class</span> <span class="fn">Circle</span> <span class="kw">extends</span> <span class="fn">Shape</span> {
+  <span class="kw">constructor</span>(<span class="var">radius</span>, <span class="var">color</span>) { <span class="kw">super</span>(<span class="var">color</span>); <span class="kw">this</span>.<span class="prop">radius</span> = <span class="var">radius</span> }
+  <span class="fn">area</span>() { <span class="kw">return</span> <span class="fn">Math</span>.<span class="prop">PI</span> * <span class="kw">this</span>.<span class="prop">radius</span> ** <span class="num">2</span> }
+}
+
+<span class="kw">class</span> <span class="fn">Rectangle</span> <span class="kw">extends</span> <span class="fn">Shape</span> {
+  <span class="kw">constructor</span>(<span class="var">w</span>, <span class="var">h</span>, <span class="var">color</span>) { <span class="kw">super</span>(<span class="var">color</span>); <span class="kw">this</span>.<span class="prop">width</span> = <span class="var">w</span>; <span class="kw">this</span>.<span class="prop">height</span> = <span class="var">h</span> }
+  <span class="fn">area</span>() { <span class="kw">return</span> <span class="kw">this</span>.<span class="prop">width</span> * <span class="kw">this</span>.<span class="prop">height</span> }
+}
+
+<span class="kw">class</span> <span class="fn">Triangle</span> <span class="kw">extends</span> <span class="fn">Shape</span> {
+  <span class="kw">constructor</span>(<span class="var">b</span>, <span class="var">h</span>, <span class="var">color</span>) { <span class="kw">super</span>(<span class="var">color</span>); <span class="kw">this</span>.<span class="prop">base</span> = <span class="var">b</span>; <span class="kw">this</span>.<span class="prop">height</span> = <span class="var">h</span> }
+  <span class="fn">area</span>() { <span class="kw">return</span> <span class="num">0.5</span> * <span class="kw">this</span>.<span class="prop">base</span> * <span class="kw">this</span>.<span class="prop">height</span> }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Observable class — pub/sub with private state</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build an <code>EventEmitter</code> class with private fields. It should support <code>on(event, handler)</code>, <code>off(event, handler)</code>, <code>emit(event, ...args)</code>, and <code>once(event, handler)</code> (fires once then auto-removes). This is how Node.js EventEmitter and React's internal event system work.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — EventEmitter class</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">class EventEmitter {
+  #listeners = new Map()
+
+  on(event, handler) {
+    // YOUR CODE: add handler to the listeners map for this event
+    return this  // enable chaining
+  }
+
+  off(event, handler) {
+    // YOUR CODE: remove specific handler (or all if no handler given)
+    return this
+  }
+
+  emit(event, ...args) {
+    // YOUR CODE: call all handlers for this event with ...args
+    return this
+  }
+
+  once(event, handler) {
+    // YOUR CODE: wrap handler so it removes itself after first call
+    return this
+  }
+
+  listenerCount(event) {
+    return this.#listeners.get(event)?.length ?? 0
+  }
+}
+
+// Test
+const emitter = new EventEmitter()
+
+const onData  = (d)    => console.log("data handler 1:", d)
+const onData2 = (d)    => console.log("data handler 2:", d.toUpperCase())
+const onError = (e, c) => console.log("error:", e, "code:", c)
+
+emitter
+  .on("data",  onData)
+  .on("data",  onData2)
+  .on("error", onError)
+  .once("connect", () => console.log("Connected! (fires once only)"))
+
+emitter.emit("data", "hello")
+console.log("Listener count:", emitter.listenerCount("data"))  // 2
+
+emitter.emit("connect")   // fires
+emitter.emit("connect")   // silent — already removed
+
+emitter.off("data", onData)
+emitter.emit("data", "world")  // only handler 2 fires
+
+emitter.emit("error", "timeout", 408)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="fn">on</span>(<span class="var">event</span>, <span class="var">handler</span>) {
+  <span class="kw">if</span> (!<span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">has</span>(<span class="var">event</span>)) <span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">set</span>(<span class="var">event</span>, [])
+  <span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">get</span>(<span class="var">event</span>).<span class="fn">push</span>(<span class="var">handler</span>)
+  <span class="kw">return</span> <span class="kw">this</span>
+}
+
+<span class="fn">off</span>(<span class="var">event</span>, <span class="var">handler</span>) {
+  <span class="kw">if</span> (!<span class="var">handler</span>) { <span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">delete</span>(<span class="var">event</span>); <span class="kw">return</span> <span class="kw">this</span> }
+  <span class="kw">const</span> <span class="var">list</span> = <span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">get</span>(<span class="var">event</span>) || []
+  <span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">set</span>(<span class="var">event</span>, <span class="var">list</span>.<span class="fn">filter</span>(<span class="var">h</span> => <span class="var">h</span> !== <span class="var">handler</span>))
+  <span class="kw">return</span> <span class="kw">this</span>
+}
+
+<span class="fn">emit</span>(<span class="var">event</span>, ...<span class="var">args</span>) {
+  (<span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">get</span>(<span class="var">event</span>) || []).<span class="fn">forEach</span>(<span class="var">h</span> => <span class="fn">h</span>(...<span class="var">args</span>))
+  <span class="kw">return</span> <span class="kw">this</span>
+}
+
+<span class="fn">once</span>(<span class="var">event</span>, <span class="var">handler</span>) {
+  <span class="kw">const</span> <span class="var">wrapper</span> = (...<span class="var">args</span>) => {
+    <span class="var">handler</span>(...<span class="var">args</span>)
+    <span class="kw">this</span>.<span class="fn">off</span>(<span class="var">event</span>, <span class="var">wrapper</span>)   <span class="cm">// closure over wrapper</span>
+  }
+  <span class="kw">return</span> <span class="kw">this</span>.<span class="fn">on</span>(<span class="var">event</span>, <span class="var">wrapper</span>)
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Implement a reactive state store (mini Redux)</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>Store</code> class combining classes, closures, and event patterns. It takes an initial state and a reducer function, has <code>dispatch(action)</code>, <code>getState()</code>, and <code>subscribe(listener)</code> methods. Listeners are called every time state changes. This is exactly how Redux works.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — mini Redux store</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">class Store {
+  #state
+  #reducer
+  #listeners = []
+
+  constructor(reducer, initialState) {
+    this.#reducer = reducer
+    this.#state   = initialState
+  }
+
+  getState() {
+    // YOUR CODE: return current state (return a copy for safety)
+  }
+
+  dispatch(action) {
+    // YOUR CODE: run reducer with current state + action, store result, notify listeners
+    return this
+  }
+
+  subscribe(listener) {
+    // YOUR CODE: add listener, return unsubscribe function
+  }
+}
+
+// Counter reducer
+const counterReducer = (state, action) => {
+  switch (action.type) {
+    case "INCREMENT": return { ...state, count: state.count + (action.payload ?? 1) }
+    case "DECREMENT": return { ...state, count: state.count - (action.payload ?? 1) }
+    case "RESET":     return { ...state, count: 0 }
+    default:          return state
+  }
+}
+
+const store = new Store(counterReducer, { count: 0 })
+
+// Subscribe to changes
+const unsub1 = store.subscribe(state => console.log("Subscriber 1:", state.count))
+const unsub2 = store.subscribe(state => console.log("Subscriber 2 (doubled):", state.count * 2))
+
+store.dispatch({ type: "INCREMENT" })
+store.dispatch({ type: "INCREMENT", payload: 5 })
+store.dispatch({ type: "DECREMENT" })
+
+console.log("Final state:", store.getState().count)  // 5
+
+// Unsubscribe subscriber 2
+unsub2()
+console.log("--- After unsubscribe ---")
+store.dispatch({ type: "INCREMENT" })  // only subscriber 1 fires
+store.dispatch({ type: "RESET" })
+console.log("After reset:", store.getState().count)  // 0</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="fn">getState</span>() { <span class="kw">return</span> { ...<span class="kw">this</span>.#<span class="var">state</span> } }
+
+<span class="fn">dispatch</span>(<span class="var">action</span>) {
+  <span class="kw">this</span>.#<span class="var">state</span> = <span class="kw">this</span>.#<span class="var">reducer</span>(<span class="kw">this</span>.#<span class="var">state</span>, <span class="var">action</span>)
+  <span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">forEach</span>(<span class="var">fn</span> => <span class="fn">fn</span>(<span class="kw">this</span>.<span class="fn">getState</span>()))
+  <span class="kw">return</span> <span class="kw">this</span>
+}
+
+<span class="fn">subscribe</span>(<span class="var">listener</span>) {
+  <span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">push</span>(<span class="var">listener</span>)
+  <span class="kw">return</span> () => {
+    <span class="kw">this</span>.#<span class="var">listeners</span> = <span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">filter</span>(<span class="var">fn</span> => <span class="var">fn</span> !== <span class="var">listener</span>)
+  }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Linked List class from scratch</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>LinkedList</code> class using a <code>Node</code> class. Implement: <code>append(val)</code>, <code>prepend(val)</code>, <code>delete(val)</code>, <code>find(val)</code>, <code>toArray()</code>, and a <code>size</code> getter. Uses private fields, class inheritance, and encapsulation together.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — Linked List</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">class Node {
+  constructor(value) {
+    this.value = value
+    this.next  = null
+  }
+}
+
+class LinkedList {
+  #head = null
+  #size = 0
+
+  append(value) {
+    // YOUR CODE: add node at end
+    return this
+  }
+
+  prepend(value) {
+    // YOUR CODE: add node at start
+    return this
+  }
+
+  delete(value) {
+    // YOUR CODE: remove first node with matching value
+    return this
+  }
+
+  find(value) {
+    // YOUR CODE: return first node with matching value or null
+  }
+
+  toArray() {
+    // YOUR CODE: return array of values
+  }
+
+  get size() { return this.#size }
+
+  toString() { return this.toArray().join(" → ") }
+}
+
+const list = new LinkedList()
+list.append(1).append(2).append(3).append(4)
+list.prepend(0)
+
+console.log("List:", list.toString())    // 0 → 1 → 2 → 3 → 4
+console.log("Size:", list.size)          // 5
+console.log("Find 3:", list.find(3)?.value)  // 3
+console.log("Find 9:", list.find(9))         // null
+
+list.delete(2)
+console.log("After delete 2:", list.toString())  // 0 → 1 → 3 → 4
+
+list.delete(0)
+console.log("After delete head:", list.toString())  // 1 → 3 → 4
+
+list.delete(4)
+console.log("After delete tail:", list.toString())  // 1 → 3</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="fn">append</span>(<span class="var">value</span>) {
+  <span class="kw">const</span> <span class="var">node</span> = <span class="kw">new</span> <span class="fn">Node</span>(<span class="var">value</span>)
+  <span class="kw">if</span> (!<span class="kw">this</span>.#<span class="var">head</span>) { <span class="kw">this</span>.#<span class="var">head</span> = <span class="var">node</span>; <span class="kw">this</span>.#<span class="var">size</span>++; <span class="kw">return</span> <span class="kw">this</span> }
+  <span class="kw">let</span> <span class="var">cur</span> = <span class="kw">this</span>.#<span class="var">head</span>
+  <span class="kw">while</span> (<span class="var">cur</span>.<span class="prop">next</span>) <span class="var">cur</span> = <span class="var">cur</span>.<span class="prop">next</span>
+  <span class="var">cur</span>.<span class="prop">next</span> = <span class="var">node</span>; <span class="kw">this</span>.#<span class="var">size</span>++; <span class="kw">return</span> <span class="kw">this</span>
+}
+<span class="fn">prepend</span>(<span class="var">value</span>) {
+  <span class="kw">const</span> <span class="var">node</span> = <span class="kw">new</span> <span class="fn">Node</span>(<span class="var">value</span>)
+  <span class="var">node</span>.<span class="prop">next</span> = <span class="kw">this</span>.#<span class="var">head</span>; <span class="kw">this</span>.#<span class="var">head</span> = <span class="var">node</span>; <span class="kw">this</span>.#<span class="var">size</span>++; <span class="kw">return</span> <span class="kw">this</span>
+}
+<span class="fn">delete</span>(<span class="var">value</span>) {
+  <span class="kw">if</span> (!<span class="kw">this</span>.#<span class="var">head</span>) <span class="kw">return</span> <span class="kw">this</span>
+  <span class="kw">if</span> (<span class="kw">this</span>.#<span class="var">head</span>.<span class="prop">value</span> === <span class="var">value</span>) { <span class="kw">this</span>.#<span class="var">head</span> = <span class="kw">this</span>.#<span class="var">head</span>.<span class="prop">next</span>; <span class="kw">this</span>.#<span class="var">size</span>--; <span class="kw">return</span> <span class="kw">this</span> }
+  <span class="kw">let</span> <span class="var">cur</span> = <span class="kw">this</span>.#<span class="var">head</span>
+  <span class="kw">while</span> (<span class="var">cur</span>.<span class="prop">next</span> && <span class="var">cur</span>.<span class="prop">next</span>.<span class="prop">value</span> !== <span class="var">value</span>) <span class="var">cur</span> = <span class="var">cur</span>.<span class="prop">next</span>
+  <span class="kw">if</span> (<span class="var">cur</span>.<span class="prop">next</span>) { <span class="var">cur</span>.<span class="prop">next</span> = <span class="var">cur</span>.<span class="prop">next</span>.<span class="prop">next</span>; <span class="kw">this</span>.#<span class="var">size</span>-- }
+  <span class="kw">return</span> <span class="kw">this</span>
+}
+<span class="fn">find</span>(<span class="var">value</span>) {
+  <span class="kw">let</span> <span class="var">cur</span> = <span class="kw">this</span>.#<span class="var">head</span>
+  <span class="kw">while</span> (<span class="var">cur</span>) { <span class="kw">if</span> (<span class="var">cur</span>.<span class="prop">value</span> === <span class="var">value</span>) <span class="kw">return</span> <span class="var">cur</span>; <span class="var">cur</span> = <span class="var">cur</span>.<span class="prop">next</span> }
+  <span class="kw">return</span> <span class="kw">null</span>
+}
+<span class="fn">toArray</span>() {
+  <span class="kw">const</span> <span class="var">result</span> = []; <span class="kw">let</span> <span class="var">cur</span> = <span class="kw">this</span>.#<span class="var">head</span>
+  <span class="kw">while</span> (<span class="var">cur</span>) { <span class="var">result</span>.<span class="fn">push</span>(<span class="var">cur</span>.<span class="prop">value</span>); <span class="var">cur</span> = <span class="var">cur</span>.<span class="prop">next</span> }
+  <span class="kw">return</span> <span class="var">result</span>
+}</pre></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ INTERVIEW ═══ -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q1</span><span class="q-text">What is the DOM? How is it different from HTML?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div><div class="ans-text">HTML is a <strong>text format</strong> — it's the file the browser downloads. The DOM is the <strong>live, in-memory tree of JavaScript objects</strong> the browser builds from parsing that HTML. Changing the DOM immediately updates what the user sees without downloading anything new.<br><br>Key differences: the DOM reflects the current state (modified by JS), while HTML is static source. The DOM is language-agnostic (accessible from JS, Python via Selenium, etc.). The DOM can contain nodes that have no HTML equivalent (Text nodes, Comment nodes). The DOM also models malformed HTML — browsers repair invalid markup when building the tree.</div>
+    <div class="tip-box">React angle: "React's Virtual DOM is a lightweight JS object tree that mirrors the real DOM. React reconciles changes between virtual DOM snapshots rather than querying the real DOM repeatedly — which is expensive because real DOM operations trigger browser layout recalculation."</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q2</span><span class="q-text">What is event bubbling? How does event delegation use it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div><div class="ans-text">When an event fires on an element, it first runs that element's handlers, then bubbles up through each ancestor to the document root — each ancestor's handlers also fire. This is event bubbling.<br><br>Event delegation exploits bubbling by placing <strong>one listener on a parent element</strong> instead of individual listeners on each child. The handler uses <code>event.target</code> to identify which child was actually interacted with, and <code>closest()</code> to walk up and match the relevant element.<br><br><strong>Benefits</strong>: fewer listeners (better memory), works for dynamically added elements, simpler cleanup. React uses this internally — it attaches a single listener to the root element and routes all events from there.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q3</span><span class="q-text">What is the difference between event.target and event.currentTarget?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div><div class="ans-text"><code>event.target</code> is the <strong>element that was actually clicked</strong> — the deepest element that triggered the event. It changes as the event bubbles up.<br><br><code>event.currentTarget</code> is the element <strong>the event listener is currently attached to</strong>. It stays constant throughout the handler.<br><br>In event delegation: if you click a <code>&lt;span&gt;</code> inside a <code>&lt;button&gt;</code> inside a <code>&lt;ul&gt;</code> with the listener, <code>event.target</code> is the span, while <code>event.currentTarget</code> is the ul. This is why <code>closest()</code> is needed — to walk from the actual target up to the meaningful element you care about.</div>
+    <div class="tip-box">Common follow-up: what does <code>e.stopPropagation()</code> do? It prevents the event from bubbling further. But it can break event delegation if called on inner elements — their events won't reach the delegated parent listener.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q4</span><span class="q-text">What is the difference between textContent, innerHTML, and innerText?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div><div class="ans-text"><strong><code>textContent</code></strong>: returns all text content of the element and its descendants, including hidden elements. Setting it <em>escapes</em> HTML — any <code>&lt;&gt;</code> characters become literal text. Safe from XSS. Preferred for setting text.<br><br><strong><code>innerHTML</code></strong>: returns or sets the HTML markup inside the element. Setting it <em>parses</em> HTML. Never use with user-provided content — it's an XSS vector. Useful for injecting trusted HTML templates.<br><br><strong><code>innerText</code></strong>: like textContent but layout-aware — it only returns visible text and respects CSS (hides text in <code>display:none</code> elements). Triggers reflow, making it slower than textContent.<br><br>Rule of thumb: use <code>textContent</code> for text, <code>createElement + append</code> for structure, avoid <code>innerHTML</code> with user data.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q5</span><span class="q-text">Are JavaScript classes really classes? What are they under the hood?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div><div class="ans-text">ES6 classes are <strong>syntactic sugar over prototype-based inheritance</strong> — not a new object system. Under the hood, <code>class Foo {}</code> creates a constructor function named <code>Foo</code>, and methods defined in the class body are attached to <code>Foo.prototype</code>.<br><br>When you do <code>new Foo()</code>, JS creates a new object, sets its prototype to <code>Foo.prototype</code>, and calls the constructor with <code>this</code> bound to the new object.<br><br>Differences from traditional OOP: there is no runtime type system, no true private (until ES2022 <code>#</code> fields), and "inheritance" is prototype delegation, not copying. <code>class B extends A</code> sets <code>B.prototype.__proto__ = A.prototype</code>, which means method lookups walk the chain rather than copying methods.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q6</span><span class="q-text">What does super do in a class? What happens if you forget it in a subclass constructor?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div><div class="ans-text"><code>super()</code> in a constructor calls the parent class's constructor. It must be called <strong>before accessing <code>this</code></strong> in a derived class. The reason is that the parent constructor initialises the object — without calling it first, the object isn't properly set up and <code>this</code> is in an uninitialised state.<br><br>If you forget <code>super()</code> in a subclass constructor, you get a <code>ReferenceError: Must call super constructor in derived class before accessing 'this'</code>.<br><br><code>super.method()</code> calls the parent class's version of a method — useful when overriding a method but still wanting the parent's behaviour plus extra logic.</div>
+    <div class="warn-box">If a subclass has no constructor, it's implicitly added: <code>constructor(...args) { super(...args) }</code>. So not writing a constructor at all is fine — only if you write one must you call super().</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q7</span><span class="q-text">What are static methods and properties? When would you use them?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div><div class="ans-text">Static members belong to the <strong>class itself</strong>, not to instances. They're accessed via <code>ClassName.method()</code>, not <code>instance.method()</code>.<br><br><strong>Use static methods for</strong>: factory methods (<code>User.fromJSON(json)</code>), utility functions that relate to the class but don't need instance data, validation helpers (<code>Email.isValid(str)</code>), and comparison functions.<br><br><strong>Use static properties for</strong>: configuration constants shared by all instances, counters tracking how many instances were created, caches shared across instances.<br><br>Static methods are NOT inherited by instances — <code>new User().fromJSON()</code> would throw because <code>fromJSON</code> doesn't exist on the instance prototype.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q8</span><span class="q-text">How do you remove an event listener? What common mistake prevents it from working?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div><div class="ans-text">Use <code>element.removeEventListener(type, handler)</code> — passing the <strong>exact same function reference</strong> that was used in <code>addEventListener</code>.<br><br>The most common mistake is using an <strong>anonymous function or arrow function</strong> — each time you write <code>() => {}</code>, a new function object is created, so the reference passed to removeEventListener doesn't match the one registered.<br><br>Solutions: store the handler in a variable, use a named function declaration (which is always the same reference), or use the <code>{ once: true }</code> option to auto-remove after one call. In React, cleanup is handled by returning a function from <code>useEffect</code>.</div>
+    <div class="tip-box">React analogy: this is exactly why the dependency array in useEffect matters — if you create a new function reference on each render and don't stabilise it with useCallback, cleanup and re-subscription happen unnecessarily.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q9</span><span class="q-text">What is the prototype chain? How does method lookup work?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div><div class="ans-text">Every JavaScript object has an internal <code>[[Prototype]]</code> link pointing to another object (or null). When you access a property, JS looks on the object itself first, then walks up the prototype chain until it finds it or reaches null.<br><br>For class instances: <code>instance → ClassName.prototype → ParentClass.prototype → Object.prototype → null</code>. Methods defined in a class live on <code>ClassName.prototype</code>, not on each instance — this is why all instances share the same method functions (memory efficient).<br><br><strong>Practical implication</strong>: when you call <code>rex.speak()</code> on a Dog instance, JS looks for <code>speak</code> on <code>rex</code> (not found), then on <code>Dog.prototype</code> (found — stops here). If Dog extended Animal and didn't override speak, it would continue up to <code>Animal.prototype</code>.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q10</span><span class="q-text">What is the difference between querySelector and getElementById? Which is faster?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div><div class="ans-text"><code>getElementById</code> is faster because it uses an internal hash map lookup by ID — O(1). <code>querySelector</code> uses a CSS selector engine which may need to traverse the tree — O(n) in the worst case.<br><br>However, the performance difference is negligible in practice for typical page sizes. The more important differences are: <code>querySelector</code> accepts any CSS selector (class, attribute, pseudo-class, descendant combinations), making it far more flexible. <code>getElementById</code> only finds by ID.<br><br><code>querySelectorAll</code> returns a <strong>static NodeList</strong> (snapshot). <code>getElementsByClassName</code> and <code>getElementsByTagName</code> return <strong>live HTMLCollections</strong> that update automatically — which can cause infinite loops if you mutate the DOM while iterating them. Prefer <code>querySelectorAll</code> for predictability.</div></div>
+  </div>
+</div>
+
+<!-- ═══ REVIEW ═══ -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check each item only if you can do it without looking. Unchecked = tomorrow's warm-up (5 min each).</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the DOM tree structure and list 4 different node types</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use <code>querySelector</code> vs <code>querySelectorAll</code> vs <code>getElementById</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can add, remove, and toggle classes using <code>classList</code> from memory</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand event bubbling and can explain capture vs bubble phase</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the difference between <code>event.target</code> and <code>event.currentTarget</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement event delegation using <code>closest()</code> and <code>data-action</code> attributes</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why removing an anonymous event listener doesn't work</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write an ES6 class with constructor, instance methods, getter, and static method</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know why <code>super()</code> must be called before <code>this</code> in a subclass constructor</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain prototype chain lookup — how JS finds a method on an instance</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed exercises 4 and 5 (EventEmitter + Store) without looking at solutions first</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand that ES6 classes are syntactic sugar and can explain prototypes</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between <code>textContent</code>, <code>innerHTML</code>, and why innerHTML is an XSS risk</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">Today's code is pushed to GitHub with clear commit messages</div></div>
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--js);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2;">
+      1. Implement a working event delegation handler for a list of items with delete/edit buttons<br>
+      2. Write a <code>BankAccount</code> class with private <code>#balance</code>, deposit, withdraw, getter, and a static factory method<br>
+      3. Write an <code>EventEmitter</code> class with <code>on</code>, <code>off</code>, <code>emit</code>, and <code>once</code><br>
+      4. Explain the prototype chain for an instance of a class that extends another class
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAVIGATION -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div class="footer-day-info">
+      <div class="footer-day-label">Currently on</div>
+      <div class="footer-day-name">Day 5 — DOM, Events &amp; ES6 Classes</div>
+      <div class="footer-day-next">Next up: <strong>Day 6 — ES6 Modules, Iterators &amp; Generators</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 1 progress</span><span id="week-pct">5 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" id="week-prog" style="width:71%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <a class="footer-btn" id="prev-btn-bot" href="day3_functions_async_js.html">← Day 4</a>
+      <a class="footer-btn primary" id="next-btn-bot" href="day6_es6_modules_iterators_generators.html">Day 6 — Modules →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Navigation setup ── */
+const DAY_PLAN = [
+  { num:1, file:"day1_javascript_fundamentals.html",    label:"JS Fundamentals" },
+  { num:2, file:"day2_javascript_arrays_objects.html",  label:"Arrays & Objects" },
+  { num:3, file:"day3_functions_async_js.html",         label:"Functions & Async" },
+  { num:4, file:"day4_dom_events_classes.html",         label:"DOM & Classes (prev)" },
+  { num:5, file:"day5_dom_events_classes.html",         label:"DOM, Events & Classes", current:true },
+  { num:6, file:"day6_es6_modules_tooling.html",        label:"Modules & Tooling" },
+  { num:7, file:"day7_review_project.html",             label:"Week 1 Review" },
+]
+
+const CURRENT = 5
+
+function buildDots(containerId) {
+  const container = document.getElementById(containerId)
+  if (!container) return
+  container.innerHTML = ''
+  DAY_PLAN.forEach(day => {
+    const dot = document.createElement('div')
+    dot.className = 'day-dot' + (day.num < CURRENT ? ' done' : '') + (day.num === CURRENT ? ' current' : '')
+    dot.title = `Day ${day.num}: ${day.label}`
+    dot.onclick = () => navigateTo(day.file, day.num)
+    container.appendChild(dot)
+  })
+}
+
+function navigateTo(file, dayNum) {
+  const existing = [
+    'day1_javascript_fundamentals.html',
+    'day2_javascript_arrays_objects.html',
+    'day3_functions_async_js.html',
+    'day5_dom_events_classes.html',
+    'day6_es6_modules_iterators_generators.html'
+  ]
+  if (existing.includes(file)) {
+    window.location.href = file
+  } else {
+    showToast(`Day ${dayNum} file hasn't been created yet. Keep going! 🚀`)
+  }
+}
+
+function showToast(msg) {
+  const existing = document.querySelector('.toast')
+  if (existing) existing.remove()
+  const toast = document.createElement('div')
+  toast.className = 'toast'
+  toast.textContent = msg
+  toast.style.cssText = `
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);
+    color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace;
+    padding:12px 24px;border-radius:10px;z-index:999;
+    animation:fadeInUp .25s ease;box-shadow:0 4px 24px rgba(0,0,0,.4);
+    max-width:90vw;text-align:center;
+  `
+  const style = document.createElement('style')
+  style.textContent = `@keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`
+  document.head.appendChild(style)
+  document.body.appendChild(toast)
+  setTimeout(() => toast.remove(), 3500)
+}
+
+function wireNavBtn(id, file, dayNum) {
+  const btn = document.getElementById(id)
+  if (!btn) return
+  btn.onclick = (e) => {
+    e.preventDefault()
+    navigateTo(file, dayNum)
+  }
+}
+
+/* Wire all nav buttons */
+buildDots('day-dots-top')
+wireNavBtn('prev-btn-top', 'day3_functions_async_js.html', 4)
+wireNavBtn('next-btn-top', 'day6_es6_modules_iterators_generators.html', 6)
+wireNavBtn('prev-btn-bot', 'day3_functions_async_js.html', 4)
+wireNavBtn('next-btn-bot', 'day6_es6_modules_iterators_generators.html', 6)
+
+/* ── Code runner ── */
+function runCode(btn) {
+  const wrap = btn.closest('.runner')
+  const ta   = wrap.querySelector('textarea')
+  const out  = wrap.querySelector('.output-box')
+  const logs = []
+  const orig = console.log
+  console.log = (...a) => logs.push(a.map(x => typeof x === 'object' && x !== null ? JSON.stringify(x,null,2) : String(x)).join(' '))
+  out.classList.remove('err')
+  try {
+    new Function(ta.value)()
+    out.textContent = logs.length ? logs.join('\n') : '(no output — add console.log calls)'
+  } catch(e) {
+    out.classList.add('err')
+    out.textContent = '✗ ' + e.message
+  }
+  console.log = orig
+}
+
+/* ── Solution toggles ── */
+function toggleSol(btn) {
+  const c = btn.nextElementSibling
+  const a = btn.querySelector('.arrow')
+  const o = c.classList.toggle('open')
+  a.style.transform = o ? 'rotate(90deg)' : ''
+  btn.style.color   = o ? 'var(--text)' : ''
+}
+
+/* ── QA toggles ── */
+function toggleQA(el) {
+  const a = el.nextElementSibling
+  const c = el.querySelector('.qa-chev')
+  const o = a.classList.toggle('open')
+  c.style.transform   = o ? 'rotate(90deg)' : ''
+  el.style.background = o ? 'var(--surface3)' : ''
+}
+
+/* ── Checklist ── */
+function toggleCheck(el) {
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+
+/* ── Topic dots ── */
+function markDone(el) {
+  el.classList.toggle('done')
+  updateProgress()
+}
+
+/* ── Progress ── */
+function updateProgress() {
+  const d = document.querySelectorAll('.tdot.done').length
+  const c = document.querySelectorAll('.cl-box.checked').length
+  const t = document.querySelectorAll('.tdot').length + document.querySelectorAll('.cl-box').length
+  const p = Math.round(((d + c) / t) * 100)
+  document.getElementById('prog-fill').style.width = p + '%'
+  document.getElementById('pct-label').textContent = p + '%'
+  const fp = document.getElementById('footer-prog-fill') || document.getElementById('week-prog')
+  if (fp) fp.style.width = Math.round(((CURRENT - 1 + p/100) / 7) * 100) + '%'
+}
+
+/* ── Sticky nav highlight ── */
+const secs  = document.querySelectorAll('.section')
+const links = document.querySelectorAll('.nav a')
+window.addEventListener('scroll', () => {
+  let cur = ''
+  secs.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id })
+  links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur))
+}, { passive: true })
+</script>
+</body>
+</html>

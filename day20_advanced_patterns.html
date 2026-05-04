@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 20 — Advanced React Patterns</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  /* Week 4 accent — emerald green */
+  --accent:#10b981;--accent-dim:rgba(16,185,129,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
+  --react:#61dafb;--react-dim:rgba(97,218,251,0.09);
+  --ts:#3178c6;--ts-dim:rgba(49,120,198,0.09);
+  --rq:#ff4154;--rq-dim:rgba(255,65,84,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--accent);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--accent);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--accent);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--accent-dim);color:var(--accent);border-color:rgba(16,185,129,.3);}
+.day-btn.primary:hover{background:rgba(16,185,129,.18);}
+
+.week-banner{background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(45,212,191,.06));border:1px solid rgba(16,185,129,.15);padding:14px 48px;max-width:100%;}
+.week-banner-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.week-badge{font-size:11px;font-family:'JetBrains Mono',monospace;padding:4px 12px;border-radius:20px;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(16,185,129,.3);white-space:nowrap;}
+.week-text{font-size:13px;color:var(--muted);}
+.week-text strong{color:var(--text);}
+
+.hero{padding:56px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--accent);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--accent);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--accent);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--accent-dim);color:var(--accent);border-color:rgba(16,185,129,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--accent);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+.ty{color:#38bdf8;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(16,185,129,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(16,185,129,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:200px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(16,185,129,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--accent);}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--accent-dim);color:var(--accent);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--accent);border-color:var(--accent);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--accent-dim);color:var(--accent);border-color:rgba(16,185,129,.3);}
+.footer-btn.primary:hover{background:rgba(16,185,129,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--accent);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid{grid-template-columns:1fr;}
+  .week-banner{padding-left:20px;padding-right:20px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 20 · Patterns</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#compound">Compound</a>
+  <a href="#render-props">Render Props</a>
+  <a href="#hoc">HOCs</a>
+  <a href="#state-machine">State Machine</a>
+  <a href="#portals">Portals</a>
+  <a href="#error-boundary">Error Boundary</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="week-banner">
+  <div class="week-banner-inner">
+    <span class="week-badge">Week 4 begins</span>
+    <span class="week-text"><strong>Advanced patterns, Next.js, Auth, Database</strong> — Days 20–26. You have the toolkit from Week 3. Now you master the architecture.</span>
+  </div>
+</div>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 4 · <span>Day 20 of 56</span> · Advanced React Patterns</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day19_week3_review.html',19)">← Day 19</button>
+      <button class="day-btn primary" onclick="navigateTo('day21_nextjs_app_router.html',21)">Day 21 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 4 · Day 20 · Advanced patterns</div>
+  <h1>Advanced<br><em>React Patterns</em></h1>
+  <p class="hero-sub">The patterns that separate junior from senior React developers. Compound components, render props, HOCs, state machines, portals, and error boundaries — the tools that power every major React library you've used.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(16,185,129,.3);color:var(--accent);">compound components</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">render props</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">HOCs (when useful)</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">state machines</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">portals</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">error boundaries</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">context + patterns</span>
+    <span class="topic-pill" style="border-color:rgba(97,218,251,.3);color:var(--react);">inversion of control</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">patterns</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--accent);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>Compound components — Tabs, Accordion, Select</li>
+        <li>Context within compound components</li>
+        <li>Render props — MouseTracker, DataFetcher</li>
+        <li>HOCs — when they still make sense in 2025</li>
+        <li>withAuth, withErrorBoundary HOC patterns</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>State machines — useReducer done right</li>
+        <li>Finite state transitions, guard conditions</li>
+        <li>Portals — modals, tooltips, toasts</li>
+        <li>Error boundaries — class component, reset</li>
+        <li>Inversion of control — flexible APIs</li>
+        <li>Exercises 1–6</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Push code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 20 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Compound</span>
+    <span class="tdot" onclick="markDone(this)">Render props</span>
+    <span class="tdot" onclick="markDone(this)">HOCs</span>
+    <span class="tdot" onclick="markDone(this)">State machine</span>
+    <span class="tdot" onclick="markDone(this)">Portals</span>
+    <span class="tdot" onclick="markDone(this)">Error boundaries</span>
+    <span class="tdot" onclick="markDone(this)">IoC pattern</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. COMPOUND COMPONENTS -->
+<div class="section" id="compound">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Compound components — flexible, composable UI</span>
+    <span class="sec-badge" style="background:var(--accent-dim);color:var(--accent);">pattern 1</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">the problem</span>
+      <div class="cc-title">Prop explosion — passing everything through the top</div>
+      <div class="cc-body">A Tabs component with a monolithic API: <code>&lt;Tabs items={[{label, content, icon, disabled}]} activeTab={0} onTabChange={fn} tabStyle="underline" contentPadding={24} /&gt;</code>. Every new requirement means a new prop. The API becomes unlearnable and the implementation a mess of conditional rendering.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">the pattern</span>
+      <div class="cc-title">Compose sub-components, share state via Context</div>
+      <div class="cc-body">Compound components expose a family of related sub-components that share implicit state via Context: <code>&lt;Tabs&gt;&lt;Tabs.List&gt;&lt;Tabs.Tab&gt;…&lt;Tabs.Panel&gt;</code>. Users compose the UI they need. Adding a badge to one tab doesn't require a new prop — just put it in the JSX. This is how Radix UI, shadcn/ui, and Headless UI work.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--teal-dim);color:var(--teal);">real examples</span>
+      <div class="cc-title">Every major component library uses this</div>
+      <div class="cc-body">Radix <code>&lt;Select.Root&gt;&lt;Select.Trigger&gt;&lt;Select.Content&gt;</code>, Headless UI <code>&lt;Disclosure&gt;&lt;Disclosure.Button&gt;&lt;Disclosure.Panel&gt;</code>, React Router <code>&lt;Routes&gt;&lt;Route&gt;</code>. Understanding this pattern means understanding how all your dependencies work.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Compound Tabs component — Context + static sub-components</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">createContext</span>, <span class="var">useContext</span>, <span class="var">useState</span>, <span class="kw">type</span> <span class="ty">ReactNode</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="cm">// ── Internal context — hidden from consumers ───────────────</span>
+<span class="kw">interface</span> <span class="ty">TabsContextValue</span> {
+  <span class="prop">active</span>:    <span class="ty">string</span>
+  <span class="prop">setActive</span>: (<span class="var">id</span>: <span class="ty">string</span>) => <span class="ty">void</span>
+}
+<span class="kw">const</span> <span class="var">TabsCtx</span> = <span class="fn">createContext</span>&lt;<span class="ty">TabsContextValue</span> | <span class="ty">null</span>&gt;(<span class="kw">null</span>)
+<span class="kw">function</span> <span class="fn">useTabsCtx</span>() {
+  <span class="kw">const</span> <span class="var">ctx</span> = <span class="fn">useContext</span>(<span class="var">TabsCtx</span>)
+  <span class="kw">if</span> (!<span class="var">ctx</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Must be used inside Tabs"</span>)
+  <span class="kw">return</span> <span class="var">ctx</span>
+}
+
+<span class="cm">// ── Root component — owns the state ───────────────────────</span>
+<span class="kw">interface</span> <span class="ty">TabsProps</span> { <span class="prop">defaultActive</span>?: <span class="ty">string</span>; <span class="prop">children</span>: <span class="ty">ReactNode</span> }
+<span class="kw">function</span> <span class="fn">Tabs</span>({ <span class="var">defaultActive</span> = <span class="str">""</span>, <span class="var">children</span> }: <span class="ty">TabsProps</span>) {
+  <span class="kw">const</span> [<span class="var">active</span>, <span class="fn">setActive</span>] = <span class="fn">useState</span>(<span class="var">defaultActive</span>)
+  <span class="kw">return</span> (
+    <span class="tag">&lt;TabsCtx.Provider</span> <span class="attr">value</span>={{ <span class="var">active</span>, <span class="var">setActive</span> }}<span class="tag">&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"tabs"</span><span class="tag">&gt;</span>{<span class="var">children</span>}<span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/TabsCtx.Provider&gt;</span>
+  )
+}
+
+<span class="cm">// ── Sub-components — read from context ────────────────────</span>
+<span class="kw">function</span> <span class="fn">TabList</span>({ <span class="var">children</span> }: { <span class="prop">children</span>: <span class="ty">ReactNode</span> }) {
+  <span class="kw">return</span> <span class="tag">&lt;div</span> <span class="attr">role</span>=<span class="str">"tablist"</span> <span class="attr">className</span>=<span class="str">"flex border-b border-gray-200"</span><span class="tag">&gt;</span>{<span class="var">children</span>}<span class="tag">&lt;/div&gt;</span>
+}
+
+<span class="kw">interface</span> <span class="ty">TabProps</span> { <span class="prop">id</span>: <span class="ty">string</span>; <span class="prop">children</span>: <span class="ty">ReactNode</span>; <span class="prop">disabled</span>?: <span class="ty">boolean</span> }
+<span class="kw">function</span> <span class="fn">Tab</span>({ <span class="var">id</span>, <span class="var">children</span>, <span class="var">disabled</span> = <span class="kw">false</span> }: <span class="ty">TabProps</span>) {
+  <span class="kw">const</span> { <span class="var">active</span>, <span class="var">setActive</span> } = <span class="fn">useTabsCtx</span>()
+  <span class="kw">const</span> <span class="var">isActive</span> = <span class="var">active</span> === <span class="var">id</span>
+  <span class="kw">return</span> (
+    <span class="tag">&lt;button</span>
+      <span class="attr">role</span>=<span class="str">"tab"</span>
+      <span class="attr">aria-selected</span>={<span class="var">isActive</span>}
+      <span class="attr">disabled</span>={<span class="var">disabled</span>}
+      <span class="attr">onClick</span>={() => !<span class="var">disabled</span> && <span class="fn">setActive</span>(<span class="var">id</span>)}
+      <span class="attr">className</span>={`px-4 py-2 text-sm font-medium transition-colors
+        ${<span class="var">isActive</span>
+          ? <span class="str">"text-blue-600 border-b-2 border-blue-600 -mb-px"</span>
+          : <span class="str">"text-gray-500 hover:text-gray-700"</span>}
+        ${<span class="var">disabled</span> ? <span class="str">"opacity-40 cursor-not-allowed"</span> : <span class="str">""</span>}`}
+    <span class="tag">&gt;</span>
+      {<span class="var">children</span>}
+    <span class="tag">&lt;/button&gt;</span>
+  )
+}
+
+<span class="kw">function</span> <span class="fn">TabPanel</span>({ <span class="var">id</span>, <span class="var">children</span> }: { <span class="prop">id</span>: <span class="ty">string</span>; <span class="prop">children</span>: <span class="ty">ReactNode</span> }) {
+  <span class="kw">const</span> { <span class="var">active</span> } = <span class="fn">useTabsCtx</span>()
+  <span class="kw">if</span> (<span class="var">active</span> !== <span class="var">id</span>) <span class="kw">return</span> <span class="kw">null</span>
+  <span class="kw">return</span> <span class="tag">&lt;div</span> <span class="attr">role</span>=<span class="str">"tabpanel"</span> <span class="attr">className</span>=<span class="str">"p-4"</span><span class="tag">&gt;</span>{<span class="var">children</span>}<span class="tag">&lt;/div&gt;</span>
+}
+
+<span class="cm">// ── Attach sub-components as static properties ────────────</span>
+<span class="var">Tabs</span>.<span class="prop">List</span>  = <span class="var">TabList</span>
+<span class="var">Tabs</span>.<span class="prop">Tab</span>   = <span class="var">Tab</span>
+<span class="var">Tabs</span>.<span class="prop">Panel</span> = <span class="var">TabPanel</span>
+
+<span class="cm">// ── Usage — compose freely ────────────────────────────────</span>
+<span class="kw">function</span> <span class="fn">ProductPage</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;Tabs</span> <span class="attr">defaultActive</span>=<span class="str">"description"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;Tabs.List&gt;</span>
+        <span class="tag">&lt;Tabs.Tab</span> <span class="attr">id</span>=<span class="str">"description"</span><span class="tag">&gt;</span>Description<span class="tag">&lt;/Tabs.Tab&gt;</span>
+        <span class="tag">&lt;Tabs.Tab</span> <span class="attr">id</span>=<span class="str">"reviews"</span><span class="tag">&gt;</span>
+          Reviews <span class="tag">&lt;span</span> <span class="attr">className</span>=<span class="str">"bg-blue-100 text-blue-700 rounded-full px-2 text-xs"</span><span class="tag">&gt;</span>48<span class="tag">&lt;/span&gt;</span>
+        <span class="tag">&lt;/Tabs.Tab&gt;</span>  <span class="cm">{/* badge with zero props changes to Tabs */}</span>
+        <span class="tag">&lt;Tabs.Tab</span> <span class="attr">id</span>=<span class="str">"shipping"</span> <span class="attr">disabled</span><span class="tag">&gt;</span>Shipping<span class="tag">&lt;/Tabs.Tab&gt;</span>
+      <span class="tag">&lt;/Tabs.List&gt;</span>
+      <span class="tag">&lt;Tabs.Panel</span> <span class="attr">id</span>=<span class="str">"description"</span><span class="tag">&gt;</span><span class="tag">&lt;ProductDescription</span> <span class="tag">/&gt;</span><span class="tag">&lt;/Tabs.Panel&gt;</span>
+      <span class="tag">&lt;Tabs.Panel</span> <span class="attr">id</span>=<span class="str">"reviews"</span><span class="tag">&gt;</span><span class="tag">&lt;ReviewsList</span> <span class="tag">/&gt;</span><span class="tag">&lt;/Tabs.Panel&gt;</span>
+    <span class="tag">&lt;/Tabs&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 02. RENDER PROPS -->
+<div class="section" id="render-props">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Render props — share logic, delegate rendering</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">pattern 2</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--green);"></span>Render props — pass a function as a prop (or children)</div>
+    <div class="mm-grid">
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--green);">what it is</div>
+        <div class="mm-value">A component accepts a function as its <code>children</code> (or a named prop). It calls that function with its internal state. The <em>caller</em> decides how to render — the component only handles the logic.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--amber);">why it matters</div>
+        <div class="mm-value">Decouples behaviour from presentation. A <code>MouseTracker</code> tracks position — you decide what to render at that position. A <code>DataFetcher</code> handles loading/error — you decide the UI for each state.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--purple);">vs custom hooks</div>
+        <div class="mm-value">Custom hooks achieve the same sharing but render props can share <em>multiple</em> render slots simultaneously. Also used when the shared logic needs to influence the component tree structure, not just state values.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--teal);">in the wild</div>
+        <div class="mm-value">React Router's <code>&lt;Route render={fn} /&gt;</code>, Formik's <code>&lt;Field&gt;</code>, Downshift's <code>&lt;Combobox&gt;</code>, React Table. Most libraries now offer both hook and render-prop APIs for flexibility.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Render props — DataFetcher and Disclosure examples</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── DataFetcher — logic in component, rendering delegated ─</span>
+<span class="kw">interface</span> <span class="ty">DataFetcherProps</span>&lt;<span class="ty">T</span>&gt; {
+  <span class="prop">url</span>:      <span class="ty">string</span>
+  <span class="prop">children</span>: (<span class="var">state</span>: {
+    <span class="prop">data</span>:      <span class="ty">T</span> | <span class="ty">null</span>
+    <span class="prop">isLoading</span>: <span class="ty">boolean</span>
+    <span class="prop">error</span>:     <span class="ty">Error</span> | <span class="ty">null</span>
+    <span class="prop">refetch</span>:   () => <span class="ty">void</span>
+  }) => <span class="ty">ReactNode</span>
+}
+<span class="kw">function</span> <span class="fn">DataFetcher</span>&lt;<span class="ty">T</span>&gt;({ <span class="var">url</span>, <span class="var">children</span> }: <span class="ty">DataFetcherProps</span>&lt;<span class="ty">T</span>&gt;) {
+  <span class="kw">const</span> [<span class="var">data</span>,      <span class="fn">setData</span>]      = <span class="fn">useState</span>&lt;<span class="ty">T</span> | <span class="ty">null</span>&gt;(<span class="kw">null</span>)
+  <span class="kw">const</span> [<span class="var">isLoading</span>, <span class="fn">setIsLoading</span>] = <span class="fn">useState</span>(<span class="kw">true</span>)
+  <span class="kw">const</span> [<span class="var">error</span>,     <span class="fn">setError</span>]     = <span class="fn">useState</span>&lt;<span class="ty">Error</span> | <span class="ty">null</span>&gt;(<span class="kw">null</span>)
+  <span class="kw">const</span> [<span class="var">tick</span>,      <span class="fn">setTick</span>]      = <span class="fn">useState</span>(<span class="num">0</span>)
+
+  <span class="fn">useEffect</span>(() => {
+    <span class="fn">setIsLoading</span>(<span class="kw">true</span>); <span class="fn">setError</span>(<span class="kw">null</span>)
+    <span class="fn">fetch</span>(<span class="var">url</span>).<span class="fn">then</span>(<span class="var">r</span> => <span class="var">r</span>.<span class="fn">json</span>()).<span class="fn">then</span>(<span class="fn">setData</span>).<span class="fn">catch</span>(<span class="fn">setError</span>)
+    .<span class="fn">finally</span>(() => <span class="fn">setIsLoading</span>(<span class="kw">false</span>))
+  }, [<span class="var">url</span>, <span class="var">tick</span>])
+
+  <span class="kw">return</span> <span class="tag">&lt;&gt;</span>{<span class="fn">children</span>({ <span class="var">data</span>, <span class="var">isLoading</span>, <span class="var">error</span>, <span class="prop">refetch</span>: () => <span class="fn">setTick</span>(<span class="var">t</span> => <span class="var">t</span>+<span class="num">1</span>) })}<span class="tag">&lt;/&gt;</span>
+}
+
+<span class="cm">// ── Usage — caller decides the rendering ──────────────────</span>
+<span class="tag">&lt;DataFetcher</span>&lt;<span class="ty">User[]</span>&gt; <span class="attr">url</span>=<span class="str">"/api/users"</span><span class="tag">&gt;</span>
+  {({ <span class="var">data</span>, <span class="var">isLoading</span>, <span class="var">error</span>, <span class="var">refetch</span> }) => (
+    <span class="tag">&lt;div&gt;</span>
+      {<span class="var">isLoading</span> &amp;&amp; <span class="tag">&lt;Spinner</span> <span class="tag">/&gt;</span>}
+      {<span class="var">error</span>     &amp;&amp; <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="var">refetch</span>}<span class="tag">&gt;</span>Retry<span class="tag">&lt;/button&gt;</span>}
+      {<span class="var">data</span>      &amp;&amp; <span class="tag">&lt;UserList</span> <span class="attr">users</span>={<span class="var">data</span>} <span class="tag">/&gt;</span>}
+    <span class="tag">&lt;/div&gt;</span>
+  )}
+<span class="tag">&lt;/DataFetcher&gt;</span>
+
+<span class="cm">// ── Disclosure — toggle open/close pattern ────────────────</span>
+<span class="kw">interface</span> <span class="ty">DisclosureProps</span> {
+  <span class="prop">children</span>: (<span class="var">state</span>: { <span class="prop">isOpen</span>: <span class="ty">boolean</span>; <span class="prop">toggle</span>: () => <span class="ty">void</span>; <span class="prop">open</span>: () => <span class="ty">void</span>; <span class="prop">close</span>: () => <span class="ty">void</span> }) => <span class="ty">ReactNode</span>
+  <span class="prop">defaultOpen</span>?: <span class="ty">boolean</span>
+}
+<span class="kw">function</span> <span class="fn">Disclosure</span>({ <span class="var">children</span>, <span class="var">defaultOpen</span> = <span class="kw">false</span> }: <span class="ty">DisclosureProps</span>) {
+  <span class="kw">const</span> [<span class="var">isOpen</span>, <span class="fn">setIsOpen</span>] = <span class="fn">useState</span>(<span class="var">defaultOpen</span>)
+  <span class="kw">return</span> <span class="tag">&lt;&gt;</span>{<span class="fn">children</span>({
+    <span class="var">isOpen</span>,
+    <span class="prop">toggle</span>: () => <span class="fn">setIsOpen</span>(<span class="var">v</span> => !<span class="var">v</span>),
+    <span class="prop">open</span>:   () => <span class="fn">setIsOpen</span>(<span class="kw">true</span>),
+    <span class="prop">close</span>:  () => <span class="fn">setIsOpen</span>(<span class="kw">false</span>),
+  })}<span class="tag">&lt;/&gt;</span>
+}
+
+<span class="cm">// Usage — caller controls both trigger and content</span>
+<span class="tag">&lt;Disclosure</span><span class="tag">&gt;</span>
+  {({ <span class="var">isOpen</span>, <span class="var">toggle</span> }) => (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"border rounded-lg"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="var">toggle</span>} <span class="attr">className</span>=<span class="str">"w-full flex justify-between p-4"</span><span class="tag">&gt;</span>
+        FAQ Question <span class="tag">&lt;span&gt;</span>{<span class="var">isOpen</span> ? <span class="str">"−"</span> : <span class="str">"+"</span>}<span class="tag">&lt;/span&gt;</span>
+      <span class="tag">&lt;/button&gt;</span>
+      {<span class="var">isOpen</span> &amp;&amp; <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"px-4 pb-4 text-gray-600"</span><span class="tag">&gt;</span>Answer here<span class="tag">&lt;/div&gt;</span>}
+    <span class="tag">&lt;/div&gt;</span>
+  )}
+<span class="tag">&lt;/Disclosure&gt;</span></pre></div>
+  </div>
+</div>
+
+<!-- 03. HOCs -->
+<div class="section" id="hoc">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">HOCs — higher-order components, when they still win</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">pattern 3</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">withAuth, withErrorBoundary, withAnalytics HOCs — cross-cutting concerns</span></div>
+    <div class="cb-body"><pre><span class="cm">// HOCs are still the right tool when you need to wrap arbitrary</span>
+<span class="cm">// components in cross-cutting behaviour WITHOUT the consumer knowing.</span>
+<span class="cm">// Key: HOC = function that takes a component, returns a component.</span>
+
+<span class="cm">// ── withAuth — protect any page component ─────────────────</span>
+<span class="kw">function</span> <span class="fn">withAuth</span>&lt;<span class="ty">P</span> <span class="kw">extends</span> <span class="ty">object</span>&gt;(<span class="var">Component</span>: <span class="ty">React.ComponentType</span>&lt;<span class="ty">P</span>&gt;) {
+  <span class="kw">function</span> <span class="fn">Protected</span>(<span class="var">props</span>: <span class="ty">P</span>) {
+    <span class="kw">const</span> { <span class="var">user</span> } = <span class="fn">useAuth</span>()
+    <span class="kw">if</span> (!<span class="var">user</span>) <span class="kw">return</span> <span class="tag">&lt;Navigate</span> <span class="attr">to</span>=<span class="str">"/login"</span> <span class="attr">replace</span> <span class="tag">/&gt;</span>
+    <span class="kw">return</span> <span class="tag">&lt;Component</span> {...<span class="var">props</span>} <span class="tag">/&gt;</span>
+  }
+  <span class="var">Protected</span>.<span class="prop">displayName</span> = `withAuth(${<span class="var">Component</span>.<span class="prop">displayName</span> || <span class="var">Component</span>.<span class="prop">name</span>})`
+  <span class="kw">return</span> <span class="var">Protected</span>
+}
+<span class="kw">const</span> <span class="var">ProtectedDashboard</span> = <span class="fn">withAuth</span>(<span class="var">Dashboard</span>)  <span class="cm">// use in router</span>
+
+<span class="cm">// ── withErrorBoundary — wrap anything in a boundary ───────</span>
+<span class="kw">function</span> <span class="fn">withErrorBoundary</span>&lt;<span class="ty">P</span> <span class="kw">extends</span> <span class="ty">object</span>&gt;(
+  <span class="var">Component</span>: <span class="ty">React.ComponentType</span>&lt;<span class="ty">P</span>&gt;,
+  <span class="var">fallback</span>:  <span class="ty">ReactNode</span>
+) {
+  <span class="kw">return</span> <span class="kw">function</span> <span class="fn">WithBoundary</span>(<span class="var">props</span>: <span class="ty">P</span>) {
+    <span class="kw">return</span> (
+      <span class="tag">&lt;ErrorBoundary</span> <span class="attr">fallback</span>={<span class="var">fallback</span>}<span class="tag">&gt;</span>
+        <span class="tag">&lt;Component</span> {...<span class="var">props</span>} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/ErrorBoundary&gt;</span>
+    )
+  }
+}
+
+<span class="cm">// ── withAnalytics — track page views silently ─────────────</span>
+<span class="kw">function</span> <span class="fn">withAnalytics</span>&lt;<span class="ty">P</span> <span class="kw">extends</span> { <span class="prop">name</span>?: <span class="ty">string</span> }&gt;(
+  <span class="var">Component</span>: <span class="ty">React.ComponentType</span>&lt;<span class="ty">P</span>&gt;,
+  <span class="var">eventName</span>: <span class="ty">string</span>
+) {
+  <span class="kw">return</span> <span class="kw">function</span> <span class="fn">WithTracking</span>(<span class="var">props</span>: <span class="ty">P</span>) {
+    <span class="fn">useEffect</span>(() => {
+      <span class="fn">analytics</span>.<span class="fn">track</span>(<span class="var">eventName</span>, { <span class="prop">component</span>: <span class="var">Component</span>.<span class="prop">name</span> })
+    }, [])
+    <span class="kw">return</span> <span class="tag">&lt;Component</span> {...<span class="var">props</span>} <span class="tag">/&gt;</span>
+  }
+}
+
+<span class="cm">// ── When to use HOCs (vs hooks or render props) ────────────</span>
+<span class="cm">// ✓ Cross-cutting concerns added declaratively in router/config (withAuth)</span>
+<span class="cm">// ✓ Wrapping third-party components you can't modify</span>
+<span class="cm">// ✓ Adding class-based lifecycle to function components (rare)</span>
+<span class="cm">// ✗ Don't use for logic sharing in same codebase — use custom hooks</span>
+<span class="cm">// ✗ Don't use when render props or compound components are cleaner</span>
+
+<span class="cm">// ── Composing HOCs ────────────────────────────────────────</span>
+<span class="cm">// Bad: deeply nested HOC calls</span>
+<span class="kw">const</span> <span class="var">Bad</span> = <span class="fn">withAuth</span>(<span class="fn">withAnalytics</span>(<span class="fn">withErrorBoundary</span>(<span class="var">Dashboard</span>, <span class="tag">&lt;Error</span> <span class="tag">/&gt;</span>), <span class="str">"dashboard_view"</span>))
+
+<span class="cm">// Good: compose utility</span>
+<span class="kw">const</span> <span class="fn">compose</span> = (...<span class="var">fns</span>) => (<span class="var">x</span>) => <span class="var">fns</span>.<span class="fn">reduceRight</span>((<span class="var">v</span>, <span class="var">f</span>) => <span class="fn">f</span>(<span class="var">v</span>), <span class="var">x</span>)
+<span class="kw">const</span> <span class="var">Good</span> = <span class="fn">compose</span>(
+  <span class="fn">withAuth</span>,
+  (<span class="var">C</span>) => <span class="fn">withAnalytics</span>(<span class="var">C</span>, <span class="str">"dashboard_view"</span>),
+  (<span class="var">C</span>) => <span class="fn">withErrorBoundary</span>(<span class="var">C</span>, <span class="tag">&lt;Error</span> <span class="tag">/&gt;</span>),
+)(<span class="var">Dashboard</span>)</pre></div>
+  </div>
+</div>
+
+<!-- 04. STATE MACHINE -->
+<div class="section" id="state-machine">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">State machines — explicit states, predictable transitions</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">pattern 4</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">State machine with useReducer — typed states, guarded transitions</span></div>
+    <div class="cb-body"><pre><span class="cm">// State machines make impossible states impossible.</span>
+<span class="cm">// Instead of booleans: isLoading=true AND isError=true (impossible!)</span>
+<span class="cm">// You have ONE current state: "loading" | "error" | "success"</span>
+
+<span class="cm">// ── Payment state machine ─────────────────────────────────</span>
+<span class="kw">type</span> <span class="ty">PaymentState</span> =
+  | { <span class="prop">status</span>: <span class="str">"idle"</span> }
+  | { <span class="prop">status</span>: <span class="str">"validating"</span> }
+  | { <span class="prop">status</span>: <span class="str">"processing"</span>; <span class="prop">amount</span>: <span class="ty">number</span> }
+  | { <span class="prop">status</span>: <span class="str">"success"</span>;    <span class="prop">transactionId</span>: <span class="ty">string</span> }
+  | { <span class="prop">status</span>: <span class="str">"declined"</span>;   <span class="prop">reason</span>: <span class="ty">string</span>; <span class="prop">retryCount</span>: <span class="ty">number</span> }
+  | { <span class="prop">status</span>: <span class="str">"error"</span>;     <span class="prop">message</span>: <span class="ty">string</span> }
+
+<span class="kw">type</span> <span class="ty">PaymentEvent</span> =
+  | { <span class="prop">type</span>: <span class="str">"SUBMIT"</span>;  <span class="prop">amount</span>: <span class="ty">number</span> }
+  | { <span class="prop">type</span>: <span class="str">"APPROVE"</span>; <span class="prop">transactionId</span>: <span class="ty">string</span> }
+  | { <span class="prop">type</span>: <span class="str">"DECLINE"</span>; <span class="prop">reason</span>: <span class="ty">string</span> }
+  | { <span class="prop">type</span>: <span class="str">"ERROR"</span>;   <span class="prop">message</span>: <span class="ty">string</span> }
+  | { <span class="prop">type</span>: <span class="str">"RETRY"</span> }
+  | { <span class="prop">type</span>: <span class="str">"RESET"</span> }
+
+<span class="kw">function</span> <span class="fn">paymentReducer</span>(<span class="var">state</span>: <span class="ty">PaymentState</span>, <span class="var">event</span>: <span class="ty">PaymentEvent</span>): <span class="ty">PaymentState</span> {
+  <span class="kw">switch</span> (<span class="var">state</span>.<span class="prop">status</span>) {
+    <span class="kw">case</span> <span class="str">"idle"</span>:
+      <span class="kw">if</span> (<span class="var">event</span>.<span class="prop">type</span> === <span class="str">"SUBMIT"</span>) <span class="kw">return</span> { <span class="prop">status</span>: <span class="str">"validating"</span> }
+      <span class="kw">return</span> <span class="var">state</span>
+
+    <span class="kw">case</span> <span class="str">"validating"</span>:
+      <span class="kw">if</span> (<span class="var">event</span>.<span class="prop">type</span> === <span class="str">"SUBMIT"</span>) <span class="kw">return</span> { <span class="prop">status</span>: <span class="str">"processing"</span>, <span class="prop">amount</span>: <span class="var">event</span>.<span class="prop">amount</span> }
+      <span class="kw">if</span> (<span class="var">event</span>.<span class="prop">type</span> === <span class="str">"ERROR"</span>)   <span class="kw">return</span> { <span class="prop">status</span>: <span class="str">"error"</span>, <span class="prop">message</span>: <span class="var">event</span>.<span class="prop">message</span> }
+      <span class="kw">return</span> <span class="var">state</span>
+
+    <span class="kw">case</span> <span class="str">"processing"</span>:
+      <span class="kw">if</span> (<span class="var">event</span>.<span class="prop">type</span> === <span class="str">"APPROVE"</span>)
+        <span class="kw">return</span> { <span class="prop">status</span>: <span class="str">"success"</span>, <span class="prop">transactionId</span>: <span class="var">event</span>.<span class="prop">transactionId</span> }
+      <span class="kw">if</span> (<span class="var">event</span>.<span class="prop">type</span> === <span class="str">"DECLINE"</span>)
+        <span class="kw">return</span> { <span class="prop">status</span>: <span class="str">"declined"</span>, <span class="prop">reason</span>: <span class="var">event</span>.<span class="prop">reason</span>, <span class="prop">retryCount</span>: <span class="num">0</span> }
+      <span class="kw">if</span> (<span class="var">event</span>.<span class="prop">type</span> === <span class="str">"ERROR"</span>)
+        <span class="kw">return</span> { <span class="prop">status</span>: <span class="str">"error"</span>, <span class="prop">message</span>: <span class="var">event</span>.<span class="prop">message</span> }
+      <span class="kw">return</span> <span class="var">state</span>
+
+    <span class="kw">case</span> <span class="str">"declined"</span>:
+      <span class="kw">if</span> (<span class="var">event</span>.<span class="prop">type</span> === <span class="str">"RETRY"</span> && <span class="var">state</span>.<span class="prop">retryCount</span> < <span class="num">3</span>)
+        <span class="kw">return</span> { <span class="prop">status</span>: <span class="str">"validating"</span> }
+      <span class="kw">return</span> <span class="var">state</span>
+
+    <span class="kw">case</span> <span class="str">"success"</span>:
+    <span class="kw">case</span> <span class="str">"error"</span>:
+      <span class="kw">if</span> (<span class="var">event</span>.<span class="prop">type</span> === <span class="str">"RESET"</span>) <span class="kw">return</span> { <span class="prop">status</span>: <span class="str">"idle"</span> }
+      <span class="kw">return</span> <span class="var">state</span>
+  }
+}
+
+<span class="cm">// ── Usage ─────────────────────────────────────────────────</span>
+<span class="kw">function</span> <span class="fn">PaymentForm</span>() {
+  <span class="kw">const</span> [<span class="var">state</span>, <span class="fn">dispatch</span>] = <span class="fn">useReducer</span>(<span class="var">paymentReducer</span>, { <span class="prop">status</span>: <span class="str">"idle"</span> })
+
+  <span class="kw">const</span> <span class="fn">submit</span> = <span class="kw">async</span> (<span class="var">amount</span>: <span class="ty">number</span>) => {
+    <span class="fn">dispatch</span>({ <span class="prop">type</span>: <span class="str">"SUBMIT"</span>, <span class="var">amount</span> })
+    <span class="cm">// Validate...</span>
+    <span class="fn">dispatch</span>({ <span class="prop">type</span>: <span class="str">"SUBMIT"</span>, <span class="var">amount</span> })  <span class="cm">// advances to processing</span>
+    <span class="kw">try</span> {
+      <span class="kw">const</span> { <span class="var">transactionId</span> } = <span class="kw">await</span> <span class="fn">processPayment</span>(<span class="var">amount</span>)
+      <span class="fn">dispatch</span>({ <span class="prop">type</span>: <span class="str">"APPROVE"</span>, <span class="var">transactionId</span> })
+    } <span class="kw">catch</span> (<span class="var">e</span>) {
+      <span class="fn">dispatch</span>({ <span class="prop">type</span>: <span class="str">"DECLINE"</span>, <span class="prop">reason</span>: (<span class="var">e</span> <span class="kw">as</span> <span class="ty">Error</span>).<span class="prop">message</span> })
+    }
+  }
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      {<span class="var">state</span>.<span class="prop">status</span> === <span class="str">"idle"</span>       &amp;&amp; <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={...}<span class="tag">&gt;</span>...<span class="tag">&lt;/form&gt;</span>}
+      {<span class="var">state</span>.<span class="prop">status</span> === <span class="str">"processing"</span> &amp;&amp; <span class="tag">&lt;Spinner</span> <span class="tag">/&gt;</span>}
+      {<span class="var">state</span>.<span class="prop">status</span> === <span class="str">"success"</span>    &amp;&amp; <span class="tag">&lt;Success</span> <span class="attr">id</span>={<span class="var">state</span>.<span class="prop">transactionId</span>} <span class="tag">/&gt;</span>}
+      {<span class="var">state</span>.<span class="prop">status</span> === <span class="str">"declined"</span>   &amp;&amp; (
+        <span class="tag">&lt;div&gt;</span>
+          <span class="tag">&lt;p&gt;</span>{<span class="var">state</span>.<span class="prop">reason</span>}<span class="tag">&lt;/p&gt;</span>
+          {<span class="var">state</span>.<span class="prop">retryCount</span> < <span class="num">3</span> &amp;&amp;
+            <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">dispatch</span>({ <span class="prop">type</span>: <span class="str">"RETRY"</span> })}<span class="tag">&gt;</span>Try again<span class="tag">&lt;/button&gt;</span>}
+        <span class="tag">&lt;/div&gt;</span>
+      )}
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 05. PORTALS + ERROR BOUNDARIES -->
+<div class="section" id="portals">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Portals — render outside the component tree</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">pattern 5</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Portals for modals, toasts, tooltips — escaping overflow:hidden</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">createPortal</span> } <span class="kw">from</span> <span class="str">"react-dom"</span>
+<span class="kw">import</span> { <span class="var">useEffect</span>, <span class="var">useRef</span>, <span class="kw">type</span> <span class="ty">ReactNode</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="cm">// ── Portal — renders into a DOM node outside the tree ─────</span>
+<span class="cm">// Problem: z-index and overflow:hidden trap modals inside their parent.</span>
+<span class="cm">// Solution: render into document.body (or a dedicated portal root).</span>
+
+<span class="kw">function</span> <span class="fn">Modal</span>({ <span class="var">isOpen</span>, <span class="var">onClose</span>, <span class="var">children</span> }: {
+  <span class="prop">isOpen</span>:   <span class="ty">boolean</span>
+  <span class="prop">onClose</span>:  () => <span class="ty">void</span>
+  <span class="prop">children</span>: <span class="ty">ReactNode</span>
+}) {
+  <span class="cm">// Lock body scroll when open</span>
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">if</span> (<span class="var">isOpen</span>) <span class="var">document</span>.<span class="prop">body</span>.<span class="prop">style</span>.<span class="prop">overflow</span> = <span class="str">"hidden"</span>
+    <span class="kw">return</span> () => { <span class="var">document</span>.<span class="prop">body</span>.<span class="prop">style</span>.<span class="prop">overflow</span> = <span class="str">""</span> }
+  }, [<span class="var">isOpen</span>])
+
+  <span class="cm">// Close on Escape key</span>
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">if</span> (!<span class="var">isOpen</span>) <span class="kw">return</span>
+    <span class="kw">const</span> <span class="fn">handler</span> = (<span class="var">e</span>: <span class="ty">KeyboardEvent</span>) => { <span class="kw">if</span> (<span class="var">e</span>.<span class="prop">key</span> === <span class="str">"Escape"</span>) <span class="fn">onClose</span>() }
+    <span class="var">document</span>.<span class="fn">addEventListener</span>(<span class="str">"keydown"</span>, <span class="fn">handler</span>)
+    <span class="kw">return</span> () => <span class="var">document</span>.<span class="fn">removeEventListener</span>(<span class="str">"keydown"</span>, <span class="fn">handler</span>)
+  }, [<span class="var">isOpen</span>, <span class="var">onClose</span>])
+
+  <span class="kw">if</span> (!<span class="var">isOpen</span>) <span class="kw">return</span> <span class="kw">null</span>
+
+  <span class="kw">return</span> <span class="fn">createPortal</span>(
+    <span class="tag">&lt;div</span>
+      <span class="attr">className</span>=<span class="str">"fixed inset-0 z-50 flex items-center justify-center"</span>
+      <span class="attr">role</span>=<span class="str">"dialog"</span>
+      <span class="attr">aria-modal</span>
+    <span class="tag">&gt;</span>
+      <span class="cm">{/* Backdrop */}</span>
+      <span class="tag">&lt;div</span>
+        <span class="attr">className</span>=<span class="str">"absolute inset-0 bg-black/50 backdrop-blur-sm"</span>
+        <span class="attr">onClick</span>={<span class="var">onClose</span>}
+      <span class="tag">/&gt;</span>
+      <span class="cm">{/* Content — above backdrop */}</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"relative bg-white rounded-2xl shadow-xl p-6 max-w-lg w-full mx-4 z-10"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;button</span>
+          <span class="attr">onClick</span>={<span class="var">onClose</span>}
+          <span class="attr">className</span>=<span class="str">"absolute top-4 right-4 text-gray-400 hover:text-gray-600"</span>
+          <span class="attr">aria-label</span>=<span class="str">"Close"</span>
+        <span class="tag">&gt;</span>✕<span class="tag">&lt;/button&gt;</span>
+        {<span class="var">children</span>}
+      <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>,
+    <span class="var">document</span>.<span class="prop">body</span>   <span class="cm">// ← render here, not inside parent DOM node</span>
+  )
+}
+
+<span class="cm">// ── Toast system — portal + queue ────────────────────────</span>
+<span class="kw">type</span> <span class="ty">Toast</span> = { <span class="prop">id</span>: <span class="ty">string</span>; <span class="prop">message</span>: <span class="ty">string</span>; <span class="prop">type</span>: <span class="str">"success"</span> | <span class="str">"error"</span> | <span class="str">"info"</span> }
+<span class="kw">const</span> <span class="var">ToastCtx</span> = <span class="fn">createContext</span>&lt;{ <span class="prop">toast</span>: (<span class="var">msg</span>: <span class="ty">string</span>, <span class="var">type</span>?: <span class="ty">Toast</span>[<span class="str">"type"</span>]) => <span class="ty">void</span> }&gt;({ <span class="fn">toast</span>: () => {} })
+
+<span class="kw">function</span> <span class="fn">ToastProvider</span>({ <span class="var">children</span> }: { <span class="prop">children</span>: <span class="ty">ReactNode</span> }) {
+  <span class="kw">const</span> [<span class="var">toasts</span>, <span class="fn">setToasts</span>] = <span class="fn">useState</span>&lt;<span class="ty">Toast</span>[]&gt;([])
+
+  <span class="kw">const</span> <span class="fn">toast</span> = <span class="fn">useCallback</span>((<span class="var">message</span>: <span class="ty">string</span>, <span class="var">type</span>: <span class="ty">Toast</span>[<span class="str">"type"</span>] = <span class="str">"info"</span>) => {
+    <span class="kw">const</span> <span class="var">id</span> = <span class="fn">crypto</span>.<span class="fn">randomUUID</span>()
+    <span class="fn">setToasts</span>(<span class="var">t</span> => [...<span class="var">t</span>, { <span class="var">id</span>, <span class="var">message</span>, <span class="var">type</span> }])
+    <span class="fn">setTimeout</span>(() => <span class="fn">setToasts</span>(<span class="var">t</span> => <span class="var">t</span>.<span class="fn">filter</span>(<span class="var">x</span> => <span class="var">x</span>.<span class="prop">id</span> !== <span class="var">id</span>)), <span class="num">4000</span>)
+  }, [])
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ToastCtx.Provider</span> <span class="attr">value</span>={{ <span class="var">toast</span> }}<span class="tag">&gt;</span>
+      {<span class="var">children</span>}
+      {<span class="fn">createPortal</span>(
+        <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"fixed bottom-4 right-4 z-50 flex flex-col gap-2"</span><span class="tag">&gt;</span>
+          {<span class="var">toasts</span>.<span class="fn">map</span>(<span class="var">t</span> => (
+            <span class="tag">&lt;div</span> <span class="attr">key</span>={<span class="var">t</span>.<span class="prop">id</span>}
+              <span class="attr">className</span>={`px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium
+                ${<span class="var">t</span>.<span class="prop">type</span> === <span class="str">"success"</span> ? <span class="str">"bg-green-600"</span>
+                : <span class="var">t</span>.<span class="prop">type</span> === <span class="str">"error"</span>   ? <span class="str">"bg-red-600"</span>
+                :                           <span class="str">"bg-gray-800"</span>}`}
+            <span class="tag">&gt;</span>
+              {<span class="var">t</span>.<span class="prop">message</span>}
+            <span class="tag">&lt;/div&gt;</span>
+          ))}
+        <span class="tag">&lt;/div&gt;</span>,
+        <span class="var">document</span>.<span class="prop">body</span>
+      )}
+    <span class="tag">&lt;/ToastCtx.Provider&gt;</span>
+  )
+}
+<span class="kw">export const</span> <span class="fn">useToast</span> = () => <span class="fn">useContext</span>(<span class="var">ToastCtx</span>)</pre></div>
+  </div>
+</div>
+
+<!-- 06. ERROR BOUNDARIES -->
+<div class="section" id="error-boundary">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Error boundaries — catch render errors gracefully</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">pattern 6</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Error boundary class + react-error-boundary + retry pattern</span></div>
+    <div class="cb-body"><pre><span class="cm">// Error boundaries MUST be class components — no hook equivalent exists.</span>
+<span class="cm">// They catch errors thrown during render, in lifecycle methods, and in</span>
+<span class="cm">// constructors of child components. They do NOT catch async errors.</span>
+
+<span class="cm">// ── Manual implementation ─────────────────────────────────</span>
+<span class="kw">class</span> <span class="fn">ErrorBoundary</span> <span class="kw">extends</span> <span class="var">React</span>.<span class="fn">Component</span>&lt;
+  { <span class="prop">children</span>: <span class="ty">ReactNode</span>; <span class="prop">fallback</span>?: <span class="ty">ReactNode</span> },
+  { <span class="prop">hasError</span>: <span class="ty">boolean</span>; <span class="prop">error</span>: <span class="ty">Error</span> | <span class="ty">null</span> }
+&gt; {
+  <span class="prop">state</span> = { <span class="prop">hasError</span>: <span class="kw">false</span>, <span class="prop">error</span>: <span class="kw">null</span> }
+
+  <span class="kw">static</span> <span class="fn">getDerivedStateFromError</span>(<span class="var">error</span>: <span class="ty">Error</span>) {
+    <span class="kw">return</span> { <span class="prop">hasError</span>: <span class="kw">true</span>, <span class="var">error</span> }
+  }
+
+  <span class="fn">componentDidCatch</span>(<span class="var">error</span>: <span class="ty">Error</span>, <span class="var">info</span>: <span class="ty">React.ErrorInfo</span>) {
+    <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"Boundary caught:"</span>, <span class="var">error</span>, <span class="var">info</span>.<span class="prop">componentStack</span>)
+    <span class="fn">logErrorToService</span>(<span class="var">error</span>, <span class="var">info</span>)  <span class="cm">// Sentry, LogRocket etc.</span>
+  }
+
+  <span class="fn">reset</span>() { <span class="kw">this</span>.<span class="fn">setState</span>({ <span class="prop">hasError</span>: <span class="kw">false</span>, <span class="prop">error</span>: <span class="kw">null</span> }) }
+
+  <span class="fn">render</span>() {
+    <span class="kw">if</span> (<span class="kw">this</span>.<span class="prop">state</span>.<span class="prop">hasError</span>) {
+      <span class="kw">return</span> <span class="kw">this</span>.<span class="prop">props</span>.<span class="prop">fallback</span> ?? (
+        <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"p-8 text-center"</span><span class="tag">&gt;</span>
+          <span class="tag">&lt;h2</span> <span class="attr">className</span>=<span class="str">"text-xl font-semibold text-gray-900"</span><span class="tag">&gt;</span>Something went wrong<span class="tag">&lt;/h2&gt;</span>
+          <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"text-gray-600 mt-2"</span><span class="tag">&gt;</span>{<span class="kw">this</span>.<span class="prop">state</span>.<span class="prop">error</span>?.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>
+          <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="kw">this</span>.<span class="fn">reset</span>()}<span class="tag">&gt;</span>Try again<span class="tag">&lt;/button&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+      )
+    }
+    <span class="kw">return</span> <span class="kw">this</span>.<span class="prop">props</span>.<span class="prop">children</span>
+  }
+}
+
+<span class="cm">// ── react-error-boundary (recommended) ────────────────────</span>
+<span class="cm">// npm install react-error-boundary</span>
+<span class="kw">import</span> { <span class="var">ErrorBoundary</span>, <span class="var">useErrorBoundary</span> } <span class="kw">from</span> <span class="str">"react-error-boundary"</span>
+
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ErrorBoundary</span>
+      <span class="attr">fallbackRender</span>={({ <span class="var">error</span>, <span class="var">resetErrorBoundary</span> }) => (
+        <span class="tag">&lt;div</span> <span class="attr">role</span>=<span class="str">"alert"</span> <span class="attr">className</span>=<span class="str">"p-8 text-center"</span><span class="tag">&gt;</span>
+          <span class="tag">&lt;pre</span> <span class="attr">className</span>=<span class="str">"text-red-600 text-sm"</span><span class="tag">&gt;</span>{<span class="var">error</span>.<span class="prop">message</span>}<span class="tag">&lt;/pre&gt;</span>
+          <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="var">resetErrorBoundary</span>}<span class="tag">&gt;</span>Try again<span class="tag">&lt;/button&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+      )}
+      <span class="attr">onReset</span>={() => { <span class="cm">/* clear state that caused the error */</span> }}
+    <span class="tag">&gt;</span>
+      <span class="tag">&lt;ProductList</span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/ErrorBoundary&gt;</span>
+  )
+}
+
+<span class="cm">// ── Throw from inside a component to test ─────────────────</span>
+<span class="kw">function</span> <span class="fn">BuggyComponent</span>() {
+  <span class="kw">const</span> { <span class="fn">showBoundary</span> } = <span class="fn">useErrorBoundary</span>()  <span class="cm">// from react-error-boundary</span>
+  <span class="cm">// Use showBoundary for async errors (fetch errors etc.)</span>
+  <span class="fn">useEffect</span>(() => {
+    <span class="fn">fetchData</span>().<span class="fn">catch</span>(<span class="fn">showBoundary</span>)  <span class="cm">// async error → boundary</span>
+  }, [])
+  <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>...<span class="tag">&lt;/div&gt;</span>
+}</pre></div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — patterns in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Compound component — Accordion with shared state</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createAccordion()</code> factory that simulates a compound component — <code>Accordion</code>, <code>Accordion.Item</code>, <code>Accordion.Trigger</code>, <code>Accordion.Content</code>. Items share state (only one open at a time). Test that the compound structure controls open/close without each Item needing to know about others.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — Accordion compound component</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">// Simulate compound component pattern without JSX
+function createAccordion({ allowMultiple = false } = {}) {
+  // Shared state — the "context"
+  let openItems  = new Set()
+  let items      = new Map()  // id → { label, content }
+  let subscribers = []
+
+  const notify = () => subscribers.forEach(fn => fn(getState()))
+
+  function getState() {
+    return {
+      openItems: new Set(openItems),
+      items:     new Map(items),
+      isOpen:    id => openItems.has(id),
+    }
+  }
+
+  // Accordion.Item — registers a content item
+  function Item(id, label, content) {
+    items.set(id, { label, content })
+    return { id, label, content }
+  }
+
+  // Accordion.Trigger — toggles an item
+  function Trigger(id) {
+    if (!items.has(id)) throw new Error(`Unknown item: ${id}`)
+    // YOUR CODE:
+    // If allowMultiple: toggle this item (add if not in openItems, remove if in)
+    // If not allowMultiple: close all others, toggle this one
+    if (allowMultiple) {
+      openItems.has(id) ? openItems.delete(id) : openItems.add(id)
+    } else {
+      const wasOpen = openItems.has(id)
+      openItems.clear()
+      if (!wasOpen) openItems.add(id)
+    }
+    notify()
+  }
+
+  // Accordion.Content — returns content if open
+  function Content(id) {
+    if (!openItems.has(id)) return null
+    return items.get(id)?.content ?? null
+  }
+
+  function subscribe(fn) { subscribers.push(fn) }
+
+  return { Item, Trigger, Content, getState, subscribe }
+}
+
+// Test single-mode accordion
+const acc = createAccordion({ allowMultiple: false })
+acc.Item("faq1", "What is React?", "A UI library by Meta.")
+acc.Item("faq2", "What is TypeScript?", "Typed JavaScript.")
+acc.Item("faq3", "What is Tailwind?", "A utility-first CSS framework.")
+
+const log = []
+acc.subscribe(s => log.push([...s.openItems]))
+
+// Open first item
+acc.Trigger("faq1")
+console.log("Open after faq1:", [...acc.getState().openItems])  // ["faq1"]
+console.log("Content faq1:", acc.Content("faq1"))  // "A UI library..."
+console.log("Content faq2:", acc.Content("faq2"))  // null
+
+// Open second — first closes
+acc.Trigger("faq2")
+console.log("Open after faq2:", [...acc.getState().openItems])  // ["faq2"]
+console.log("faq1 closed:", acc.Content("faq1") === null)  // true
+
+// Close faq2 by clicking again
+acc.Trigger("faq2")
+console.log("All closed:", acc.getState().openItems.size === 0)  // true
+
+// Test multi-mode
+const multi = createAccordion({ allowMultiple: true })
+multi.Item("a","A","Content A")
+multi.Item("b","B","Content B")
+multi.Trigger("a"); multi.Trigger("b")
+console.log("\nMulti-mode open:", [...multi.getState().openItems])  // ["a","b"]
+multi.Trigger("a")
+console.log("After close a:", [...multi.getState().openItems])     // ["b"]
+
+console.log("\nState change log:", log.length, "transitions")</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Render prop — DataProvider with loading/error/refetch</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>createDataProvider(fetcher)</code> that simulates the render-prop pattern. The provider manages fetching, state (loading/success/error), and exposes a <code>subscribe(renderFn)</code> that receives <code>{ data, isLoading, error, refetch }</code>. Demonstrate that two completely different render functions receive the same data.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — render prop DataProvider</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">function createDataProvider(fetcher) {
+  let state = { data: null, isLoading: false, error: null }
+  let renders = []  // render functions (the "children" in render-prop pattern)
+
+  const notify = () => renders.forEach(fn => fn({ ...state, refetch }))
+
+  async function refetch() {
+    state = { ...state, isLoading: true, error: null }
+    notify()
+    try {
+      const data = await fetcher()
+      state = { data, isLoading: false, error: null }
+    } catch(e) {
+      state = { ...state, isLoading: false, error: e }
+    }
+    notify()
+  }
+
+  // The render-prop: "subscribe" takes a render function
+  function subscribe(renderFn) {
+    renders.push(renderFn)
+    // Immediately call with current state
+    renderFn({ ...state, refetch })
+    return () => { renders = renders.filter(f => f !== renderFn) }
+  }
+
+  return { subscribe, refetch }
+}
+
+// Different fetchers
+async function fetchUsers() {
+  await new Promise(r => setTimeout(r, 20))
+  return [{ id:1, name:"Alice" }, { id:2, name:"Bob" }]
+}
+
+// Two completely different "render functions" for the same data
+async function runTests() {
+  const userProvider = createDataProvider(fetchUsers)
+
+  const log1 = [], log2 = []
+
+  // Render function 1: table view
+  const unsub1 = userProvider.subscribe(({ data, isLoading, error }) => {
+    if (isLoading) log1.push("table:loading")
+    else if (error) log1.push(`table:error:${error.message}`)
+    else if (data)  log1.push(`table:${data.map(u=>`<tr>${u.name}</tr>`).join('')}`)
+    else            log1.push("table:empty")
+  })
+
+  // Render function 2: card view
+  const unsub2 = userProvider.subscribe(({ data, isLoading }) => {
+    if (isLoading) log2.push("cards:loading")
+    else if (data) log2.push(`cards:${data.map(u=>`[${u.name}]`).join(' ')}`)
+    else           log2.push("cards:empty")
+  })
+
+  // Initial state
+  console.log("Initial log1:", log1)  // ["table:empty"]
+  console.log("Initial log2:", log2)  // ["cards:empty"]
+
+  // Fetch
+  await userProvider.refetch()
+  console.log("After fetch log1:", log1.slice(-1))   // last entry: table with rows
+  console.log("After fetch log2:", log2.slice(-1))   // last entry: cards
+
+  // Both received same data, rendered differently
+  console.log("Same data, 2 renders ✓:", log1.length === log2.length)
+
+  // Unsubscribe one
+  unsub1()
+  await userProvider.refetch()
+  console.log("After unsub1, log1 unchanged:", log1.length)
+  console.log("log2 still updating:", log2.length > log1.length)
+
+  console.log("\nFull log1:", log1)
+  console.log("Full log2:", log2)
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">State machine — payment flow with guarded transitions</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement the payment state machine from the lesson. Write <code>paymentMachine()</code> that manages <code>idle → validating → processing → success/declined/error</code> with guarded transitions (RETRY only works when <code>retryCount &lt; 3</code>). Verify that invalid transitions are silently ignored — no state corruption.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — payment state machine</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">function paymentMachine() {
+  let state = { status: "idle" }
+  let log   = []
+  let subs  = []
+  const notify = () => subs.forEach(fn => fn({ ...state }))
+
+  function dispatch(event) {
+    const prev = state.status
+    // YOUR CODE: implement the state machine transitions
+    // idle:       SUBMIT → validating
+    // validating: APPROVE_VALIDATION → processing (with amount from event)
+    //             ERROR → error
+    // processing: APPROVE → success (with transactionId)
+    //             DECLINE → declined (reason, retryCount: 0)
+    //             ERROR → error (message)
+    // declined:   RETRY (guard: retryCount < 3) → validating
+    //             RETRY (guard: retryCount >= 3) → stay declined
+    // success/error: RESET → idle
+    // All other transitions: no-op
+
+    switch(state.status) {
+      case "idle":
+        if (event.type === "SUBMIT") state = { status:"validating", amount: event.amount }
+        break
+      case "validating":
+        if (event.type === "APPROVE_VALIDATION") state = { status:"processing", amount: state.amount }
+        else if (event.type === "ERROR") state = { status:"error", message: event.message }
+        break
+      case "processing":
+        if (event.type === "APPROVE") state = { status:"success", transactionId: event.transactionId }
+        else if (event.type === "DECLINE") state = { status:"declined", reason: event.reason, retryCount: 0 }
+        else if (event.type === "ERROR") state = { status:"error", message: event.message }
+        break
+      case "declined":
+        if (event.type === "RETRY") {
+          if (state.retryCount < 3) state = { status:"validating", amount: state.amount }
+          else state = { ...state, retryCount: state.retryCount } // stay, no change
+        }
+        break
+      case "success":
+      case "error":
+        if (event.type === "RESET") state = { status:"idle" }
+        break
+    }
+    log.push(`${prev} →[${event.type}]→ ${state.status}`)
+    notify()
+  }
+
+  return {
+    dispatch,
+    getState: () => ({ ...state }),
+    subscribe: fn => { subs.push(fn) },
+    getLog: () => [...log],
+  }
+}
+
+// Test the machine
+async function runTests() {
+  const machine = paymentMachine()
+  const states  = []
+  machine.subscribe(s => states.push(s.status))
+
+  console.log("Initial:", machine.getState().status)  // idle
+
+  // Happy path
+  machine.dispatch({ type:"SUBMIT", amount: 99.99 })
+  console.log("After SUBMIT:", machine.getState().status)  // validating
+
+  machine.dispatch({ type:"APPROVE_VALIDATION" })
+  console.log("After validation:", machine.getState().status)  // processing
+
+  machine.dispatch({ type:"APPROVE", transactionId:"txn_123" })
+  console.log("After APPROVE:", machine.getState().status)       // success
+  console.log("Transaction ID:", machine.getState().transactionId) // txn_123
+
+  // Invalid transition — SUBMIT in success state (no-op)
+  machine.dispatch({ type:"SUBMIT", amount:50 })
+  console.log("Invalid transition ignored:", machine.getState().status) // still success
+
+  machine.dispatch({ type:"RESET" })
+  console.log("After RESET:", machine.getState().status)  // idle
+
+  // Decline + retry flow
+  machine.dispatch({ type:"SUBMIT", amount: 49.99 })
+  machine.dispatch({ type:"APPROVE_VALIDATION" })
+  machine.dispatch({ type:"DECLINE", reason:"Insufficient funds" })
+  console.log("\nDeclined:", machine.getState().status, machine.getState().reason)
+
+  // 3 retries
+  for(let i=0; i<3; i++) {
+    machine.dispatch({ type:"RETRY" })
+    const s = machine.getState()
+    console.log(`Retry ${i+1}: → ${s.status}`)
+    if(s.status === "validating") {
+      machine.dispatch({ type:"DECLINE", reason:"Still declined" })
+    }
+  }
+
+  // 4th retry blocked
+  const before = machine.getState().retryCount
+  machine.dispatch({ type:"RETRY" })
+  console.log("4th retry blocked:", machine.getState().status === "declined")
+
+  console.log("\nFull transition log:")
+  machine.getLog().forEach(t => console.log(" ", t))
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">HOC compose — chain withAuth + withAnalytics + withErrorBoundary</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement three HOCs — <code>withAuth</code>, <code>withAnalytics</code>, <code>withErrorBoundary</code> — and a <code>compose(...hocs)</code> utility. Show that the order matters (outer HOC runs first) and that the composed result has correct displayName. Test that a protected component redirects when unauthenticated.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — HOC composition</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">// Simulate HOC pattern (without JSX — just function wrapping)
+
+// Mock auth state
+let currentUser = null
+const setUser = u => { currentUser = u }
+
+// Mock analytics
+const analyticsLog = []
+
+// ── HOC implementations ────────────────────────────────────
+function withAuth(Component) {
+  function Protected(props) {
+    if (!currentUser) return { type: "redirect", to: "/login" }
+    return Component({ ...props, user: currentUser })
+  }
+  Protected.displayName = `withAuth(${Component.displayName || Component.name})`
+  Protected.wraps = Component
+  return Protected
+}
+
+function withAnalytics(eventName) {
+  return function(Component) {
+    function WithTracking(props) {
+      analyticsLog.push({ event: eventName, component: Component.name, ts: Date.now() })
+      return Component(props)
+    }
+    WithTracking.displayName = `withAnalytics(${eventName})(${Component.displayName || Component.name})`
+    return WithTracking
+  }
+}
+
+function withErrorBoundary(fallback) {
+  return function(Component) {
+    function WithBoundary(props) {
+      try { return Component(props) }
+      catch(e) { return { type: "error", message: e.message, fallback } }
+    }
+    WithBoundary.displayName = `withErrorBoundary(${Component.displayName || Component.name})`
+    return WithBoundary
+  }
+}
+
+// ── compose utility ────────────────────────────────────────
+function compose(...hocs) {
+  return (Component) => hocs.reduceRight((comp, hoc) => hoc(comp), Component)
+}
+
+// ── Base component ─────────────────────────────────────────
+function Dashboard({ user }) {
+  return { type: "dashboard", content: `Welcome, ${user?.name ?? "Guest"}!` }
+}
+
+// ── Compose all HOCs ───────────────────────────────────────
+const EnhancedDashboard = compose(
+  withAuth,
+  withAnalytics("dashboard_view"),
+  withErrorBoundary("Error loading dashboard")
+)(Dashboard)
+
+console.log("DisplayName:", EnhancedDashboard.displayName)
+
+// Test: unauthenticated
+const redirect = EnhancedDashboard({})
+console.log("Unauthenticated:", redirect.type, redirect.to)  // redirect /login
+console.log("Analytics fired:", analyticsLog.length)          // 0 (auth blocks first)
+
+// Test: authenticated
+setUser({ id:1, name:"Alice", role:"admin" })
+const result = EnhancedDashboard({})
+console.log("Authenticated:", result.type, result.content)    // dashboard, Welcome Alice
+console.log("Analytics fired:", analyticsLog.length)          // 1
+console.log("Event:", analyticsLog[0].event)                  // dashboard_view
+
+// Test: error boundary
+function BuggyComponent(props) {
+  throw new Error("Component crashed!")
+}
+const SafeBuggy = compose(
+  withErrorBoundary("Please refresh the page"),
+)(BuggyComponent)
+
+const err = SafeBuggy({})
+console.log("Error caught:", err.type === "error")            // true
+console.log("Fallback:", err.fallback)                        // "Please refresh..."
+
+// Verify order matters
+const WithAuthFirst  = compose(withAuth, withAnalytics("test"))(Dashboard)
+const WithTrackFirst = compose(withAnalytics("test"), withAuth)(Dashboard)
+
+setUser(null)  // unauthenticated
+const r1 = WithAuthFirst({})
+console.log("\nAuth first (no analytics):", analyticsLog.length)  // 1 (unchanged)
+const beforeLen = analyticsLog.length
+const r2 = WithTrackFirst({})
+console.log("Track first (analytics fires before auth):", analyticsLog.length > beforeLen) // true</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Portal — toast queue manager</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>createToastManager()</code> that simulates the portal toast pattern: a queue of toasts with auto-dismiss after 4000ms, manual dismiss, max 5 visible, and type-based ordering (errors stay longer at 6000ms). Show the full lifecycle of multiple simultaneous toasts.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — toast manager (portal simulation)</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">function createToastManager({ maxVisible = 5 } = {}) {
+  let toasts = []
+  let timers = new Map()  // id → timeoutId
+  let subs   = []
+  let nextId = 1
+
+  const notify = () => subs.forEach(fn => fn([...toasts]))
+
+  const DURATIONS = { success: 3000, error: 6000, info: 4000, warning: 5000 }
+
+  function add(message, type = "info") {
+    const id = String(nextId++)
+    const toast = { id, message, type, createdAt: Date.now() }
+
+    // Queue management: drop oldest if at max
+    if (toasts.length >= maxVisible) {
+      const oldest = toasts[0]
+      dismiss(oldest.id)
+    }
+
+    toasts = [...toasts, toast]
+    notify()
+
+    // Auto-dismiss
+    const duration = DURATIONS[type] || 4000
+    timers.set(id, setTimeout(() => dismiss(id), duration))
+
+    return id
+  }
+
+  function dismiss(id) {
+    clearTimeout(timers.get(id))
+    timers.delete(id)
+    toasts = toasts.filter(t => t.id !== id)
+    notify()
+  }
+
+  function clear() {
+    timers.forEach(t => clearTimeout(t))
+    timers.clear()
+    toasts = []
+    notify()
+  }
+
+  function subscribe(fn) {
+    subs.push(fn)
+    fn([...toasts])
+    return () => { subs = subs.filter(f => f !== fn) }
+  }
+
+  return { add, dismiss, clear, subscribe, getToasts: () => [...toasts] }
+}
+
+// Test
+async function runTests() {
+  const tm = createToastManager({ maxVisible: 3 })
+  const renderLog = []
+
+  const unsub = tm.subscribe(toasts => {
+    renderLog.push(toasts.map(t => `${t.type}:${t.id}`).join(',') || "(empty)")
+  })
+
+  // Add toasts
+  const id1 = tm.add("Changes saved", "success")
+  console.log("After info:", tm.getToasts().length)  // 1
+
+  const id2 = tm.add("Network error", "error")
+  const id3 = tm.add("New update", "info")
+  console.log("After 3:", tm.getToasts().length)  // 3
+
+  // 4th toast evicts the oldest
+  const id4 = tm.add("Warning: low disk", "warning")
+  console.log("After 4th (max 3):", tm.getToasts().length)  // 3
+  console.log("Oldest evicted:", !tm.getToasts().find(t=>t.id===id1))  // true
+
+  // Manual dismiss
+  tm.dismiss(id2)
+  console.log("After dismiss id2:", tm.getToasts().map(t=>t.id))
+
+  // Types present
+  const types = tm.getToasts().map(t=>t.type)
+  console.log("Remaining types:", types.join(', '))
+
+  // Wait for success toast auto-dismiss (3s) — simulate with clear
+  tm.clear()
+  console.log("After clear:", tm.getToasts().length)  // 0
+
+  // Test ordering: errors should outlast info
+  const infoId  = tm.add("Info message", "info")
+  const errorId = tm.add("Error message", "error")
+  const infoTTL   = 4000  // info duration
+  const errorTTL  = 6000  // error duration
+  console.log("\nInfo TTL:", infoTTL, "ms | Error TTL:", errorTTL, "ms")
+  console.log("Error outlives info by:", errorTTL - infoTTL, "ms ✓")
+
+  console.log("\nRender log:")
+  renderLog.forEach((r,i) => console.log(`  ${i}: ${r}`))
+
+  unsub()
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Full pattern integration — React Shop product page</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Combine all patterns from today in a simulated Product Page: compound <code>Tabs</code> component for Description/Reviews/Specs, a render-prop <code>Disclosure</code> for FAQs, a state machine for the add-to-cart flow, and a toast for feedback. Show each pattern playing its correct role.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — full patterns integration</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// ── Compound Tabs ─────────────────────────────────────────
+function createTabs(defaultActive) {
+  let active = defaultActive
+  let panels = new Map()
+  let subs   = []
+  const notify = () => subs.forEach(fn => fn(active))
+  return {
+    register: (id, content) => panels.set(id, content),
+    activate: (id) => { active = id; notify() },
+    getActive: () => active,
+    getContent: (id) => panels.get(id) ?? null,
+    subscribe: fn => { subs.push(fn) },
+    isActive: id => active === id,
+  }
+}
+
+// ── Disclosure ────────────────────────────────────────────
+function createDisclosure(defaultOpen = false) {
+  let isOpen = defaultOpen
+  let subs   = []
+  const notify = () => subs.forEach(fn => fn(isOpen))
+  return {
+    toggle: () => { isOpen = !isOpen; notify() },
+    open:   () => { isOpen = true;  notify() },
+    close:  () => { isOpen = false; notify() },
+    isOpen: () => isOpen,
+    subscribe: fn => { subs.push(fn) },
+  }
+}
+
+// ── Cart state machine ─────────────────────────────────────
+function createCartMachine() {
+  let state = { status: "idle" }
+  let subs  = []
+  const notify = () => subs.forEach(fn => fn({ ...state }))
+
+  const transitions = {
+    idle:       { ADD: s => ({ status:"adding" }) },
+    adding:     { SUCCESS: s => ({ status:"success" }), ERROR: s => ({ status:"error", msg: s.msg }) },
+    success:    { RESET: s => ({ status:"idle" }) },
+    error:      { RETRY: s => ({ status:"adding" }), RESET: s => ({ status:"idle" }) },
+  }
+
+  return {
+    dispatch(event) {
+      const next = transitions[state.status]?.[event.type]
+      if (next) { state = next({ ...state, ...event }); notify() }
+    },
+    getState: () => ({ ...state }),
+    subscribe: fn => { subs.push(fn) },
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function createToast() {
+  const log = []
+  return {
+    success: msg => { log.push({ type:"success", msg }); return log.length },
+    error:   msg => { log.push({ type:"error",   msg }) },
+    getLog:  ()  => [...log],
+  }
+}
+
+// ── Product Page simulation ────────────────────────────────
+async function simulateProductPage() {
+  console.log("=== Product Page Patterns Demo ===\n")
+
+  // 1. Compound Tabs — product content sections
+  const tabs = createTabs("description")
+  tabs.register("description", "MacBook Pro 16\" with M3 chip. Blazing fast, all-day battery.")
+  tabs.register("reviews", "4.9★ from 2,847 reviews. 'Best laptop I've ever used.'")
+  tabs.register("specs", "CPU: M3 Pro | RAM: 18GB | Storage: 512GB SSD | Battery: 22hr")
+
+  const tabStates = []
+  tabs.subscribe(active => tabStates.push(active))
+
+  console.log("1. Compound Tabs:")
+  console.log("   Active:", tabs.getActive())  // description
+  console.log("   Content:", tabs.getContent("description").slice(0,30)+"...")
+
+  tabs.activate("reviews")
+  console.log("   After click Reviews:", tabs.getActive())
+  console.log("   Content:", tabs.getContent("reviews").slice(0,25)+"...")
+
+  // 2. Disclosure — FAQ accordion
+  const faq1 = createDisclosure()
+  const faq2 = createDisclosure()
+
+  console.log("\n2. Disclosure (FAQ):")
+  console.log("   FAQ1 initially:", faq1.isOpen() ? "open" : "closed")  // closed
+  faq1.toggle()
+  console.log("   After toggle FAQ1:", faq1.isOpen() ? "open" : "closed")  // open
+  faq1.toggle()
+  console.log("   After toggle again:", faq1.isOpen() ? "open" : "closed")  // closed
+
+  // 3. Cart state machine
+  const cart  = createCartMachine()
+  const toast = createToast()
+  const cartStates = []
+  cart.subscribe(s => cartStates.push(s.status))
+
+  console.log("\n3. Cart State Machine:")
+  console.log("   Initial:", cart.getState().status)  // idle
+
+  cart.dispatch({ type: "ADD", productId: 1 })
+  console.log("   After ADD:", cart.getState().status)  // adding
+
+  // Simulate success
+  await new Promise(r => setTimeout(r, 10))
+  cart.dispatch({ type: "SUCCESS" })
+  toast.success("MacBook Pro added to cart!")
+  console.log("   After SUCCESS:", cart.getState().status)  // success
+  console.log("   Toast:", toast.getLog()[0])
+
+  cart.dispatch({ type: "RESET" })
+  console.log("   After RESET:", cart.getState().status)  // idle
+
+  // Simulate error + retry
+  cart.dispatch({ type: "ADD" })
+  cart.dispatch({ type: "ERROR", msg: "Out of stock" })
+  console.log("   After ERROR:", cart.getState().status, cart.getState().msg)
+  toast.error("Failed to add: Out of stock")
+  cart.dispatch({ type: "RETRY" })
+  console.log("   After RETRY:", cart.getState().status)  // adding again
+
+  console.log("\n4. State Transitions:")
+  console.log("   Cart states:", cartStates.join(" → "))
+  console.log("   Tab states:", tabStates.join(" → "))
+  console.log("   Toasts:", toast.getLog().map(t=>`${t.type}:${t.msg}`).join(", "))
+
+  console.log("\n✅ All patterns working together in Product Page")
+}
+
+simulateProductPage()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">What is the compound component pattern and when would you use it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Compound components are a family of related sub-components that share implicit state through Context. Rather than passing all options as props to a single component, users compose the UI they need from the parts.<br><br>The signature: a parent component owns state in Context, and child components consume it without the user having to wire anything — <code>&lt;Tabs&gt;&lt;Tabs.List&gt;&lt;Tabs.Tab id="a"&gt;…&lt;Tabs.Panel id="a"&gt;</code>.<br><br>Use it when: a component has multiple distinct parts that need to share state (Tabs, Accordion, Select, Dialog), when users need flexibility to add custom content to individual parts (a badge on one Tab, an icon on another), or when the prop API would otherwise explode with configuration options. This is how Radix UI, shadcn/ui, and Headless UI are designed.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">What is the render prop pattern and how does it differ from custom hooks?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">A render prop is a function passed as a prop (often <code>children</code>) that a component calls with its internal state, letting the caller decide what to render. The component handles the logic; the caller controls the UI.<br><br>Both render props and custom hooks share logic between components. The key difference: <strong>custom hooks</strong> extract logic into a reusable function that the component calls directly — the component still controls its own rendering. <strong>Render props</strong> invert this — the component calls the consumer's function, allowing the component to influence where and when the consumer's UI renders.<br><br>Render props are better when: you need to expose multiple render slots, when the component itself needs to control the container structure (DataFetcher wrapping with loading/error states), or when working with class component APIs that can't use hooks. In modern React, custom hooks are usually simpler and preferred — render props shine in specific cases.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">When should you use a HOC in 2025, and when should you use a hook instead?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">HOCs wrap components declaratively at the definition point, without the consumer needing to know. Hooks add logic inside a component explicitly. Both share behaviour — the choice is about where you want the logic to live.<br><br>Use HOCs when: the enhancement is applied consistently across many components from outside (protecting all routes with <code>withAuth</code> in the router config), when wrapping third-party components you can't modify (adding error boundaries to library components), or for cross-cutting concerns that shouldn't require code changes in each consumer.<br><br>Use hooks instead when: the logic needs to be used inside the same component that benefits from it, when you want explicit opt-in rather than implicit wrapping, or when the logic produces state that the component needs to use directly. In most everyday React code, hooks are simpler and clearer — HOCs are a tool for specific architectural patterns, not a general-purpose logic-sharing mechanism.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">What makes state machines better than booleans for managing complex UI state?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">With booleans, impossible states become possible. Consider <code>isLoading: true</code> and <code>isError: true</code> simultaneously — this shouldn't happen, but nothing prevents it. As complexity grows, managing combinations of 4-5 booleans becomes error-prone and the number of impossible states explodes.<br><br>A state machine has exactly ONE current state from an explicit set. Transitions are defined precisely — you can only move from <code>processing</code> to <code>success</code> or <code>declined</code>, not to <code>validating</code>. This makes impossible states structurally impossible, not just "we try to prevent them."<br><br>In React, implement with <code>useReducer</code> where the state is a discriminated union: <code>type State = {status:"idle"} | {status:"loading"} | {status:"success",data:T} | {status:"error",error:Error}</code>. TypeScript then enforces that you only access <code>data</code> when in success state. The result: fewer bugs, clearer code, and easier testing — you test transitions, not combinations.</div>
+    <div class="tip-box">XState is the library version if state machines get complex. For most React use cases, useReducer with a well-typed state union is sufficient and has zero dependencies.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">Why do portals exist and what problems do they solve?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">The DOM's stacking context and overflow rules trap child elements inside their parent. A modal inside a card with <code>overflow: hidden</code> gets clipped. A tooltip with <code>z-index: 9999</code> still appears below a parent with <code>z-index: 10</code> if the parent creates a new stacking context.<br><br><code>createPortal(children, domNode)</code> renders React children into a DOM node outside the component tree — usually <code>document.body</code>. Crucially, the component is still inside React's virtual tree (events bubble correctly, Context works, refs work) but it renders to a different DOM location. This means modals escape overflow and stacking context issues while maintaining full React behaviour.<br><br>Common uses: modals (need to overlay everything), tooltips (need to position relative to viewport), toasts/notifications (fixed positioning at screen edge), dropdown menus (need to escape overflow containers). If you've ever seen a dropdown clipped by a parent with overflow hidden, you needed a portal.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">What can error boundaries catch and what can't they catch?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Error boundaries catch JavaScript errors during rendering, in lifecycle methods, and in constructors of any child component below them. They provide a fallback UI and prevent the entire application from unmounting.<br><br>They do <em>not</em> catch: errors in event handlers (use try/catch inside the handler), async errors (errors in setTimeout, Promise rejections, fetch failures), server-side rendering errors, or errors in the error boundary itself.<br><br>For async errors with React Query's <code>useSuspenseQuery</code>, you need an error boundary above the component — the query throws an error that the boundary catches. The <code>react-error-boundary</code> package's <code>useErrorBoundary</code> hook lets you programmatically pass async errors to the nearest boundary via <code>showBoundary(error)</code>, bridging the async gap. Place boundaries strategically — too high and a small error crashes the whole app, too low and you have duplicated fallback UI everywhere.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">What is inversion of control in React and how does it improve component APIs?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Inversion of control (IoC) means the component gives control back to the consumer rather than trying to handle every case internally. Instead of the component deciding everything, it provides extension points where the consumer can inject their logic.<br><br>In React: a <code>Select</code> component with a <code>filterItems</code> prop (consumer provides filtering logic), a <code>List</code> with a <code>renderItem</code> prop (consumer decides rendering), or a <code>Modal</code> with <code>onClose</code> (consumer decides what closing does). Render props and compound components are both forms of IoC.<br><br>The benefit: the component stays simple and general, while consumers get exactly the flexibility they need without the component author anticipating every use case. This is why the best component libraries feel unopinionated — they invert control at the right points. The alternative (the component handles everything via props) leads to prop explosion and a component API that can never satisfy all consumers.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">How do you implement a modal that closes on Escape and backdrop click?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Three things are needed: a portal to render at body level, a keyboard event listener for Escape, and a backdrop div that calls onClose on click.<br><br>The keyboard listener goes in a <code>useEffect</code> that's active only when the modal is open: <code>document.addEventListener("keydown", handler)</code>, cleanup removes it. Add <code>isOpen</code> to the dependency array — the effect re-runs when it changes.<br><br>The backdrop is a full-screen div positioned behind the modal content: <code>fixed inset-0 bg-black/50</code> with an <code>onClick={onClose}</code>. The modal content sits above it with <code>relative z-10</code>. Clicking the backdrop closes the modal, clicking the content does not (because content sits above the backdrop and the click doesn't bubble to the backdrop).<br><br>Additional: lock body scroll with <code>document.body.style.overflow = "hidden"</code> while open and restore in cleanup. Set <code>role="dialog"</code> and <code>aria-modal</code> for accessibility. Use <code>focus-trap</code> to keep keyboard focus inside the modal.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">How do compound components maintain state between sub-components without prop drilling?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Via React Context scoped to the compound component family. The root component (<code>Tabs</code>) owns the state and wraps its children in a Context Provider. All sub-components (<code>Tab</code>, <code>TabPanel</code>) call <code>useContext</code> to read and update that state — no props needed.<br><br>The implementation: create a private context (not exported), create a custom hook with a null check that throws if called outside the root component, and attach sub-components as static properties on the root for the namespaced API.<br><br>The key advantage: the user's JSX tree can be any depth — they can wrap Tab in a div, conditionally render panels, or add any custom elements between the compound components. The Context bypasses all intermediate layers automatically. This is what makes the pattern "compound" — the components appear independent in JSX but are coupled through implicit Context.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">What's the difference between controlled and uncontrolled compound components?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">An <strong>uncontrolled</strong> compound component owns its state internally (with <code>defaultActive</code>): the consumer doesn't manage it. Good for simple cases where the parent doesn't need to know or control the active state.<br><br>A <strong>controlled</strong> compound component receives its state as a prop (<code>active</code>) and calls a callback to request changes (<code>onActiveChange</code>): <code>&lt;Tabs active={activeTab} onActiveChange={setActiveTab}&gt;</code>. The consumer owns the state. Good when the parent needs to sync the active tab with URL params, analytics, or other state.<br><br>The professional approach supports both with a single implementation — detect whether <code>active</code> prop is provided, and if so, use it; otherwise use internal state. This is how Radix and Headless UI work. In code: <code>const isControlled = active !== undefined</code>, then use whichever source of truth is appropriate. When controlled, ignore internal state changes and call <code>onActiveChange</code> instead of <code>setActive</code>.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can build a compound <code>Tabs</code> component with Context + static sub-component properties from memory</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain why compound components use Context instead of prop drilling</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement a render-prop component — <code>children</code> as a function receiving state</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to prefer render props over custom hooks (and vice versa)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a <code>withAuth</code> HOC with correct <code>displayName</code> and TypeScript generic</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement a <code>compose(...hocs)</code> utility and explain why order matters</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can design a state machine for a multi-step flow using <code>useReducer</code> and discriminated unions</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why state machines prevent impossible states that boolean flags allow</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement a <code>Modal</code> with <code>createPortal</code>, Escape key, backdrop click, and scroll lock</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement an Error Boundary class component with <code>getDerivedStateFromError</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know what error boundaries can and cannot catch (hint: not async)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed exercises 1, 3, and 6 today (accordion, state machine, full integration)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I added a compound <code>Tabs</code> component and a <code>Modal</code> with portal to the React Shop</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My code is committed and pushed to GitHub</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Build <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);">Tabs</code> compound component — root + List + Tab + Panel, with Context + static props<br>
+      2. Build a payment <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);">stateMachine</code> with <code>useReducer</code> — idle→validating→processing→success/declined<br>
+      3. Build a <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);">Modal</code> with <code>createPortal</code> — Escape key, backdrop, scroll lock, aria attributes<br>
+      4. Write <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);">withAuth</code> HOC with TypeScript generic, displayName, and Navigate redirect
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 4 · Day 20</div>
+      <div class="footer-day-name">Advanced React Patterns</div>
+      <div class="footer-day-next">Next up: <strong>Day 21 — Next.js App Router</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 4 progress</span><span>Day 1 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:14%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day19_week3_review.html',19)">← Day 19</button>
+      <button class="footer-btn primary" onclick="navigateTo('day21_nextjs_app_router.html',21)">Day 21 — Next.js →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html",current:true},
+]
+const CURRENT=20
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+  "day18_tailwind_css.html","day19_week3_review.html",
+  "day20_advanced_patterns.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep building! 🟢`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.style.display='inline-block'
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

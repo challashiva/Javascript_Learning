@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS Mastery — Senior Interview Guide</title>
+<style>
+:root[data-theme="dark"]{--bg:#0d0d12;--surface:#13131c;--card:#1a1a28;--border:#252538;--border2:#2e2e48;--text:#e2e2f0;--muted:#6868a0;--faint:#3a3a58;--accent:#7c6cff;--accent2:#ff6c8a;--accent3:#4dffc3;--gold:#ffd166;--orange:#ff9f43;--sidebar-bg:#0f0f18;--code-bg:#0a0a14;--code-border:#1e1e32;--kw:#ff79c6;--str:#4dffc3;--cmt:#5c5c8a;--num:#bd93f9;--fn:#8be9fd;--op:#ff9f43;--cls:#ffd166;--shadow:0 4px 32px rgba(0,0,0,0.4);}
+:root[data-theme="light"]{--bg:#f0f0f6;--surface:#ffffff;--card:#ffffff;--border:#e0e0ec;--border2:#c8c8e0;--text:#1a1a2e;--muted:#7070a0;--faint:#d0d0e8;--accent:#5a4bdd;--accent2:#e0405a;--accent3:#0ab888;--gold:#c9820a;--orange:#d47b20;--sidebar-bg:#e8e8f2;--code-bg:#1a1a2e;--code-border:#2e2e50;--kw:#ff79c6;--str:#4dffc3;--cmt:#6272a4;--num:#bd93f9;--fn:#8be9fd;--op:#ffb86c;--cls:#ffd166;--shadow:0 4px 24px rgba(0,0,0,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6;display:flex;min-height:100vh;}
+#sidebar{width:272px;min-width:272px;background:var(--sidebar-bg);border-right:1px solid var(--border);height:100vh;position:sticky;top:0;overflow-y:auto;flex-shrink:0;scrollbar-width:thin;scrollbar-color:var(--border) transparent;transition:transform 0.3s ease;z-index:200;}
+#sidebar::-webkit-scrollbar{width:4px;}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.sidebar-header{padding:22px 18px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--sidebar-bg);z-index:10;}
+.sidebar-logo{font-size:20px;font-weight:800;letter-spacing:-1px;color:var(--text);}
+.sidebar-logo span{color:var(--accent);}
+.sidebar-sub{font-size:9px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:3px;}
+.sidebar-search{margin:10px 14px;}
+.sidebar-search input{width:100%;padding:7px 12px 7px 30px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;transition:border-color 0.2s;}
+.sidebar-search input:focus{border-color:var(--accent);}
+.search-wrap{position:relative;}
+.search-wrap::before{content:'⌕';position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;}
+.sidebar-search input::placeholder{color:var(--muted);}
+.nav-section{padding:6px 0;}
+.nav-cat{padding:8px 18px 3px;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);font-weight:700;}
+.nav-link{display:flex;align-items:center;gap:9px;padding:7px 18px;font-size:12px;color:var(--muted);text-decoration:none;cursor:pointer;transition:all 0.15s;border-left:2px solid transparent;user-select:none;}
+.nav-link:hover{color:var(--text);background:rgba(124,108,255,0.05);border-left-color:var(--border2);}
+.nav-link.active{color:var(--accent);background:rgba(124,108,255,0.1);border-left-color:var(--accent);font-weight:600;}
+.nav-link .ico{font-size:13px;width:17px;text-align:center;flex-shrink:0;}
+.nav-link .cnt{margin-left:auto;font-size:9px;color:var(--faint);background:var(--border);padding:1px 6px;border-radius:8px;}
+#main{flex:1;overflow-x:hidden;min-width:0;}
+.topbar{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px);}
+.topbar-l{display:flex;align-items:center;gap:10px;}
+.menu-btn{display:none;background:none;border:1px solid var(--border);border-radius:7px;padding:5px 9px;color:var(--text);cursor:pointer;font-size:15px;}
+.breadcrumb{font-size:12px;color:var(--muted);}
+.breadcrumb b{color:var(--accent);}
+.topbar-r{display:flex;align-items:center;gap:10px;}
+.badge-ct{font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--border);padding:4px 11px;border-radius:20px;}
+.theme-btn{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:5px 13px;color:var(--text);cursor:pointer;font-size:12px;transition:all 0.2s;}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent);}
+.content{padding:36px 44px 80px;max-width:940px;}
+.hero{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:44px;margin-bottom:44px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:320px;height:320px;background:radial-gradient(circle,rgba(124,108,255,0.12) 0%,transparent 70%);border-radius:50%;pointer-events:none;}
+.hero::after{content:'';position:absolute;bottom:-60px;left:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(77,255,195,0.06) 0%,transparent 70%);border-radius:50%;pointer-events:none;}
+.hero-tag{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent3);margin-bottom:14px;}
+.hero h1{font-size:clamp(26px,4vw,46px);font-weight:800;letter-spacing:-2px;line-height:1.05;margin-bottom:14px;}
+.hero h1 em{color:var(--accent);font-style:normal;}
+.hero p{color:var(--muted);font-size:13px;max-width:500px;line-height:1.85;}
+.hero-stats{display:flex;gap:28px;margin-top:24px;flex-wrap:wrap;}
+.stat-num{font-size:30px;font-weight:800;letter-spacing:-1.5px;color:var(--accent);}
+.stat-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:1px;}
+.fw-box{margin-top:26px;background:rgba(124,108,255,0.06);border:1px solid rgba(124,108,255,0.18);border-radius:11px;padding:18px 22px;}
+.fw-box h3{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:1px;}
+.steps{display:flex;flex-wrap:wrap;gap:7px;}
+.step{font-size:11px;padding:4px 11px;border-radius:6px;background:rgba(124,108,255,0.12);border:1px solid rgba(124,108,255,0.2);color:var(--accent);}
+.sec-div{display:flex;align-items:center;gap:14px;margin:52px 0 24px;opacity:0;transform:translateY(10px);transition:opacity 0.4s,transform 0.4s;}
+.sec-div.vis{opacity:1;transform:translateY(0);}
+.sec-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:rgba(124,108,255,0.1);border:1px solid rgba(124,108,255,0.2);}
+.sec-ttl h2{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
+.sec-ttl h2 span{color:var(--accent);}
+.sec-ttl p{font-size:11px;color:var(--muted);margin-top:3px;}
+.sec-line{flex:1;height:1px;background:var(--border);}
+.qa-card{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden;opacity:0;transform:translateY(8px);transition:opacity 0.35s,transform 0.35s,border-color 0.2s;}
+.qa-card.vis{opacity:1;transform:translateY(0);}
+.qa-card:hover{border-color:var(--border2);}
+.qa-hdr{padding:18px 22px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:background 0.15s;user-select:none;}
+.qa-hdr:hover{background:rgba(255,255,255,0.015);}
+.qa-num{font-size:10px;font-weight:700;color:var(--accent);background:rgba(124,108,255,0.12);border:1px solid rgba(124,108,255,0.2);padding:2px 7px;border-radius:5px;flex-shrink:0;margin-top:3px;letter-spacing:0.5px;}
+.qa-ht{flex:1;}
+.qa-q{font-size:14px;font-weight:700;letter-spacing:-0.2px;line-height:1.45;}
+.qa-meta{display:flex;gap:7px;margin-top:7px;flex-wrap:wrap;}
+.tag{font-size:10px;padding:2px 8px;border-radius:4px;letter-spacing:0.3px;}
+.th{background:rgba(255,108,138,0.1);color:var(--accent2);border:1px solid rgba(255,108,138,0.2);}
+.tm{background:rgba(255,209,102,0.09);color:var(--gold);border:1px solid rgba(255,209,102,0.18);}
+.te{background:rgba(77,255,195,0.07);color:var(--accent3);border:1px solid rgba(77,255,195,0.15);}
+.tt{background:var(--surface);color:var(--muted);border:1px solid var(--border);}
+.qa-chev{color:var(--muted);font-size:11px;margin-left:auto;transition:transform 0.3s;flex-shrink:0;margin-top:5px;}
+.qa-card.open .qa-chev{transform:rotate(180deg);}
+.qa-body{display:none;border-top:1px solid var(--border);}
+.qa-card.open .qa-body{display:block;}
+.techs{padding:22px;}
+.tech{margin-bottom:16px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.tech-hdr{padding:10px 16px;display:flex;align-items:center;gap:10px;background:var(--surface);}
+.tn{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.t1 .tn{background:rgba(255,108,138,0.15);color:var(--accent2);}
+.t2 .tn{background:rgba(255,159,67,0.12);color:var(--orange);}
+.t3 .tn{background:rgba(124,108,255,0.15);color:var(--accent);}
+.t4 .tn{background:rgba(77,255,195,0.1);color:var(--accent3);}
+.t5 .tn{background:rgba(255,209,102,0.1);color:var(--gold);}
+.t6 .tn{background:rgba(138,194,255,0.12);color:#8ac2ff;}
+.t7 .tn{background:rgba(255,108,138,0.1);color:var(--accent2);}
+.tl{font-size:11px;font-weight:700;letter-spacing:0.3px;}
+.t1 .tl{color:var(--accent2);}
+.t2 .tl{color:var(--orange);}
+.t3 .tl{color:var(--accent);}
+.t4 .tl{color:var(--accent3);}
+.t5 .tl{color:var(--gold);}
+.t6 .tl{color:#8ac2ff;}
+.t7 .tl{color:var(--accent2);}
+.tech-body{padding:14px 16px;font-size:13px;line-height:1.85;color:#b4b4d4;}
+.tech-body p{margin-bottom:9px;}
+.tech-body p:last-child{margin-bottom:0;}
+.tech-body strong{color:var(--text);}
+.tech-body em{color:var(--accent3);font-style:normal;}
+pre{background:var(--code-bg);border:1px solid var(--code-border);border-radius:9px;padding:18px;overflow-x:auto;margin:10px 0;font-size:12px;line-height:1.7;font-family:'Fira Code','Cascadia Code','Consolas',monospace;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+pre::-webkit-scrollbar{height:3px;}
+pre::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.cl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:3px;display:block;}
+.cl.bad{color:var(--accent2);}
+.cl.good{color:var(--accent3);}
+.kw{color:var(--kw);}
+.str{color:var(--str);}
+.cmt{color:var(--cmt);font-style:italic;}
+.nm{color:var(--num);}
+.fn{color:var(--fn);}
+.op{color:var(--op);}
+.cls{color:var(--cls);}
+.callout{padding:12px 16px;border-radius:9px;font-size:12.5px;line-height:1.75;margin:10px 0;display:flex;gap:10px;align-items:flex-start;}
+.callout-ico{flex-shrink:0;font-size:15px;margin-top:1px;}
+.cw{background:rgba(255,159,67,0.07);border:1px solid rgba(255,159,67,0.18);color:#c09060;}
+.ci{background:rgba(124,108,255,0.07);border:1px solid rgba(124,108,255,0.18);color:#9090c0;}
+.cg{background:rgba(77,255,195,0.05);border:1px solid rgba(77,255,195,0.15);color:#50b890;}
+.cp{background:rgba(255,209,102,0.05);border:1px solid rgba(255,209,102,0.15);color:#b09040;}
+.callout strong{color:inherit;font-weight:700;}
+.sk{background:rgba(124,108,255,0.05);border:1px solid rgba(124,108,255,0.18);border-radius:9px;padding:14px 18px;margin:10px 0;}
+.sk-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:9px;}
+.sk-w{display:flex;flex-wrap:wrap;gap:7px;align-items:center;}
+.sk-wd{background:rgba(124,108,255,0.15);border:1px solid rgba(124,108,255,0.3);color:var(--accent);padding:3px 11px;border-radius:20px;font-size:11px;font-weight:600;}
+.sk-arr{color:var(--faint);font-size:16px;}
+.peg{background:rgba(77,255,195,0.04);border:1px solid rgba(77,255,195,0.14);border-radius:9px;padding:12px 16px;margin:9px 0;font-size:12.5px;color:#60b898;}
+.peg strong{color:var(--accent3);}
+#scrolltop{position:fixed;bottom:28px;right:28px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:17px;display:none;align-items:center;justify-content:center;box-shadow:var(--shadow);transition:all 0.2s;z-index:300;}
+#scrolltop:hover{transform:translateY(-2px);}
+#scrolltop.show{display:flex;}
+#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent3));z-index:9999;transition:width 0.1s linear;pointer-events:none;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;}
+.overlay.show{display:block;}
+@media(max-width:860px){#sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);}.sidebar.open{transform:translateX(0);}.menu-btn{display:block;}.content{padding:20px 18px 60px;}.hero{padding:26px;}.topbar{padding:9px 14px;}}
+@media(max-width:560px){.hero-stats{gap:18px;}.steps{gap:5px;}}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">JS<span>Mastery</span></div>
+    <div class="sidebar-sub">Senior · 8+ Years · Interview Guide</div>
+  </div>
+  <div class="sidebar-search"><div class="search-wrap"><input type="text" id="si" placeholder="Search topics..." oninput="filterNav(this.value)"></div></div>
+  <div class="nav-section" id="nav-links">
+    <div class="nav-cat">Overview</div>
+    <div class="nav-link active" onclick="scrollTo2('hero',this)"><span class="ico">🏠</span>Introduction<span class="cnt">15Q</span></div>
+    <div class="nav-cat">Core Mechanics</div>
+    <div class="nav-link" onclick="scrollTo2('closures',this)"><span class="ico">🔒</span>Closures<span class="cnt">2Q</span></div>
+    <div class="nav-link" onclick="scrollTo2('proto',this)"><span class="ico">🧬</span>Prototypal Inheritance<span class="cnt">2Q</span></div>
+    <div class="nav-link" onclick="scrollTo2('this',this)"><span class="ico">👉</span>this Binding<span class="cnt">2Q</span></div>
+    <div class="nav-link" onclick="scrollTo2('scope',this)"><span class="ico">📦</span>Scope &amp; Hoisting<span class="cnt">1Q</span></div>
+    <div class="nav-cat">Async &amp; Runtime</div>
+    <div class="nav-link" onclick="scrollTo2('eventloop',this)"><span class="ico">🔄</span>Event Loop<span class="cnt">2Q</span></div>
+    <div class="nav-link" onclick="scrollTo2('promises',this)"><span class="ico">🤝</span>Promises &amp; Async<span class="cnt">2Q</span></div>
+    <div class="nav-link" onclick="scrollTo2('generators',this)"><span class="ico">⚙️</span>Generators &amp; Iterators<span class="cnt">1Q</span></div>
+    <div class="nav-cat">Advanced</div>
+    <div class="nav-link" onclick="scrollTo2('memory',this)"><span class="ico">🧠</span>Memory &amp; GC<span class="cnt">2Q</span></div>
+    <div class="nav-link" onclick="scrollTo2('weakrefs',this)"><span class="ico">🔗</span>WeakMap &amp; WeakRef<span class="cnt">1Q</span></div>
+    <div class="nav-link" onclick="scrollTo2('modules',this)"><span class="ico">📁</span>Module Systems<span class="cnt">1Q</span></div>
+    <div class="nav-link" onclick="scrollTo2('patterns',this)"><span class="ico">🏗️</span>Design Patterns<span class="cnt">1Q</span></div>
+    <div class="nav-link" onclick="scrollTo2('perf',this)"><span class="ico">⚡</span>Performance<span class="cnt">1Q</span></div>
+    <div class="nav-link" onclick="scrollTo2('v8',this)"><span class="ico">🚀</span>V8 Internals<span class="cnt">1Q</span></div>
+    <div class="nav-link" onclick="scrollTo2('workers',this)"><span class="ico">👷</span>Web Workers<span class="cnt">1Q</span></div>
+  </div>
+</nav>
+
+<div id="main">
+  <div class="topbar">
+    <div class="topbar-l">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="breadcrumb">JS Mastery / <b>Senior Interview Prep</b></div>
+    </div>
+    <div class="topbar-r">
+      <span class="badge-ct">15 Questions · 7 Techniques Each</span>
+      <button class="theme-btn" id="tbtn" onclick="toggleTheme()">☀ Light</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- HERO -->
+    <div class="hero" id="hero">
+      <div class="hero-tag">// 8+ YEARS EXPERIENCE · ADVANCED LEVEL · 7-TECHNIQUE FRAMEWORK</div>
+      <h1>JavaScript <em>Mastery</em><br>Interview Guide</h1>
+      <p>Every question answered using the 7 Mentor Techniques — fixes how you <em>think</em> about concepts, not just memorize them. Click any question to expand the full deep-dive.</p>
+      <div class="hero-stats">
+        <div><div class="stat-num">15</div><div class="stat-label">Questions</div></div>
+        <div><div class="stat-num">7</div><div class="stat-label">Techniques</div></div>
+        <div><div class="stat-num">60+</div><div class="stat-label">Code Examples</div></div>
+        <div><div class="stat-num">∞</div><div class="stat-label">Confidence</div></div>
+      </div>
+      <div class="fw-box">
+        <h3>① THE 7 MENTOR TECHNIQUES FRAMEWORK</h3>
+        <div class="steps">
+          <div class="step">① Misconception</div>
+          <div class="step">② Why Wrong</div>
+          <div class="step">③ Broken Code</div>
+          <div class="step">④ Fix Step-by-Step</div>
+          <div class="step">⑤ Deep Concept</div>
+          <div class="step">⑥ Real-World Use</div>
+          <div class="step">⑦ Pro Tip / Gotcha</div>
+        </div>
+      </div>
+    </div>
+    <!-- CLOSURES -->
+    <div class="sec-div" id="closures"><div class="sec-icon">🔒</div><div class="sec-ttl"><h2><span>Closures</span></h2><p>Lexical scope, memory capture, the loop bug, and memoization</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q01</div><div class="qa-ht">
+        <div class="qa-q">What is a closure? Why does the classic loop-with-setTimeout bug happen and how do you fix it?</div>
+        <div class="qa-meta"><span class="tag th">HARD</span><span class="tag tt">Closures</span><span class="tag tt">Scope</span><span class="tag tt">var</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"A closure is just a function inside another function. Each loop iteration creates its own <code>i</code>, so setTimeout should print 0,1,2,3,4."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p><code>var</code> is <strong>function-scoped, not block-scoped</strong>. All five iterations share the <em>same single variable</em> in the enclosing scope. By the time any setTimeout fires, the loop has finished and <code>i === 5</code>. Every callback closes over the same reference — not the value at iteration time.</p></div></div>
+        <div class="tech t3"><div class="tech-hdr"><div class="tn">③</div><div class="tl">BROKEN CODE</div></div><div class="tech-body">
+          <span class="cl bad">❌ BROKEN — prints 5 five times</span>
+          <pre><span class="kw">for</span> (<span class="kw">var</span> i = <span class="nm">0</span>; i &lt; <span class="nm">5</span>; i++) {
+  <span class="fn">setTimeout</span>(<span class="kw">function</span>() {
+    console.<span class="fn">log</span>(i); <span class="cmt">// 5, 5, 5, 5, 5 — NOT 0,1,2,3,4</span>
+  }, i * <span class="nm">1000</span>);
+}
+<span class="cmt">// When callbacks fire, loop is done: i === 5</span>
+<span class="cmt">// All callbacks share ONE `i` reference, not a copy</span></pre>
+        </div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">FIX — THREE APPROACHES</div></div><div class="tech-body">
+          <span class="cl good">✅ Fix 1: let — creates new binding per iteration</span>
+          <pre><span class="kw">for</span> (<span class="kw">let</span> i = <span class="nm">0</span>; i &lt; <span class="nm">5</span>; i++) {
+  <span class="fn">setTimeout</span>(() =&gt; console.<span class="fn">log</span>(i), i * <span class="nm">1000</span>);
+}
+<span class="cmt">// ✅ Each iteration has its OWN block-scoped `i` → 0,1,2,3,4</span></pre>
+          <span class="cl good">✅ Fix 2: IIFE — captures value in a new scope</span>
+          <pre><span class="kw">for</span> (<span class="kw">var</span> i = <span class="nm">0</span>; i &lt; <span class="nm">5</span>; i++) {
+  ((<span class="kw">function</span>(j) {
+    <span class="fn">setTimeout</span>(() =&gt; console.<span class="fn">log</span>(j), j * <span class="nm">1000</span>);
+  })(i)); <span class="cmt">// j captures current VALUE of i</span>
+}</pre>
+          <span class="cl good">✅ Fix 3: Factory function — most readable</span>
+          <pre><span class="kw">const</span> <span class="fn">makeTimer</span> = n =&gt; () =&gt; console.<span class="fn">log</span>(n);
+<span class="kw">for</span> (<span class="kw">var</span> i = <span class="nm">0</span>; i &lt; <span class="nm">5</span>; i++) {
+  <span class="fn">setTimeout</span>(<span class="fn">makeTimer</span>(i), i * <span class="nm">1000</span>);
+}</pre>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">DEEP CONCEPT</div></div><div class="tech-body">
+          <p>A closure is a function that retains a <strong>live reference</strong> to its outer lexical environment — not a snapshot. Think of closures as holding a <em>pointer to a box</em>, not a copy of the value inside. The environment lives as long as any closure references it.</p>
+          <div class="sk"><div class="sk-lbl">5-KEYWORD SKELETON</div><div class="sk-w"><span class="sk-wd">function</span><span class="sk-arr">→</span><span class="sk-wd">lexical scope</span><span class="sk-arr">→</span><span class="sk-wd">live reference</span><span class="sk-arr">→</span><span class="sk-wd">not a copy</span><span class="sk-arr">→</span><span class="sk-wd">survives outer</span></div></div>
+          <div class="peg">🎒 <strong>Memory Peg:</strong> A closure is like a backpack. The inner function packs a <em>live wire</em> (pointer) to outer variables — not a photo of their values.</div>
+        </div></div>
+        <div class="tech t6"><div class="tech-hdr"><div class="tn">⑥</div><div class="tl">REAL-WORLD: MEMOIZATION</div></div><div class="tech-body">
+          <pre><span class="kw">function</span> <span class="fn">memoize</span>(fn) {
+  <span class="kw">const</span> cache = <span class="kw">new</span> <span class="cls">Map</span>(); <span class="cmt">// closed-over — persists between calls</span>
+  <span class="kw">return function</span>(...args) {
+    <span class="kw">const</span> key = <span class="cls">JSON</span>.<span class="fn">stringify</span>(args);
+    <span class="kw">if</span> (cache.<span class="fn">has</span>(key)) <span class="kw">return</span> cache.<span class="fn">get</span>(key);
+    <span class="kw">const</span> result = fn.<span class="fn">apply</span>(<span class="kw">this</span>, args);
+    cache.<span class="fn">set</span>(key, result);
+    <span class="kw">return</span> result;
+  };
+}
+<span class="kw">const</span> expensiveFn = <span class="fn">memoize</span>(n =&gt; n * n * n);
+<span class="fn">expensiveFn</span>(<span class="nm">100</span>); <span class="cmt">// computed</span>
+<span class="fn">expensiveFn</span>(<span class="nm">100</span>); <span class="cmt">// ✅ cache hit — closure retains `cache`</span></pre>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP / GOTCHA</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>Memory Leak Gotcha:</strong> Closures keep outer scopes alive. A closure capturing a large object or DOM node holds that memory until the closure itself is GC'd. Always remove event listeners when done. Mention three closure examples in interviews: the loop bug, memoization, and React's useState hook.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q02</div><div class="qa-ht">
+        <div class="qa-q">Explain closure-based module pattern and private state encapsulation.</div>
+        <div class="qa-meta"><span class="tag tm">MEDIUM</span><span class="tag tt">Closures</span><span class="tag tt">Module Pattern</span><span class="tag tt">Encapsulation</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"Private state in JavaScript requires classes with # private fields. Before that, there was no real privacy."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p>The <strong>module pattern</strong> using closures has provided true data privacy since ES3. A variable in a closure scope is genuinely inaccessible from outside — not by convention, but by the language's scope rules. This pattern powers many production libraries.</p></div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">IMPLEMENTATION</div></div><div class="tech-body">
+          <span class="cl good">✅ IIFE Module Pattern — true private state</span>
+          <pre><span class="kw">const</span> Counter = (<span class="kw">function</span>() {
+  <span class="kw">let</span> count = <span class="nm">0</span>; <span class="cmt">// truly private — no external access</span>
+  <span class="kw">let</span> step = <span class="nm">1</span>;  <span class="cmt">// also private</span>
+
+  <span class="kw">return</span> {
+    <span class="fn">increment</span>() { count += step; },
+    <span class="fn">decrement</span>() { count -= step; },
+    <span class="fn">setStep</span>(n) { step = n; },
+    <span class="fn">getCount</span>() { <span class="kw">return</span> count; },
+    <span class="fn">reset</span>() { count = <span class="nm">0</span>; step = <span class="nm">1</span>; }
+  };
+})();
+
+Counter.<span class="fn">increment</span>();
+Counter.<span class="fn">increment</span>();
+Counter.<span class="fn">getCount</span>(); <span class="cmt">// 2</span>
+Counter.count;       <span class="cmt">// undefined — genuinely private</span>
+
+<span class="cmt">// Factory pattern — creates isolated instances</span>
+<span class="kw">function</span> <span class="fn">createStore</span>(initialState) {
+  <span class="kw">let</span> state = { ...initialState };
+  <span class="kw">const</span> listeners = <span class="kw">new</span> <span class="cls">Set</span>();
+
+  <span class="kw">return</span> {
+    <span class="fn">getState</span>: () =&gt; ({ ...state }),
+    <span class="fn">setState</span>(patch) {
+      state = { ...state, ...patch };
+      listeners.<span class="fn">forEach</span>(fn =&gt; <span class="fn">fn</span>(state));
+    },
+    <span class="fn">subscribe</span>(fn) { listeners.<span class="fn">add</span>(fn); <span class="kw">return</span> () =&gt; listeners.<span class="fn">delete</span>(fn); }
+  };
+}
+<span class="kw">const</span> store = <span class="fn">createStore</span>({ user: <span class="kw">null</span>, theme: <span class="str">'dark'</span> });</pre>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>ES2022 private fields (#)</strong> vs closure privacy: <code>#field</code> is enforced at the language spec level (even in DevTools you can't access it). Closures are private by scope — accessible in theory via prototype manipulation in some edge cases. For modern code, use <code>#</code>; for functional/factory patterns, closures remain idiomatic.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <!-- PROTOTYPAL INHERITANCE -->
+    <div class="sec-div" id="proto"><div class="sec-icon">🧬</div><div class="sec-ttl"><h2><span>Prototypal</span> Inheritance</h2><p>The prototype chain, class sugar, Object.create, and mixins</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q03</div><div class="qa-ht">
+        <div class="qa-q">How does prototypal inheritance differ from classical OOP? Explain the [[Prototype]] chain.</div>
+        <div class="qa-meta"><span class="tag th">HARD</span><span class="tag tt">Prototype</span><span class="tag tt">OOP</span><span class="tag tt">class</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"JavaScript <code>class</code> works just like Java/C# classes. When a child class extends a parent, methods are copied into child instances."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p>JS <code>class</code> is <strong>syntactic sugar over prototype delegation</strong>. Nothing is copied. Objects have a hidden <code>[[Prototype]]</code> link. Property lookup <em>walks the chain</em> — this is delegation, not copying. This distinction matters for performance, memory, and dynamic behavior.</p></div></div>
+        <div class="tech t3"><div class="tech-hdr"><div class="tn">③</div><div class="tl">BROKEN ASSUMPTION</div></div><div class="tech-body">
+          <span class="cl bad">❌ Wrong mental model</span>
+          <pre><span class="kw">class</span> <span class="cls">Animal</span> { <span class="fn">speak</span>() { <span class="kw">return</span> <span class="str">'...'</span>; } }
+<span class="kw">class</span> <span class="cls">Dog</span> <span class="kw">extends</span> <span class="cls">Animal</span> {}
+<span class="kw">const</span> d = <span class="kw">new</span> <span class="cls">Dog</span>();
+
+<span class="cmt">// WRONG: assuming speak is copied onto d</span>
+d.<span class="fn">hasOwnProperty</span>(<span class="str">'speak'</span>); <span class="cmt">// false — it's NOT on d at all!</span>
+<span class="cmt">// d → Dog.prototype → Animal.prototype → Object.prototype → null</span></pre>
+        </div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">HOW THE CHAIN WORKS</div></div><div class="tech-body">
+          <span class="cl good">✅ Prototype delegation step by step</span>
+          <pre><span class="kw">const</span> animal = {
+  <span class="fn">speak</span>() { <span class="kw">return</span> <span class="str">`<span class="op">${</span><span class="kw">this</span>.name<span class="op">}</span> speaks`</span>; }
+};
+<span class="kw">const</span> dog = <span class="cls">Object</span>.<span class="fn">create</span>(animal); <span class="cmt">// [[Prototype]] = animal</span>
+dog.name = <span class="str">'Rex'</span>;
+dog.<span class="fn">speak</span>(); <span class="cmt">// "Rex speaks" — found via chain, not own</span>
+
+<span class="cls">Object</span>.<span class="fn">getPrototypeOf</span>(dog) === animal; <span class="cmt">// true</span>
+dog.<span class="fn">hasOwnProperty</span>(<span class="str">'speak'</span>);         <span class="cmt">// false</span>
+dog.<span class="fn">hasOwnProperty</span>(<span class="str">'name'</span>);          <span class="cmt">// true</span>
+
+<span class="cmt">// Own properties SHADOW prototype properties</span>
+dog.speak = () =&gt; <span class="str">'Woof!'</span>; <span class="cmt">// shadows Animal.speak</span>
+dog.<span class="fn">speak</span>(); <span class="cmt">// "Woof!" — own property found first</span>
+<span class="kw">delete</span> dog.speak;
+dog.<span class="fn">speak</span>(); <span class="cmt">// "Rex speaks" — chain traversal resumes</span></pre>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">DEEP CONCEPT</div></div><div class="tech-body">
+          <p>Every JS object has <code>[[Prototype]]</code>. Property lookup: check own properties → check <code>[[Prototype]]</code> → repeat until <code>null</code>. <code>class extends</code> wires <code>Child.prototype.[[Prototype]]</code> to <code>Parent.prototype</code>. Memory benefit: methods live once on the prototype, not per instance.</p>
+          <div class="sk"><div class="sk-lbl">CHAIN LOOKUP</div><div class="sk-w"><span class="sk-wd">own props</span><span class="sk-arr">→</span><span class="sk-wd">[[Prototype]]</span><span class="sk-arr">→</span><span class="sk-wd">walk up</span><span class="sk-arr">→</span><span class="sk-wd">null terminus</span><span class="sk-arr">→</span><span class="sk-wd">undefined</span></div></div>
+        </div></div>
+        <div class="tech t6"><div class="tech-hdr"><div class="tn">⑥</div><div class="tl">REAL-WORLD: MIXIN PATTERN</div></div><div class="tech-body">
+          <pre><span class="cmt">// Compose behavior without deep inheritance chains</span>
+<span class="kw">const</span> Serializable = { <span class="fn">serialize</span>() { <span class="kw">return</span> <span class="cls">JSON</span>.<span class="fn">stringify</span>(<span class="kw">this</span>); } };
+<span class="kw">const</span> Validatable = { <span class="fn">isValid</span>() { <span class="kw">return</span> <span class="cls">Object</span>.<span class="fn">keys</span>(<span class="kw">this</span>).length &gt; <span class="nm">0</span>; } };
+
+<span class="kw">class</span> <span class="cls">User</span> { <span class="fn">constructor</span>(n) { <span class="kw">this</span>.name = n; } }
+<span class="cls">Object</span>.<span class="fn">assign</span>(<span class="cls">User</span>.prototype, Serializable, Validatable);
+
+<span class="kw">const</span> u = <span class="kw">new</span> <span class="cls">User</span>(<span class="str">'Alice'</span>);
+u.<span class="fn">isValid</span>();   <span class="cmt">// true — mixin behavior</span>
+u.<span class="fn">serialize</span>(); <span class="cmt">// '{"name":"Alice"}'</span>
+
+<span class="cmt">// Pure Object.create — no class overhead</span>
+<span class="kw">const</span> pureHashMap = <span class="cls">Object</span>.<span class="fn">create</span>(<span class="kw">null</span>); <span class="cmt">// NO prototype at all</span>
+<span class="cmt">// Perfect for dictionaries — no toString/valueOf interference</span></pre>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP / GOTCHA</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>Never use <code>__proto__</code></strong> in production — use <code>Object.getPrototypeOf()</code>. Also: <code>instanceof</code> checks the prototype chain, not the constructor. An object from a different realm (iframe window) will fail <code>instanceof Array</code> — use <code>Array.isArray()</code> instead.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q04</div><div class="qa-ht">
+        <div class="qa-q">What happens under the hood when you use the `new` keyword?</div>
+        <div class="qa-meta"><span class="tag tm">MEDIUM</span><span class="tag tt">new keyword</span><span class="tag tt">Prototype</span><span class="tag tt">Constructor</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">WHAT `new` DOES — 4 STEPS</div></div><div class="tech-body">
+          <pre><span class="cmt">// `new Foo(args)` does exactly this internally:</span>
+<span class="kw">function</span> <span class="fn">myNew</span>(Constructor, ...args) {
+  <span class="cmt">// 1. Create a fresh object</span>
+  <span class="kw">const</span> obj = {};
+
+  <span class="cmt">// 2. Set its [[Prototype]] to Constructor.prototype</span>
+  <span class="cls">Object</span>.<span class="fn">setPrototypeOf</span>(obj, Constructor.prototype);
+
+  <span class="cmt">// 3. Call constructor with `this` = obj</span>
+  <span class="kw">const</span> result = Constructor.<span class="fn">apply</span>(obj, args);
+
+  <span class="cmt">// 4. Return result if object, else return obj</span>
+  <span class="kw">return</span> (result &amp;&amp; <span class="kw">typeof</span> result === <span class="str">'object'</span>) ? result : obj;
+}
+
+<span class="kw">function</span> <span class="cls">Person</span>(name) { <span class="kw">this</span>.name = name; }
+<span class="cls">Person</span>.prototype.<span class="fn">greet</span> = <span class="kw">function</span>() { <span class="kw">return</span> <span class="str">`Hi, I'm <span class="op">${</span><span class="kw">this</span>.name<span class="op">}</span>`</span>; };
+
+<span class="kw">const</span> p = <span class="fn">myNew</span>(<span class="cls">Person</span>, <span class="str">'Alice'</span>);
+p.<span class="fn">greet</span>();           <span class="cmt">// "Hi, I'm Alice"</span>
+p <span class="kw">instanceof</span> <span class="cls">Person</span>; <span class="cmt">// true</span></pre>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>Step 4 gotcha:</strong> If a constructor explicitly <code>return</code>s an object, that object is used instead of the newly created one. This is how some patterns intentionally override <code>new</code> behavior — used in singleton patterns and some ORMs.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+    <!-- THIS BINDING -->
+    <div class="sec-div" id="this"><div class="sec-icon">👉</div><div class="sec-ttl"><h2><span>this</span> Binding</h2><p>Four binding rules, arrow functions, call/apply/bind</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q05</div><div class="qa-ht">
+        <div class="qa-q">Explain the four rules of `this` binding and how arrow functions change the picture.</div>
+        <div class="qa-meta"><span class="tag th">HARD</span><span class="tag tt">this</span><span class="tag tt">Arrow Functions</span><span class="tag tt">call/bind/apply</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"<code>this</code> refers to the object the function is defined inside."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p><code>this</code> is determined <strong>entirely at call time</strong>, not definition time. It depends on <em>how</em> the function is invoked. Arrow functions are the only exception — they capture <code>this</code> lexically at definition time because they have no own <code>this</code>.</p></div></div>
+        <div class="tech t3"><div class="tech-hdr"><div class="tn">③</div><div class="tl">BROKEN CODE</div></div><div class="tech-body">
+          <span class="cl bad">❌ this-loss bug</span>
+          <pre><span class="kw">const</span> timer = {
+  count: <span class="nm">0</span>,
+  <span class="fn">start</span>() {
+    <span class="fn">setInterval</span>(<span class="kw">function</span>() {
+      <span class="kw">this</span>.count++; <span class="cmt">// ❌ this = undefined (strict) or global</span>
+    }, <span class="nm">1000</span>);
+  }
+};
+timer.<span class="fn">start</span>(); <span class="cmt">// NaN — this.count doesn't exist</span>
+
+<span class="cmt">// Also: method extraction loses implicit binding</span>
+<span class="kw">const</span> { start } = timer;
+<span class="fn">start</span>(); <span class="cmt">// ❌ `this` is global/undefined — lost!</span></pre>
+        </div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">THE FOUR RULES + PRIORITY</div></div><div class="tech-body">
+          <span class="cl good">✅ Rule 1: Default — standalone call → global/undefined</span>
+          <pre><span class="kw">function</span> <span class="fn">f</span>() { <span class="kw">return</span> <span class="kw">this</span>; }
+<span class="fn">f</span>(); <span class="cmt">// window (sloppy mode) | undefined (strict mode)</span></pre>
+          <span class="cl good">✅ Rule 2: Implicit — object before the dot</span>
+          <pre>obj.<span class="fn">f</span>(); <span class="cmt">// this === obj</span></pre>
+          <span class="cl good">✅ Rule 3: Explicit — call/apply/bind</span>
+          <pre>fn.<span class="fn">call</span>(ctx, arg1);        <span class="cmt">// this = ctx</span>
+fn.<span class="fn">apply</span>(ctx, [arg1,arg2]); <span class="cmt">// this = ctx, spread args</span>
+<span class="kw">const</span> bound = fn.<span class="fn">bind</span>(ctx); <span class="cmt">// permanently bound, new fn</span></pre>
+          <span class="cl good">✅ Rule 4: new — fresh object</span>
+          <pre><span class="kw">new</span> <span class="cls">Foo</span>(); <span class="cmt">// this = newly created object</span></pre>
+          <span class="cl good">✅ Arrow fix — lexical this</span>
+          <pre><span class="kw">const</span> timer = {
+  count: <span class="nm">0</span>,
+  <span class="fn">start</span>() {
+    <span class="fn">setInterval</span>(() =&gt; {
+      <span class="kw">this</span>.count++; <span class="cmt">// ✅ inherits this from start() = timer</span>
+    }, <span class="nm">1000</span>);
+  }
+};</pre>
+          <div class="callout ci"><span class="callout-ico">ℹ️</span><div><strong>Priority:</strong> new &gt; explicit (bind/call/apply) &gt; implicit (obj.method) &gt; default</div></div>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">DEEP CONCEPT</div></div><div class="tech-body">
+          <p>Arrow functions have <strong>no own <code>this</code></strong> — they cannot be used as constructors (<code>new</code> throws TypeError), and <code>.bind()</code> has no effect on their <code>this</code>. They inherit <code>this</code> from the enclosing <em>lexical</em> (non-arrow) context at definition time.</p>
+          <div class="sk"><div class="sk-lbl">DECISION FLOWCHART</div><div class="sk-w"><span class="sk-wd">new?</span><span class="sk-arr">→</span><span class="sk-wd">bind/call/apply?</span><span class="sk-arr">→</span><span class="sk-wd">obj.method?</span><span class="sk-arr">→</span><span class="sk-wd">default</span></div></div>
+        </div></div>
+        <div class="tech t6"><div class="tech-hdr"><div class="tn">⑥</div><div class="tl">REAL-WORLD: REACT CLASS COMPONENTS</div></div><div class="tech-body">
+          <pre><span class="cmt">// Why React class components needed bind</span>
+<span class="kw">class</span> <span class="cls">Button</span> <span class="kw">extends</span> <span class="cls">React</span>.Component {
+  <span class="fn">constructor</span>(props) {
+    <span class="kw">super</span>(props);
+    <span class="kw">this</span>.<span class="fn">handleClick</span> = <span class="kw">this</span>.<span class="fn">handleClick</span>.<span class="fn">bind</span>(<span class="kw">this</span>);
+    <span class="cmt">// Without bind: React calls handleClick() — default binding</span>
+    <span class="cmt">// → this is undefined in strict mode → crash</span>
+  }
+  <span class="fn">handleClick</span>() { console.<span class="fn">log</span>(<span class="kw">this</span>.state); }
+}
+
+<span class="cmt">// Modern solution: class field arrow function</span>
+<span class="kw">class</span> <span class="cls">Button</span> <span class="kw">extends</span> <span class="cls">React</span>.Component {
+  handleClick = () =&gt; { <span class="cmt">// arrow — lexical this = instance</span>
+    console.<span class="fn">log</span>(<span class="kw">this</span>.state); <span class="cmt">// ✅ always correct</span>
+  }
+}</pre>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>Gotcha — implicit binding loss:</strong> <code>const fn = obj.method; fn();</code> loses implicit binding. <code>setTimeout(obj.method, 0)</code> also loses it. Always use <code>.bind()</code>, arrow wrappers, or class field arrows when passing methods as callbacks.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <!-- SCOPE & HOISTING -->
+    <div class="sec-div" id="scope"><div class="sec-icon">📦</div><div class="sec-ttl"><h2><span>Scope</span> &amp; Hoisting</h2><p>TDZ, var/let/const hoisting mechanics, block scope</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q06</div><div class="qa-ht">
+        <div class="qa-q">What is hoisting? How are var, let, const, and function declarations hoisted differently?</div>
+        <div class="qa-meta"><span class="tag tm">MEDIUM</span><span class="tag tt">Hoisting</span><span class="tag tt">TDZ</span><span class="tag tt">var/let/const</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"Only <code>var</code> is hoisted. <code>let</code> and <code>const</code> are not hoisted at all. Hoisting means code physically moves to the top."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p><strong>All declarations are hoisted</strong> — registered in scope during the parse phase. The difference is initialization. <code>var</code> is initialized to <code>undefined</code>. <code>let</code>/<code>const</code> are hoisted but left <em>uninitialized</em> in the Temporal Dead Zone (TDZ). Accessing them throws ReferenceError.</p></div></div>
+        <div class="tech t3"><div class="tech-hdr"><div class="tn">③</div><div class="tl">TDZ TRAP</div></div><div class="tech-body">
+          <span class="cl bad">❌ TDZ violation</span>
+          <pre>console.<span class="fn">log</span>(x); <span class="cmt">// undefined — var initialized at parse time</span>
+console.<span class="fn">log</span>(y); <span class="cmt">// ❌ ReferenceError: Cannot access 'y' before init</span>
+console.<span class="fn">log</span>(z); <span class="cmt">// ❌ ReferenceError: Cannot access 'z' before init</span>
+
+<span class="kw">var</span> x = <span class="nm">10</span>;
+<span class="kw">let</span> y = <span class="nm">20</span>;
+<span class="kw">const</span> z = <span class="nm">30</span>;</pre>
+        </div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">HOW JS ENGINE PROCESSES DECLARATIONS</div></div><div class="tech-body">
+          <span class="cl good">✅ Two-phase execution model</span>
+          <pre><span class="cmt">// PHASE 1: Parsing (before any code runs)</span>
+<span class="cmt">// → var declarations: registered + initialized to undefined</span>
+<span class="cmt">// → let/const declarations: registered + UNINITIALIZED (TDZ)</span>
+<span class="cmt">// → function declarations: registered + FULLY initialized</span>
+
+<span class="fn">foo</span>(); <span class="cmt">// ✅ works — function declarations fully hoisted</span>
+<span class="kw">function</span> <span class="fn">foo</span>() { <span class="kw">return</span> <span class="str">'hi'</span>; }
+
+<span class="kw">var</span> fn = <span class="kw">function</span>() {}; <span class="cmt">// fn is hoisted as undefined, fn() before this → TypeError</span>
+<span class="kw">const</span> arr = <span class="kw">function</span>() {}; <span class="cmt">// TDZ — cannot access before line</span>
+
+<span class="cmt">// PHASE 2: Execution</span>
+<span class="kw">var</span> count = <span class="nm">0</span>; <span class="cmt">// assignment happens here</span>
+<span class="kw">const</span> PI = <span class="nm">3.14</span>; <span class="cmt">// TDZ ends here, PI initialized</span>
+PI = <span class="nm">3</span>; <span class="cmt">// ❌ TypeError: Assignment to constant variable</span></pre>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">DEEP CONCEPT — TDZ PURPOSE</div></div><div class="tech-body">
+          <p>The Temporal Dead Zone is intentional: it forces you to declare before using, <strong>eliminating a class of bugs</strong> that var's undefined initialization silently created. TDZ exists in the time between entering a block scope and reaching the <code>let</code>/<code>const</code> declaration line.</p>
+          <div class="callout ci"><span class="callout-ico">ℹ️</span><div><strong>Scope:</strong> <code>var</code> = function-scoped. <code>let</code>/<code>const</code> = block-scoped (<code>{}</code>, loops, if, try/catch). This is why <code>let</code> in a for loop creates a new binding per iteration — each iteration is its own block.</div></div>
+          <div class="peg">📦 <strong>Memory Peg:</strong> TDZ is like a reserved parking spot with a "Not yet available" sign. The spot exists — but you can't use it until the car arrives (initialization).</div>
+        </div></div>
+        <div class="tech t6"><div class="tech-hdr"><div class="tn">⑥</div><div class="tl">REAL-WORLD GOTCHA</div></div><div class="tech-body">
+          <pre><span class="cmt">// Subtle TDZ in class fields</span>
+<span class="kw">class</span> <span class="cls">Config</span> {
+  host = <span class="kw">this</span>.<span class="fn">getDefault</span>(); <span class="cmt">// ✅ class fields run in declaration order</span>
+  port = <span class="nm">8080</span>;
+  <span class="fn">getDefault</span>() { <span class="kw">return</span> <span class="str">'localhost'</span>; }
+}
+
+<span class="cmt">// Circular ESM imports can cause TDZ at runtime!</span>
+<span class="cmt">// moduleA.js imports from moduleB.js</span>
+<span class="cmt">// moduleB.js imports from moduleA.js</span>
+<span class="cmt">// One of them gets an uninitialized binding → ReferenceError</span></pre>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>Rule of thumb:</strong> Always use <code>const</code> by default. Use <code>let</code> only when reassignment is needed. Never use <code>var</code> in modern code. ESLint's <code>no-var</code> rule enforces this automatically.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <!-- EVENT LOOP -->
+    <div class="sec-div" id="eventloop"><div class="sec-icon">🔄</div><div class="sec-ttl"><h2>Event Loop &amp; <span>Microtask Queue</span></h2><p>Call stack, macrotasks, microtasks, and render timing</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q07</div><div class="qa-ht">
+        <div class="qa-q">How does the JavaScript event loop work? What's the difference between microtask and macrotask queues?</div>
+        <div class="qa-meta"><span class="tag th">HARD</span><span class="tag tt">Event Loop</span><span class="tag tt">Microtasks</span><span class="tag tt">setTimeout</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"<code>setTimeout(fn, 0)</code> runs immediately after the current code. Promises and setTimeout callbacks go into the same queue."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p>There are <em>two separate queues</em>. The <strong>microtask queue</strong> is always <em>fully drained</em> before the event loop picks the next macrotask. Promises use microtasks, setTimeout uses macrotasks — so Promise callbacks always run before setTimeout, even if both are ready.</p></div></div>
+        <div class="tech t3"><div class="tech-hdr"><div class="tn">③</div><div class="tl">THE CLASSIC PUZZLE</div></div><div class="tech-body">
+          <span class="cl">⚡ Predict the output — frequent senior interview question</span>
+          <pre>console.<span class="fn">log</span>(<span class="str">'1'</span>);
+
+<span class="fn">setTimeout</span>(() =&gt; console.<span class="fn">log</span>(<span class="str">'2'</span>), <span class="nm">0</span>);
+
+<span class="cls">Promise</span>.<span class="fn">resolve</span>().<span class="fn">then</span>(() =&gt; console.<span class="fn">log</span>(<span class="str">'3'</span>));
+
+<span class="fn">queueMicrotask</span>(() =&gt; console.<span class="fn">log</span>(<span class="str">'4'</span>));
+
+console.<span class="fn">log</span>(<span class="str">'5'</span>);
+
+<span class="cmt">// Output: 1, 5, 3, 4, 2</span>
+<span class="cmt">// Sync:      1, 5  (call stack)</span>
+<span class="cmt">// Microtask: 3, 4  (fully drained before macrotask)</span>
+<span class="cmt">// Macrotask: 2     (setTimeout)</span></pre>
+        </div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">EVENT LOOP ALGORITHM</div></div><div class="tech-body">
+          <span class="cl good">✅ Pseudocode of the event loop</span>
+          <pre><span class="kw">while</span> (<span class="kw">true</span>) {
+  <span class="cmt">// 1. Execute ALL synchronous code on call stack</span>
+  <span class="fn">executeSyncCode</span>();
+
+  <span class="cmt">// 2. Drain ENTIRE microtask queue (including newly added!)</span>
+  <span class="kw">while</span> (microtaskQueue.length) {
+    microtaskQueue.<span class="fn">shift</span>()();
+  }
+
+  <span class="cmt">// 3. Pick ONE macrotask and execute it</span>
+  <span class="kw">if</span> (macrotaskQueue.length) macrotaskQueue.<span class="fn">shift</span>()();
+
+  <span class="cmt">// 4. Render (if browser needs repaint/reflow)</span>
+  <span class="fn">renderIfNeeded</span>();
+}</pre>
+          <div class="callout cw"><span class="callout-ico">⚠️</span><div><strong>Danger:</strong> An infinite microtask loop (Promise always resolves, schedules another Promise) <em>starves</em> the macrotask queue. The page freezes — no rendering, no setTimeout callbacks, no user input handled.</div></div>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">DEEP CONCEPT</div></div><div class="tech-body">
+          <p><strong>Macrotasks:</strong> setTimeout, setInterval, setImmediate (Node), I/O callbacks, UI events, postMessage<br>
+          <strong>Microtasks:</strong> Promise .then/.catch/.finally, queueMicrotask(), MutationObserver, async/await continuations</p>
+          <div class="sk"><div class="sk-lbl">MENTAL MODEL</div><div class="sk-w"><span class="sk-wd">call stack clears</span><span class="sk-arr">→</span><span class="sk-wd">drain microtasks</span><span class="sk-arr">→</span><span class="sk-wd">one macrotask</span><span class="sk-arr">→</span><span class="sk-wd">render</span><span class="sk-arr">→</span><span class="sk-wd">repeat</span></div></div>
+          <div class="peg">🚦 <strong>Memory Peg:</strong> Microtasks are the VIP lane — ALL of them go through before the next regular customer (macrotask) steps up. No exceptions.</div>
+        </div></div>
+        <div class="tech t6"><div class="tech-hdr"><div class="tn">⑥</div><div class="tl">REAL-WORLD: UI RENDERING WINDOW</div></div><div class="tech-body">
+          <pre><span class="kw">async function</span> <span class="fn">loadData</span>() {
+  <span class="fn">showSpinner</span>(); <span class="cmt">// sync — immediate</span>
+
+  <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/data'</span>);
+  <span class="cmt">// ↑ await yields to event loop — browser CAN render here!</span>
+  <span class="cmt">// Spinner appears before data loads ✅</span>
+
+  <span class="fn">hideSpinner</span>(); <span class="cmt">// runs when microtask resumes</span>
+  <span class="fn">render</span>(<span class="kw">await</span> data.<span class="fn">json</span>());
+}
+
+<span class="cmt">// Without await, the spinner never renders before data arrives:</span>
+<span class="kw">function</span> <span class="fn">badLoad</span>() {
+  <span class="fn">showSpinner</span>();
+  <span class="kw">const</span> data = <span class="fn">fetchSync</span>(); <span class="cmt">// blocks entire thread — spinner never shows</span>
+  <span class="fn">hideSpinner</span>();
+}</pre>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>Interview Gold:</strong> Each <code>await</code> creates a microtask checkpoint. <code>queueMicrotask()</code> is useful when you need something to run after sync code but before I/O — without the overhead of a resolved Promise chain. Also useful for batching multiple synchronous state updates before a single render.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+    <!-- PROMISES -->
+    <div class="sec-div" id="promises"><div class="sec-icon">🤝</div><div class="sec-ttl"><h2>Promises &amp; <span>Async/Await</span></h2><p>Internals, error handling, combinators, and implementation</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q08</div><div class="qa-ht">
+        <div class="qa-q">What are Promise's internal states? How does error propagation work through chains?</div>
+        <div class="qa-meta"><span class="tag th">HARD</span><span class="tag tt">Promises</span><span class="tag tt">Error Handling</span><span class="tag tt">Combinators</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"A .catch() at the end of a chain catches everything. try/catch around async functions catches all errors including unhandled rejections."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p>Each Promise chain is independent. An un-awaited Promise that rejects isn't caught by another chain's <code>.catch()</code> or a try/catch. Errors thrown inside <code>.then()</code> create new rejected Promises — they don't bubble synchronously.</p></div></div>
+        <div class="tech t3"><div class="tech-hdr"><div class="tn">③</div><div class="tl">BROKEN PATTERNS</div></div><div class="tech-body">
+          <span class="cl bad">❌ Silent swallowing — un-awaited promise</span>
+          <pre><span class="kw">async function</span> <span class="fn">getData</span>() {
+  <span class="kw">const</span> a = <span class="fn">fetch</span>(<span class="str">'/api/a'</span>); <span class="cmt">// NOT awaited — fire and forget</span>
+  <span class="kw">const</span> b = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/b'</span>);
+  <span class="cmt">// If `a` rejects → unhandledRejection → crashes Node 15+!</span>
+}
+
+<span class="cmt">// ❌ .catch() in wrong position</span>
+<span class="fn">fetchUser</span>()
+  .<span class="fn">then</span>(u =&gt; <span class="fn">fetchPosts</span>(u.id))
+  .<span class="fn">catch</span>(e =&gt; <span class="fn">log</span>(e))   <span class="cmt">// catches fetchUser errors</span>
+  .<span class="fn">then</span>(p =&gt; <span class="fn">process</span>(p)); <span class="cmt">// ❌ errors here are UNCAUGHT</span></pre>
+        </div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">CORRECT PATTERNS</div></div><div class="tech-body">
+          <span class="cl good">✅ States: pending → fulfilled | rejected (immutable once settled)</span>
+          <pre><span class="cmt">// Terminal .catch() catches ALL prior errors</span>
+<span class="fn">fetchUser</span>()
+  .<span class="fn">then</span>(u =&gt; <span class="fn">fetchPosts</span>(u.id))
+  .<span class="fn">then</span>(p =&gt; <span class="fn">process</span>(p))
+  .<span class="fn">catch</span>(e =&gt; <span class="fn">handleError</span>(e))  <span class="cmt">// ✅ catches ALL above</span>
+  .<span class="fn">finally</span>(() =&gt; <span class="fn">hideSpinner</span>()); <span class="cmt">// ✅ always runs</span>
+
+<span class="cmt">// Parallel with per-request fallback</span>
+<span class="kw">const</span> [users, posts] = <span class="kw">await</span> <span class="cls">Promise</span>.<span class="fn">all</span>([
+  <span class="fn">fetchUsers</span>().<span class="fn">catch</span>(() =&gt; []),
+  <span class="fn">fetchPosts</span>().<span class="fn">catch</span>(() =&gt; []),
+]);
+
+<span class="cmt">// allSettled — never rejects, inspect each result</span>
+<span class="kw">const</span> results = <span class="kw">await</span> <span class="cls">Promise</span>.<span class="fn">allSettled</span>([p1, p2, p3]);
+results.<span class="fn">forEach</span>(r =&gt; {
+  <span class="kw">if</span> (r.status === <span class="str">'fulfilled'</span>) <span class="fn">use</span>(r.value);
+  <span class="kw">else</span> <span class="fn">logError</span>(r.reason);
+});</pre>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">PROMISE COMBINATORS</div></div><div class="tech-body">
+          <div class="callout ci"><span class="callout-ico">ℹ️</span><div>
+            <strong>Promise.all</strong> — rejects immediately if ANY rejects (fail-fast)<br>
+            <strong>Promise.allSettled</strong> — waits for all, returns status objects<br>
+            <strong>Promise.race</strong> — resolves/rejects with FIRST settled<br>
+            <strong>Promise.any</strong> — resolves with FIRST fulfilled; rejects only if ALL reject (AggregateError)
+          </div></div>
+        </div></div>
+        <div class="tech t6"><div class="tech-hdr"><div class="tn">⑥</div><div class="tl">REAL-WORLD: RETRY WITH BACKOFF</div></div><div class="tech-body">
+          <pre><span class="kw">async function</span> <span class="fn">fetchWithRetry</span>(url, retries = <span class="nm">3</span>, delay = <span class="nm">500</span>) {
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="nm">0</span>; i &lt; retries; i++) {
+    <span class="kw">try</span> {
+      <span class="kw">return</span> <span class="kw">await</span> <span class="fn">fetch</span>(url).<span class="fn">then</span>(r =&gt; r.<span class="fn">json</span>());
+    } <span class="kw">catch</span> (e) {
+      <span class="kw">if</span> (i === retries - <span class="nm">1</span>) <span class="kw">throw</span> e; <span class="cmt">// last attempt — rethrow</span>
+      <span class="kw">await</span> <span class="kw">new</span> <span class="cls">Promise</span>(r =&gt; <span class="fn">setTimeout</span>(r, delay * <span class="nm">2</span> ** i));
+    }
+  }
+}</pre>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>await in forEach:</strong> <code>await</code> inside <code>Array.forEach</code> does NOT work — forEach ignores returned Promises. Use <code>for...of</code> for sequential async iteration, or <code>Promise.all(array.map(async item =&gt; ...))</code> for parallel.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q09</div><div class="qa-ht">
+        <div class="qa-q">Implement a Promise from scratch. How does .then() chaining work internally?</div>
+        <div class="qa-meta"><span class="tag th">HARD</span><span class="tag tt">Promise Internals</span><span class="tag tt">Implementation</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">FULL IMPLEMENTATION</div></div><div class="tech-body">
+          <pre><span class="kw">class</span> <span class="cls">MyPromise</span> {
+  <span class="fn">constructor</span>(executor) {
+    <span class="kw">this</span>.state = <span class="str">'pending'</span>;
+    <span class="kw">this</span>.value = <span class="kw">undefined</span>;
+    <span class="kw">this</span>.handlers = [];
+
+    <span class="kw">const</span> resolve = value =&gt; {
+      <span class="kw">if</span> (<span class="kw">this</span>.state !== <span class="str">'pending'</span>) <span class="kw">return</span>; <span class="cmt">// immutable once settled</span>
+      <span class="kw">this</span>.state = <span class="str">'fulfilled'</span>;
+      <span class="kw">this</span>.value = value;
+      <span class="kw">this</span>.handlers.<span class="fn">forEach</span>(h =&gt; h.<span class="fn">onFulfilled</span>(value));
+    };
+    <span class="kw">const</span> reject = reason =&gt; {
+      <span class="kw">if</span> (<span class="kw">this</span>.state !== <span class="str">'pending'</span>) <span class="kw">return</span>;
+      <span class="kw">this</span>.state = <span class="str">'rejected'</span>;
+      <span class="kw">this</span>.value = reason;
+      <span class="kw">this</span>.handlers.<span class="fn">forEach</span>(h =&gt; h.<span class="fn">onRejected</span>(reason));
+    };
+    <span class="kw">try</span> { <span class="fn">executor</span>(resolve, reject); }
+    <span class="kw">catch</span>(e) { <span class="fn">reject</span>(e); }
+  }
+
+  <span class="fn">then</span>(onFulfilled, onRejected) {
+    <span class="kw">return new</span> <span class="cls">MyPromise</span>((resolve, reject) =&gt; {
+      <span class="kw">const</span> <span class="fn">handle</span> = (fn, val) =&gt; {
+        <span class="fn">queueMicrotask</span>(() =&gt; { <span class="cmt">// spec: callbacks are async</span>
+          <span class="kw">try</span> { <span class="fn">resolve</span>(<span class="fn">fn</span>(val)); }
+          <span class="kw">catch</span>(e) { <span class="fn">reject</span>(e); }
+        });
+      };
+      <span class="kw">if</span> (<span class="kw">this</span>.state === <span class="str">'fulfilled'</span>)
+        <span class="fn">handle</span>(onFulfilled, <span class="kw">this</span>.value);
+      <span class="kw">else if</span> (<span class="kw">this</span>.state === <span class="str">'rejected'</span>)
+        <span class="fn">handle</span>(onRejected ?? (e =&gt; { <span class="kw">throw</span> e; }), <span class="kw">this</span>.value);
+      <span class="kw">else</span>
+        <span class="kw">this</span>.handlers.<span class="fn">push</span>({
+          onFulfilled: v =&gt; <span class="fn">handle</span>(onFulfilled, v),
+          onRejected:  v =&gt; <span class="fn">handle</span>(onRejected ?? (e =&gt; { <span class="kw">throw</span> e; }), v)
+        });
+    });
+  }
+
+  <span class="fn">catch</span>(fn) { <span class="kw">return this</span>.<span class="fn">then</span>(<span class="kw">undefined</span>, fn); }
+  <span class="fn">finally</span>(fn) {
+    <span class="kw">return this</span>.<span class="fn">then</span>(
+      v =&gt; { <span class="fn">fn</span>(); <span class="kw">return</span> v; },
+      e =&gt; { <span class="fn">fn</span>(); <span class="kw">throw</span> e; }
+    );
+  }
+}
+<span class="cmt">// Key insight: each .then() returns a NEW promise</span>
+<span class="cmt">// The return value of onFulfilled becomes the next promise's value</span>
+<span class="cmt">// This is the chain mechanism — not mutation of original promise</span></pre>
+        </div></div>
+      </div></div>
+    </div>
+
+    <!-- GENERATORS -->
+    <div class="sec-div" id="generators"><div class="sec-icon">⚙️</div><div class="sec-ttl"><h2>Generators &amp; <span>Iterators</span></h2><p>Lazy evaluation, infinite sequences, and async generators</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q10</div><div class="qa-ht">
+        <div class="qa-q">What are generators and iterators? When would you use them over async/await?</div>
+        <div class="qa-meta"><span class="tag th">HARD</span><span class="tag tt">Generators</span><span class="tag tt">Symbol.iterator</span><span class="tag tt">Lazy Evaluation</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"Generators are just an old way to write async code. Now that async/await exists, generators are obsolete."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p>Generators solve a different problem: <strong>lazy, on-demand value production and custom iteration protocols</strong>. They pause and resume on demand, producing values one at a time. Async/await handles time-based waiting. Generators handle value-sequence-based pausing. They're still used heavily in Redux-Saga, infinite sequences, and streaming.</p></div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">GENERATORS IN ACTION</div></div><div class="tech-body">
+          <span class="cl good">✅ Infinite sequence — impossible with arrays</span>
+          <pre><span class="kw">function*</span> <span class="fn">naturals</span>(start = <span class="nm">1</span>) {
+  <span class="kw">while</span> (<span class="kw">true</span>) <span class="kw">yield</span> start++;
+}
+<span class="kw">const</span> gen = <span class="fn">naturals</span>();
+gen.<span class="fn">next</span>().value; <span class="cmt">// 1</span>
+gen.<span class="fn">next</span>().value; <span class="cmt">// 2 — computes on demand, no memory overhead</span>
+
+<span class="cmt">// Custom iterable with Symbol.iterator</span>
+<span class="kw">class</span> <span class="cls">Range</span> {
+  <span class="fn">constructor</span>(start, end) { <span class="kw">this</span>.start = start; <span class="kw">this</span>.end = end; }
+  [<span class="cls">Symbol</span>.iterator]() {
+    <span class="kw">let</span> cur = <span class="kw">this</span>.start;
+    <span class="kw">const</span> end = <span class="kw">this</span>.end;
+    <span class="kw">return</span> {
+      <span class="fn">next</span>: () =&gt; cur &lt;= end
+        ? { value: cur++, done: <span class="kw">false</span> }
+        : { value: <span class="kw">undefined</span>, done: <span class="kw">true</span> }
+    };
+  }
+}
+[...<span class="kw">new</span> <span class="cls">Range</span>(<span class="nm">1</span>, <span class="nm">5</span>)]; <span class="cmt">// [1, 2, 3, 4, 5]</span>
+
+<span class="cmt">// Simpler with generator</span>
+<span class="kw">function*</span> <span class="fn">range</span>(start, end) {
+  <span class="kw">for</span> (<span class="kw">let</span> i = start; i &lt;= end; i++) <span class="kw">yield</span> i;
+}</pre>
+          <span class="cl good">✅ Async generator — streaming paginated data</span>
+          <pre><span class="kw">async function*</span> <span class="fn">streamPages</span>(url) {
+  <span class="kw">let</span> page = <span class="nm">1</span>;
+  <span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`<span class="op">${</span>url<span class="op">}</span>?page=<span class="op">${</span>page<span class="op">}</span>`</span>).<span class="fn">then</span>(r =&gt; r.<span class="fn">json</span>());
+    <span class="kw">if</span> (!data.length) <span class="kw">break</span>;
+    <span class="kw">yield</span> data;
+    page++;
+  }
+}
+<span class="kw">for await</span> (<span class="kw">const</span> page <span class="kw">of</span> <span class="fn">streamPages</span>(<span class="str">'/api/items'</span>)) {
+  <span class="fn">render</span>(page); <span class="cmt">// process each page as it arrives — memory efficient</span>
+}</pre>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">DEEP CONCEPT</div></div><div class="tech-body">
+          <p>Generators implement the <strong>Iterator protocol</strong>: an object with a <code>next()</code> method returning <code>{ value, done }</code>. Generator functions (<code>function*</code>) automatically return iterators. <code>yield</code> suspends execution and returns the value. <code>next(val)</code> resumes with <code>val</code> replacing the yield expression — enabling two-way communication.</p>
+          <div class="callout ci"><span class="callout-ico">ℹ️</span><div><code>for...of</code>, spread (<code>...</code>), destructuring, <code>Array.from()</code>, and <code>Promise.all()</code> all consume the <code>Symbol.iterator</code> protocol. Making your class iterable makes it work with all these natively.</div></div>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>Redux-Saga</strong> uses generators for side effect management — showing they're alive in production. Also: async generators are perfect for consuming <strong>ReadableStream</strong> data from the Fetch API — more memory efficient than buffering the entire response.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <!-- MEMORY -->
+    <div class="sec-div" id="memory"><div class="sec-icon">🧠</div><div class="sec-ttl"><h2>Memory Management &amp; <span>Garbage Collection</span></h2><p>Mark-and-sweep, generational GC, leak patterns</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q11</div><div class="qa-ht">
+        <div class="qa-q">How does JavaScript garbage collection work? What are the most common memory leak patterns?</div>
+        <div class="qa-meta"><span class="tag th">HARD</span><span class="tag tt">GC</span><span class="tag tt">Memory Leaks</span><span class="tag tt">Mark-and-Sweep</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"JavaScript manages memory automatically. I never need to think about memory leaks."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p>GC only collects objects with <em>no reachable references</em>. If your code accidentally retains references (closures, event listeners, global variables, detached DOM), memory grows until the tab crashes. SPAs running for hours are especially susceptible.</p></div></div>
+        <div class="tech t3"><div class="tech-hdr"><div class="tn">③</div><div class="tl">FOUR CLASSIC LEAK PATTERNS</div></div><div class="tech-body">
+          <span class="cl bad">❌ Leak 1: Forgotten event listeners</span>
+          <pre><span class="kw">function</span> <span class="fn">setup</span>() {
+  <span class="kw">const</span> bigData = <span class="kw">new</span> <span class="cls">Array</span>(<span class="nm">100000</span>).<span class="fn">fill</span>({ value: <span class="nm">42</span> });
+  document.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, () =&gt; {
+    console.<span class="fn">log</span>(bigData); <span class="cmt">// closure keeps bigData alive FOREVER</span>
+  });
+} <span class="cmt">// bigData never GC'd — listener holds it</span></pre>
+          <span class="cl bad">❌ Leak 2: Detached DOM nodes</span>
+          <pre><span class="kw">let</span> ref;
+<span class="kw">function</span> <span class="fn">createLeak</span>() {
+  <span class="kw">const</span> div = document.<span class="fn">createElement</span>(<span class="str">'div'</span>);
+  ref = div; <span class="cmt">// JS reference keeps it alive</span>
+  document.body.<span class="fn">appendChild</span>(div);
+  document.body.<span class="fn">removeChild</span>(div); <span class="cmt">// removed from DOM but NOT GC'd</span>
+}</pre>
+          <span class="cl bad">❌ Leak 3: Growing cache without eviction</span>
+          <pre><span class="kw">const</span> cache = {}; <span class="cmt">// grows forever</span>
+<span class="fn">requests</span>.<span class="fn">forEach</span>(id =&gt; { cache[id] = <span class="fn">process</span>(id); });</pre>
+          <span class="cl bad">❌ Leak 4: setInterval not cleared</span>
+          <pre><span class="kw">function</span> <span class="fn">startPolling</span>() {
+  <span class="fn">setInterval</span>(() =&gt; <span class="fn">syncData</span>(), <span class="nm">5000</span>); <span class="cmt">// never cleared → runs forever</span>
+}</pre>
+        </div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">THE FIXES</div></div><div class="tech-body">
+          <span class="cl good">✅ Return cleanup, use WeakMap, bound cache size</span>
+          <pre><span class="cmt">// Fix 1: Store reference, remove when done</span>
+<span class="kw">const</span> handler = () =&gt; <span class="fn">doWork</span>();
+element.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, handler);
+<span class="kw">return</span> () =&gt; element.<span class="fn">removeEventListener</span>(<span class="str">'click'</span>, handler);
+
+<span class="cmt">// Fix 2: WeakMap for DOM-associated data</span>
+<span class="kw">const</span> meta = <span class="kw">new</span> <span class="cls">WeakMap</span>();
+meta.<span class="fn">set</span>(element, { visited: <span class="kw">true</span> });
+<span class="cmt">// When element is removed, WeakMap entry is auto-collected</span>
+
+<span class="cmt">// Fix 3: LRU Cache with max size</span>
+<span class="kw">class</span> <span class="cls">LRUCache</span> {
+  <span class="fn">constructor</span>(max) { <span class="kw">this</span>.max = max; <span class="kw">this</span>.map = <span class="kw">new</span> <span class="cls">Map</span>(); }
+  <span class="fn">get</span>(k) {
+    <span class="kw">if</span> (!<span class="kw">this</span>.map.<span class="fn">has</span>(k)) <span class="kw">return</span> <span class="kw">undefined</span>;
+    <span class="kw">const</span> v = <span class="kw">this</span>.map.<span class="fn">get</span>(k);
+    <span class="kw">this</span>.map.<span class="fn">delete</span>(k); <span class="kw">this</span>.map.<span class="fn">set</span>(k, v); <span class="cmt">// move to end (most recent)</span>
+    <span class="kw">return</span> v;
+  }
+  <span class="fn">set</span>(k, v) {
+    <span class="kw">if</span> (<span class="kw">this</span>.map.<span class="fn">size</span> &gt;= <span class="kw">this</span>.max)
+      <span class="kw">this</span>.map.<span class="fn">delete</span>(<span class="kw">this</span>.map.<span class="fn">keys</span>().<span class="fn">next</span>().value); <span class="cmt">// evict oldest</span>
+    <span class="kw">this</span>.map.<span class="fn">set</span>(k, v);
+  }
+}
+
+<span class="cmt">// Fix 4: React useEffect cleanup</span>
+<span class="fn">useEffect</span>(() =&gt; {
+  <span class="kw">const</span> id = <span class="fn">setInterval</span>(() =&gt; <span class="fn">sync</span>(), <span class="nm">5000</span>);
+  <span class="kw">return</span> () =&gt; <span class="fn">clearInterval</span>(id); <span class="cmt">// ✅ cleaned up on unmount</span>
+}, []);</pre>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">DEEP CONCEPT — V8 GENERATIONAL GC</div></div><div class="tech-body">
+          <p>V8 uses <strong>Mark-and-Sweep</strong>: starting from "roots" (globals, call stack), mark all reachable objects; collect the rest. V8 optimizes with <strong>generational GC</strong>:</p>
+          <p><strong>Young generation</strong> (nursery): most objects born here. Collected frequently via "scavenging" — fast, parallel, only touches young objects.<br>
+          <strong>Old generation</strong>: objects that survive 1-2 scavenges are promoted. Collected less often via "major GC" — slower, full mark-and-sweep.</p>
+          <div class="peg">🗑️ <strong>Memory Peg:</strong> GC is like a janitor who only picks up trash <em>nobody is pointing at</em>. As long as your code holds any pointer — even indirectly through a closure — the janitor leaves it alone forever.</div>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>Profiling:</strong> Chrome DevTools → Memory tab → "Take Heap Snapshot" before and after suspected leak. Filter for "Detached HTMLElement." In React apps, the most common leaks are: forgotten useEffect subscriptions, timers not cleared on unmount, and closures over stale component state.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+    <!-- WEAKMAP/WEAKREF -->
+    <div class="sec-div" id="weakrefs"><div class="sec-icon">🔗</div><div class="sec-ttl"><h2><span>WeakMap</span> &amp; WeakRef</h2><p>Weak references, memory-safe associations, FinalizationRegistry</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q12</div><div class="qa-ht">
+        <div class="qa-q">When should you use WeakMap vs Map? What is WeakRef and FinalizationRegistry?</div>
+        <div class="qa-meta"><span class="tag th">HARD</span><span class="tag tt">WeakMap</span><span class="tag tt">WeakRef</span><span class="tag tt">Memory</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"WeakMap is just a Map with less features. There's no practical reason to use it."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p>WeakMap's weak references mean entries are automatically removed when the key object is GC'd — <em>preventing memory leaks entirely</em>. This is essential when you want to associate data with objects whose lifecycle you don't control (DOM nodes, component instances, third-party objects).</p></div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">ALL WEAK REFERENCE PATTERNS</div></div><div class="tech-body">
+          <span class="cl good">✅ WeakMap for private class data</span>
+          <pre><span class="kw">const</span> _private = <span class="kw">new</span> <span class="cls">WeakMap</span>();
+
+<span class="kw">class</span> <span class="cls">BankAccount</span> {
+  <span class="fn">constructor</span>(balance) {
+    _private.<span class="fn">set</span>(<span class="kw">this</span>, { balance, txLog: [] });
+  }
+  <span class="fn">deposit</span>(amt) {
+    <span class="kw">const</span> d = _private.<span class="fn">get</span>(<span class="kw">this</span>);
+    d.balance += amt;
+    d.txLog.<span class="fn">push</span>({ type: <span class="str">'deposit'</span>, amt, ts: <span class="cls">Date</span>.<span class="fn">now</span>() });
+  }
+  <span class="fn">getBalance</span>() { <span class="kw">return</span> _private.<span class="fn">get</span>(<span class="kw">this</span>).balance; }
+}
+<span class="cmt">// When BankAccount instance is GC'd → _private entry auto-removed</span>
+<span class="cmt">// No size() or forEach — WeakMap is intentionally non-enumerable</span></pre>
+          <span class="cl good">✅ WeakRef — optional cache that doesn't prevent GC</span>
+          <pre><span class="kw">class</span> <span class="cls">OptionalCache</span> {
+  <span class="fn">constructor</span>() { <span class="kw">this</span>.map = <span class="kw">new</span> <span class="cls">Map</span>(); }
+  <span class="fn">set</span>(key, value) {
+    <span class="kw">this</span>.map.<span class="fn">set</span>(key, <span class="kw">new</span> <span class="cls">WeakRef</span>(value));
+  }
+  <span class="fn">get</span>(key) {
+    <span class="kw">const</span> ref = <span class="kw">this</span>.map.<span class="fn">get</span>(key);
+    <span class="kw">const</span> val = ref?.<span class="fn">deref</span>(); <span class="cmt">// returns undefined if GC'd</span>
+    <span class="kw">if</span> (!val) <span class="kw">this</span>.map.<span class="fn">delete</span>(key); <span class="cmt">// clean up stale entry</span>
+    <span class="kw">return</span> val;
+  }
+}
+
+<span class="cmt">// FinalizationRegistry — callback after GC</span>
+<span class="kw">const</span> registry = <span class="kw">new</span> <span class="cls">FinalizationRegistry</span>(id =&gt; {
+  console.<span class="fn">log</span>(<span class="str">`<span class="op">${</span>id<span class="op">}</span> was garbage collected`</span>);
+  <span class="fn">cleanupExternalResource</span>(id);
+});
+registry.<span class="fn">register</span>(myHeavyObject, <span class="str">'my-heavy-object'</span>);</pre>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">WHEN TO USE WHICH</div></div><div class="tech-body">
+          <div class="callout ci"><span class="callout-ico">ℹ️</span><div>
+            <strong>Map:</strong> need to enumerate keys, count entries, store primitive keys, full lifecycle control<br>
+            <strong>WeakMap:</strong> associate data with objects you don't own, want auto-cleanup when object dies<br>
+            <strong>WeakRef:</strong> optional caching — GC may collect value, code must handle undefined<br>
+            <strong>FinalizationRegistry:</strong> run cleanup callbacks after GC (non-deterministic timing!)
+          </div></div>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div>React and Vue use WeakMap-like patterns internally to associate component state with DOM nodes without memory leaks. The new <code>WeakSet</code> is useful for tracking "has this object been processed" without preventing GC — perfect for cycle detection in traversal algorithms.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <!-- MODULES -->
+    <div class="sec-div" id="modules"><div class="sec-icon">📁</div><div class="sec-ttl"><h2>Module Systems: <span>ESM vs CJS</span></h2><p>Static analysis, live bindings, tree shaking, and interop</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q13</div><div class="qa-ht">
+        <div class="qa-q">What are the fundamental differences between ES Modules and CommonJS? Why does it matter for bundling?</div>
+        <div class="qa-meta"><span class="tag tm">MEDIUM</span><span class="tag tt">ESM</span><span class="tag tt">CommonJS</span><span class="tag tt">Tree Shaking</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t3"><div class="tech-hdr"><div class="tn">③</div><div class="tl">SIDE-BY-SIDE COMPARISON</div></div><div class="tech-body">
+          <span class="cl bad">❌ CJS: Dynamic, runtime, copies values</span>
+          <pre><span class="cmt">// CommonJS — Node.js original system</span>
+<span class="kw">const</span> { add } = <span class="fn">require</span>(<span class="str">'./math'</span>);      <span class="cmt">// evaluated at runtime</span>
+<span class="kw">const</span> utils = <span class="fn">require</span>(<span class="str">`./<span class="op">${</span>env<span class="op">}</span>-utils`</span>); <span class="cmt">// dynamic — can't tree-shake!</span>
+module.exports = { add, subtract };       <span class="cmt">// copies VALUES at require time</span>
+
+<span class="cmt">// If math.js updates `add` later — CJS consumer doesn't see it</span></pre>
+          <span class="cl good">✅ ESM: Static, live bindings, tree-shakeable</span>
+          <pre><span class="cmt">// ES Modules — browser native + Node.js 12+</span>
+<span class="kw">import</span> { add } <span class="kw">from</span> <span class="str">'./math.js'</span>;  <span class="cmt">// static — analyzed at parse time</span>
+<span class="kw">export const</span> PI = <span class="nm">3.14159</span>;        <span class="cmt">// live binding — updates propagate!</span>
+<span class="kw">export default function</span> <span class="fn">main</span>() {}
+
+<span class="cmt">// Dynamic import for code splitting</span>
+<span class="kw">const</span> { chart } = <span class="kw">await</span> <span class="kw">import</span>(<span class="str">'./chart.js'</span>); <span class="cmt">// lazy — returns Promise</span></pre>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">DEEP CONCEPT — LIVE BINDINGS</div></div><div class="tech-body">
+          <pre><span class="cmt">// counter.js (ESM)</span>
+<span class="kw">export let</span> count = <span class="nm">0</span>;
+<span class="kw">export const</span> <span class="fn">increment</span> = () =&gt; count++;
+
+<span class="cmt">// main.js</span>
+<span class="kw">import</span> { count, increment } <span class="kw">from</span> <span class="str">'./counter.js'</span>;
+console.<span class="fn">log</span>(count); <span class="cmt">// 0</span>
+<span class="fn">increment</span>();
+console.<span class="fn">log</span>(count); <span class="cmt">// 1 — ESM sees live update!</span>
+<span class="cmt">// In CJS: count would still be 0 — was a copied value</span></pre>
+          <div class="callout ci"><span class="callout-ico">ℹ️</span><div><strong>Tree shaking</strong> only works with ESM because Rollup/webpack can statically analyze which exports are used at build time. CJS <code>require()</code> is dynamic — bundlers must include everything. This is why switching to ESM can dramatically reduce bundle sizes.</div></div>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP — INTEROP GOTCHAS</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>Node.js interop:</strong> <code>.mjs</code> = always ESM. <code>.cjs</code> = always CJS. <code>"type":"module"</code> in package.json makes <code>.js</code> = ESM. ESM can import CJS as default export only. CJS cannot <code>require()</code> an ESM module — must use async <code>import()</code>.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <!-- DESIGN PATTERNS -->
+    <div class="sec-div" id="patterns"><div class="sec-icon">🏗️</div><div class="sec-ttl"><h2>Design <span>Patterns</span></h2><p>Observer, Factory, Proxy/Reflect, Singleton, Decorator</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q14</div><div class="qa-ht">
+        <div class="qa-q">Implement the Observer pattern. How does Proxy enable meta-programming in JavaScript?</div>
+        <div class="qa-meta"><span class="tag tm">MEDIUM</span><span class="tag tt">Observer</span><span class="tag tt">Proxy</span><span class="tag tt">Reflect</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">OBSERVER PATTERN + REACTIVE SYSTEM</div></div><div class="tech-body">
+          <span class="cl good">✅ EventEmitter — foundation of reactive systems</span>
+          <pre><span class="kw">class</span> <span class="cls">EventEmitter</span> {
+  <span class="fn">constructor</span>() { <span class="kw">this</span>.events = <span class="kw">new</span> <span class="cls">Map</span>(); }
+
+  <span class="fn">on</span>(event, listener) {
+    <span class="kw">if</span> (!<span class="kw">this</span>.events.<span class="fn">has</span>(event)) <span class="kw">this</span>.events.<span class="fn">set</span>(event, <span class="kw">new</span> <span class="cls">Set</span>());
+    <span class="kw">this</span>.events.<span class="fn">get</span>(event).<span class="fn">add</span>(listener);
+    <span class="kw">return</span> () =&gt; <span class="kw">this</span>.<span class="fn">off</span>(event, listener); <span class="cmt">// returns unsubscribe fn</span>
+  }
+  <span class="fn">off</span>(event, fn) { <span class="kw">this</span>.events.<span class="fn">get</span>(event)?.<span class="fn">delete</span>(fn); }
+  <span class="fn">emit</span>(event, data) { <span class="kw">this</span>.events.<span class="fn">get</span>(event)?.forEach(fn =&gt; <span class="fn">fn</span>(data)); }
+  <span class="fn">once</span>(event, fn) {
+    <span class="kw">const</span> wrap = d =&gt; { <span class="fn">fn</span>(d); <span class="kw">this</span>.<span class="fn">off</span>(event, wrap); };
+    <span class="kw">return this</span>.<span class="fn">on</span>(event, wrap);
+  }
+}
+
+<span class="cmt">// Proxy-based reactive state (Vue-like)</span>
+<span class="kw">function</span> <span class="fn">reactive</span>(target) {
+  <span class="kw">const</span> listeners = <span class="kw">new</span> <span class="cls">Map</span>();
+  <span class="kw">return new</span> <span class="cls">Proxy</span>(target, {
+    <span class="fn">set</span>(obj, key, value) {
+      <span class="cls">Reflect</span>.<span class="fn">set</span>(obj, key, value); <span class="cmt">// use Reflect for correctness</span>
+      listeners.<span class="fn">get</span>(key)?.forEach(fn =&gt; <span class="fn">fn</span>(value));
+      <span class="kw">return true</span>;
+    },
+    <span class="fn">get</span>(obj, key) {
+      <span class="kw">if</span> (key === <span class="str">'$watch'</span>) <span class="kw">return</span> (k, fn) =&gt; {
+        <span class="kw">if</span> (!listeners.<span class="fn">has</span>(k)) listeners.<span class="fn">set</span>(k, <span class="kw">new</span> <span class="cls">Set</span>());
+        listeners.<span class="fn">get</span>(k).<span class="fn">add</span>(fn);
+        <span class="kw">return</span> () =&gt; listeners.<span class="fn">get</span>(k)?.<span class="fn">delete</span>(fn);
+      };
+      <span class="kw">return</span> <span class="cls">Reflect</span>.<span class="fn">get</span>(obj, key);
+    }
+  });
+}
+
+<span class="kw">const</span> state = <span class="fn">reactive</span>({ count: <span class="nm">0</span>, user: <span class="kw">null</span> });
+state.<span class="fn">$watch</span>(<span class="str">'count'</span>, v =&gt; console.<span class="fn">log</span>(<span class="str">'count:'</span>, v));
+state.count = <span class="nm">1</span>; <span class="cmt">// triggers: "count: 1"</span></pre>
+        </div></div>
+        <div class="tech t6"><div class="tech-hdr"><div class="tn">⑥</div><div class="tl">PROXY USE CASES</div></div><div class="tech-body">
+          <pre><span class="cmt">// Validation proxy</span>
+<span class="kw">const</span> validated = <span class="kw">new</span> <span class="cls">Proxy</span>({}, {
+  <span class="fn">set</span>(obj, key, value) {
+    <span class="kw">if</span> (key === <span class="str">'age'</span> &amp;&amp; (<span class="kw">typeof</span> value !== <span class="str">'number'</span> || value &lt; <span class="nm">0</span>))
+      <span class="kw">throw new</span> <span class="cls">TypeError</span>(<span class="str">'age must be a positive number'</span>);
+    <span class="kw">return</span> <span class="cls">Reflect</span>.<span class="fn">set</span>(obj, key, value);
+  }
+});
+
+<span class="cmt">// Logging proxy — intercept all property access</span>
+<span class="kw">const</span> <span class="fn">createLogger</span> = target =&gt; <span class="kw">new</span> <span class="cls">Proxy</span>(target, {
+  <span class="fn">get</span>(obj, key) {
+    console.<span class="fn">log</span>(<span class="str">`accessed: <span class="op">${</span><span class="cls">String</span>(key)<span class="op">}</span>`</span>);
+    <span class="kw">return</span> <span class="cls">Reflect</span>.<span class="fn">get</span>(obj, key);
+  }
+});</pre>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div>Always pair <code>Proxy</code> with <code>Reflect</code> — <code>Reflect</code> methods mirror Proxy traps and handle edge cases correctly (receiver binding, inheritance). Using <code>obj[key] = value</code> inside a set trap can miss prototype setter calls — <code>Reflect.set(obj, key, value, receiver)</code> handles it correctly.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <!-- PERFORMANCE -->
+    <div class="sec-div" id="perf"><div class="sec-icon">⚡</div><div class="sec-ttl"><h2>Performance <span>Optimization</span></h2><p>Debounce, throttle, rAF, lazy loading, and profiling</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q15</div><div class="qa-ht">
+        <div class="qa-q">Implement debounce and throttle from scratch. When would you use requestAnimationFrame instead?</div>
+        <div class="qa-meta"><span class="tag tm">MEDIUM</span><span class="tag tt">Debounce</span><span class="tag tt">Throttle</span><span class="tag tt">rAF</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"Debounce and throttle do the same thing — they limit how often a function runs."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p><strong>Debounce:</strong> fires ONLY after input stops for a specified delay. <strong>Throttle:</strong> fires at most once per time window regardless of input frequency. Wrong choice causes UX bugs: debouncing a scroll handler means it fires only after scrolling STOPS — terrible. Throttling a search box means queries fire mid-typing — wasteful.</p></div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">CLEAN IMPLEMENTATIONS</div></div><div class="tech-body">
+          <span class="cl good">✅ Debounce — waits for inactivity</span>
+          <pre><span class="kw">function</span> <span class="fn">debounce</span>(fn, delay) {
+  <span class="kw">let</span> timer;
+  <span class="kw">return function</span>(...args) {
+    <span class="fn">clearTimeout</span>(timer);
+    timer = <span class="fn">setTimeout</span>(() =&gt; fn.<span class="fn">apply</span>(<span class="kw">this</span>, args), delay);
+  };
+}
+<span class="cmt">// User types "react" → fires once, 300ms after last keystroke</span>
+<span class="kw">const</span> search = <span class="fn">debounce</span>(query =&gt; <span class="fn">fetchResults</span>(query), <span class="nm">300</span>);
+input.<span class="fn">addEventListener</span>(<span class="str">'input'</span>, e =&gt; <span class="fn">search</span>(e.target.value));</pre>
+          <span class="cl good">✅ Throttle — fires at most once per interval</span>
+          <pre><span class="kw">function</span> <span class="fn">throttle</span>(fn, interval) {
+  <span class="kw">let</span> last = <span class="nm">0</span>;
+  <span class="kw">return function</span>(...args) {
+    <span class="kw">const</span> now = <span class="cls">Date</span>.<span class="fn">now</span>();
+    <span class="kw">if</span> (now - last &gt;= interval) {
+      last = now;
+      <span class="kw">return</span> fn.<span class="fn">apply</span>(<span class="kw">this</span>, args);
+    }
+  };
+}
+<span class="cmt">// Scroll fires 100x/sec → handler runs max every 100ms</span>
+<span class="kw">const</span> onScroll = <span class="fn">throttle</span>(() =&gt; <span class="fn">updateStickyHeader</span>(), <span class="nm">100</span>);
+window.<span class="fn">addEventListener</span>(<span class="str">'scroll'</span>, onScroll, { passive: <span class="kw">true</span> });</pre>
+          <span class="cl good">✅ rAF throttle — syncs with browser paint cycle</span>
+          <pre><span class="kw">function</span> <span class="fn">rafThrottle</span>(fn) {
+  <span class="kw">let</span> pending = <span class="kw">false</span>;
+  <span class="kw">return function</span>(...args) {
+    <span class="kw">if</span> (pending) <span class="kw">return</span>;
+    pending = <span class="kw">true</span>;
+    <span class="fn">requestAnimationFrame</span>(() =&gt; {
+      fn.<span class="fn">apply</span>(<span class="kw">this</span>, args);
+      pending = <span class="kw">false</span>;
+    });
+  };
+}
+<span class="cmt">// Perfect for: scroll position updates, canvas drawing, animations</span>
+<span class="cmt">// rAF auto-pauses when tab is hidden → no wasted CPU</span></pre>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">WHEN TO USE EACH</div></div><div class="tech-body">
+          <div class="callout ci"><span class="callout-ico">ℹ️</span><div>
+            <strong>Debounce:</strong> search input, window resize (final layout), autocomplete, form validation<br>
+            <strong>Throttle:</strong> scroll listeners (show/hide), mousemove tracking, real-time collaboration cursors<br>
+            <strong>rAF:</strong> visual updates, canvas rendering, animations — needs to sync with 60fps paint cycle
+          </div></div>
+        </div></div>
+        <div class="tech t6"><div class="tech-hdr"><div class="tn">⑥</div><div class="tl">REAL-WORLD: ADVANCED DEBOUNCE WITH CANCEL</div></div><div class="tech-body">
+          <pre><span class="kw">function</span> <span class="fn">debounce</span>(fn, delay, { leading = <span class="kw">false</span> } = {}) {
+  <span class="kw">let</span> timer, result;
+  <span class="kw">const</span> debounced = <span class="kw">function</span>(...args) {
+    <span class="kw">const</span> callNow = leading &amp;&amp; !timer;
+    <span class="fn">clearTimeout</span>(timer);
+    timer = <span class="fn">setTimeout</span>(() =&gt; {
+      timer = <span class="kw">null</span>;
+      <span class="kw">if</span> (!leading) result = fn.<span class="fn">apply</span>(<span class="kw">this</span>, args);
+    }, delay);
+    <span class="kw">if</span> (callNow) result = fn.<span class="fn">apply</span>(<span class="kw">this</span>, args);
+    <span class="kw">return</span> result;
+  };
+  debounced.<span class="fn">cancel</span> = () =&gt; { <span class="fn">clearTimeout</span>(timer); timer = <span class="kw">null</span>; };
+  debounced.<span class="fn">flush</span> = (...args) =&gt; { debounced.<span class="fn">cancel</span>(); <span class="kw">return</span> fn.<span class="fn">apply</span>(<span class="kw">this</span>, args); };
+  <span class="kw">return</span> debounced;
+}</pre>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div>In React, use <code>useCallback</code> to memoize the debounced/throttled function reference — otherwise a new function is created on every render and the timer is lost. Or use <code>useRef</code> to persist the function instance across renders without triggering re-renders.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <!-- V8 INTERNALS -->
+    <div class="sec-div" id="v8"><div class="sec-icon">🚀</div><div class="sec-ttl"><h2>V8 Engine <span>Internals</span></h2><p>JIT compilation, hidden classes, Ignition and TurboFan</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q16</div><div class="qa-ht">
+        <div class="qa-q">How does V8's JIT compiler work? What are hidden classes and how do you write V8-friendly code?</div>
+        <div class="qa-meta"><span class="tag th">HARD</span><span class="tag tt">V8</span><span class="tag tt">JIT</span><span class="tag tt">Hidden Classes</span><span class="tag tt">TurboFan</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">DEEP CONCEPT — V8 PIPELINE</div></div><div class="tech-body">
+          <p>V8 uses a <strong>two-tier JIT pipeline</strong>:</p>
+          <p><strong>Ignition</strong> (interpreter): parses JS → bytecode → executes immediately. Fast startup, lower peak performance.</p>
+          <p><strong>TurboFan</strong> (optimizing compiler): detects "hot" code paths, compiles to optimized machine code using type feedback collected by Ignition. Assumes types stay consistent.</p>
+          <p><strong>Deoptimization</strong>: if TurboFan's assumptions are violated (type changes), it "bails out" back to Ignition — expensive operation.</p>
+          <span class="cl bad">❌ Hidden class transitions — forces deoptimization</span>
+          <pre><span class="kw">function</span> <span class="fn">makePoint</span>(x, y) {
+  <span class="kw">const</span> pt = {};
+  pt.x = x; <span class="cmt">// hidden class A → B (transition!)</span>
+  pt.y = y; <span class="cmt">// hidden class B → C (transition!)</span>
+  <span class="kw">if</span> (x &gt; <span class="nm">0</span>) pt.label = <span class="str">'positive'</span>; <span class="cmt">// sometimes C → D</span>
+  <span class="cmt">// V8 sees MULTIPLE shapes — can't optimize property access</span>
+  <span class="kw">return</span> pt;
+}
+
+<span class="kw">delete</span> point.x; <span class="cmt">// ❌ kills hidden class — never delete, set null instead</span></pre>
+          <span class="cl good">✅ V8-friendly code patterns</span>
+          <pre><span class="cmt">// Always initialize all properties in constructor, same order</span>
+<span class="kw">function</span> <span class="fn">makePoint</span>(x, y, label = <span class="kw">null</span>) {
+  <span class="kw">return</span> { x, y, label }; <span class="cmt">// consistent shape — one hidden class</span>
+}
+
+<span class="cmt">// Monomorphic functions (same arg types) stay TurboFan-optimized</span>
+<span class="kw">function</span> <span class="fn">add</span>(a, b) { <span class="kw">return</span> a + b; }
+<span class="fn">add</span>(<span class="nm">1</span>, <span class="nm">2</span>);     <span class="cmt">// V8 infers number + number → optimized</span>
+<span class="fn">add</span>(<span class="nm">3</span>, <span class="nm">4</span>);     <span class="cmt">// same types → fast path</span>
+<span class="fn">add</span>(<span class="str">'a'</span>, <span class="str">'b'</span>); <span class="cmt">// ❌ type change → deoptimize (megamorphic)</span>
+
+<span class="cmt">// Arrays: keep homogeneous types — V8 uses specialized array kinds</span>
+<span class="kw">const</span> nums = [<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>];    <span class="cmt">// PACKED_SMI_ELEMENTS (fastest)</span>
+nums.<span class="fn">push</span>(<span class="nm">1.5</span>);            <span class="cmt">// PACKED_DOUBLE_ELEMENTS</span>
+nums.<span class="fn">push</span>(<span class="str">'a'</span>);            <span class="cmt">// PACKED_ELEMENTS (boxed, slowest)</span>
+<span class="cmt">// Transitions are one-way — can't go back to faster kind</span></pre>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>Interview gold:</strong> Mentioning hidden classes and monomorphic functions signals senior-level understanding. Also: V8's Orinoco GC uses <em>incremental marking, parallel scavenging, and concurrent marking</em> to minimize main thread pauses — this is why modern JS can achieve sub-millisecond GC pauses in production.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <!-- WEB WORKERS -->
+    <div class="sec-div" id="workers"><div class="sec-icon">👷</div><div class="sec-ttl"><h2>Web Workers &amp; <span>SharedArrayBuffer</span></h2><p>True parallelism, Atomics, structured clone, and Transferables</p></div><div class="sec-line"></div></div>
+
+    <div class="qa-card"><div class="qa-hdr" onclick="toggleCard(this)">
+      <div class="qa-num">Q17</div><div class="qa-ht">
+        <div class="qa-q">What are Web Workers? When would you use SharedArrayBuffer and Atomics for true parallel processing?</div>
+        <div class="qa-meta"><span class="tag th">HARD</span><span class="tag tt">Web Workers</span><span class="tag tt">SharedArrayBuffer</span><span class="tag tt">Atomics</span></div>
+      </div><span class="qa-chev">▾</span></div>
+      <div class="qa-body"><div class="techs">
+        <div class="tech t1"><div class="tech-hdr"><div class="tn">①</div><div class="tl">MISCONCEPTION</div></div><div class="tech-body"><p>"JavaScript is single-threaded — it can't do real parallel processing in the browser."</p></div></div>
+        <div class="tech t2"><div class="tech-hdr"><div class="tn">②</div><div class="tl">WHY IT'S WRONG</div></div><div class="tech-body"><p>The <em>main thread</em> is single-threaded. But <strong>Web Workers run in separate OS threads</strong> — actual parallelism. They can't access the DOM, but can do CPU-intensive work concurrently. SharedArrayBuffer provides shared memory between threads for zero-copy data sharing.</p></div></div>
+        <div class="tech t4"><div class="tech-hdr"><div class="tn">④</div><div class="tl">WORKERS IN PRACTICE</div></div><div class="tech-body">
+          <span class="cl good">✅ Offload heavy CPU work</span>
+          <pre><span class="cmt">// main.js — UI thread</span>
+<span class="kw">const</span> worker = <span class="kw">new</span> <span class="cls">Worker</span>(<span class="str">'./worker.js'</span>);
+worker.<span class="fn">postMessage</span>({ pixels: imageData }); <span class="cmt">// structured clone</span>
+worker.<span class="fn">onmessage</span> = ({ data }) =&gt; <span class="fn">displayResult</span>(data);
+worker.<span class="fn">onerror</span> = e =&gt; console.<span class="fn">error</span>(<span class="str">'Worker error:'</span>, e);
+
+<span class="cmt">// worker.js — background thread (no DOM access!)</span>
+self.<span class="fn">onmessage</span> = ({ data: { pixels } }) =&gt; {
+  <span class="kw">const</span> processed = <span class="fn">applyGrayscale</span>(pixels); <span class="cmt">// heavy computation</span>
+  self.<span class="fn">postMessage</span>({ result: processed }, [processed.buffer]); <span class="cmt">// transfer!</span>
+};</pre>
+          <span class="cl good">✅ SharedArrayBuffer — zero-copy shared memory</span>
+          <pre><span class="cmt">// main.js</span>
+<span class="kw">const</span> sab = <span class="kw">new</span> <span class="cls">SharedArrayBuffer</span>(<span class="nm">4</span>); <span class="cmt">// 4 bytes shared</span>
+<span class="kw">const</span> view = <span class="kw">new</span> <span class="cls">Int32Array</span>(sab);
+worker.<span class="fn">postMessage</span>({ sab }); <span class="cmt">// same memory — no copy!</span>
+
+<span class="cmt">// In worker: both see the SAME memory</span>
+<span class="cmt">// Problem: race conditions without synchronization</span>
+
+<span class="cmt">// Atomics — thread-safe operations</span>
+<span class="cls">Atomics</span>.<span class="fn">add</span>(view, <span class="nm">0</span>, <span class="nm">1</span>);                  <span class="cmt">// atomic increment</span>
+<span class="cls">Atomics</span>.<span class="fn">load</span>(view, <span class="nm">0</span>);                   <span class="cmt">// safe read</span>
+<span class="cls">Atomics</span>.<span class="fn">compareExchange</span>(view, <span class="nm">0</span>, <span class="nm">0</span>, <span class="nm">1</span>);  <span class="cmt">// CAS — lock-free sync</span>
+<span class="cls">Atomics</span>.<span class="fn">wait</span>(view, <span class="nm">0</span>, <span class="nm">0</span>);                <span class="cmt">// block until value changes</span>
+<span class="cls">Atomics</span>.<span class="fn">notify</span>(view, <span class="nm">0</span>, <span class="nm">1</span>);              <span class="cmt">// wake 1 waiting worker</span></pre>
+        </div></div>
+        <div class="tech t5"><div class="tech-hdr"><div class="tn">⑤</div><div class="tl">TRANSFERABLES VS STRUCTURED CLONE</div></div><div class="tech-body">
+          <pre><span class="cmt">// Structured Clone: copies data (default postMessage)</span>
+<span class="cmt">// Works with: objects, arrays, Maps, Sets, ArrayBuffers, etc.</span>
+<span class="cmt">// Cost: proportional to data size</span>
+
+<span class="cmt">// Transferable: moves data — main thread loses access (zero-copy!)</span>
+<span class="kw">const</span> bigBuffer = <span class="kw">new</span> <span class="cls">ArrayBuffer</span>(<span class="nm">1024</span> * <span class="nm">1024</span> * <span class="nm">100</span>); <span class="cmt">// 100MB</span>
+worker.<span class="fn">postMessage</span>(bigBuffer, [bigBuffer]); <span class="cmt">// ✅ zero-copy transfer</span>
+console.<span class="fn">log</span>(bigBuffer.byteLength); <span class="cmt">// 0 — main thread lost it</span>
+
+<span class="cmt">// Transferable types: ArrayBuffer, MessagePort, ImageBitmap,</span>
+<span class="cmt">// OffscreenCanvas, ReadableStream, TransformStream, WritableStream</span></pre>
+          <div class="callout cw"><span class="callout-ico">⚠️</span><div><strong>SharedArrayBuffer requires COOP/COEP headers:</strong> <code>Cross-Origin-Opener-Policy: same-origin</code> and <code>Cross-Origin-Embedder-Policy: require-corp</code> must be set on the server to enable SharedArrayBuffer.</div></div>
+        </div></div>
+        <div class="tech t6"><div class="tech-hdr"><div class="tn">⑥</div><div class="tl">REAL-WORLD USE CASES</div></div><div class="tech-body">
+          <div class="callout cg"><span class="callout-ico">✅</span><div><strong>Perfect for Workers:</strong> Image/video processing, large CSV/Excel parsing, cryptography, WASM computation, physics simulations, syntax highlighting (Monaco Editor), spell checking, compression (zip), neural network inference (TensorFlow.js), PDF rendering.</div></div>
+        </div></div>
+        <div class="tech t7"><div class="tech-hdr"><div class="tn">⑦</div><div class="tl">PRO TIP</div></div><div class="tech-body">
+          <div class="callout cp"><span class="callout-ico">💡</span><div><strong>Worker pool pattern:</strong> Creating/destroying workers is expensive. Use a pool of N workers (usually <code>navigator.hardwareConcurrency</code>) and queue tasks to them. Libraries like <code>comlink</code> abstract the postMessage API into regular async function calls — much cleaner DX.</div></div>
+        </div></div>
+      </div></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<button id="scrolltop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+// ── Theme ──────────────────────────────────────────────────────────────────
+const html = document.documentElement;
+const tbtn = document.getElementById('tbtn');
+function toggleTheme() {
+  const dark = html.dataset.theme === 'dark';
+  html.dataset.theme = dark ? 'light' : 'dark';
+  tbtn.textContent = dark ? '🌙 Dark' : '☀ Light';
+}
+
+// ── Sidebar ────────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ── Q&A accordion ──────────────────────────────────────────────────────────
+function toggleCard(hdr) {
+  const card = hdr.closest('.qa-card');
+  const wasOpen = card.classList.contains('open');
+  document.querySelectorAll('.qa-card.open').forEach(c => c.classList.remove('open'));
+  if (!wasOpen) card.classList.add('open');
+}
+
+// ── Smooth scroll to section ───────────────────────────────────────────────
+function scrollTo2(id, linkEl) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 76, behavior: 'smooth' });
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  if (linkEl) linkEl.classList.add('active');
+  closeSidebar();
+}
+
+// ── Progress bar + scroll-to-top ───────────────────────────────────────────
+const prog = document.getElementById('prog');
+const scrollBtn = document.getElementById('scrolltop');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (window.scrollY / (h.scrollHeight - h.clientHeight)) * 100;
+  prog.style.width = pct + '%';
+  scrollBtn.classList.toggle('show', window.scrollY > 500);
+}, { passive: true });
+
+// ── Intersection observer: animate cards + sections ───────────────────────
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.sec-div, .qa-card').forEach(el => obs.observe(el));
+
+// ── Active nav highlight on scroll ────────────────────────────────────────
+const sectionIds = ['hero','closures','proto','this','scope','eventloop',
+  'promises','generators','memory','weakrefs','modules','patterns','perf','v8','workers'];
+const navLinks = document.querySelectorAll('.nav-link');
+window.addEventListener('scroll', () => {
+  let current = 'hero';
+  sectionIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top < 130) current = id;
+  });
+  navLinks.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('onclick') && l.getAttribute('onclick').includes(`'${current}'`))
+      l.classList.add('active');
+  });
+}, { passive: true });
+
+// ── Sidebar search filter ─────────────────────────────────────────────────
+function filterNav(val) {
+  const v = val.toLowerCase().trim();
+  navLinks.forEach(l => {
+    l.style.display = (!v || l.textContent.toLowerCase().includes(v)) ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-cat').forEach(c => c.style.display = v ? 'none' : '');
+}
+
+// ── Open first card on load ───────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const firstHdr = document.querySelector('.qa-card .qa-hdr');
+  if (firstHdr) firstHdr.click();
+});
+</script>
+</body>
+</html>

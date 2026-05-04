@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 11 — React Router & Navigation</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --react:#61dafb;--react-dim:rgba(97,218,251,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--react);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--react);border-bottom-color:var(--react);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--react);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--react);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.3);}
+.day-btn.primary:hover{background:rgba(97,218,251,.18);}
+
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--react);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--react);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--react);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:620px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--react);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--react);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);position:relative;}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;}
+.runner-meta{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--react-dim);color:var(--react);border:1px solid rgba(97,218,251,.25);border-radius:6px;cursor:pointer;transition:background .15s;}
+.run-btn:hover{background:rgba(97,218,251,.18);}
+.runner-code{padding:16px 18px;border-bottom:1px solid var(--border);}
+.runner-code textarea{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:14px 16px;resize:vertical;min-height:180px;outline:none;}
+.runner-code textarea:focus{border-color:rgba(97,218,251,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--react);}
+.ex-hint{font-size:12px;color:var(--muted);border-left:2px solid var(--border2);padding-left:12px;margin-bottom:14px;line-height:1.7;}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--react-dim);color:var(--react);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--react);border-color:var(--react);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;align-items:center;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;text-decoration:none;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.3);}
+.footer-btn.primary:hover{background:rgba(97,218,251,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--react);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 11 · React</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#spa">SPA & Routing</a>
+  <a href="#setup">Setup</a>
+  <a href="#routes">Routes</a>
+  <a href="#hooks">Router Hooks</a>
+  <a href="#nested">Nested Routes</a>
+  <a href="#advanced">Advanced</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 2 · <span>Day 11 of 56</span> · React Router &amp; Navigation</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day10_react_hooks.html',10)">← Day 10</button>
+      <button class="day-btn primary" onclick="navigateTo('day12_context_global_state.html',12)">Day 12 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 2 · Day 11 · 8-week plan</div>
+  <h1>React Router<br>&amp; <em>Navigation</em></h1>
+  <p class="hero-sub">Turn a single-page app into a multi-page experience without ever leaving the browser. React Router v6 is the standard — learn it deeply and every real-world React project becomes approachable.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(97,218,251,.3);color:var(--react);">SPA vs MPA</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">BrowserRouter setup</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">Route &amp; Routes</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">Link &amp; NavLink</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">useParams &amp; useNavigate</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">nested routes &amp; Outlet</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">protected routes</span>
+    <span class="topic-pill" style="border-color:rgba(244,114,182,.3);color:var(--pink);">lazy loading routes</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--react);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>SPA routing — how the browser history API works</li>
+        <li>Install &amp; configure React Router v6</li>
+        <li>BrowserRouter, Routes, Route</li>
+        <li>Link vs NavLink vs anchor tag</li>
+        <li>URL params with useParams</li>
+        <li>Programmatic navigation with useNavigate</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>Nested routes and the Outlet component</li>
+        <li>Index routes and layout routes</li>
+        <li>useSearchParams for query strings</li>
+        <li>useLocation for current URL info</li>
+        <li>Protected routes — auth guards</li>
+        <li>404 catch-all routes</li>
+        <li>Lazy loading routes with React.lazy</li>
+        <li>Exercises 1–6</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Push code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 11 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">SPA concept</span>
+    <span class="tdot" onclick="markDone(this)">BrowserRouter</span>
+    <span class="tdot" onclick="markDone(this)">Routes &amp; Route</span>
+    <span class="tdot" onclick="markDone(this)">Link &amp; NavLink</span>
+    <span class="tdot" onclick="markDone(this)">useParams</span>
+    <span class="tdot" onclick="markDone(this)">useNavigate</span>
+    <span class="tdot" onclick="markDone(this)">Nested &amp; Outlet</span>
+    <span class="tdot" onclick="markDone(this)">Protected routes</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- ══ 01. SPA & HOW ROUTING WORKS ══ -->
+<div class="section" id="spa">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">How SPA routing works — the browser History API</span>
+    <span class="sec-badge" style="background:var(--react-dim);color:var(--react);">foundation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">traditional MPA</span>
+      <div class="cc-title">Every URL = a server request</div>
+      <div class="cc-body">In a classic multi-page app, clicking a link causes the browser to send an HTTP request, the server returns a new HTML page, and the browser replaces everything — full reload, white flash, lost scroll position. Every page transition is a round trip to the server.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--react-dim);color:var(--react);">SPA routing</span>
+      <div class="cc-title">URL changes without a server request</div>
+      <div class="cc-body">React Router uses the browser's <strong>History API</strong> — <code>window.history.pushState()</code> — to change the URL bar without triggering a page load. React then looks at the current URL and renders the matching component. The server only serves one HTML file; all routing happens in JavaScript.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">benefits</span>
+      <div class="cc-title">Instant navigation, shared state</div>
+      <div class="cc-body">Because the page never fully reloads, state (auth tokens, cached data, scroll position) can be preserved across navigation. Transitions feel instant. The user never sees a blank white screen between pages. React Router intercepts <code>&lt;a&gt;</code> clicks, updates the URL, and swaps the rendered component.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">server config note</span>
+      <div class="cc-title">The server must serve index.html for all routes</div>
+      <div class="cc-body">Since the server only has <code>index.html</code>, if a user navigates directly to <code>/dashboard</code>, the server must return <code>index.html</code> (not 404). Vite handles this in dev mode automatically. In production (Vercel, Netlify) you configure a rewrite rule: all paths → <code>index.html</code>.</div>
+    </div>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--react);"></span>What happens when you click a React Router Link</div>
+    <div class="mm-grid">
+      <div class="mm-item"><div class="mm-label" style="color:var(--num,#f9a8d4);">① Click</div><div class="mm-value">User clicks a <code>&lt;Link to="/about"&gt;</code> component.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--amber);">② preventDefault</div><div class="mm-value">React Router calls <code>e.preventDefault()</code> — the browser's default navigation (page reload) is stopped.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--green);">③ pushState</div><div class="mm-value"><code>window.history.pushState()</code> updates the URL bar to <code>/about</code> without loading anything.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--react);">④ Re-render</div><div class="mm-value">React Router's context updates, <code>&lt;Routes&gt;</code> re-renders, the matching <code>&lt;Route&gt;</code> component is shown.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 02. SETUP ══ -->
+<div class="section" id="setup">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Setup — install, configure, and your first routes</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">getting started</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + jsx</span><span class="cb-desc">Install React Router v6, wrap app in BrowserRouter, define first routes</span></div>
+    <div class="cb-body"><pre><span class="cm"># Install React Router v6</span>
+npm install react-router-dom
+
+<span class="cm">// ── main.jsx — wrap entire app in BrowserRouter ───────────</span>
+<span class="kw">import</span> { <span class="var">StrictMode</span> }       <span class="kw">from</span> <span class="str">"react"</span>
+<span class="kw">import</span> { <span class="var">createRoot</span> }       <span class="kw">from</span> <span class="str">"react-dom/client"</span>
+<span class="kw">import</span> { <span class="var">BrowserRouter</span> }    <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+<span class="kw">import</span> <span class="var">App</span>                  <span class="kw">from</span> <span class="str">"./App"</span>
+
+<span class="fn">createRoot</span>(<span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"root"</span>)).<span class="fn">render</span>(
+  <span class="tag">&lt;StrictMode&gt;</span>
+    <span class="tag">&lt;BrowserRouter&gt;</span>         <span class="cm">{/* one BrowserRouter wraps everything */}</span>
+      <span class="tag">&lt;App</span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/BrowserRouter&gt;</span>
+  <span class="tag">&lt;/StrictMode&gt;</span>
+)
+
+<span class="cm">// ── App.jsx — define your routes ──────────────────────────</span>
+<span class="kw">import</span> { <span class="var">Routes</span>, <span class="var">Route</span> } <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+<span class="kw">import</span> <span class="var">Home</span>          <span class="kw">from</span> <span class="str">"./pages/Home"</span>
+<span class="kw">import</span> <span class="var">About</span>         <span class="kw">from</span> <span class="str">"./pages/About"</span>
+<span class="kw">import</span> <span class="var">UserProfile</span>   <span class="kw">from</span> <span class="str">"./pages/UserProfile"</span>
+<span class="kw">import</span> <span class="var">NotFound</span>      <span class="kw">from</span> <span class="str">"./pages/NotFound"</span>
+<span class="kw">import</span> <span class="var">Navbar</span>        <span class="kw">from</span> <span class="str">"./components/Navbar"</span>
+
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;&gt;</span>
+      <span class="tag">&lt;Navbar</span> <span class="tag">/&gt;</span>                     <span class="cm">{/* outside Routes — renders on every page */}</span>
+      <span class="tag">&lt;Routes&gt;</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/"</span>              <span class="attr">element</span>={<span class="tag">&lt;Home</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/about"</span>         <span class="attr">element</span>={<span class="tag">&lt;About</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/users/:id"</span>    <span class="attr">element</span>={<span class="tag">&lt;UserProfile</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>  <span class="cm">{/* :id = URL param */}</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"*"</span>              <span class="attr">element</span>={<span class="tag">&lt;NotFound</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>  <span class="cm">{/* catch-all 404 */}</span>
+      <span class="tag">&lt;/Routes&gt;</span>
+    <span class="tag">&lt;/&gt;</span>
+  )
+}
+
+<span class="cm">// ── Navbar.jsx — navigation links ────────────────────────</span>
+<span class="kw">import</span> { <span class="var">Link</span>, <span class="var">NavLink</span> } <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+
+<span class="kw">function</span> <span class="fn">Navbar</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;nav&gt;</span>
+      <span class="cm">{/* Link — basic navigation, no active state */}</span>
+      <span class="tag">&lt;Link</span> <span class="attr">to</span>=<span class="str">"/"</span><span class="tag">&gt;</span>Home<span class="tag">&lt;/Link&gt;</span>
+
+      <span class="cm">{/* NavLink — adds 'active' class automatically when route matches */}</span>
+      <span class="tag">&lt;NavLink</span>
+        <span class="attr">to</span>=<span class="str">"/about"</span>
+        <span class="attr">className</span>={({ <span class="var">isActive</span> }) =&gt; <span class="var">isActive</span> ? <span class="str">"nav-link active"</span> : <span class="str">"nav-link"</span>}
+        <span class="attr">style</span>={({ <span class="var">isActive</span> }) =&gt; ({ <span class="prop">fontWeight</span>: <span class="var">isActive</span> ? <span class="str">"bold"</span> : <span class="str">"normal"</span> })}
+      <span class="tag">&gt;</span>
+        About
+      <span class="tag">&lt;/NavLink&gt;</span>
+
+      <span class="cm">{/* NEVER use &lt;a href&gt; for internal links — causes full page reload! */}</span>
+      <span class="cm">{/* &lt;a href="/about"&gt;About&lt;/a&gt;  ← wrong: breaks SPA */}</span>
+    <span class="tag">&lt;/nav&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- ══ 03. ROUTES & URL PARAMS ══ -->
+<div class="section" id="routes">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Route patterns, URL params &amp; query strings</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">core</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Route path patterns — static, dynamic, optional, wildcard</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Path pattern cheat sheet ──────────────────────────────</span>
+<span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/"</span>                 <span class="tag">/&gt;</span>  <span class="cm">// exact: /</span>
+<span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/about"</span>            <span class="tag">/&gt;</span>  <span class="cm">// exact: /about</span>
+<span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/users/:id"</span>        <span class="tag">/&gt;</span>  <span class="cm">// dynamic: /users/42, /users/alice</span>
+<span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/posts/:year/:slug"</span><span class="tag">/&gt;</span>  <span class="cm">// multiple params: /posts/2024/react-tips</span>
+<span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/docs/*"</span>           <span class="tag">/&gt;</span>  <span class="cm">// splat: /docs/anything/here</span>
+<span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"*"</span>                 <span class="tag">/&gt;</span>  <span class="cm">// catch-all 404 — must be last</span>
+
+<span class="cm">// React Router v6 automatically picks the MOST SPECIFIC match</span>
+<span class="cm">// So /users/new matches "/users/new" before "/users/:id"</span>
+
+<span class="cm">// ── useParams — read URL parameters ──────────────────────</span>
+<span class="kw">import</span> { <span class="var">useParams</span> } <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+
+<span class="kw">function</span> <span class="fn">UserProfile</span>() {
+  <span class="kw">const</span> { <span class="var">id</span> } = <span class="fn">useParams</span>()   <span class="cm">// { id: "42" } — always a string!</span>
+  <span class="kw">const</span> <span class="var">userId</span> = <span class="fn">Number</span>(<span class="var">id</span>)    <span class="cm">// parse if you need a number</span>
+  <span class="kw">const</span> { <span class="var">data</span> } = <span class="fn">useFetch</span>(`/api/users/${<span class="var">id</span>}`)
+
+  <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>User #{<span class="var">id</span>}: {<span class="var">data</span>?.<span class="prop">name</span>}<span class="tag">&lt;/div&gt;</span>
+}
+
+<span class="cm">// ── useSearchParams — read/write query strings ────────────</span>
+<span class="cm">// URL: /products?category=electronics&sort=price&page=2</span>
+<span class="kw">import</span> { <span class="var">useSearchParams</span> } <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+
+<span class="kw">function</span> <span class="fn">ProductList</span>() {
+  <span class="kw">const</span> [<span class="var">searchParams</span>, <span class="fn">setSearchParams</span>] = <span class="fn">useSearchParams</span>()
+
+  <span class="kw">const</span> <span class="var">category</span> = <span class="var">searchParams</span>.<span class="fn">get</span>(<span class="str">"category"</span>) ?? <span class="str">"all"</span>
+  <span class="kw">const</span> <span class="var">sort</span>     = <span class="var">searchParams</span>.<span class="fn">get</span>(<span class="str">"sort"</span>)     ?? <span class="str">"name"</span>
+  <span class="kw">const</span> <span class="var">page</span>     = <span class="fn">Number</span>(<span class="var">searchParams</span>.<span class="fn">get</span>(<span class="str">"page"</span>)) || <span class="num">1</span>
+
+  <span class="kw">const</span> <span class="fn">updateFilter</span> = (<span class="var">key</span>, <span class="var">value</span>) =&gt; {
+    <span class="fn">setSearchParams</span>(<span class="var">prev</span> =&gt; {
+      <span class="kw">const</span> <span class="var">next</span> = <span class="kw">new</span> <span class="fn">URLSearchParams</span>(<span class="var">prev</span>)
+      <span class="var">next</span>.<span class="fn">set</span>(<span class="var">key</span>, <span class="var">value</span>)
+      <span class="var">next</span>.<span class="fn">set</span>(<span class="str">"page"</span>, <span class="str">"1"</span>)    <span class="cm">// reset to page 1 on filter change</span>
+      <span class="kw">return</span> <span class="var">next</span>
+    })
+  }
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;select</span>
+        <span class="attr">value</span>={<span class="var">category</span>}
+        <span class="attr">onChange</span>={<span class="var">e</span> =&gt; <span class="fn">updateFilter</span>(<span class="str">"category"</span>, <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span>)}
+      <span class="tag">&gt;</span>
+        <span class="tag">&lt;option</span> <span class="attr">value</span>=<span class="str">"all"</span><span class="tag">&gt;</span>All<span class="tag">&lt;/option&gt;</span>
+        <span class="tag">&lt;option</span> <span class="attr">value</span>=<span class="str">"electronics"</span><span class="tag">&gt;</span>Electronics<span class="tag">&lt;/option&gt;</span>
+      <span class="tag">&lt;/select&gt;</span>
+      <span class="cm">{/* Page 2 → /products?category=electronics&sort=price&page=2 */}</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="fn">updateFilter</span>(<span class="str">"page"</span>, <span class="fn">String</span>(<span class="var">page</span> + <span class="num">1</span>))}<span class="tag">&gt;</span>Next page<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- ══ 04. ROUTER HOOKS ══ -->
+<div class="section" id="hooks">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Router hooks — useNavigate, useLocation, useMatch</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">hooks</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">useNavigate — programmatic navigation, redirects, history manipulation</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useNavigate</span>, <span class="var">useLocation</span> } <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+
+<span class="cm">// ── useNavigate — go anywhere programmatically ────────────</span>
+<span class="kw">function</span> <span class="fn">LoginForm</span>() {
+  <span class="kw">const</span> <span class="var">navigate</span>   = <span class="fn">useNavigate</span>()
+  <span class="kw">const</span> <span class="var">location</span>   = <span class="fn">useLocation</span>()
+
+  <span class="kw">const</span> <span class="fn">handleSubmit</span> = <span class="kw">async</span> (<span class="var">e</span>) =&gt; {
+    <span class="var">e</span>.<span class="fn">preventDefault</span>()
+    <span class="kw">await</span> <span class="fn">login</span>(<span class="var">credentials</span>)
+
+    <span class="cm">// Navigate to dashboard after login</span>
+    <span class="var">navigate</span>(<span class="str">"/dashboard"</span>)
+
+    <span class="cm">// Or go back to where they came from (e.g. protected route redirected here)</span>
+    <span class="kw">const</span> <span class="var">from</span> = <span class="var">location</span>.<span class="prop">state</span>?.<span class="prop">from</span> ?? <span class="str">"/dashboard"</span>
+    <span class="var">navigate</span>(<span class="var">from</span>, { <span class="prop">replace</span>: <span class="kw">true</span> })   <span class="cm">// replace: true removes /login from history</span>
+  }
+
+  <span class="kw">return</span> <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="var">handleSubmit</span>}<span class="tag">&gt;</span>...<span class="tag">&lt;/form&gt;</span>
+}
+
+<span class="cm">// navigate() options</span>
+<span class="var">navigate</span>(<span class="str">"/about"</span>)                   <span class="cm">// push to history (back button works)</span>
+<span class="var">navigate</span>(<span class="str">"/login"</span>, { <span class="prop">replace</span>: <span class="kw">true</span> }) <span class="cm">// replace current entry (back skips this)</span>
+<span class="var">navigate</span>(-<span class="num">1</span>)                          <span class="cm">// go back one step (like browser back)</span>
+<span class="var">navigate</span>(<span class="num">1</span>)                           <span class="cm">// go forward one step</span>
+<span class="var">navigate</span>(-<span class="num">2</span>)                          <span class="cm">// go back two steps</span>
+
+<span class="cm">// Pass state to the destination</span>
+<span class="var">navigate</span>(<span class="str">"/checkout"</span>, { <span class="prop">state</span>: { <span class="prop">items</span>: <span class="var">cart</span>, <span class="prop">total</span>: <span class="var">total</span> } })
+<span class="cm">// In /checkout: const { items, total } = useLocation().state</span>
+
+<span class="cm">// ── useLocation — current URL info ───────────────────────</span>
+<span class="kw">function</span> <span class="fn">Analytics</span>() {
+  <span class="kw">const</span> <span class="var">location</span> = <span class="fn">useLocation</span>()
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="fn">trackPageView</span>(<span class="var">location</span>.<span class="prop">pathname</span>)   <span class="cm">// fire analytics on route change</span>
+  }, [<span class="var">location</span>])
+
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">location</span>)
+  <span class="cm">// {</span>
+  <span class="cm">//   pathname: "/users/42",      ← the path part</span>
+  <span class="cm">//   search:   "?tab=posts",     ← query string (use useSearchParams to read)</span>
+  <span class="cm">//   hash:     "#comments",      ← hash fragment</span>
+  <span class="cm">//   state:    { from: "/login" } ← passed via navigate(path, { state })</span>
+  <span class="cm">// }</span>
+  <span class="kw">return</span> <span class="kw">null</span>
+}</pre></div>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">All React Router v6 hooks — quick reference</div>
+    <table class="comp-table">
+      <tr><th>Hook</th><th>Returns</th><th>Use for</th></tr>
+      <tr><td><code>useNavigate()</code></td><td>navigate function</td><td>Programmatic navigation after form submit, login, etc.</td></tr>
+      <tr><td><code>useParams()</code></td><td>object of URL params</td><td>Reading <code>:id</code>, <code>:slug</code> from the URL path</td></tr>
+      <tr><td><code>useSearchParams()</code></td><td>[params, setParams]</td><td>Reading/writing <code>?key=value</code> query strings</td></tr>
+      <tr><td><code>useLocation()</code></td><td>location object</td><td>Current pathname, search, hash, and navigation state</td></tr>
+      <tr><td><code>useMatch(pattern)</code></td><td>match object or null</td><td>Testing if the current URL matches a pattern</td></tr>
+      <tr><td><code>useOutletContext()</code></td><td>context value</td><td>Reading data passed down from a layout route via Outlet</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ══ 05. NESTED ROUTES ══ -->
+<div class="section" id="nested">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Nested routes &amp; Outlet — layout components</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">architecture</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--teal-dim);color:var(--teal);">what nested routes do</span>
+      <div class="cc-title">Shared layout + swappable content</div>
+      <div class="cc-body">Nested routes let a <strong>parent route render a layout</strong> (sidebar, tabs, header) that persists, while child routes render into a specific slot — the <code>&lt;Outlet /&gt;</code>. Navigating between child routes only re-renders the outlet content, not the whole layout. Perfect for dashboards, settings pages, and tabbed views.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">index routes</span>
+      <div class="cc-title">Default child when no sub-path matches</div>
+      <div class="cc-body">An <code>index</code> route renders when the parent path matches exactly but no child path matches. It's the "default" child. For example, at <code>/dashboard</code> (with no sub-path), the index route renders. Navigate to <code>/dashboard/settings</code> and the settings child replaces it.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">Outlet context</span>
+      <div class="cc-title">Pass data from layout to children</div>
+      <div class="cc-body">The <code>&lt;Outlet context={value}&gt;</code> prop lets a layout route pass data down to any child without prop drilling. Children read it with <code>useOutletContext()</code>. Useful for passing the current user, permissions, or shared state that all children in a section need.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Nested routes — dashboard layout with sidebar + Outlet</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── App.jsx — nested route configuration ─────────────────</span>
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;Routes&gt;</span>
+      <span class="cm">{/* Public routes */}</span>
+      <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/"</span>       <span class="attr">element</span>={<span class="tag">&lt;Home</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/login"</span>  <span class="attr">element</span>={<span class="tag">&lt;Login</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+
+      <span class="cm">{/* Dashboard — nested under /dashboard */}</span>
+      <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/dashboard"</span> <span class="attr">element</span>={<span class="tag">&lt;DashboardLayout</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+        <span class="tag">&lt;Route</span> <span class="attr">index</span>               <span class="attr">element</span>={<span class="tag">&lt;DashboardHome</span>  <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span> <span class="cm">{/* /dashboard */}</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"analytics"</span>    <span class="attr">element</span>={<span class="tag">&lt;Analytics</span>      <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span> <span class="cm">{/* /dashboard/analytics */}</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"settings"</span>     <span class="attr">element</span>={<span class="tag">&lt;Settings</span>       <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span> <span class="cm">{/* /dashboard/settings */}</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"users/:id"</span>   <span class="attr">element</span>={<span class="tag">&lt;UserDetail</span>     <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span> <span class="cm">{/* /dashboard/users/42 */}</span>
+      <span class="tag">&lt;/Route&gt;</span>
+
+      <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"*"</span> <span class="attr">element</span>={<span class="tag">&lt;NotFound</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/Routes&gt;</span>
+  )
+}
+
+<span class="cm">// ── DashboardLayout.jsx — persistent sidebar with Outlet ──</span>
+<span class="kw">import</span> { <span class="var">NavLink</span>, <span class="var">Outlet</span> } <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+
+<span class="kw">function</span> <span class="fn">DashboardLayout</span>() {
+  <span class="kw">const</span> <span class="var">user</span> = <span class="fn">useCurrentUser</span>()   <span class="cm">// some auth hook</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"dashboard"</span><span class="tag">&gt;</span>
+      <span class="cm">{/* Sidebar — persists across all /dashboard/* routes */}</span>
+      <span class="tag">&lt;aside</span> <span class="attr">className</span>=<span class="str">"sidebar"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;p&gt;</span>Welcome, {<span class="var">user</span>.<span class="prop">name</span>}<span class="tag">&lt;/p&gt;</span>
+        <span class="tag">&lt;nav&gt;</span>
+          <span class="tag">&lt;NavLink</span> <span class="attr">to</span>=<span class="str">"/dashboard"</span>            <span class="attr">end</span><span class="tag">&gt;</span>Overview<span class="tag">&lt;/NavLink&gt;</span>
+          <span class="tag">&lt;NavLink</span> <span class="attr">to</span>=<span class="str">"/dashboard/analytics"</span><span class="tag">&gt;</span>Analytics<span class="tag">&lt;/NavLink&gt;</span>
+          <span class="tag">&lt;NavLink</span> <span class="attr">to</span>=<span class="str">"/dashboard/settings"</span><span class="tag">&gt;</span>Settings<span class="tag">&lt;/NavLink&gt;</span>
+        <span class="tag">&lt;/nav&gt;</span>
+      <span class="tag">&lt;/aside&gt;</span>
+
+      <span class="cm">{/* Main content — swaps based on child route */}</span>
+      <span class="tag">&lt;main</span> <span class="attr">className</span>=<span class="str">"content"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;Outlet</span> <span class="attr">context</span>={{ <span class="var">user</span> }} <span class="tag">/&gt;</span>   <span class="cm">{/* child route renders here */}</span>
+      <span class="tag">&lt;/main&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── Settings.jsx — reads context from layout ──────────────</span>
+<span class="kw">import</span> { <span class="var">useOutletContext</span> } <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+
+<span class="kw">function</span> <span class="fn">Settings</span>() {
+  <span class="kw">const</span> { <span class="var">user</span> } = <span class="fn">useOutletContext</span>()   <span class="cm">// reads context from DashboardLayout</span>
+  <span class="kw">return</span> <span class="tag">&lt;h1&gt;</span>Settings for {<span class="var">user</span>.<span class="prop">name</span>}<span class="tag">&lt;/h1&gt;</span>
+}
+
+<span class="cm">// ── end= prop on NavLink ──────────────────────────────────</span>
+<span class="cm">// Without end: /dashboard NavLink matches BOTH /dashboard AND /dashboard/settings</span>
+<span class="cm">// With    end: /dashboard NavLink only matches exactly /dashboard</span>
+<span class="tag">&lt;NavLink</span> <span class="attr">to</span>=<span class="str">"/dashboard"</span> <span class="attr">end</span><span class="tag">&gt;</span>Overview<span class="tag">&lt;/NavLink&gt;</span>  <span class="cm">{/* end prevents false-active */}</span></pre></div>
+  </div>
+</div>
+
+<!-- ══ 06. PROTECTED ROUTES & ADVANCED ══ -->
+<div class="section" id="advanced">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Protected routes, 404s &amp; lazy loading</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">real-world</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Auth guard, protected route wrapper, lazy loading, scroll restoration</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">Navigate</span>, <span class="var">useLocation</span>, <span class="var">Outlet</span> } <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+
+<span class="cm">// ── Protected Route — redirect unauthenticated users ──────</span>
+<span class="cm">// Pattern 1: wrapper component using Outlet</span>
+<span class="kw">function</span> <span class="fn">RequireAuth</span>() {
+  <span class="kw">const</span> <span class="var">auth</span>     = <span class="fn">useAuth</span>()       <span class="cm">// your auth hook</span>
+  <span class="kw">const</span> <span class="var">location</span> = <span class="fn">useLocation</span>()
+
+  <span class="kw">if</span> (!<span class="var">auth</span>.<span class="prop">user</span>) {
+    <span class="cm">// Redirect to login, but save current location so we can return after login</span>
+    <span class="kw">return</span> <span class="tag">&lt;Navigate</span> <span class="attr">to</span>=<span class="str">"/login"</span> <span class="attr">state</span>={{ <span class="prop">from</span>: <span class="var">location</span> }} <span class="attr">replace</span> <span class="tag">/&gt;</span>
+  }
+
+  <span class="kw">return</span> <span class="tag">&lt;Outlet</span> <span class="tag">/&gt;</span>   <span class="cm">// render children if authenticated</span>
+}
+
+<span class="cm">// In App.jsx — wrap protected routes with RequireAuth</span>
+<span class="tag">&lt;Routes&gt;</span>
+  <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/"</span>      <span class="attr">element</span>={<span class="tag">&lt;Home</span> <span class="tag">/&gt;</span>}  <span class="tag">/&gt;</span>   <span class="cm">{/* public */}</span>
+  <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/login"</span> <span class="attr">element</span>={<span class="tag">&lt;Login</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>   <span class="cm">{/* public */}</span>
+
+  <span class="tag">&lt;Route</span> <span class="attr">element</span>={<span class="tag">&lt;RequireAuth</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>               <span class="cm">{/* auth guard */}</span>
+    <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/dashboard"</span> <span class="attr">element</span>={<span class="tag">&lt;Dashboard</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+    <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/profile"</span>   <span class="attr">element</span>={<span class="tag">&lt;Profile</span>   <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+    <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/settings"</span>  <span class="attr">element</span>={<span class="tag">&lt;Settings</span>  <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+  <span class="tag">&lt;/Route&gt;</span>
+
+  <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"*"</span> <span class="attr">element</span>={<span class="tag">&lt;NotFound</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>       <span class="cm">{/* 404 catch-all */}</span>
+<span class="tag">&lt;/Routes&gt;</span>
+
+<span class="cm">// ── Role-based protection ─────────────────────────────────</span>
+<span class="kw">function</span> <span class="fn">RequireRole</span>({ <span class="var">role</span> }) {
+  <span class="kw">const</span> { <span class="var">user</span> } = <span class="fn">useAuth</span>()
+  <span class="kw">if</span> (!<span class="var">user</span>)                 <span class="kw">return</span> <span class="tag">&lt;Navigate</span> <span class="attr">to</span>=<span class="str">"/login"</span> <span class="attr">replace</span> <span class="tag">/&gt;</span>
+  <span class="kw">if</span> (<span class="var">user</span>.<span class="prop">role</span> !== <span class="var">role</span>)   <span class="kw">return</span> <span class="tag">&lt;Navigate</span> <span class="attr">to</span>=<span class="str">"/forbidden"</span> <span class="attr">replace</span> <span class="tag">/&gt;</span>
+  <span class="kw">return</span> <span class="tag">&lt;Outlet</span> <span class="tag">/&gt;</span>
+}
+<span class="tag">&lt;Route</span> <span class="attr">element</span>={<span class="tag">&lt;RequireRole</span> <span class="attr">role</span>=<span class="str">"admin"</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+  <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/admin"</span> <span class="attr">element</span>={<span class="tag">&lt;AdminPanel</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+<span class="tag">&lt;/Route&gt;</span>
+
+<span class="cm">// ── Lazy loading routes — code splitting per page ─────────</span>
+<span class="kw">import</span> { <span class="var">lazy</span>, <span class="var">Suspense</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="cm">// Each page is a separate JS chunk — only downloaded when visited</span>
+<span class="kw">const</span> <span class="var">Dashboard</span>  = <span class="fn">lazy</span>(() =&gt; <span class="kw">import</span>(<span class="str">"./pages/Dashboard"</span>))
+<span class="kw">const</span> <span class="var">Analytics</span>  = <span class="fn">lazy</span>(() =&gt; <span class="kw">import</span>(<span class="str">"./pages/Analytics"</span>))
+<span class="kw">const</span> <span class="var">Settings</span>   = <span class="fn">lazy</span>(() =&gt; <span class="kw">import</span>(<span class="str">"./pages/Settings"</span>))
+
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="cm">{/* Suspense shows fallback while the chunk downloads */}</span>
+    <span class="tag">&lt;Suspense</span> <span class="attr">fallback</span>={<span class="tag">&lt;PageSpinner</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;Routes&gt;</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/dashboard"</span> <span class="attr">element</span>={<span class="tag">&lt;Dashboard</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/analytics"</span> <span class="attr">element</span>={<span class="tag">&lt;Analytics</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/Routes&gt;</span>
+    <span class="tag">&lt;/Suspense&gt;</span>
+  )
+}
+
+<span class="cm">// ── Navigate component — declarative redirect ─────────────</span>
+<span class="cm">// Useful for redirecting old URLs or default redirects</span>
+<span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/old-about"</span> <span class="attr">element</span>={<span class="tag">&lt;Navigate</span> <span class="attr">to</span>=<span class="str">"/about"</span> <span class="attr">replace</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+
+<span class="cm">// ── Scroll to top on route change ────────────────────────</span>
+<span class="kw">function</span> <span class="fn">ScrollToTop</span>() {
+  <span class="kw">const</span> { <span class="var">pathname</span> } = <span class="fn">useLocation</span>()
+  <span class="fn">useEffect</span>(() =&gt; { <span class="var">window</span>.<span class="fn">scrollTo</span>(<span class="num">0</span>, <span class="num">0</span>) }, [<span class="var">pathname</span>])
+  <span class="kw">return</span> <span class="kw">null</span>
+}
+<span class="cm">// Place &lt;ScrollToTop /&gt; inside BrowserRouter, outside Routes</span></pre></div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — router logic in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Since we can't run a full React app in the browser runner, these exercises simulate <strong>the core logic of React Router</strong> — route matching, param extraction, history management, and auth guards — in plain JavaScript.</p>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Build a route matcher — the heart of React Router</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>matchRoute(pattern, pathname)</code> that returns <code>null</code> if no match, or <code>{ params }</code> on match. Handle static segments (<code>/about</code>), dynamic params (<code>/:id</code>), and wildcard (<code>*</code>). This is exactly what React Router does internally.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — route matcher</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">function matchRoute(pattern, pathname) {
+  // YOUR CODE:
+  // Split both pattern and pathname on "/"
+  // For each segment:
+  //   - if pattern segment starts with ":" → it's a param, capture it
+  //   - if pattern segment is "*" → match anything remaining, stop
+  //   - otherwise → must match exactly (case-sensitive)
+  // Return null if lengths differ (unless wildcard)
+  // Return { params: {} } on match
+
+}
+
+// Test static routes
+console.log(matchRoute("/",         "/"))           // { params: {} }
+console.log(matchRoute("/about",    "/about"))      // { params: {} }
+console.log(matchRoute("/about",    "/contact"))    // null
+console.log(matchRoute("/a/b/c",    "/a/b/c"))      // { params: {} }
+console.log(matchRoute("/a/b/c",    "/a/b"))        // null
+
+// Test dynamic params
+console.log(matchRoute("/users/:id",         "/users/42"))       // { params: { id: "42" } }
+console.log(matchRoute("/users/:id",         "/users/alice"))    // { params: { id: "alice" } }
+console.log(matchRoute("/posts/:year/:slug", "/posts/2024/hello"))
+// { params: { year: "2024", slug: "hello" } }
+
+// Test wildcard
+console.log(matchRoute("*",         "/anything/at/all")) // { params: { "*": "anything/at/all" } }
+console.log(matchRoute("/docs/*",   "/docs/a/b/c"))      // { params: { "*": "a/b/c" } }
+console.log(matchRoute("/docs/*",   "/other"))           // null
+
+// Test no match
+console.log(matchRoute("/users/:id", "/users"))          // null (missing param)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">matchRoute</span>(<span class="var">pattern</span>, <span class="var">pathname</span>) {
+  <span class="kw">const</span> <span class="var">patParts</span>  = <span class="var">pattern</span>.<span class="fn">split</span>(<span class="str">"/"</span>).<span class="fn">filter</span>(<span class="fn">Boolean</span>)
+  <span class="kw">const</span> <span class="var">pathParts</span> = <span class="var">pathname</span>.<span class="fn">split</span>(<span class="str">"/"</span>).<span class="fn">filter</span>(<span class="fn">Boolean</span>)
+  <span class="kw">const</span> <span class="var">params</span>    = {}
+
+  <span class="cm">// Handle root "/"</span>
+  <span class="kw">if</span> (<span class="var">pattern</span> === <span class="str">"/"</span>) <span class="kw">return</span> <span class="var">pathname</span> === <span class="str">"/"</span> ? { <span class="var">params</span> } : <span class="kw">null</span>
+
+  <span class="cm">// Wildcard "*" matches everything</span>
+  <span class="kw">if</span> (<span class="var">pattern</span> === <span class="str">"*"</span>) <span class="kw">return</span> { <span class="prop">params</span>: { <span class="str">"*"</span>: <span class="var">pathname</span>.<span class="fn">slice</span>(<span class="num">1</span>) } }
+
+  <span class="kw">for</span> (<span class="kw">let</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> < <span class="var">patParts</span>.<span class="prop">length</span>; <span class="var">i</span>++) {
+    <span class="kw">const</span> <span class="var">seg</span> = <span class="var">patParts</span>[<span class="var">i</span>]
+
+    <span class="kw">if</span> (<span class="var">seg</span> === <span class="str">"*"</span>) {   <span class="cm">// splat</span>
+      <span class="var">params</span>[<span class="str">"*"</span>] = <span class="var">pathParts</span>.<span class="fn">slice</span>(<span class="var">i</span>).<span class="fn">join</span>(<span class="str">"/"</span>)
+      <span class="kw">return</span> { <span class="var">params</span> }
+    }
+    <span class="kw">if</span> (<span class="var">i</span> >= <span class="var">pathParts</span>.<span class="prop">length</span>) <span class="kw">return</span> <span class="kw">null</span>   <span class="cm">// path too short</span>
+    <span class="kw">if</span> (<span class="var">seg</span>.<span class="fn">startsWith</span>(<span class="str">":"</span>)) {
+      <span class="var">params</span>[<span class="var">seg</span>.<span class="fn">slice</span>(<span class="num">1</span>)] = <span class="var">pathParts</span>[<span class="var">i</span>]   <span class="cm">// capture param</span>
+    } <span class="kw">else</span> <span class="kw">if</span> (<span class="var">seg</span> !== <span class="var">pathParts</span>[<span class="var">i</span>]) {
+      <span class="kw">return</span> <span class="kw">null</span>   <span class="cm">// static segment mismatch</span>
+    }
+  }
+  <span class="kw">return</span> <span class="var">patParts</span>.<span class="prop">length</span> === <span class="var">pathParts</span>.<span class="prop">length</span> ? { <span class="var">params</span> } : <span class="kw">null</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Build a router — Routes + best-match selection</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Using your <code>matchRoute</code> from Ex 1, build a <code>createRouter(routes)</code> function that picks the <strong>best matching route</strong> for a given pathname. React Router v6 selects the most specific match — static segments beat dynamic params, which beat wildcards.</div>
+      <div class="ex-hint">Score each match: static segment = 3 points, dynamic param = 2 points, wildcard = 1 point. The highest-scoring match wins.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — best-match router</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">// Paste your matchRoute from Ex 1 here, or use this simplified version
+function matchRoute(pattern, pathname) {
+  const patParts  = pattern.split("/").filter(Boolean)
+  const pathParts = pathname.split("/").filter(Boolean)
+  const params    = {}
+  if (pattern === "/")  return pathname === "/" ? { params } : null
+  if (pattern === "*")  return { params: { "*": pathname.slice(1) } }
+  for (let i = 0; i < patParts.length; i++) {
+    const seg = patParts[i]
+    if (seg === "*") { params["*"] = pathParts.slice(i).join("/"); return { params } }
+    if (i >= pathParts.length) return null
+    if (seg.startsWith(":")) params[seg.slice(1)] = pathParts[i]
+    else if (seg !== pathParts[i]) return null
+  }
+  return patParts.length === pathParts.length ? { params } : null
+}
+
+function scoreMatch(pattern, params) {
+  // YOUR CODE: score the match
+  // For each segment in pattern: static=3, dynamic(:x)=2, wildcard(*)=1
+  // Return total score
+}
+
+function createRouter(routes) {
+  // routes: [{ path, component }]
+  return {
+    resolve(pathname) {
+      // YOUR CODE:
+      // Try matchRoute() against each route
+      // Among matching routes, pick the highest-scoring one
+      // Return { route, params } or null
+    }
+  }
+}
+
+const router = createRouter([
+  { path: "/",              component: "Home"      },
+  { path: "/users",         component: "UserList"  },
+  { path: "/users/new",     component: "NewUser"   },  // more specific than /:id
+  { path: "/users/:id",     component: "UserDetail"},
+  { path: "/users/:id/edit",component: "EditUser"  },
+  { path: "/docs/*",        component: "Docs"      },
+  { path: "*",              component: "NotFound"  },
+])
+
+const tests = [
+  ["/",              "Home",       {}],
+  ["/users",         "UserList",   {}],
+  ["/users/new",     "NewUser",    {}],         // static beats dynamic!
+  ["/users/42",      "UserDetail", {id:"42"}],
+  ["/users/42/edit", "EditUser",   {id:"42"}],
+  ["/docs/a/b",      "Docs",       {"*":"a/b"}],
+  ["/unknown",       "NotFound",   {}],
+]
+
+let allPassed = true
+for (const [path, expectedComp, expectedParams] of tests) {
+  const result = router.resolve(path)
+  const pass = result?.route.component === expectedComp
+  console.log(`${pass ? "✓" : "✗"} ${path} → ${result?.route.component} (params: ${JSON.stringify(result?.params)})`)
+  if (!pass) allPassed = false
+}
+console.log(allPassed ? "\nAll tests passed!" : "\nSome tests failed")</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">scoreMatch</span>(<span class="var">pattern</span>) {
+  <span class="kw">return</span> <span class="var">pattern</span>.<span class="fn">split</span>(<span class="str">"/"</span>).<span class="fn">filter</span>(<span class="fn">Boolean</span>).<span class="fn">reduce</span>((<span class="var">score</span>, <span class="var">seg</span>) =>
+    <span class="var">score</span> + (<span class="var">seg</span> === <span class="str">"*"</span> ? <span class="num">1</span> : <span class="var">seg</span>.<span class="fn">startsWith</span>(<span class="str">":"</span>) ? <span class="num">2</span> : <span class="num">3</span>), <span class="num">0</span>)
+}
+
+<span class="fn">resolve</span>(<span class="var">pathname</span>) {
+  <span class="kw">let</span> <span class="var">best</span> = <span class="kw">null</span>, <span class="var">bestScore</span> = -<span class="fn">Infinity</span>
+  <span class="kw">for</span> (<span class="kw">const</span> <span class="var">route</span> <span class="kw">of</span> <span class="var">routes</span>) {
+    <span class="kw">const</span> <span class="var">match</span> = <span class="fn">matchRoute</span>(<span class="var">route</span>.<span class="prop">path</span>, <span class="var">pathname</span>)
+    <span class="kw">if</span> (<span class="var">match</span>) {
+      <span class="kw">const</span> <span class="var">score</span> = <span class="fn">scoreMatch</span>(<span class="var">route</span>.<span class="prop">path</span>)
+      <span class="kw">if</span> (<span class="var">score</span> > <span class="var">bestScore</span>) { <span class="var">best</span> = { <span class="var">route</span>, <span class="prop">params</span>: <span class="var">match</span>.<span class="prop">params</span> }; <span class="var">bestScore</span> = <span class="var">score</span> }
+    }
+  }
+  <span class="kw">return</span> <span class="var">best</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Mini history — pushState, back, forward</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>createHistory()</code> that simulates the browser's History API. It should support <code>push(path)</code>, <code>replace(path)</code>, <code>back()</code>, <code>forward()</code>, and <code>subscribe(fn)</code> — calling listeners whenever the current URL changes. This is exactly what React Router wraps.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — mini history API</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">function createHistory(initialPath = "/") {
+  let stack     = [initialPath]   // history stack
+  let cursor    = 0               // current position in stack
+  let listeners = []
+
+  function notify() {
+    listeners.forEach(fn => fn(stack[cursor]))
+  }
+
+  function push(path) {
+    // YOUR CODE:
+    // Discard any "forward" entries (entries after cursor)
+    // Add path to stack, advance cursor, notify
+  }
+
+  function replace(path) {
+    // YOUR CODE: replace current entry, notify (no new entry added)
+  }
+
+  function back() {
+    // YOUR CODE: move cursor back if possible, notify
+  }
+
+  function forward() {
+    // YOUR CODE: move cursor forward if possible, notify
+  }
+
+  function subscribe(fn) {
+    listeners.push(fn)
+    return () => { listeners = listeners.filter(l => l !== fn) }
+  }
+
+  function getCurrentPath() { return stack[cursor] }
+  function canGoBack()      { return cursor > 0 }
+  function canGoForward()   { return cursor < stack.length - 1 }
+
+  return { push, replace, back, forward, subscribe, getCurrentPath, canGoBack, canGoForward }
+}
+
+// Test
+const history = createHistory("/")
+const log = []
+history.subscribe(path => log.push(`→ ${path}`))
+
+history.push("/about")
+history.push("/contact")
+history.push("/users/1")
+console.log("Stack log:", log)      // [→ /about, → /contact, → /users/1]
+console.log("Current:", history.getCurrentPath()) // /users/1
+console.log("Can back:", history.canGoBack())     // true
+
+history.back()
+console.log("After back:", history.getCurrentPath()) // /contact
+
+history.back()
+console.log("After back:", history.getCurrentPath()) // /about
+
+history.forward()
+console.log("After forward:", history.getCurrentPath()) // /contact
+
+// Push after back discards forward entries
+history.push("/new-page")
+console.log("After push from mid:", history.canGoForward()) // false
+console.log("New current:", history.getCurrentPath())        // /new-page
+
+// Replace doesn't add to stack
+const lenBefore = log.length
+history.replace("/replaced")
+console.log("Replace current:", history.getCurrentPath()) // /replaced
+history.back()
+console.log("Back from replaced:", history.getCurrentPath()) // /contact (not /new-page)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">push</span>(<span class="var">path</span>) {
+  <span class="var">stack</span> = <span class="var">stack</span>.<span class="fn">slice</span>(<span class="num">0</span>, <span class="var">cursor</span> + <span class="num">1</span>)  <span class="cm">// discard forward history</span>
+  <span class="var">stack</span>.<span class="fn">push</span>(<span class="var">path</span>)
+  <span class="var">cursor</span>++
+  <span class="fn">notify</span>()
+}
+<span class="kw">function</span> <span class="fn">replace</span>(<span class="var">path</span>) {
+  <span class="var">stack</span>[<span class="var">cursor</span>] = <span class="var">path</span>  <span class="cm">// overwrite current entry</span>
+  <span class="fn">notify</span>()
+}
+<span class="kw">function</span> <span class="fn">back</span>()    { <span class="kw">if</span> (<span class="fn">canGoBack</span>())     { <span class="var">cursor</span>--; <span class="fn">notify</span>() } }
+<span class="kw">function</span> <span class="fn">forward</span>() { <span class="kw">if</span> (<span class="fn">canGoForward</span>()) { <span class="var">cursor</span>++; <span class="fn">notify</span>() } }</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Protected route logic — auth guard simulation</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>createAuthGuard(isAuthenticated, getRole)</code> that returns a <code>guard(route)</code> function. It should redirect to <code>/login</code> when not authenticated, redirect to <code>/forbidden</code> when the user lacks the required role, and pass through otherwise. Store the original destination so login can redirect back after success.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — auth guard</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">// Route definition shape: { path, component, requiresAuth, requiredRole }
+function createAuthGuard(isAuthenticated, getRole) {
+  return function guard(route, currentPath) {
+    // YOUR CODE:
+    // 1. If route.requiresAuth and !isAuthenticated():
+    //    return { redirect: "/login", state: { from: currentPath } }
+    // 2. If route.requiredRole and getRole() !== route.requiredRole:
+    //    return { redirect: "/forbidden" }
+    // 3. Otherwise: return { allow: true }
+  }
+}
+
+// Simulate auth state
+let authState = { user: null }
+const isAuthenticated = () => authState.user !== null
+const getRole         = () => authState.user?.role ?? null
+
+const guard = createAuthGuard(isAuthenticated, getRole)
+
+const routes = [
+  { path: "/",          component: "Home"     },
+  { path: "/about",     component: "About"    },
+  { path: "/dashboard", component: "Dashboard", requiresAuth: true },
+  { path: "/settings",  component: "Settings",  requiresAuth: true },
+  { path: "/admin",     component: "Admin",     requiresAuth: true, requiredRole: "admin" },
+]
+
+// Test 1: unauthenticated user
+console.log("=== Not logged in ===")
+console.log(guard(routes[0], "/"))          // { allow: true }   — public
+console.log(guard(routes[2], "/dashboard")) // { redirect: "/login", state: { from: "/dashboard" } }
+console.log(guard(routes[4], "/admin"))     // { redirect: "/login", ... }
+
+// Test 2: regular user
+authState.user = { name: "Alice", role: "user" }
+console.log("\n=== Logged in as user ===")
+console.log(guard(routes[2], "/dashboard")) // { allow: true }
+console.log(guard(routes[4], "/admin"))     // { redirect: "/forbidden" } — wrong role
+
+// Test 3: admin user
+authState.user = { name: "Bob", role: "admin" }
+console.log("\n=== Logged in as admin ===")
+console.log(guard(routes[4], "/admin"))     // { allow: true }
+
+// Simulate full navigation with guard
+function navigate(path, user) {
+  authState.user = user
+  const route = routes.find(r => r.path === path)
+  if (!route) return `404: ${path}`
+  const result = guard(route, path)
+  if (result.redirect) return `REDIRECT to ${result.redirect}${result.state ? ` (save: ${result.state.from})` : ""}`
+  return `RENDER ${route.component}`
+}
+
+console.log("\n=== Full navigation simulation ===")
+console.log(navigate("/dashboard", null))                           // redirect to /login
+console.log(navigate("/dashboard", { name:"Alice", role:"user" })) // render Dashboard
+console.log(navigate("/admin",     { name:"Alice", role:"user" })) // redirect to /forbidden
+console.log(navigate("/admin",     { name:"Bob",   role:"admin"})) // render Admin</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">return</span> <span class="kw">function</span> <span class="fn">guard</span>(<span class="var">route</span>, <span class="var">currentPath</span>) {
+  <span class="kw">if</span> (<span class="var">route</span>.<span class="prop">requiresAuth</span> && !<span class="fn">isAuthenticated</span>()) {
+    <span class="kw">return</span> { <span class="prop">redirect</span>: <span class="str">"/login"</span>, <span class="prop">state</span>: { <span class="prop">from</span>: <span class="var">currentPath</span> } }
+  }
+  <span class="kw">if</span> (<span class="var">route</span>.<span class="prop">requiredRole</span> && <span class="fn">getRole</span>() !== <span class="var">route</span>.<span class="prop">requiredRole</span>) {
+    <span class="kw">return</span> { <span class="prop">redirect</span>: <span class="str">"/forbidden"</span> }
+  }
+  <span class="kw">return</span> { <span class="prop">allow</span>: <span class="kw">true</span> }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Search params — query string encode/decode</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>useSearchParams</code> simulator. It should parse the current query string into a Map, provide <code>get</code>, <code>set</code>, <code>delete</code>, and <code>getAll</code> methods, and produce an updated URL string. Simulate the filter UI from the product list example — changing filters should update the URL without losing other params.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — search params simulator</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">// Simulate URLSearchParams behaviour
+function createSearchParams(searchString = "") {
+  // Parse "?key=val&key2=val2" or "key=val&key2=val2"
+  const raw    = searchString.startsWith("?") ? searchString.slice(1) : searchString
+  const store  = new Map()   // key → [values] (supports multi-value)
+
+  // Parse initial string
+  if (raw) {
+    raw.split("&").forEach(pair => {
+      const [k, v = ""] = pair.split("=").map(decodeURIComponent)
+      if (!store.has(k)) store.set(k, [])
+      store.get(k).push(v)
+    })
+  }
+
+  return {
+    get(key)       { return store.get(key)?.[0] ?? null },
+    getAll(key)    { return store.get(key) ?? [] },
+    has(key)       { return store.has(key) },
+
+    set(key, value) {
+      // YOUR CODE: replace all values for key with [value]
+    },
+    append(key, value) {
+      // YOUR CODE: add value to key's array (multi-value support)
+    },
+    delete(key) {
+      // YOUR CODE: remove key entirely
+    },
+    toString() {
+      // YOUR CODE: encode back to "key=val&key2=val2" (no leading ?)
+      // Use encodeURIComponent on both keys and values
+    },
+    toURL(pathname) {
+      const qs = this.toString()
+      return qs ? `${pathname}?${qs}` : pathname
+    }
+  }
+}
+
+// Test basic ops
+const sp = createSearchParams("category=electronics&sort=price&page=2")
+console.log("get category:", sp.get("category"))    // electronics
+console.log("get missing:",  sp.get("missing"))     // null
+console.log("has sort:",     sp.has("sort"))        // true
+
+sp.set("page", "3")
+console.log("after set page=3:", sp.get("page"))    // 3
+
+sp.set("category", "clothing")
+console.log("after set category:", sp.get("category")) // clothing
+
+sp.delete("sort")
+console.log("after delete sort:", sp.has("sort"))   // false
+
+console.log("toString:", sp.toString())
+// "category=clothing&page=3" (order may vary)
+
+// Test multi-value
+const sp2 = createSearchParams("")
+sp2.append("tags", "react")
+sp2.append("tags", "javascript")
+sp2.append("tags", "css")
+console.log("tags getAll:", sp2.getAll("tags"))     // ["react", "javascript", "css"]
+console.log("tags get:",    sp2.get("tags"))        // "react" (first)
+
+// Test URL generation
+const sp3 = createSearchParams("category=books&page=1")
+sp3.set("category", "electronics")
+sp3.set("page", "1")
+console.log("product URL:", sp3.toURL("/products")) // /products?category=electronics&page=1
+
+// Simulate filter update (like React Router's setSearchParams)
+function updateFilter(currentSearch, key, value) {
+  const params = createSearchParams(currentSearch)
+  params.set(key, value)
+  params.set("page", "1")   // reset page on filter change
+  return params.toString()
+}
+console.log("filter update:", updateFilter("category=books&page=3&sort=price", "category", "music"))
+// category=music&page=1&sort=price</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="fn">set</span>(<span class="var">key</span>, <span class="var">value</span>)    { <span class="var">store</span>.<span class="fn">set</span>(<span class="var">key</span>, [<span class="fn">String</span>(<span class="var">value</span>)]) },
+<span class="fn">append</span>(<span class="var">key</span>, <span class="var">value</span>) {
+  <span class="kw">if</span> (!<span class="var">store</span>.<span class="fn">has</span>(<span class="var">key</span>)) <span class="var">store</span>.<span class="fn">set</span>(<span class="var">key</span>, [])
+  <span class="var">store</span>.<span class="fn">get</span>(<span class="var">key</span>).<span class="fn">push</span>(<span class="fn">String</span>(<span class="var">value</span>))
+},
+<span class="fn">delete</span>(<span class="var">key</span>)         { <span class="var">store</span>.<span class="fn">delete</span>(<span class="var">key</span>) },
+<span class="fn">toString</span>()           {
+  <span class="kw">return</span> [...<span class="var">store</span>.<span class="fn">entries</span>()]
+    .<span class="fn">flatMap</span>(([<span class="var">k</span>, <span class="var">vals</span>]) => <span class="var">vals</span>.<span class="fn">map</span>(<span class="var">v</span> => `${<span class="fn">encodeURIComponent</span>(<span class="var">k</span>)}=${<span class="fn">encodeURIComponent</span>(<span class="var">v</span>)}`))
+    .<span class="fn">join</span>(<span class="str">"&"</span>)
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Assemble a complete mini-router</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Combine everything from Ex 1–4 into a working mini-router with full navigation simulation. It should: match routes, guard protected ones, maintain history, fire listeners on navigation, and resolve the correct component for any URL.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — complete mini-router</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// ── Paste in matchRoute, scoreMatch, createRouter from Ex 1-2 ──
+function matchRoute(pattern, pathname) {
+  const patParts = pattern.split("/").filter(Boolean)
+  const pathParts = pathname.split("/").filter(Boolean)
+  const params = {}
+  if (pattern === "/")  return pathname === "/" ? { params } : null
+  if (pattern === "*")  return { params: { "*": pathname.slice(1) } }
+  for (let i = 0; i < patParts.length; i++) {
+    const seg = patParts[i]
+    if (seg === "*") { params["*"] = pathParts.slice(i).join("/"); return { params } }
+    if (i >= pathParts.length) return null
+    if (seg.startsWith(":")) params[seg.slice(1)] = pathParts[i]
+    else if (seg !== pathParts[i]) return null
+  }
+  return patParts.length === pathParts.length ? { params } : null
+}
+function score(pattern) {
+  return pattern.split("/").filter(Boolean).reduce((s,seg) => s+(seg==="*"?1:seg.startsWith(":")?2:3), 0)
+}
+
+// Full app router
+function createAppRouter({ routes, auth }) {
+  let history     = ["/"]
+  let cursor      = 0
+  let listeners   = []
+
+  const notify = () => listeners.forEach(fn => fn(resolve(history[cursor])))
+
+  function resolve(pathname) {
+    let best = null, bestScore = -Infinity
+    for (const route of routes) {
+      const match = matchRoute(route.path, pathname)
+      if (match) {
+        const s = score(route.path)
+        if (s > bestScore) { best = { route, params: match.params }; bestScore = s }
+      }
+    }
+    if (!best) return { component: "NotFound", params: {}, pathname }
+
+    // Apply auth guard
+    if (best.route.requiresAuth && !auth.isAuthenticated()) {
+      return { component: "Redirect", to: "/login", state: { from: pathname } }
+    }
+    if (best.route.requiredRole && auth.getRole() !== best.route.requiredRole) {
+      return { component: "Redirect", to: "/forbidden" }
+    }
+
+    return { ...best.route, params: best.params, pathname }
+  }
+
+  return {
+    navigate(path) {
+      history = history.slice(0, cursor + 1)
+      history.push(path)
+      cursor++
+      notify()
+      return resolve(path)
+    },
+    back() {
+      if (cursor > 0) { cursor--; notify() }
+      return resolve(history[cursor])
+    },
+    subscribe(fn) { listeners.push(fn); return () => { listeners = listeners.filter(l=>l!==fn) } },
+    current()     { return resolve(history[cursor]) },
+    pathname()    { return history[cursor] }
+  }
+}
+
+// Test the full router
+const authState = { user: null }
+const router = createAppRouter({
+  routes: [
+    { path: "/",          component: "Home"      },
+    { path: "/login",     component: "Login"     },
+    { path: "/dashboard", component: "Dashboard", requiresAuth: true },
+    { path: "/admin",     component: "Admin",     requiresAuth: true, requiredRole: "admin" },
+    { path: "/users/:id", component: "UserDetail",requiresAuth: true },
+    { path: "*",          component: "NotFound"  },
+  ],
+  auth: {
+    isAuthenticated: () => authState.user !== null,
+    getRole:         () => authState.user?.role ?? null,
+  }
+})
+
+const navLog = []
+router.subscribe(state => navLog.push(`${state.component} @ ${state.pathname || state.to}`))
+
+console.log("Navigate /dashboard (not logged in):", router.navigate("/dashboard").component)  // Redirect
+console.log("Navigate /login:", router.navigate("/login").component)                           // Login
+
+authState.user = { name: "Alice", role: "user" }
+console.log("Navigate /dashboard (logged in):", router.navigate("/dashboard").component)       // Dashboard
+console.log("Navigate /admin (wrong role):", router.navigate("/admin").component)              // Redirect
+console.log("Navigate /users/42:", router.navigate("/users/42").component)                    // UserDetail
+console.log("Params:", router.current().params)                                               // { id: "42" }
+
+authState.user = { name: "Bob", role: "admin" }
+console.log("Navigate /admin (admin):", router.navigate("/admin").component)                   // Admin
+
+console.log("Back:", router.back().component)    // UserDetail
+console.log("Back:", router.back().component)    // Dashboard
+
+console.log("\nFull nav log:", navLog)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">How does client-side routing work in a React SPA?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">When a user clicks a React Router <code>&lt;Link&gt;</code>, React Router calls <code>e.preventDefault()</code> to stop the browser's default navigation, then calls <code>window.history.pushState()</code> to update the URL bar without making a server request. React Router's context detects the URL change, re-renders the <code>&lt;Routes&gt;</code> component, and the matching <code>&lt;Route&gt;</code>'s element is displayed.<br><br>The key insight is that the server only ever serves one HTML file — <code>index.html</code>. All routing logic lives in JavaScript. This is why server configuration matters: any URL must return <code>index.html</code> so React can boot up and handle the route. Direct URL navigation or page refreshes on <code>/about</code> would 404 without this configuration.</div>
+    <div class="tip-box">Follow-up: "What's the difference between BrowserRouter and HashRouter?" — BrowserRouter uses the real URL path (/about) via the History API. HashRouter uses the URL hash (#/about), which never gets sent to the server. HashRouter works without server configuration but produces uglier URLs and doesn't support server-side rendering.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">What is the difference between Link and NavLink?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Both prevent the default page reload and use the History API to navigate. The difference is that <code>NavLink</code> knows whether its <code>to</code> path matches the current URL and provides an <code>isActive</code> boolean to its <code>className</code> and <code>style</code> props.<br><br>This makes <code>NavLink</code> ideal for navigation menus where you want to highlight the active page. You pass a function: <code>className={({ isActive }) =&gt; isActive ? "active" : ""}</code>. The <code>end</code> prop prevents a parent path (like <code>/dashboard</code>) from matching as active when a child path (like <code>/dashboard/settings</code>) is active — without <code>end</code>, the parent matches all sub-paths.<br><br>Use <code>NavLink</code> for navigation, <code>Link</code> for links inside content.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">What are nested routes and when do you use them?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Nested routes let a parent route render a persistent layout while child routes render into a specific slot — the <code>&lt;Outlet /&gt;</code> component. The parent renders once and stays on screen; only the outlet's content changes as child routes are navigated.<br><br>Use nested routes when: a section of your app has a shared layout (sidebar, tabs, breadcrumbs) that should persist across sub-pages — dashboards, settings panels, profile pages with tabs. Without nested routes, you'd have to re-implement the layout in every page component.<br><br>An index route (using the <code>index</code> prop instead of <code>path</code>) defines what renders when the parent path matches exactly but no child path matches — the "default" child view.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">How do you implement a protected route?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">The standard pattern in React Router v6 is a wrapper component that uses <code>&lt;Outlet /&gt;</code>. It checks the auth state and either renders the outlet (allowing the protected children) or returns a <code>&lt;Navigate&gt;</code> component (redirecting to login):<br><br><code>function RequireAuth() { const { user } = useAuth(); const location = useLocation(); if (!user) return &lt;Navigate to="/login" state={{ from: location }} replace /&gt;; return &lt;Outlet /&gt; }</code><br><br>Wrap protected routes with this component in the route tree. The <code>state={{ from: location }}</code> saves the intended destination so after login, the app can navigate back with <code>navigate(location.state.from, { replace: true })</code>. The <code>replace</code> on both ensures the login page doesn't appear in the back-button history.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">What is the difference between useNavigate and the Navigate component?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useNavigate()</code> returns a function used for <strong>imperative, programmatic navigation</strong> — called inside event handlers, after async operations, or in response to side effects. You call it: <code>navigate("/dashboard")</code>.<br><br><code>&lt;Navigate to="/login" /&gt;</code> is a <strong>declarative redirect</strong> — a component that, when rendered, immediately navigates. Used in JSX: typically in conditional renders like auth guards (<code>if (!user) return &lt;Navigate to="/login" /&gt;</code>), or to redirect old URLs.<br><br>Rule of thumb: use <code>useNavigate</code> inside event handlers and effects, use <code>&lt;Navigate /&gt;</code> inside render/return statements. The <code>replace</code> prop on both controls whether the current entry is replaced in history (so back button skips it) or a new entry is pushed.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">What is useParams and what type does it return?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useParams()</code> returns an object of key-value pairs for the dynamic segments (params) in the current URL. For a route defined as <code>/users/:id</code> and a URL of <code>/users/42</code>, it returns <code>{ id: "42" }</code>.<br><br>Important: params are <strong>always strings</strong> — even when the URL contains a number. If you need a number, parse it: <code>const userId = Number(params.id)</code> or <code>parseInt(params.id, 10)</code>.<br><br>For routes with multiple params like <code>/posts/:year/:slug</code>, all params are available: <code>{ year: "2024", slug: "react-tips" }</code>. The hook is reactive — if the user navigates to a different user profile, the component re-renders with updated params.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">When would you use useSearchParams instead of useState for filters?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Use <code>useSearchParams</code> when the filter/search state should be <strong>shareable and bookmarkable</strong> via URL. If a user filters products by category, then copies the URL to share with someone, that person should see the same filtered view. With regular <code>useState</code>, the filter disappears on page refresh or when the URL is shared.<br><br>URL state is also free "state persistence" — if the user navigates away and comes back (using the back button), their filters are restored because the URL contains them. This is expected behaviour on e-commerce sites, search pages, and admin dashboards.<br><br>Use <code>useState</code> for ephemeral, non-shareable UI state (dropdown open/closed, modal visibility). Use <code>useSearchParams</code> for state that represents a meaningful, shareable view of data.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">How do you implement lazy loading with React Router?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Wrap each page component in <code>React.lazy(() =&gt; import('./pages/Dashboard'))</code> — this creates a component that only downloads the JavaScript bundle for that page when it's first rendered. Pair it with <code>&lt;Suspense fallback={&lt;Spinner /&gt;}&gt;</code> wrapping the <code>&lt;Routes&gt;</code> to show a loading state while the chunk downloads.<br><br>Vite and webpack automatically create separate JavaScript chunks for each lazily imported module. The initial bundle stays small — the user only downloads code for pages they visit. For a large app with many pages, this can reduce the initial load time significantly.<br><br>The <code>Suspense</code> boundary can be placed at different levels — one global one wrapping all routes, or per-route for more granular loading states. In React 18, Suspense also works with data fetching via libraries like React Query or the newer <code>use</code> hook.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">What is the Outlet component and how does it relate to nested routes?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>&lt;Outlet /&gt;</code> is a placeholder in a layout component that renders the matched child route's element. Without an <code>Outlet</code>, a parent route renders its element but the child route's element has nowhere to go — it simply won't appear.<br><br>Think of <code>Outlet</code> as a "portal" — the parent defines the surrounding UI (sidebar, header, navigation), and the Outlet is the dynamic region where child content appears. When navigating between <code>/dashboard/analytics</code> and <code>/dashboard/settings</code>, the DashboardLayout component stays mounted; only the Outlet's content swaps.<br><br><code>&lt;Outlet context={data} /&gt;</code> lets the parent pass data to any child without prop drilling — children read it with <code>useOutletContext()</code>. This is useful for passing the current user, permissions, or shared API data to all pages in a section.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">Why should you never use a regular anchor tag for internal navigation in React?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">A regular <code>&lt;a href="/about"&gt;</code> triggers a full page reload — the browser makes an HTTP request to the server, the server returns HTML, and the entire React application re-initialises from scratch. All in-memory state (auth tokens, loaded data, component state) is lost.<br><br>React Router's <code>&lt;Link&gt;</code> intercepts the click, prevents the default behaviour, and uses the History API to update the URL without a page reload. The existing React component tree stays alive, transitions feel instant, and no state is lost.<br><br>Correct usage: <code>&lt;Link to="/about"&gt;</code> for internal navigation, <code>&lt;a href="https://external.com"&gt;</code> for external links. External links don't need Link because they intentionally leave the React app.</div>
+    <div class="warn-box">This is a very common mistake for developers coming from plain HTML. It often manifests subtly — the app "works" because React re-initialises, but you lose auth state, causing unexpected redirects to login, and the UX is noticeably slower.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can explain or implement it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain how SPA routing works — History API, pushState, no page reload</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to install React Router v6 and wrap the app in <code>BrowserRouter</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can define routes with <code>Routes</code> + <code>Route</code> including dynamic params and a 404 catch-all</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between <code>Link</code>, <code>NavLink</code>, and an anchor tag — and why anchor breaks SPA</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can read URL params with <code>useParams()</code> and know they always come back as strings</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>useNavigate()</code> for programmatic navigation and <code>&lt;Navigate /&gt;</code> for declarative redirects</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can set up nested routes with a layout component using <code>&lt;Outlet /&gt;</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement a protected route using a wrapper component with <code>RequireAuth</code> pattern</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why <code>replace: true</code> matters on login redirects</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>useSearchParams</code> to read and update query string filters</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can lazy load routes with <code>React.lazy</code> + <code>Suspense</code> for code splitting</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed exercises 1, 2, and 6 today (matcher, router, full mini-router)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built a multi-page React app locally with at least 4 routes, nested layout, and a protected route</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My code is committed and pushed to GitHub</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(97,218,251,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--react);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Set up a Vite React app with 5 routes: <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">/</code>, <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">/about</code>, <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">/users/:id</code>, <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">/dashboard</code> (protected), <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">*</code> (404)<br>
+      2. Add a <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">RequireAuth</code> wrapper that redirects to <code>/login</code> and saves the intended destination<br>
+      3. Build a <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">DashboardLayout</code> with a sidebar <code>NavLink</code> menu and an <code>&lt;Outlet /&gt;</code><br>
+      4. Use <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">useSearchParams</code> on a product list page to make filter + sort bookmarkable
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 2 · Day 11</div>
+      <div class="footer-day-name">React Router &amp; Navigation</div>
+      <div class="footer-day-next">Next up: <strong>Day 12 — Context API &amp; Global State</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 2 progress</span><span>Day 4 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:57%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day10_react_hooks.html',10)">← Day 10</button>
+      <button class="footer-btn primary" onclick="navigateTo('day12_context_global_state.html',12)">Day 12 — Context →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN = [
+  {num:1, file:"day1_javascript_fundamentals.html"},
+  {num:2, file:"day2_javascript_arrays_objects.html"},
+  {num:3, file:"day3_functions_async_js.html"},
+  {num:4, file:"day4_dom_events_classes.html"},
+  {num:5, file:"day5_dom_events_classes.html"},
+  {num:6, file:"day6_es6_modules_iterators_generators.html"},
+  {num:7, file:"day7_week1_review_project.html"},
+  {num:8, file:"day8_react_essentials.html"},
+  {num:9, file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html",current:true},
+]
+const CURRENT   = 11
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+])
+
+function navigateTo(file,n){
+  if(AVAILABLE.has(file)) window.location.href=file
+  else showToast(`Day ${n} coming soon — keep going! ⚛️`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),o=c.classList.toggle('open')
+  a.style.transform=o?'rotate(90deg)':'';btn.style.color=o?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),o=a.classList.toggle('open')
+  c.style.transform=o?'rotate(90deg)':'';el.style.background=o?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

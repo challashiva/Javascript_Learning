@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 9 — React State, Events & Controlled Inputs</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --react:#61dafb;--react-dim:rgba(97,218,251,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
+  --js:#f7df1e;--js-dim:rgba(247,223,30,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--react);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--react);border-bottom-color:var(--react);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--react);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--react);width:22px;border-radius:4px;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.3);}
+.day-btn.primary:hover{background:rgba(97,218,251,.18);}
+
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--react);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--react);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--react);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:620px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--react);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--react);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);position:relative;}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;}
+.runner-meta{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--react-dim);color:var(--react);border:1px solid rgba(97,218,251,.25);border-radius:6px;cursor:pointer;transition:background .15s;}
+.run-btn:hover{background:rgba(97,218,251,.18);}
+.runner-code{padding:16px 18px;border-bottom:1px solid var(--border);}
+.runner-code textarea{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:14px 16px;resize:vertical;min-height:180px;outline:none;}
+.runner-code textarea:focus{border-color:rgba(97,218,251,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--react);}
+.ex-hint{font-size:12px;color:var(--muted);border-left:2px solid var(--border2);padding-left:12px;margin-bottom:14px;line-height:1.7;}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--react-dim);color:var(--react);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--react);border-color:var(--react);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-info{display:flex;flex-direction:column;gap:4px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;align-items:center;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.3);}
+.footer-btn.primary:hover{background:rgba(97,218,251,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--react);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 09 · React</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#events">Events</a>
+  <a href="#lifting">Lifting State</a>
+  <a href="#controlled">Controlled Inputs</a>
+  <a href="#forms">Forms</a>
+  <a href="#patterns">State Patterns</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 2 · <span>Day 9 of 56</span> · React State, Events &amp; Controlled Inputs</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day8_react_essentials.html',8)">← Day 8</button>
+      <button class="day-btn primary" onclick="navigateTo('day10_react_hooks.html',10)">Day 10 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 2 · Day 9 · 8-week plan</div>
+  <h1>State, Events &amp;<br><em>Controlled Inputs</em></h1>
+  <p class="hero-sub">The patterns that make React forms, interactivity, and data flow actually work. Master these and you can build any interactive UI — they appear in 90% of React components.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(97,218,251,.3);color:var(--react);">event handlers</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">lifting state up</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">controlled inputs</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">complex form state</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">derived state</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">useReducer</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">event object patterns</span>
+    <span class="topic-pill" style="border-color:rgba(244,114,182,.3);color:var(--pink);">data flow rules</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--react);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>Event handlers — inline vs named</li>
+        <li>Synthetic events &amp; event object</li>
+        <li>Passing data to event handlers</li>
+        <li>Lifting state up — the core pattern</li>
+        <li>One-way data flow deep dive</li>
+        <li>Sibling communication via parent</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>Controlled vs uncontrolled inputs</li>
+        <li>All input types: text, checkbox, select, radio</li>
+        <li>Generic onChange handler pattern</li>
+        <li>Form validation — real patterns</li>
+        <li>Derived state — compute don't store</li>
+        <li>useReducer for complex state</li>
+        <li>Exercises 1–6 (all runnable)</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Push code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 9 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Event handlers</span>
+    <span class="tdot" onclick="markDone(this)">Event object</span>
+    <span class="tdot" onclick="markDone(this)">Lifting state</span>
+    <span class="tdot" onclick="markDone(this)">Data flow</span>
+    <span class="tdot" onclick="markDone(this)">Controlled inputs</span>
+    <span class="tdot" onclick="markDone(this)">Forms</span>
+    <span class="tdot" onclick="markDone(this)">Derived state</span>
+    <span class="tdot" onclick="markDone(this)">useReducer</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. EVENT HANDLERS -->
+<div class="section" id="events">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Event handlers — React's synthetic event system</span>
+    <span class="sec-badge" style="background:var(--react-dim);color:var(--react);">foundation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--react-dim);color:var(--react);">synthetic events</span>
+      <div class="cc-title">React wraps native browser events</div>
+      <div class="cc-body">React uses <strong>SyntheticEvent</strong> — a cross-browser wrapper around the native DOM event. It has the same API (<code>e.target</code>, <code>e.preventDefault()</code>, <code>e.stopPropagation()</code>) but works identically across all browsers. Under the hood, React uses <strong>event delegation</strong> — all events are attached to the root container, not individual elements.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">naming</span>
+      <div class="cc-title">camelCase, pass functions not calls</div>
+      <div class="cc-body">React event props are camelCase: <code>onClick</code>, <code>onChange</code>, <code>onSubmit</code>, <code>onKeyDown</code>. Pass a <strong>function reference</strong>, not a call — <code>onClick={handleClick}</code> not <code>onClick={handleClick()}</code>. The second form calls the function immediately during render and passes its return value.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">closures</span>
+      <div class="cc-title">Handlers close over current state</div>
+      <div class="cc-body">Every render creates <strong>new handler functions</strong> that close over that render's state values. This means a handler always sees the state from when it was created. This is why stale closures happen — and why the functional update form <code>setState(prev => ...)</code> is safer when basing new state on old state.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Event handler patterns — inline, named, passing data, preventing defaults</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Inline vs named handlers ──────────────────────────────</span>
+<span class="cm">// Inline — fine for simple one-liners</span>
+<span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="fn">setCount</span>(<span class="var">c</span> =&gt; <span class="var">c</span> + <span class="num">1</span>)}<span class="tag">&gt;</span>+<span class="tag">&lt;/button&gt;</span>
+
+<span class="cm">// Named — better for anything multi-line or reused</span>
+<span class="kw">function</span> <span class="fn">handleDelete</span>(<span class="var">e</span>) {
+  <span class="var">e</span>.<span class="fn">stopPropagation</span>()   <span class="cm">// prevent bubbling to parent's onClick</span>
+  <span class="fn">onDelete</span>(<span class="var">task</span>.<span class="prop">id</span>)
+}
+<span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="var">handleDelete</span>}<span class="tag">&gt;</span>Delete<span class="tag">&lt;/button&gt;</span>
+
+<span class="cm">// ── Passing data with arrow wrapper ───────────────────────</span>
+<span class="cm">// When you need to pass an argument to a handler</span>
+{<span class="var">tasks</span>.<span class="fn">map</span>(<span class="var">task</span> =&gt; (
+  <span class="tag">&lt;li</span> <span class="attr">key</span>={<span class="var">task</span>.<span class="prop">id</span>}<span class="tag">&gt;</span>
+    {<span class="var">task</span>.<span class="prop">text</span>}
+    <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="fn">handleDelete</span>(<span class="var">task</span>.<span class="prop">id</span>)}<span class="tag">&gt;</span>✕<span class="tag">&lt;/button&gt;</span>
+  <span class="tag">&lt;/li&gt;</span>
+))}
+
+<span class="cm">// ── Curried handler (avoids new function per render) ──────</span>
+<span class="kw">const</span> <span class="fn">handlePriorityChange</span> = (<span class="var">id</span>) =&gt; (<span class="var">e</span>) =&gt; {
+  <span class="fn">updateTask</span>(<span class="var">id</span>, { <span class="prop">priority</span>: <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span> })
+}
+<span class="tag">&lt;select</span> <span class="attr">onChange</span>={<span class="fn">handlePriorityChange</span>(<span class="var">task</span>.<span class="prop">id</span>)}<span class="tag">&gt;</span>...<span class="tag">&lt;/select&gt;</span>
+
+<span class="cm">// ── Common event object properties ────────────────────────</span>
+<span class="kw">function</span> <span class="fn">handleKeyDown</span>(<span class="var">e</span>) {
+  <span class="var">e</span>.<span class="prop">key</span>           <span class="cm">// "Enter", "Escape", "a", "ArrowUp"</span>
+  <span class="var">e</span>.<span class="prop">code</span>          <span class="cm">// physical key: "KeyA", "Enter"</span>
+  <span class="var">e</span>.<span class="prop">target</span>        <span class="cm">// element that fired event</span>
+  <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span>  <span class="cm">// for inputs</span>
+  <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">name</span>   <span class="cm">// input name attribute</span>
+  <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">checked</span><span class="cm">// for checkboxes</span>
+  <span class="var">e</span>.<span class="prop">shiftKey</span>      <span class="cm">// modifier keys</span>
+  <span class="var">e</span>.<span class="prop">ctrlKey</span>
+  <span class="var">e</span>.<span class="prop">metaKey</span>       <span class="cm">// Cmd on Mac</span>
+
+  <span class="kw">if</span> (<span class="var">e</span>.<span class="prop">key</span> === <span class="str">"Enter"</span>) <span class="fn">submitForm</span>()
+  <span class="kw">if</span> (<span class="var">e</span>.<span class="prop">key</span> === <span class="str">"Escape"</span>) <span class="fn">resetForm</span>()
+  <span class="kw">if</span> (<span class="var">e</span>.<span class="prop">ctrlKey</span> && <span class="var">e</span>.<span class="prop">key</span> === <span class="str">"z"</span>) <span class="fn">undo</span>()
+}
+
+<span class="cm">// ── Form submit — prevent default is critical ─────────────</span>
+<span class="kw">function</span> <span class="fn">handleSubmit</span>(<span class="var">e</span>) {
+  <span class="var">e</span>.<span class="fn">preventDefault</span>()  <span class="cm">// ALWAYS — stops page reload</span>
+  <span class="cm">// process form data...</span>
+}
+<span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="var">handleSubmit</span>}<span class="tag">&gt;</span>...<span class="tag">&lt;/form&gt;</span>
+
+<span class="cm">// ── Mouse events ──────────────────────────────────────────</span>
+<span class="tag">&lt;div</span>
+  <span class="attr">onClick</span>={<span class="var">handleClick</span>}
+  <span class="attr">onDoubleClick</span>={<span class="var">handleEdit</span>}
+  <span class="attr">onMouseEnter</span>={() =&gt; <span class="fn">setHovered</span>(<span class="kw">true</span>)}
+  <span class="attr">onMouseLeave</span>={() =&gt; <span class="fn">setHovered</span>(<span class="kw">false</span>)}
+<span class="tag">&gt;</span></pre></div>
+  </div>
+</div>
+
+<!-- 02. LIFTING STATE UP -->
+<div class="section" id="lifting">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Lifting state up — React's core data flow pattern</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">critical pattern</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--green);"></span>The one-way data flow rule</div>
+    <div class="mm-grid">
+      <div class="mm-item"><div class="mm-label" style="color:var(--react);">data flows down</div><div class="mm-value">State is passed to children as props. Children read it but cannot change it directly.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--green);">events flow up</div><div class="mm-value">Children notify parents of changes by calling callback functions passed as props.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--amber);">when to lift</div><div class="mm-value">When two sibling components need to share or react to the same state, lift it to their nearest common parent.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--purple);">where to put state</div><div class="mm-value">As low as possible — only lift when necessary. Local state is simpler and more isolated.</div></div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Lifting state — search filter + results sharing the same state</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Problem: two siblings need to share state ─────────────</span>
+<span class="cm">// SearchBar needs to UPDATE the query</span>
+<span class="cm">// ResultsList needs to READ the query</span>
+<span class="cm">// Solution: lift query state to their shared parent</span>
+
+<span class="kw">function</span> <span class="fn">SearchBar</span>({ <span class="var">query</span>, <span class="var">onQueryChange</span> }) {    <span class="cm">// receives state + setter as props</span>
+  <span class="kw">return</span> (
+    <span class="tag">&lt;input</span>
+      <span class="attr">type</span>=<span class="str">"search"</span>
+      <span class="attr">value</span>={<span class="var">query</span>}
+      <span class="attr">onChange</span>={<span class="var">e</span> =&gt; <span class="fn">onQueryChange</span>(<span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span>)}
+      <span class="attr">placeholder</span>=<span class="str">"Search products..."</span>
+    <span class="tag">/&gt;</span>
+  )
+}
+
+<span class="kw">function</span> <span class="fn">ResultsList</span>({ <span class="var">products</span>, <span class="var">query</span> }) {        <span class="cm">// reads state via prop</span>
+  <span class="kw">const</span> <span class="var">filtered</span> = <span class="var">products</span>.<span class="fn">filter</span>(<span class="var">p</span> =&gt;
+    <span class="var">p</span>.<span class="prop">name</span>.<span class="fn">toLowerCase</span>().<span class="fn">includes</span>(<span class="var">query</span>.<span class="fn">toLowerCase</span>())
+  )
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ul&gt;</span>
+      {<span class="var">filtered</span>.<span class="prop">length</span> === <span class="num">0</span>
+        ? <span class="tag">&lt;li&gt;</span>No results for "{<span class="var">query</span>}"<span class="tag">&lt;/li&gt;</span>
+        : <span class="var">filtered</span>.<span class="fn">map</span>(<span class="var">p</span> =&gt; <span class="tag">&lt;li</span> <span class="attr">key</span>={<span class="var">p</span>.<span class="prop">id</span>}<span class="tag">&gt;</span>{<span class="var">p</span>.<span class="prop">name</span>}<span class="tag">&lt;/li&gt;</span>)
+      }
+    <span class="tag">&lt;/ul&gt;</span>
+  )
+}
+
+<span class="cm">// Parent OWNS the state — passes it down as props</span>
+<span class="kw">function</span> <span class="fn">ProductSearch</span>({ <span class="var">products</span> }) {
+  <span class="kw">const</span> [<span class="var">query</span>, <span class="fn">setQuery</span>] = <span class="fn">useState</span>(<span class="str">""</span>)
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;SearchBar</span> <span class="attr">query</span>={<span class="var">query</span>} <span class="attr">onQueryChange</span>={<span class="var">setQuery</span>} <span class="tag">/&gt;</span>  <span class="cm">// passes setter down</span>
+      <span class="tag">&lt;ResultsList</span> <span class="attr">products</span>={<span class="var">products</span>} <span class="attr">query</span>={<span class="var">query</span>} <span class="tag">/&gt;</span>    <span class="cm">// passes state down</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── Callback pattern — child notifies parent ──────────────</span>
+<span class="kw">function</span> <span class="fn">TaskItem</span>({ <span class="var">task</span>, <span class="var">onToggle</span>, <span class="var">onDelete</span>, <span class="var">onEdit</span> }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;li&gt;</span>
+      <span class="tag">&lt;input</span>
+        <span class="attr">type</span>=<span class="str">"checkbox"</span>
+        <span class="attr">checked</span>={<span class="var">task</span>.<span class="prop">done</span>}
+        <span class="attr">onChange</span>={() =&gt; <span class="fn">onToggle</span>(<span class="var">task</span>.<span class="prop">id</span>)}   <span class="cm">// calls parent's handler</span>
+      <span class="tag">/&gt;</span>
+      <span class="tag">&lt;span</span> <span class="attr">onDoubleClick</span>={() =&gt; <span class="fn">onEdit</span>(<span class="var">task</span>.<span class="prop">id</span>)}<span class="tag">&gt;</span>{<span class="var">task</span>.<span class="prop">text</span>}<span class="tag">&lt;/span&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="fn">onDelete</span>(<span class="var">task</span>.<span class="prop">id</span>)}<span class="tag">&gt;</span>✕<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/li&gt;</span>
+  )
+}
+
+<span class="kw">function</span> <span class="fn">TaskList</span>() {
+  <span class="kw">const</span> [<span class="var">tasks</span>, <span class="fn">setTasks</span>] = <span class="fn">useState</span>(...)
+
+  <span class="kw">const</span> <span class="fn">toggle</span> = (<span class="var">id</span>) =&gt; <span class="fn">setTasks</span>(<span class="var">p</span> =&gt; <span class="var">p</span>.<span class="fn">map</span>(<span class="var">t</span> =&gt; <span class="var">t</span>.<span class="prop">id</span>===<span class="var">id</span> ? {...<span class="var">t</span>,<span class="prop">done</span>:!<span class="var">t</span>.<span class="prop">done</span>} : <span class="var">t</span>))
+  <span class="kw">const</span> <span class="fn">remove</span> = (<span class="var">id</span>) =&gt; <span class="fn">setTasks</span>(<span class="var">p</span> =&gt; <span class="var">p</span>.<span class="fn">filter</span>(<span class="var">t</span> =&gt; <span class="var">t</span>.<span class="prop">id</span> !== <span class="var">id</span>))
+
+  <span class="kw">return</span> <span class="var">tasks</span>.<span class="fn">map</span>(<span class="var">t</span> =&gt;
+    <span class="tag">&lt;TaskItem</span> <span class="attr">key</span>={<span class="var">t</span>.<span class="prop">id</span>} <span class="attr">task</span>={<span class="var">t</span>} <span class="attr">onToggle</span>={<span class="var">toggle</span>} <span class="attr">onDelete</span>={<span class="var">remove</span>} <span class="tag">/&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 03. CONTROLLED INPUTS -->
+<div class="section" id="controlled">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Controlled inputs — every input type</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">daily use</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">controlled</span>
+      <div class="cc-title">React owns the value</div>
+      <div class="cc-body">A controlled input has its <code>value</code> (or <code>checked</code>) driven by React state, and an <code>onChange</code> that updates that state. React is the <strong>single source of truth</strong>. You can validate, format, or restrict input on every keystroke. The input always displays exactly what state holds.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">uncontrolled</span>
+      <div class="cc-title">DOM owns the value</div>
+      <div class="cc-body">An uncontrolled input stores its value in the DOM. You read it when needed with a <code>ref</code>. Simpler to set up, but you can't validate as the user types, can't programmatically set the value, and can't derive state from it. Use for file inputs or when you only need the value on submit.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">common bug</span>
+      <div class="cc-title">undefined/null value → uncontrolled warning</div>
+      <div class="cc-body">If you pass <code>value={undefined}</code> or <code>value={null}</code>, React treats the input as uncontrolled. Then when you set a value later, React warns: "component changing uncontrolled to controlled". Always initialise state with <code>""</code> for text, <code>false</code> for checkboxes, never <code>undefined</code>.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">All input types — text, checkbox, select, radio, textarea</span></div>
+    <div class="cb-body"><pre><span class="kw">function</span> <span class="fn">AllInputTypes</span>() {
+  <span class="kw">const</span> [<span class="var">form</span>, <span class="fn">setForm</span>] = <span class="fn">useState</span>({
+    <span class="prop">name</span>:        <span class="str">""</span>,           <span class="cm">// text — NEVER undefined</span>
+    <span class="prop">email</span>:       <span class="str">""</span>,
+    <span class="prop">password</span>:    <span class="str">""</span>,
+    <span class="prop">bio</span>:         <span class="str">""</span>,           <span class="cm">// textarea</span>
+    <span class="prop">role</span>:        <span class="str">"user"</span>,       <span class="cm">// select</span>
+    <span class="prop">newsletter</span>:  <span class="kw">false</span>,        <span class="cm">// checkbox — NEVER undefined</span>
+    <span class="prop">theme</span>:       <span class="str">"light"</span>,      <span class="cm">// radio group</span>
+    <span class="prop">age</span>:         <span class="str">""</span>,           <span class="cm">// number input (store as string, parse on submit)</span>
+  })
+
+  <span class="cm">// ── Generic onChange — handles ALL input types ─────────</span>
+  <span class="kw">const</span> <span class="fn">handleChange</span> = (<span class="var">e</span>) =&gt; {
+    <span class="kw">const</span> { <span class="prop">name</span>, <span class="prop">value</span>, <span class="prop">type</span>, <span class="prop">checked</span> } = <span class="var">e</span>.<span class="prop">target</span>
+    <span class="fn">setForm</span>(<span class="var">prev</span> =&gt; ({
+      ...<span class="var">prev</span>,
+      [<span class="prop">name</span>]: <span class="prop">type</span> === <span class="str">"checkbox"</span> ? <span class="prop">checked</span> : <span class="prop">value</span>   <span class="cm">// checkboxes use .checked</span>
+    }))
+  }
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="var">handleSubmit</span>}<span class="tag">&gt;</span>
+
+      <span class="cm">{/* Text input */}</span>
+      <span class="tag">&lt;input</span>
+        <span class="attr">type</span>=<span class="str">"text"</span>
+        <span class="attr">name</span>=<span class="str">"name"</span>
+        <span class="attr">value</span>={<span class="var">form</span>.<span class="prop">name</span>}
+        <span class="attr">onChange</span>={<span class="var">handleChange</span>}
+        <span class="attr">placeholder</span>=<span class="str">"Your name"</span>
+      <span class="tag">/&gt;</span>
+
+      <span class="cm">{/* Textarea */}</span>
+      <span class="tag">&lt;textarea</span>
+        <span class="attr">name</span>=<span class="str">"bio"</span>
+        <span class="attr">value</span>={<span class="var">form</span>.<span class="prop">bio</span>}
+        <span class="attr">onChange</span>={<span class="var">handleChange</span>}
+        <span class="attr">rows</span>={<span class="num">4</span>}
+      <span class="tag">/&gt;</span>
+
+      <span class="cm">{/* Select dropdown */}</span>
+      <span class="tag">&lt;select</span> <span class="attr">name</span>=<span class="str">"role"</span> <span class="attr">value</span>={<span class="var">form</span>.<span class="prop">role</span>} <span class="attr">onChange</span>={<span class="var">handleChange</span>}<span class="tag">&gt;</span>
+        <span class="tag">&lt;option</span> <span class="attr">value</span>=<span class="str">"user"</span><span class="tag">&gt;</span>User<span class="tag">&lt;/option&gt;</span>
+        <span class="tag">&lt;option</span> <span class="attr">value</span>=<span class="str">"admin"</span><span class="tag">&gt;</span>Admin<span class="tag">&lt;/option&gt;</span>
+        <span class="tag">&lt;option</span> <span class="attr">value</span>=<span class="str">"editor"</span><span class="tag">&gt;</span>Editor<span class="tag">&lt;/option&gt;</span>
+      <span class="tag">&lt;/select&gt;</span>
+
+      <span class="cm">{/* Checkbox */}</span>
+      <span class="tag">&lt;label&gt;</span>
+        <span class="tag">&lt;input</span>
+          <span class="attr">type</span>=<span class="str">"checkbox"</span>
+          <span class="attr">name</span>=<span class="str">"newsletter"</span>
+          <span class="attr">checked</span>={<span class="var">form</span>.<span class="prop">newsletter</span>}   <span class="cm">// checkboxes use checked, not value</span>
+          <span class="attr">onChange</span>={<span class="var">handleChange</span>}
+        <span class="tag">/&gt;</span>
+        Subscribe to newsletter
+      <span class="tag">&lt;/label&gt;</span>
+
+      <span class="cm">{/* Radio group */}</span>
+      {[<span class="str">"light"</span>, <span class="str">"dark"</span>, <span class="str">"system"</span>].<span class="fn">map</span>(<span class="var">t</span> =&gt; (
+        <span class="tag">&lt;label</span> <span class="attr">key</span>={<span class="var">t</span>}<span class="tag">&gt;</span>
+          <span class="tag">&lt;input</span>
+            <span class="attr">type</span>=<span class="str">"radio"</span>
+            <span class="attr">name</span>=<span class="str">"theme"</span>           <span class="cm">// same name groups radios</span>
+            <span class="attr">value</span>={<span class="var">t</span>}
+            <span class="attr">checked</span>={<span class="var">form</span>.<span class="prop">theme</span> === <span class="var">t</span>}  <span class="cm">// controlled by comparison</span>
+            <span class="attr">onChange</span>={<span class="var">handleChange</span>}
+          <span class="tag">/&gt;</span>
+          {<span class="var">t</span>}
+        <span class="tag">&lt;/label&gt;</span>
+      ))}
+
+      <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"submit"</span><span class="tag">&gt;</span>Save<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 04. FORMS & VALIDATION -->
+<div class="section" id="forms">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Form validation — real production patterns</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">real-world</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Validation on blur, on submit, field-level errors, touched tracking</span></div>
+    <div class="cb-body"><pre><span class="kw">function</span> <span class="fn">SignupForm</span>() {
+  <span class="kw">const</span> [<span class="var">values</span>,  <span class="fn">setValues</span>]  = <span class="fn">useState</span>({ <span class="prop">name</span>: <span class="str">""</span>, <span class="prop">email</span>: <span class="str">""</span>, <span class="prop">password</span>: <span class="str">""</span> })
+  <span class="kw">const</span> [<span class="var">errors</span>,  <span class="fn">setErrors</span>]  = <span class="fn">useState</span>({})
+  <span class="kw">const</span> [<span class="var">touched</span>, <span class="fn">setTouched</span>] = <span class="fn">useState</span>({})  <span class="cm">// tracks which fields user visited</span>
+  <span class="kw">const</span> [<span class="var">submitting</span>, <span class="fn">setSubmitting</span>] = <span class="fn">useState</span>(<span class="kw">false</span>)
+
+  <span class="cm">// ── Validate a single field ────────────────────────────</span>
+  <span class="kw">const</span> <span class="fn">validateField</span> = (<span class="var">name</span>, <span class="var">value</span>) =&gt; {
+    <span class="kw">switch</span> (<span class="var">name</span>) {
+      <span class="kw">case</span> <span class="str">"name"</span>:
+        <span class="kw">if</span> (!<span class="var">value</span>.<span class="fn">trim</span>())              <span class="kw">return</span> <span class="str">"Name is required"</span>
+        <span class="kw">if</span> (<span class="var">value</span>.<span class="prop">length</span> &lt; <span class="num">2</span>)          <span class="kw">return</span> <span class="str">"Name must be at least 2 characters"</span>
+        <span class="kw">return</span> <span class="str">""</span>
+      <span class="kw">case</span> <span class="str">"email"</span>:
+        <span class="kw">if</span> (!<span class="var">value</span>)                     <span class="kw">return</span> <span class="str">"Email is required"</span>
+        <span class="kw">if</span> (!<span class="var">value</span>.<span class="fn">includes</span>(<span class="str">"@"</span>))     <span class="kw">return</span> <span class="str">"Enter a valid email"</span>
+        <span class="kw">return</span> <span class="str">""</span>
+      <span class="kw">case</span> <span class="str">"password"</span>:
+        <span class="kw">if</span> (<span class="var">value</span>.<span class="prop">length</span> &lt; <span class="num">8</span>)         <span class="kw">return</span> <span class="str">"Password must be 8+ characters"</span>
+        <span class="kw">if</span> (!/<span class="var">[A-Z]</span>/<span class="fn">.test</span>(<span class="var">value</span>))    <span class="kw">return</span> <span class="str">"Include at least one uppercase letter"</span>
+        <span class="kw">return</span> <span class="str">""</span>
+      <span class="kw">default</span>: <span class="kw">return</span> <span class="str">""</span>
+    }
+  }
+
+  <span class="cm">// ── onChange — update value + re-validate if touched ──</span>
+  <span class="kw">const</span> <span class="fn">handleChange</span> = (<span class="var">e</span>) =&gt; {
+    <span class="kw">const</span> { <span class="prop">name</span>, <span class="prop">value</span> } = <span class="var">e</span>.<span class="prop">target</span>
+    <span class="fn">setValues</span>(<span class="var">prev</span> =&gt; ({ ...<span class="var">prev</span>, [<span class="prop">name</span>]: <span class="prop">value</span> }))
+    <span class="kw">if</span> (<span class="var">touched</span>[<span class="prop">name</span>]) {
+      <span class="fn">setErrors</span>(<span class="var">prev</span> =&gt; ({ ...<span class="var">prev</span>, [<span class="prop">name</span>]: <span class="fn">validateField</span>(<span class="prop">name</span>, <span class="prop">value</span>) }))
+    }
+  }
+
+  <span class="cm">// ── onBlur — mark field as touched, validate ──────────</span>
+  <span class="kw">const</span> <span class="fn">handleBlur</span> = (<span class="var">e</span>) =&gt; {
+    <span class="kw">const</span> { <span class="prop">name</span>, <span class="prop">value</span> } = <span class="var">e</span>.<span class="prop">target</span>
+    <span class="fn">setTouched</span>(<span class="var">prev</span> =&gt; ({ ...<span class="var">prev</span>, [<span class="prop">name</span>]: <span class="kw">true</span> }))
+    <span class="fn">setErrors</span>(<span class="var">prev</span>  =&gt; ({ ...<span class="var">prev</span>, [<span class="prop">name</span>]: <span class="fn">validateField</span>(<span class="prop">name</span>, <span class="prop">value</span>) }))
+  }
+
+  <span class="cm">// ── onSubmit — validate all, block if errors ──────────</span>
+  <span class="kw">const</span> <span class="fn">handleSubmit</span> = <span class="kw">async</span> (<span class="var">e</span>) =&gt; {
+    <span class="var">e</span>.<span class="fn">preventDefault</span>()
+
+    <span class="cm">// Validate all fields at once</span>
+    <span class="kw">const</span> <span class="var">allErrors</span> = <span class="fn">Object</span>.<span class="fn">fromEntries</span>(
+      <span class="fn">Object</span>.<span class="fn">entries</span>(<span class="var">values</span>).<span class="fn">map</span>(([<span class="var">k</span>, <span class="var">v</span>]) =&gt; [<span class="var">k</span>, <span class="fn">validateField</span>(<span class="var">k</span>, <span class="var">v</span>)])
+    )
+    <span class="fn">setErrors</span>(<span class="var">allErrors</span>)
+    <span class="fn">setTouched</span>({ <span class="prop">name</span>: <span class="kw">true</span>, <span class="prop">email</span>: <span class="kw">true</span>, <span class="prop">password</span>: <span class="kw">true</span> })
+
+    <span class="kw">const</span> <span class="var">hasErrors</span> = <span class="fn">Object</span>.<span class="fn">values</span>(<span class="var">allErrors</span>).<span class="fn">some</span>(<span class="var">e</span> =&gt; <span class="var">e</span> !== <span class="str">""</span>)
+    <span class="kw">if</span> (<span class="var">hasErrors</span>) <span class="kw">return</span>   <span class="cm">// stop if any field invalid</span>
+
+    <span class="fn">setSubmitting</span>(<span class="kw">true</span>)
+    <span class="kw">try</span> {
+      <span class="kw">await</span> <span class="fn">createUser</span>(<span class="var">values</span>)
+    } <span class="kw">finally</span> {
+      <span class="fn">setSubmitting</span>(<span class="kw">false</span>)
+    }
+  }
+
+  <span class="cm">// Derived: form is valid when all touched fields have no errors</span>
+  <span class="kw">const</span> <span class="var">isValid</span> = <span class="fn">Object</span>.<span class="fn">keys</span>(<span class="var">values</span>).<span class="fn">every</span>(<span class="var">k</span> =&gt; !<span class="fn">validateField</span>(<span class="var">k</span>, <span class="var">values</span>[<span class="var">k</span>]))
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="var">handleSubmit</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;input</span>
+        <span class="attr">name</span>=<span class="str">"email"</span>
+        <span class="attr">value</span>={<span class="var">values</span>.<span class="prop">email</span>}
+        <span class="attr">onChange</span>={<span class="var">handleChange</span>}
+        <span class="attr">onBlur</span>={<span class="var">handleBlur</span>}                               <span class="cm">// validate when leaving field</span>
+        <span class="attr">className</span>={<span class="var">touched</span>.<span class="prop">email</span> && <span class="var">errors</span>.<span class="prop">email</span> ? <span class="str">"error"</span> : <span class="str">""</span>}
+      <span class="tag">/&gt;</span>
+      {<span class="var">touched</span>.<span class="prop">email</span> && <span class="var">errors</span>.<span class="prop">email</span> && (
+        <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"error-msg"</span><span class="tag">&gt;</span>{<span class="var">errors</span>.<span class="prop">email</span>}<span class="tag">&lt;/p&gt;</span>      <span class="cm">// only show after touching</span>
+      )}
+      <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"submit"</span> <span class="attr">disabled</span>={<span class="var">submitting</span>}<span class="tag">&gt;</span>
+        {<span class="var">submitting</span> ? <span class="str">"Saving..."</span> : <span class="str">"Sign up"</span>}
+      <span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 05. DERIVED STATE & useReducer -->
+<div class="section" id="patterns">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Derived state &amp; useReducer</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">state patterns</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--teal-dim);color:var(--teal);">derived state</span>
+      <div class="cc-title">Compute, don't store</div>
+      <div class="cc-body">If a value can be <strong>computed from existing state or props</strong>, don't put it in state. Derived state (computed inline during render) is always in sync, never stale, and requires no synchronisation logic. Classic mistakes: storing a filtered list alongside the raw list, storing a total alongside items, storing a boolean "isSelected" that can be derived by comparison.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">useReducer</span>
+      <div class="cc-title">For complex, related state updates</div>
+      <div class="cc-body">When state has multiple sub-values that change together, or when the next state depends on the previous in complex ways, <code>useReducer</code> is cleaner than multiple <code>useState</code> calls. The reducer is a pure function <code>(state, action) =&gt; newState</code> — the same pattern as the Redux store from Week 1 Day 7.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">when to choose</span>
+      <div class="cc-title">useState vs useReducer</div>
+      <div class="cc-body">Use <code>useState</code> when: state is simple (primitives, small objects), updates are independent, few state variables. Use <code>useReducer</code> when: multiple state values update together, next state depends on previous in complex ways, state update logic is long and worth naming, or you want to extract state logic for testing.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Derived state examples + useReducer for a todo app</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Derived state — compute during render ─────────────────</span>
+<span class="kw">function</span> <span class="fn">CartSummary</span>() {
+  <span class="kw">const</span> [<span class="var">items</span>, <span class="fn">setItems</span>] = <span class="fn">useState</span>([
+    { <span class="prop">id</span>: <span class="num">1</span>, <span class="prop">name</span>: <span class="str">"Laptop"</span>, <span class="prop">price</span>: <span class="num">999</span>, <span class="prop">qty</span>: <span class="num">1</span> },
+    { <span class="prop">id</span>: <span class="num">2</span>, <span class="prop">name</span>: <span class="str">"Mouse"</span>,  <span class="prop">price</span>: <span class="num">29</span>,  <span class="prop">qty</span>: <span class="num">2</span> },
+  ])
+
+  <span class="cm">// ✓ DERIVED — computed from items, not stored separately</span>
+  <span class="kw">const</span> <span class="var">total</span>     = <span class="var">items</span>.<span class="fn">reduce</span>((<span class="var">s</span>, <span class="var">i</span>) =&gt; <span class="var">s</span> + <span class="var">i</span>.<span class="prop">price</span> * <span class="var">i</span>.<span class="prop">qty</span>, <span class="num">0</span>)
+  <span class="kw">const</span> <span class="var">itemCount</span> = <span class="var">items</span>.<span class="fn">reduce</span>((<span class="var">s</span>, <span class="var">i</span>) =&gt; <span class="var">s</span> + <span class="var">i</span>.<span class="prop">qty</span>, <span class="num">0</span>)
+  <span class="kw">const</span> <span class="var">isEmpty</span>   = <span class="var">items</span>.<span class="prop">length</span> === <span class="num">0</span>
+  <span class="kw">const</span> <span class="var">hasDiscount</span> = <span class="var">total</span> &gt; <span class="num">500</span>                   <span class="cm">// derived from total</span>
+
+  <span class="cm">// ✗ DON'T do this — creates stale state risk</span>
+  <span class="cm">// const [total, setTotal] = useState(0)  // redundant!</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;p&gt;</span>{<span class="var">itemCount</span>} items · ${<span class="var">total</span>}<span class="tag">&lt;/p&gt;</span>
+      {<span class="var">hasDiscount</span> &amp;&amp; <span class="tag">&lt;p&gt;</span>10% discount applied!<span class="tag">&lt;/p&gt;</span>}
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── useReducer — task manager state ──────────────────────</span>
+<span class="kw">const</span> <span class="var">initialState</span> = { <span class="prop">tasks</span>: [], <span class="prop">filter</span>: <span class="str">"all"</span>, <span class="prop">nextId</span>: <span class="num">1</span> }
+
+<span class="kw">function</span> <span class="fn">taskReducer</span>(<span class="var">state</span>, <span class="var">action</span>) {
+  <span class="kw">switch</span> (<span class="var">action</span>.<span class="prop">type</span>) {
+    <span class="kw">case</span> <span class="str">"ADD"</span>:
+      <span class="kw">return</span> {
+        ...<span class="var">state</span>,
+        <span class="prop">tasks</span>: [...<span class="var">state</span>.<span class="prop">tasks</span>, {
+          <span class="prop">id</span>:       <span class="var">state</span>.<span class="prop">nextId</span>,
+          <span class="prop">text</span>:     <span class="var">action</span>.<span class="prop">payload</span>,
+          <span class="prop">done</span>:     <span class="kw">false</span>,
+          <span class="prop">priority</span>: <span class="str">"medium"</span>
+        }],
+        <span class="prop">nextId</span>: <span class="var">state</span>.<span class="prop">nextId</span> + <span class="num">1</span>
+      }
+    <span class="kw">case</span> <span class="str">"TOGGLE"</span>:
+      <span class="kw">return</span> {
+        ...<span class="var">state</span>,
+        <span class="prop">tasks</span>: <span class="var">state</span>.<span class="prop">tasks</span>.<span class="fn">map</span>(<span class="var">t</span> =&gt;
+          <span class="var">t</span>.<span class="prop">id</span> === <span class="var">action</span>.<span class="prop">payload</span> ? { ...<span class="var">t</span>, <span class="prop">done</span>: !<span class="var">t</span>.<span class="prop">done</span> } : <span class="var">t</span>
+        )
+      }
+    <span class="kw">case</span> <span class="str">"DELETE"</span>:
+      <span class="kw">return</span> { ...<span class="var">state</span>, <span class="prop">tasks</span>: <span class="var">state</span>.<span class="prop">tasks</span>.<span class="fn">filter</span>(<span class="var">t</span> =&gt; <span class="var">t</span>.<span class="prop">id</span> !== <span class="var">action</span>.<span class="prop">payload</span>) }
+    <span class="kw">case</span> <span class="str">"SET_FILTER"</span>:
+      <span class="kw">return</span> { ...<span class="var">state</span>, <span class="prop">filter</span>: <span class="var">action</span>.<span class="prop">payload</span> }
+    <span class="kw">default</span>:
+      <span class="kw">return</span> <span class="var">state</span>
+  }
+}
+
+<span class="kw">function</span> <span class="fn">TaskApp</span>() {
+  <span class="kw">const</span> [<span class="var">state</span>, <span class="var">dispatch</span>] = <span class="fn">useReducer</span>(<span class="var">taskReducer</span>, <span class="var">initialState</span>)
+
+  <span class="cm">// Derived state from reducer state</span>
+  <span class="kw">const</span> <span class="var">visibleTasks</span> = <span class="var">state</span>.<span class="prop">tasks</span>.<span class="fn">filter</span>(<span class="var">t</span> =&gt; {
+    <span class="kw">if</span> (<span class="var">state</span>.<span class="prop">filter</span> === <span class="str">"done"</span>)    <span class="kw">return</span>  <span class="var">t</span>.<span class="prop">done</span>
+    <span class="kw">if</span> (<span class="var">state</span>.<span class="prop">filter</span> === <span class="str">"active"</span>)  <span class="kw">return</span> !<span class="var">t</span>.<span class="prop">done</span>
+    <span class="kw">return</span> <span class="kw">true</span>
+  })
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;input</span>
+        <span class="attr">onKeyDown</span>={<span class="var">e</span> =&gt; {
+          <span class="kw">if</span> (<span class="var">e</span>.<span class="prop">key</span> === <span class="str">"Enter"</span> &amp;&amp; <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span>.<span class="fn">trim</span>()) {
+            <span class="var">dispatch</span>({ <span class="prop">type</span>: <span class="str">"ADD"</span>, <span class="prop">payload</span>: <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span> })
+            <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span> = <span class="str">""</span>
+          }
+        }}
+      <span class="tag">/&gt;</span>
+      {<span class="var">visibleTasks</span>.<span class="fn">map</span>(<span class="var">t</span> =&gt; (
+        <span class="tag">&lt;div</span> <span class="attr">key</span>={<span class="var">t</span>.<span class="prop">id</span>}<span class="tag">&gt;</span>
+          <span class="tag">&lt;input</span>
+            <span class="attr">type</span>=<span class="str">"checkbox"</span>
+            <span class="attr">checked</span>={<span class="var">t</span>.<span class="prop">done</span>}
+            <span class="attr">onChange</span>={() =&gt; <span class="var">dispatch</span>({ <span class="prop">type</span>: <span class="str">"TOGGLE"</span>, <span class="prop">payload</span>: <span class="var">t</span>.<span class="prop">id</span> })}
+          <span class="tag">/&gt;</span>
+          {<span class="var">t</span>.<span class="prop">text</span>}
+          <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="var">dispatch</span>({ <span class="prop">type</span>: <span class="str">"DELETE"</span>, <span class="prop">payload</span>: <span class="var">t</span>.<span class="prop">id</span> })}<span class="tag">&gt;</span>✕<span class="tag">&lt;/button&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+      ))}
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Coding exercises — React logic in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Event handler patterns — simulation</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Simulate React event handler patterns using plain JS objects. Implement: a generic <code>handleChange</code> for all input types, a submit handler that validates before proceeding, and a curried handler factory. Verify the outputs match what React would produce.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — event handler patterns</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">// Simulate React's synthetic event object
+function makeEvent(name, value, type = "text", checked = false) {
+  return { target: { name, value, type, checked }, preventDefault: () => {} }
+}
+
+// Simulate form state
+let formState = {
+  username:   "",
+  email:      "",
+  age:        "",
+  newsletter: false,
+  role:       "user",
+}
+
+// ── Task 1: Generic onChange that handles ALL input types ──
+// For checkboxes: use .checked, for everything else: use .value
+function handleChange(e) {
+  const { name, value, type, checked } = e.target
+  // YOUR CODE: return new form state (spread + update)
+}
+
+// Test handleChange
+formState = handleChange(makeEvent("username", "alice"))
+formState = handleChange(makeEvent("newsletter", "on", "checkbox", true))
+formState = handleChange(makeEvent("role", "admin", "select"))
+console.log("username:", formState.username)      // "alice"
+console.log("newsletter:", formState.newsletter)  // true
+console.log("role:", formState.role)              // "admin"
+
+// ── Task 2: Validate and submit ───────────────────────────
+function validateForm(values) {
+  // YOUR CODE: return errors object — empty string = valid
+  // username: required, min 3 chars
+  // email: required, must contain @
+  // age: optional, but if provided must be a valid number > 0
+  return {}
+}
+
+const valid   = validateForm({ username: "alice", email: "alice@test.com", age: "25" })
+const invalid = validateForm({ username: "al",    email: "notanemail",     age: "-5" })
+console.log("Valid errors:",   Object.values(valid).filter(Boolean).length)   // 0
+console.log("Invalid errors:", Object.values(invalid).filter(Boolean).length) // 3
+
+// ── Task 3: Curried handler for dynamic field updates ─────
+function makeFieldHandler(setStateFn) {
+  // YOUR CODE: return a function that takes (fieldName) and returns
+  // an event handler that calls setStateFn with the updated field
+}
+
+let calls = []
+const mockSetState = (updater) => calls.push(updater({ a: 1, b: 2 }))
+const handler = makeFieldHandler(mockSetState)
+
+handler("name")(makeEvent("name", "Bob"))
+handler("email")(makeEvent("email", "bob@test.com"))
+console.log("First update:", calls[0])   // { a: 1, b: 2, name: "Bob" }
+console.log("Second update:", calls[1])  // { a: 1, b: 2, email: "bob@test.com" }</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">handleChange</span>(<span class="var">e</span>) {
+  <span class="kw">const</span> { <span class="prop">name</span>, <span class="prop">value</span>, <span class="prop">type</span>, <span class="prop">checked</span> } = <span class="var">e</span>.<span class="prop">target</span>
+  <span class="kw">return</span> { ...<span class="var">formState</span>, [<span class="prop">name</span>]: <span class="prop">type</span> === <span class="str">"checkbox"</span> ? <span class="prop">checked</span> : <span class="prop">value</span> }
+}
+
+<span class="kw">function</span> <span class="fn">validateForm</span>(<span class="var">values</span>) {
+  <span class="kw">return</span> {
+    <span class="prop">username</span>: !<span class="var">values</span>.<span class="prop">username</span> ? <span class="str">"Required"</span> : <span class="var">values</span>.<span class="prop">username</span>.<span class="prop">length</span> < <span class="num">3</span> ? <span class="str">"Min 3 chars"</span> : <span class="str">""</span>,
+    <span class="prop">email</span>:    !<span class="var">values</span>.<span class="prop">email</span>    ? <span class="str">"Required"</span> : !<span class="var">values</span>.<span class="prop">email</span>.<span class="fn">includes</span>(<span class="str">"@"</span>) ? <span class="str">"Invalid email"</span> : <span class="str">""</span>,
+    <span class="prop">age</span>:      <span class="var">values</span>.<span class="prop">age</span> && (<span class="fn">isNaN</span>(<span class="var">values</span>.<span class="prop">age</span>) || <span class="fn">Number</span>(<span class="var">values</span>.<span class="prop">age</span>) <= <span class="num">0</span>) ? <span class="str">"Must be positive number"</span> : <span class="str">""</span>
+  }
+}
+
+<span class="kw">function</span> <span class="fn">makeFieldHandler</span>(<span class="var">setStateFn</span>) {
+  <span class="kw">return</span> (<span class="var">fieldName</span>) => (<span class="var">e</span>) => {
+    <span class="var">setStateFn</span>(<span class="var">prev</span> => ({ ...<span class="var">prev</span>, [<span class="var">fieldName</span>]: <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span> }))
+  }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Lifting state — simulate a search + results component tree</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Simulate a component tree where state must be lifted. Implement <code>ProductSearch</code> that holds <code>query</code> and <code>selectedCategory</code> state, and passes them down to <code>FilterBar</code> and <code>ProductGrid</code>. Verify both children read from the same source of truth.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — lifting state simulation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">const products = [
+  { id:1, name:"Laptop",   category:"electronics", price:999  },
+  { id:2, name:"T-shirt",  category:"clothing",    price:25   },
+  { id:3, name:"Phone",    category:"electronics", price:699  },
+  { id:4, name:"Jeans",    category:"clothing",    price:59   },
+  { id:5, name:"Headphones",category:"electronics",price:149  },
+  { id:6, name:"Sneakers", category:"clothing",    price:89   },
+]
+
+// Simulate component output as plain objects
+function FilterBar({ categories, selectedCategory, query, onCategoryChange, onQueryChange }) {
+  return {
+    component: "FilterBar",
+    selectedCategory,
+    query,
+    availableCategories: categories
+  }
+}
+
+function ProductGrid({ products, query, selectedCategory }) {
+  // YOUR CODE: filter products by query AND selectedCategory
+  // query: case-insensitive includes match on name
+  // selectedCategory: "all" shows everything, otherwise filter by category
+  const filtered = products  // replace this
+
+  return {
+    component: "ProductGrid",
+    showing: filtered.length,
+    products: filtered.map(p => p.name)
+  }
+}
+
+// Parent — owns ALL shared state
+function ProductSearch() {
+  // Simulate state (in React: useState)
+  let query             = ""
+  let selectedCategory  = "all"
+  const categories      = ["all", ...new Set(products.map(p => p.category))]
+
+  // Simulate setters
+  const setQuery            = (q)  => { query = q }
+  const setSelectedCategory = (c)  => { selectedCategory = c }
+
+  // YOUR CODE: render both children, return their outputs
+  // Both must receive query and selectedCategory from this scope
+  return {
+    filterBar:   FilterBar({ categories, selectedCategory, query, onCategoryChange: setSelectedCategory, onQueryChange: setQuery }),
+    productGrid: ProductGrid({ products, query, selectedCategory })
+  }
+}
+
+// Test 1: initial state
+const initial = ProductSearch()
+console.log("Initial — showing:", initial.productGrid.showing)  // 6
+
+// Test 2: simulate query change
+function ProductSearchWith(q, cat) {
+  const query = q, selectedCategory = cat
+  const categories = ["all", ...new Set(products.map(p => p.category))]
+  return {
+    filterBar:   FilterBar({ categories, selectedCategory, query, onCategoryChange:()=>{}, onQueryChange:()=>{} }),
+    productGrid: ProductGrid({ products, query, selectedCategory })
+  }
+}
+
+const withQuery = ProductSearchWith("phone", "all")
+console.log("Query 'phone':", withQuery.productGrid.products)     // ["Phone"]
+
+const withCat = ProductSearchWith("", "electronics")
+console.log("Electronics only:", withCat.productGrid.showing)     // 3
+
+const both = ProductSearchWith("a", "clothing")
+console.log("Clothing + 'a':", both.productGrid.products)         // ["T-shirt","Jeans","Sneakers"] or filtered
+
+// Verify SAME state source
+console.log("FilterBar category == ProductGrid filter:", withCat.filterBar.selectedCategory === "electronics") // true</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">const</span> <span class="var">filtered</span> = <span class="var">products</span>
+  .<span class="fn">filter</span>(<span class="var">p</span> => <span class="var">selectedCategory</span> === <span class="str">"all"</span> || <span class="var">p</span>.<span class="prop">category</span> === <span class="var">selectedCategory</span>)
+  .<span class="fn">filter</span>(<span class="var">p</span> => !<span class="var">query</span> || <span class="var">p</span>.<span class="prop">name</span>.<span class="fn">toLowerCase</span>().<span class="fn">includes</span>(<span class="var">query</span>.<span class="fn">toLowerCase</span>()))</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Form validation engine</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a reusable <code>createValidator(rules)</code> factory. Each rule is <code>{ required, minLength, maxLength, pattern, custom }</code>. The validator returns <code>validate(values)</code> and <code>validateField(name, value)</code>. This is the logic behind libraries like React Hook Form and Formik.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — validation engine</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">function createValidator(rules) {
+  // rules shape: { fieldName: { required, minLength, maxLength, pattern, message, custom } }
+
+  function validateField(name, value) {
+    const rule = rules[name]
+    if (!rule) return ""
+
+    // YOUR CODE: check each rule in order, return first error message or ""
+    // required:  value is empty → return rule.message || "Required"
+    // minLength: value.length < rule.minLength → "Min {n} characters"
+    // maxLength: value.length > rule.maxLength → "Max {n} characters"
+    // pattern:   !rule.pattern.test(value) → rule.message || "Invalid format"
+    // custom:    rule.custom(value) returns error string or ""
+
+    return ""
+  }
+
+  function validate(values) {
+    // YOUR CODE: validate all fields, return errors object
+    return {}
+  }
+
+  function isValid(values) {
+    return Object.values(validate(values)).every(e => !e)
+  }
+
+  return { validateField, validate, isValid }
+}
+
+// Test
+const signupValidator = createValidator({
+  username: {
+    required: true,
+    minLength: 3,
+    maxLength: 20,
+    pattern: /^[a-zA-Z0-9_]+$/,
+    message: "Letters, numbers and underscores only"
+  },
+  email: {
+    required: true,
+    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    message: "Enter a valid email address"
+  },
+  password: {
+    required: true,
+    minLength: 8,
+    custom: (v) => !/[A-Z]/.test(v) ? "Must contain uppercase letter" :
+                   !/[0-9]/.test(v) ? "Must contain a number" : ""
+  },
+  bio: {
+    maxLength: 200
+  }
+})
+
+const { validateField, validate, isValid } = signupValidator
+
+console.log(validateField("username", ""))           // "Required"
+console.log(validateField("username", "al"))         // "Min 3 characters"
+console.log(validateField("username", "alice_dev"))  // ""
+console.log(validateField("email", "notanemail"))    // "Enter a valid email address"
+console.log(validateField("password", "weak"))       // "Min 8 characters"
+console.log(validateField("password", "StrongPass1")) // ""
+
+const errors = validate({ username: "al", email: "bad", password: "weak", bio: "ok" })
+console.log("Error count:", Object.values(errors).filter(Boolean).length)  // 3
+
+const good = { username: "alice", email: "alice@test.com", password: "SecurePass1", bio: "" }
+console.log("Valid form:", isValid(good))  // true</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">validateField</span>(<span class="var">name</span>, <span class="var">value</span>) {
+  <span class="kw">const</span> <span class="var">rule</span> = <span class="var">rules</span>[<span class="var">name</span>]; <span class="kw">if</span> (!<span class="var">rule</span>) <span class="kw">return</span> <span class="str">""</span>
+  <span class="kw">if</span> (<span class="var">rule</span>.<span class="prop">required</span>  && !<span class="var">value</span>?.<span class="fn">trim</span>())              <span class="kw">return</span> <span class="var">rule</span>.<span class="prop">message</span> || <span class="str">"Required"</span>
+  <span class="kw">if</span> (<span class="var">value</span> && <span class="var">rule</span>.<span class="prop">minLength</span> && <span class="var">value</span>.<span class="prop">length</span> < <span class="var">rule</span>.<span class="prop">minLength</span>) <span class="kw">return</span> `Min <span class="rx">${</span><span class="var">rule</span>.<span class="prop">minLength</span><span class="rx">}</span> characters`
+  <span class="kw">if</span> (<span class="var">value</span> && <span class="var">rule</span>.<span class="prop">maxLength</span> && <span class="var">value</span>.<span class="prop">length</span> > <span class="var">rule</span>.<span class="prop">maxLength</span>) <span class="kw">return</span> `Max <span class="rx">${</span><span class="var">rule</span>.<span class="prop">maxLength</span><span class="rx">}</span> characters`
+  <span class="kw">if</span> (<span class="var">value</span> && <span class="var">rule</span>.<span class="prop">pattern</span> && !<span class="var">rule</span>.<span class="prop">pattern</span>.<span class="fn">test</span>(<span class="var">value</span>))      <span class="kw">return</span> <span class="var">rule</span>.<span class="prop">message</span> || <span class="str">"Invalid format"</span>
+  <span class="kw">if</span> (<span class="var">value</span> && <span class="var">rule</span>.<span class="prop">custom</span>)  { <span class="kw">const</span> <span class="var">err</span> = <span class="var">rule</span>.<span class="fn">custom</span>(<span class="var">value</span>); <span class="kw">if</span> (<span class="var">err</span>) <span class="kw">return</span> <span class="var">err</span> }
+  <span class="kw">return</span> <span class="str">""</span>
+}
+
+<span class="kw">function</span> <span class="fn">validate</span>(<span class="var">values</span>) {
+  <span class="kw">return</span> <span class="fn">Object</span>.<span class="fn">fromEntries</span>(
+    <span class="fn">Object</span>.<span class="fn">keys</span>(<span class="var">rules</span>).<span class="fn">map</span>(<span class="var">k</span> => [<span class="var">k</span>, <span class="fn">validateField</span>(<span class="var">k</span>, <span class="var">values</span>[<span class="var">k</span>] || <span class="str">""</span>)])
+  )
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Derived state — what to compute, what to store</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Given a shopping cart state, identify which values should be <strong>stored in state</strong> vs <strong>derived during render</strong>. Then refactor the buggy version (which stores redundant state) into a clean version using derived values. Show the stale state bug that occurs when you store derived data.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — derived state</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">// ── BUGGY VERSION: stores redundant derived state ──────────
+class BuggyCart {
+  constructor() {
+    this.items    = []
+    this.total    = 0      // BUG: redundant
+    this.count    = 0      // BUG: redundant
+    this.isEmpty  = true   // BUG: redundant
+  }
+
+  addItem(item) {
+    this.items = [...this.items, item]
+    this.total = this.items.reduce((s, i) => s + i.price * i.qty, 0)
+    this.count = this.items.reduce((s, i) => s + i.qty, 0)
+    this.isEmpty = this.items.length === 0
+  }
+
+  removeItem(id) {
+    this.items = this.items.filter(i => i.id !== id)
+    // FORGOT TO UPDATE total, count, isEmpty → stale data bug!
+  }
+}
+
+const buggy = new BuggyCart()
+buggy.addItem({ id:1, name:"Laptop", price:999, qty:1 })
+buggy.addItem({ id:2, name:"Mouse",  price:29,  qty:2 })
+buggy.removeItem(1)  // forgot to update total/count
+console.log("Buggy total after remove:", buggy.total)   // still 1057 — WRONG
+console.log("Buggy count after remove:", buggy.count)   // still 3 — WRONG
+
+// ── CLEAN VERSION: store only source of truth ─────────────
+class CleanCart {
+  constructor() {
+    this.items = []   // ONLY source of truth
+  }
+
+  addItem(item)  { this.items = [...this.items, item] }
+  removeItem(id) { this.items = this.items.filter(i => i.id !== id) }
+  updateQty(id, qty) {
+    this.items = this.items.map(i => i.id === id ? {...i, qty} : i)
+  }
+
+  // YOUR CODE: derived getters — compute from this.items
+  get total()   { /* sum price*qty */ }
+  get count()   { /* sum qty */ }
+  get isEmpty() { /* boolean */ }
+  get summary() { /* "N items · $X.XX" */ }
+}
+
+const clean = new CleanCart()
+clean.addItem({ id:1, name:"Laptop", price:999, qty:1 })
+clean.addItem({ id:2, name:"Mouse",  price:29,  qty:2 })
+console.log("Before remove — total:", clean.total)    // 1057
+console.log("Before remove — count:", clean.count)    // 3
+
+clean.removeItem(1)
+console.log("After remove — total:", clean.total)     // 58  ✓ always correct
+console.log("After remove — count:", clean.count)     // 2   ✓ always correct
+console.log("After remove — isEmpty:", clean.isEmpty) // false
+console.log("Summary:", clean.summary)                // "2 items · $58.00"
+
+clean.updateQty(2, 5)
+console.log("After qty update:", clean.total)         // 145</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">get</span> <span class="fn">total</span>()   { <span class="kw">return</span> <span class="kw">this</span>.<span class="prop">items</span>.<span class="fn">reduce</span>((<span class="var">s</span>,<span class="var">i</span>) => <span class="var">s</span> + <span class="var">i</span>.<span class="prop">price</span> * <span class="var">i</span>.<span class="prop">qty</span>, <span class="num">0</span>) }
+<span class="kw">get</span> <span class="fn">count</span>()   { <span class="kw">return</span> <span class="kw">this</span>.<span class="prop">items</span>.<span class="fn">reduce</span>((<span class="var">s</span>,<span class="var">i</span>) => <span class="var">s</span> + <span class="var">i</span>.<span class="prop">qty</span>, <span class="num">0</span>) }
+<span class="kw">get</span> <span class="fn">isEmpty</span>() { <span class="kw">return</span> <span class="kw">this</span>.<span class="prop">items</span>.<span class="prop">length</span> === <span class="num">0</span> }
+<span class="kw">get</span> <span class="fn">summary</span>() { <span class="kw">return</span> `<span class="rx">${</span><span class="kw">this</span>.<span class="prop">count</span><span class="rx">}</span> item<span class="rx">${</span><span class="kw">this</span>.<span class="prop">count</span>!==<span class="num">1</span>?<span class="str">"s"</span>:<span class="str">""</span><span class="rx">}</span> · $<span class="rx">${</span><span class="kw">this</span>.<span class="prop">total</span>.<span class="fn">toFixed</span>(<span class="num">2</span>)<span class="rx">}</span>` }</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Implement useReducer from scratch</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>useReducer(reducer, initialState)</code> simulator. It returns <code>[state, dispatch]</code>. <code>dispatch(action)</code> passes the current state and action through the reducer, stores the result, and calls a re-render. Then implement a complete todo reducer with ADD, TOGGLE, DELETE, SET_FILTER, and CLEAR_DONE actions.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — useReducer simulator</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">// Simulate useReducer
+let reducerStore = []
+let reducerCursor = 0
+
+function useReducer(reducer, initialState) {
+  const index = reducerCursor++
+
+  if (reducerStore[index] === undefined) {
+    reducerStore[index] = initialState
+  }
+
+  const dispatch = (action) => {
+    // YOUR CODE: run reducer with current state + action, store new state, call render()
+  }
+
+  return [reducerStore[index], dispatch]
+}
+
+// Re-render simulation
+let renderLog = []
+function render() {
+  reducerCursor = 0
+  const [state, dispatch] = useReducer(todoReducer, { tasks: [], filter: "all", nextId: 1 })
+  renderLog.push({ taskCount: state.tasks.length, filter: state.filter, dispatch })
+  return dispatch
+}
+
+// ── Your todo reducer ─────────────────────────────────────
+function todoReducer(state, action) {
+  // YOUR CODE: handle ADD, TOGGLE, DELETE, SET_FILTER, CLEAR_DONE
+  // ADD:        { type:"ADD", payload: text }
+  // TOGGLE:     { type:"TOGGLE", payload: id }
+  // DELETE:     { type:"DELETE", payload: id }
+  // SET_FILTER: { type:"SET_FILTER", payload: "all"|"active"|"done" }
+  // CLEAR_DONE: { type:"CLEAR_DONE" }
+  return state
+}
+
+// Test
+let dispatch = render()
+dispatch({ type: "ADD", payload: "Learn React" })
+dispatch({ type: "ADD", payload: "Build project" })
+dispatch({ type: "ADD", payload: "Ship it" })
+dispatch({ type: "TOGGLE", payload: 1 })
+dispatch({ type: "SET_FILTER", payload: "active" })
+
+// Final render to check state
+reducerCursor = 0
+const [finalState] = useReducer(todoReducer, {})
+const s = reducerStore[0]
+
+console.log("Total tasks:", s.tasks.length)                           // 3
+console.log("Task 1 done:", s.tasks.find(t => t.id === 1)?.done)     // true
+console.log("Filter:", s.filter)                                       // "active"
+console.log("Active tasks:", s.tasks.filter(t => !t.done).length)    // 2
+
+dispatch({ type: "CLEAR_DONE" })
+reducerCursor = 0; useReducer(todoReducer, {})
+console.log("After clear done:", reducerStore[0].tasks.length)        // 2</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">const</span> <span class="fn">dispatch</span> = (<span class="var">action</span>) => {
+  <span class="var">reducerStore</span>[<span class="var">index</span>] = <span class="fn">reducer</span>(<span class="var">reducerStore</span>[<span class="var">index</span>], <span class="var">action</span>)
+  <span class="fn">render</span>()
+}
+
+<span class="kw">function</span> <span class="fn">todoReducer</span>(<span class="var">state</span>, <span class="var">action</span>) {
+  <span class="kw">switch</span> (<span class="var">action</span>.<span class="prop">type</span>) {
+    <span class="kw">case</span> <span class="str">"ADD"</span>:
+      <span class="kw">return</span> { ...<span class="var">state</span>, <span class="prop">nextId</span>: <span class="var">state</span>.<span class="prop">nextId</span>+<span class="num">1</span>,
+        <span class="prop">tasks</span>: [...<span class="var">state</span>.<span class="prop">tasks</span>, {<span class="prop">id</span>:<span class="var">state</span>.<span class="prop">nextId</span>,<span class="prop">text</span>:<span class="var">action</span>.<span class="prop">payload</span>,<span class="prop">done</span>:<span class="kw">false</span>}] }
+    <span class="kw">case</span> <span class="str">"TOGGLE"</span>:
+      <span class="kw">return</span> { ...<span class="var">state</span>, <span class="prop">tasks</span>: <span class="var">state</span>.<span class="prop">tasks</span>.<span class="fn">map</span>(<span class="var">t</span> => <span class="var">t</span>.<span class="prop">id</span>===<span class="var">action</span>.<span class="prop">payload</span> ? {...<span class="var">t</span>,<span class="prop">done</span>:!<span class="var">t</span>.<span class="prop">done</span>} : <span class="var">t</span>) }
+    <span class="kw">case</span> <span class="str">"DELETE"</span>:
+      <span class="kw">return</span> { ...<span class="var">state</span>, <span class="prop">tasks</span>: <span class="var">state</span>.<span class="prop">tasks</span>.<span class="fn">filter</span>(<span class="var">t</span> => <span class="var">t</span>.<span class="prop">id</span> !== <span class="var">action</span>.<span class="prop">payload</span>) }
+    <span class="kw">case</span> <span class="str">"SET_FILTER"</span>:
+      <span class="kw">return</span> { ...<span class="var">state</span>, <span class="prop">filter</span>: <span class="var">action</span>.<span class="prop">payload</span> }
+    <span class="kw">case</span> <span class="str">"CLEAR_DONE"</span>:
+      <span class="kw">return</span> { ...<span class="var">state</span>, <span class="prop">tasks</span>: <span class="var">state</span>.<span class="prop">tasks</span>.<span class="fn">filter</span>(<span class="var">t</span> => !<span class="var">t</span>.<span class="prop">done</span>) }
+    <span class="kw">default</span>: <span class="kw">return</span> <span class="var">state</span>
+  }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Build a multi-step wizard — complex state orchestration</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a multi-step signup wizard using a reducer. It has 3 steps: account info → profile → preferences. The reducer handles NEXT_STEP, PREV_STEP, UPDATE_STEP, and SUBMIT. Derive: current step data, progress percentage, whether next/back are available, and form validity per step.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — multi-step wizard</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">const STEPS = ["account", "profile", "preferences"]
+
+const initialWizardState = {
+  step: 0,
+  submitted: false,
+  data: {
+    account:     { email: "", password: "" },
+    profile:     { name: "", bio: "" },
+    preferences: { theme: "light", notifications: true }
+  }
+}
+
+function wizardReducer(state, action) {
+  switch (action.type) {
+    case "NEXT_STEP":
+      return { ...state, step: Math.min(state.step + 1, STEPS.length - 1) }
+    case "PREV_STEP":
+      return { ...state, step: Math.max(state.step - 1, 0) }
+    case "UPDATE_STEP": {
+      const stepName = STEPS[state.step]
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          [stepName]: { ...state.data[stepName], ...action.payload }
+        }
+      }
+    }
+    case "SUBMIT":
+      return { ...state, submitted: true }
+    default:
+      return state
+  }
+}
+
+// YOUR CODE: derived state functions
+function getProgress(state) {
+  // return 0–100 based on step
+}
+function canGoNext(state) {
+  // return false on last step
+}
+function canGoBack(state) {
+  // return false on first step
+}
+function isStepValid(state) {
+  // account: email and password required
+  // profile: name required
+  // preferences: always valid
+}
+function getCurrentStepData(state) {
+  // return data for current step
+}
+function getFullData(state) {
+  // flatten all step data into one object
+}
+
+// Test the wizard
+let state = initialWizardState
+
+state = wizardReducer(state, { type: "UPDATE_STEP", payload: { email: "alice@test.com", password: "SecurePass1" } })
+console.log("Step 0 valid:", isStepValid(state))     // true (both fields filled)
+console.log("Progress:", getProgress(state))          // 0 (step 0 of 3)
+console.log("Can go next:", canGoNext(state))         // true
+console.log("Can go back:", canGoBack(state))         // false
+
+state = wizardReducer(state, { type: "NEXT_STEP" })
+state = wizardReducer(state, { type: "UPDATE_STEP", payload: { name: "Alice" } })
+console.log("Current step:", STEPS[state.step])       // "profile"
+console.log("Progress:", getProgress(state))          // 33 or 50
+
+state = wizardReducer(state, { type: "NEXT_STEP" })
+state = wizardReducer(state, { type: "NEXT_STEP" })   // should not go past last step
+console.log("On last step:", !canGoNext(state))       // true
+
+const full = getFullData(state)
+console.log("Full data email:", full.email)           // "alice@test.com"
+console.log("Full data name:", full.name)             // "Alice"
+console.log("Full data theme:", full.theme)           // "light"</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">getProgress</span>(<span class="var">s</span>)        { <span class="kw">return</span> <span class="fn">Math</span>.<span class="fn">round</span>((<span class="var">s</span>.<span class="prop">step</span> / <span class="var">STEPS</span>.<span class="prop">length</span>) * <span class="num">100</span>) }
+<span class="kw">function</span> <span class="fn">canGoNext</span>(<span class="var">s</span>)           { <span class="kw">return</span> <span class="var">s</span>.<span class="prop">step</span> < <span class="var">STEPS</span>.<span class="prop">length</span> - <span class="num">1</span> }
+<span class="kw">function</span> <span class="fn">canGoBack</span>(<span class="var">s</span>)           { <span class="kw">return</span> <span class="var">s</span>.<span class="prop">step</span> > <span class="num">0</span> }
+<span class="kw">function</span> <span class="fn">getCurrentStepData</span>(<span class="var">s</span>)  { <span class="kw">return</span> <span class="var">s</span>.<span class="prop">data</span>[<span class="var">STEPS</span>[<span class="var">s</span>.<span class="prop">step</span>]] }
+<span class="kw">function</span> <span class="fn">getFullData</span>(<span class="var">s</span>)          { <span class="kw">return</span> <span class="fn">Object</span>.<span class="fn">assign</span>({}, ...<span class="fn">Object</span>.<span class="fn">values</span>(<span class="var">s</span>.<span class="prop">data</span>)) }
+<span class="kw">function</span> <span class="fn">isStepValid</span>(<span class="var">s</span>) {
+  <span class="kw">const</span> <span class="var">d</span> = <span class="fn">getCurrentStepData</span>(<span class="var">s</span>)
+  <span class="kw">const</span> <span class="var">name</span> = <span class="var">STEPS</span>[<span class="var">s</span>.<span class="prop">step</span>]
+  <span class="kw">if</span> (<span class="var">name</span> === <span class="str">"account"</span>)  <span class="kw">return</span> !!<span class="var">d</span>.<span class="prop">email</span> && !!<span class="var">d</span>.<span class="prop">password</span>
+  <span class="kw">if</span> (<span class="var">name</span> === <span class="str">"profile"</span>)  <span class="kw">return</span> !!<span class="var">d</span>.<span class="prop">name</span>
+  <span class="kw">return</span> <span class="kw">true</span>
+}</pre></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">What does "lifting state up" mean and when do you do it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Lifting state up means moving state from a child component to its parent so that multiple children can share or react to it. You do it when two sibling components need to read the same state, or when a child's action needs to affect another part of the tree.<br><br>The pattern: the parent owns the state and passes it down as props. Children receive a callback function (also as a prop) to request state changes — they call it when something happens, and the parent updates the state, triggering re-renders of all affected children.<br><br>Put state as low in the tree as possible — only lift when necessary. Lifting too eagerly makes code harder to maintain and causes unnecessary re-renders.</div>
+    <div class="tip-box">Real example: "In a product search page, I had a SearchBar and a ProductGrid as siblings. The query state lived in SearchBar at first, which meant ProductGrid couldn't access it. Lifting query to the shared parent fixed it — SearchBar calls onQueryChange, the parent updates, ProductGrid re-renders with the new query."</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">What is a controlled component? Why is it preferred over uncontrolled?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">A controlled component is an input whose value is driven by React state. The input's <code>value</code> prop comes from state, and an <code>onChange</code> handler updates that state. React is the single source of truth.<br><br>This is preferred because: you can validate or transform the input on every keystroke, you can programmatically set or clear the value, you can derive other UI state from the input (e.g. showing a character count), and the input always reflects exactly what's in state — there's no divergence between DOM state and React state.<br><br>Uncontrolled inputs (reading via <code>ref</code>) are fine for simple cases like file inputs or when you only need the value on submit, but for any interactive form — validation, formatting, conditional fields — controlled is the right choice.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">What is the difference between onChange and onInput in React? What about onChange and onBlur for validation?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">In React, <code>onChange</code> fires on every keystroke — it behaves like the native DOM <code>input</code> event, not the native <code>change</code> event (which only fires when focus leaves). React normalised this because "fires on every keystroke" is almost always what you want for controlled inputs.<br><br>For validation timing: <code>onChange</code> validates as the user types — useful for character limits or real-time feedback, but can be annoying if errors appear before the user finishes. <code>onBlur</code> validates when the user leaves the field — better UX for most cases. The best pattern is: show errors on blur (after first visit), then re-validate on change once the field is touched. This is what Formik and React Hook Form do by default.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">When would you use useReducer instead of useState?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useReducer</code> is better than multiple <code>useState</code> calls when: state has multiple sub-values that always update together (form with many fields, a pagination object with page/pageSize/total), when the next state depends on the previous in complex ways, or when there are many different ways to update the same state (many action types).<br><br><code>useState</code> is simpler and sufficient for: primitive values, simple objects with independent fields, or when state updates are straightforward.<br><br>A good rule of thumb: if you find yourself calling 3+ setState functions in the same handler, consider useReducer. It also makes logic more testable — the reducer is a pure function that you can unit test without rendering anything.</div>
+    <div class="tip-box">Mental model: <code>useReducer</code> is <code>useState</code> with the update logic extracted into a named function. It also pairs naturally with <code>useContext</code> to create a lightweight global state solution without Redux.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">What is derived state? Why is storing it a mistake?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Derived state is any value that can be computed from existing state or props — a filtered list, a total, a boolean "isEmpty", a count. Storing it in state is a mistake because: it creates synchronisation risk (you have to update both the source and the derived value together), it makes code more complex, and it can easily become stale when you forget to update it.<br><br>The fix is simple — compute the value inline during render. React re-runs the component on every state change, so derived values are always fresh:<br><code>const total = items.reduce((s, i) => s + i.price, 0)</code><br><br>For expensive computations, use <code>useMemo</code> to cache the result and only recompute when dependencies change — but this is an optimisation, not required by default.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">How do you handle a form with many fields without writing an onChange for each?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Use a generic <code>handleChange</code> function that reads the input's <code>name</code> attribute and uses it as a computed key to update the corresponding field in the form state object:<br><br><code>const handleChange = (e) => setForm(prev => ({...prev, [e.target.name]: e.target.type === "checkbox" ? e.target.checked : e.target.value}))</code><br><br>Then give every input a <code>name</code> attribute matching its state key. This one function handles all text inputs, textareas, selects, and checkboxes. For radio buttons, the same function works since they also have a <code>name</code> attribute.<br><br>This pattern is what React Hook Form uses internally — one handler, many fields.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">What is React's one-way data flow? Why is it beneficial?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">One-way data flow means data flows in one direction: from parent to child via props. Children cannot directly modify parent state — they request changes via callbacks passed as props. This creates a predictable, unidirectional flow: state lives at a fixed level of the tree, flows down, and changes flow back up through callbacks.<br><br>Benefits: it's easier to trace where a bug came from (follow the data up the tree), it's easier to reason about what causes a component to re-render, and it makes components more reusable (a child component is a pure function of its props).<br><br>The alternative — two-way data binding (like Angular v1) — makes it hard to trace which component changed what, leading to cascading updates that are difficult to debug.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">How do you prevent a form from submitting when there are validation errors?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Three layers: First, always call <code>e.preventDefault()</code> in the <code>onSubmit</code> handler to prevent the browser's default page reload. Second, run all validations synchronously in the submit handler, update the errors state, and return early if any errors exist. Third, optionally disable the submit button when the form is invalid (though this can be frustrating UX — disabled buttons don't explain why they're disabled).<br><br>Best practice: validate on submit (shows all errors at once), but also re-validate on change for fields the user has already touched (so errors disappear as soon as they're fixed). Never rely on HTML5 <code>required</code> or <code>pattern</code> attributes alone — they can be bypassed and don't give you control over error message styling.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">What is the difference between e.target and e.currentTarget in a React event handler?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>e.target</code> is the element the event originated on — the actual element the user clicked or typed in. <code>e.currentTarget</code> is the element the event listener is attached to.<br><br>In most single-element event handlers these are the same. They differ when events bubble — if you have a click handler on a <code>&lt;div&gt;</code> and the user clicks a <code>&lt;button&gt;</code> inside it, <code>e.target</code> is the button and <code>e.currentTarget</code> is the div.<br><br>In React form handlers, you almost always want <code>e.target</code> — you want to know which actual input was changed, not which parent form the event bubbled to. The generic <code>handleChange</code> pattern uses <code>e.target.name</code> and <code>e.target.value</code> specifically because of this.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">Why does React warn about changing a component from uncontrolled to controlled?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">This warning means an input switched from having no value prop (uncontrolled — DOM owns the value) to having a value prop (controlled — React owns the value). React flags this because it means the DOM's current value and React's state may be out of sync, which can cause the input to suddenly jump to a different value.<br><br>The most common cause: initialising state to <code>undefined</code> or <code>null</code> instead of <code>""</code>. When state is <code>undefined</code>, <code>value={undefined}</code> is treated as no value prop — uncontrolled. When state becomes a string, the input is suddenly controlled.<br><br>Fix: always initialise text input state to <code>""</code>, checkbox state to <code>false</code>, select state to a valid option value, never to <code>undefined</code>.</div>
+    <div class="warn-box">The same warning can happen if you load async data: the input renders with undefined while loading, then switches to controlled when data arrives. Use a loading state or default to empty string: <code>const [name, setName] = useState("")</code>, not <code>useState(undefined)</code>.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check each item only if you can do it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the difference between <code>e.target</code> and <code>e.currentTarget</code> with a concrete example</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know why you pass <code>onClick={fn}</code> not <code>onClick={fn()}</code> and what each actually does</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement lifting state up — sibling components sharing state via a common parent</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a single <code>handleChange</code> that handles text, checkbox, select, and radio inputs</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know why you should never initialise controlled input state to <code>undefined</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement field-level validation with touched tracking and blur handlers</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can identify which values in a component should be state vs derived (computed inline)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain when to choose <code>useReducer</code> over <code>useState</code> and why</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a complete reducer with ADD, TOGGLE, DELETE, and FILTER actions</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand React's one-way data flow and why it makes debugging easier</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed exercises 3, 5, and 6 today (validator, useReducer, wizard)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built a working React form locally (in Vite) with at least 3 field types and validation</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My Vite React project is committed to GitHub with a clear commit message</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the controlled-to-uncontrolled warning and prevent it from happening</div></div>
+  </div>
+  <div style="background:var(--surface);border:1px solid rgba(97,218,251,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--react);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Build a <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">SearchPage</code> with a SearchBar + ResultsList as siblings — lift query state to the parent<br>
+      2. Write a <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">SignupForm</code> using the generic <code>handleChange</code> pattern with text, checkbox, and select inputs<br>
+      3. Write a <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">todoReducer</code> that handles ADD, TOGGLE, DELETE, SET_FILTER, and CLEAR_DONE<br>
+      4. Write a <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">CartSummary</code> component — identify what to store vs derive, then implement it
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div class="footer-day-info">
+      <div class="footer-day-label">Week 2 · Day 9</div>
+      <div class="footer-day-name">React State, Events &amp; Controlled Inputs</div>
+      <div class="footer-day-next">Next up: <strong>Day 10 — React Hooks Deep Dive (useRef, useMemo, useCallback)</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 2 progress</span><span>Day 2 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:28%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day8_react_essentials.html',8)">← Day 8</button>
+      <button class="footer-btn primary" onclick="navigateTo('day10_react_hooks.html',10)">Day 10 — Hooks Deep Dive →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html",          label:"JS Fundamentals",   week:1},
+  {num:2,file:"day2_javascript_arrays_objects.html",        label:"Arrays & Objects",  week:1},
+  {num:3,file:"day3_functions_async_js.html",               label:"Functions & Async", week:1},
+  {num:4,file:"day4_dom_events_classes.html",               label:"DOM & Classes",     week:1},
+  {num:5,file:"day5_dom_events_classes.html",               label:"DOM Events",        week:1},
+  {num:6,file:"day6_es6_modules_iterators_generators.html", label:"Modules",           week:1},
+  {num:7,file:"day7_week1_review_project.html",             label:"Week 1 Review",     week:1},
+  {num:8,file:"day8_react_essentials.html",                 label:"React Essentials",  week:2},
+  {num:9,file:"day9_react_state_events.html",               label:"State & Events",    week:2,current:true},
+]
+const CURRENT  = 9
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+])
+
+function navigateTo(file,dayNum){
+  if(AVAILABLE.has(file)) window.location.href=file
+  else showToast(`Day ${dayNum} coming soon — keep building! ⚛️`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}: ${d.label}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const orig=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x,null,2):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=orig;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),o=c.classList.toggle('open')
+  a.style.transform=o?'rotate(90deg)':'';btn.style.color=o?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),o=a.classList.toggle('open')
+  c.style.transform=o?'rotate(90deg)':'';el.style.background=o?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur='';secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

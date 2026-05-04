@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 7 — Week 1 Review Project</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--js);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--js);border-bottom-color:var(--js);}
+
+/* DAY NAV */
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--js);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--js);width:22px;border-radius:4px;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.3);}
+.day-btn.primary:hover{background:rgba(247,223,30,.18);}
+
+/* HERO */
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--js);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--js);}
+.hero h1{font-size:clamp(36px,5vw,66px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--js);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.skills-used{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;}
+.skill-tag{font-size:11px;font-family:'JetBrains Mono',monospace;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);display:flex;align-items:center;gap:5px;}
+.skill-dot{width:6px;height:6px;border-radius:50%;}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+/* SECTION */
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+/* PROGRESS */
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--js);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.25);}
+
+/* SKILL MAP */
+.skill-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:24px;}
+.skill-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.skill-card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.skill-day{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;flex-shrink:0;}
+.skill-name{font-size:14px;font-weight:600;}
+.skill-list{list-style:none;}
+.skill-list li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.skill-list li:last-child{border-bottom:none;}
+.skill-list li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--hint);flex-shrink:0;}
+
+/* DIVIDER */
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);position:relative;}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+/* CODE BLOCKS */
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--js);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.rx{color:#fb923c;}
+
+/* RUNNER */
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;}
+.runner-meta{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--js-dim);color:var(--js);border:1px solid rgba(247,223,30,.25);border-radius:6px;cursor:pointer;transition:background .15s;}
+.run-btn:hover{background:rgba(247,223,30,.18);}
+.runner-code{padding:16px 18px;border-bottom:1px solid var(--border);}
+.runner-code textarea{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:14px 16px;resize:vertical;min-height:180px;outline:none;}
+.runner-code textarea:focus{border-color:rgba(247,223,30,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+/* PROJECT LIVE DEMO */
+.project-demo{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin:14px 0;}
+.demo-toolbar{padding:12px 20px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.demo-title{font-size:13px;font-weight:600;flex:1;}
+.demo-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 9px;border-radius:20px;background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,.2);}
+.demo-area{padding:24px;}
+
+/* CHECKLIST */
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--js);border-color:var(--js);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+.cl-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:1px 7px;border-radius:4px;margin-left:8px;flex-shrink:0;}
+
+/* WEEK SUMMARY TABLE */
+.week-table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;}
+.week-table th{padding:10px 16px;text-align:left;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border2);}
+.week-table td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:top;}
+.week-table tr:last-child td{border-bottom:none;}
+.week-table tr:hover td{background:var(--surface2);}
+.week-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+/* FOOTER NAV */
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-info{display:flex;flex-direction:column;gap:4px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;align-items:center;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.3);}
+.footer-btn.primary:hover{background:rgba(247,223,30,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--js);border-radius:2px;transition:width .4s;}
+
+/* TASK MANAGER DEMO STYLES */
+#tm-app *{box-sizing:border-box;}
+#tm-app{font-family:'Outfit',sans-serif;}
+.tm-top{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.tm-input{flex:1;min-width:180px;padding:10px 14px;background:var(--surface3);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:13px;font-family:'Outfit',sans-serif;outline:none;}
+.tm-input:focus{border-color:rgba(247,223,30,.4);}
+.tm-select{padding:10px 14px;background:var(--surface3);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:13px;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;}
+.tm-btn{padding:10px 18px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-family:'Outfit',sans-serif;font-weight:600;transition:all .15s;}
+.tm-btn-add{background:var(--js);color:#000;}
+.tm-btn-add:hover{background:rgba(247,223,30,.85);}
+.tm-btn-sm{padding:5px 12px;border-radius:6px;border:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;background:transparent;color:var(--muted);transition:all .15s;}
+.tm-btn-sm:hover{color:var(--text);background:var(--surface3);}
+.tm-btn-del{border-color:rgba(251,113,133,.3);color:var(--coral);}
+.tm-btn-del:hover{background:var(--coral-dim);}
+.tm-filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.tm-filter-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;}
+.tm-filter-btn.active{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.3);}
+.tm-search{flex:1;min-width:140px;padding:6px 12px;background:var(--surface3);border:1px solid var(--border2);border-radius:20px;color:var(--text);font-size:12px;font-family:'Outfit',sans-serif;outline:none;}
+.tm-search:focus{border-color:rgba(247,223,30,.3);}
+.tm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.tm-stat{background:var(--surface2);border-radius:10px;padding:10px 14px;text-align:center;}
+.tm-stat-num{font-size:22px;font-weight:700;}
+.tm-stat-lbl{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-top:2px;}
+.tm-list{display:flex;flex-direction:column;gap:8px;}
+.tm-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;transition:all .15s;}
+.tm-item.done-item{opacity:.5;}
+.tm-item:hover{border-color:var(--border2);}
+.tm-check{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.tm-check.checked{background:var(--green);border-color:var(--green);}
+.tm-check.checked::after{content:'';display:block;width:9px;height:6px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.tm-text{flex:1;font-size:13px;color:var(--text);}
+.tm-text.striked{text-decoration:line-through;color:var(--muted);}
+.tm-priority{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:4px;flex-shrink:0;}
+.tm-pri-high{background:var(--coral-dim);color:var(--coral);}
+.tm-pri-med{background:var(--amber-dim);color:var(--amber);}
+.tm-pri-low{background:var(--green-dim);color:var(--green);}
+.tm-actions{display:flex;gap:6px;}
+.tm-empty{text-align:center;padding:32px;color:var(--muted);font-size:13px;}
+.tm-sort-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12px;color:var(--muted);}
+.tm-history{background:var(--surface3);border-radius:10px;padding:12px;margin-top:14px;max-height:140px;overflow-y:auto;}
+.tm-history-title{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:8px;letter-spacing:.08em;text-transform:uppercase;}
+.tm-history-item{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);padding:2px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+.tm-history-item:last-child{border-bottom:none;}
+
+@media(max-width:680px){
+  .hero,.section,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .tm-stats{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 07 · Review</div>
+  <a href="#overview">Overview</a>
+  <a href="#skills">Skills used</a>
+  <a href="#project">Live project</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#challenges">Challenges</a>
+  <a href="#review">Week review</a>
+  <a href="#next">Week 2 prep</a>
+</nav>
+
+<!-- DAY NAV BAR -->
+<div class="day-nav">
+  <div class="day-nav-title">Week 1 · <span>Day 7 of 56</span> · Week 1 Review &amp; Project</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day6_es6_modules_iterators_generators.html',6)">← Day 6</button>
+      <button class="day-btn primary" onclick="navigateTo('day8_react_intro.html',8)">Week 2: React →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero" id="overview">
+  <div class="hero-eyebrow">Week 1 · Day 7 · Final project day</div>
+  <h1>Week 1 <em>Review</em><br>Project Day</h1>
+  <p class="hero-sub">Today you build a fully functional <strong>Task Manager</strong> from scratch — using every concept from Week 1. No frameworks, no libraries, pure JavaScript. This is the final boss of Week 1.</p>
+  <div class="skills-used">
+    <span class="skill-tag"><span class="skill-dot" style="background:var(--js);"></span>variables &amp; types</span>
+    <span class="skill-tag"><span class="skill-dot" style="background:var(--green);"></span>arrays &amp; objects</span>
+    <span class="skill-tag"><span class="skill-dot" style="background:var(--teal);"></span>closures &amp; HOF</span>
+    <span class="skill-tag"><span class="skill-dot" style="background:var(--purple);"></span>classes &amp; inheritance</span>
+    <span class="skill-tag"><span class="skill-dot" style="background:var(--coral);"></span>promises &amp; async</span>
+    <span class="skill-tag"><span class="skill-dot" style="background:var(--blue);"></span>DOM &amp; events</span>
+    <span class="skill-tag"><span class="skill-dot" style="background:var(--amber);"></span>event delegation</span>
+    <span class="skill-tag"><span class="skill-dot" style="background:var(--pink);"></span>iterators &amp; generators</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">1</div><div class="hstat-lbl">full project</div></div>
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">skills combined</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">challenges</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">build time</div></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 7 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Week review read</span>
+    <span class="tdot" onclick="markDone(this)">Architecture understood</span>
+    <span class="tdot" onclick="markDone(this)">Core project built</span>
+    <span class="tdot" onclick="markDone(this)">Challenge 1–3 done</span>
+    <span class="tdot" onclick="markDone(this)">Challenge 4–6 done</span>
+    <span class="tdot" onclick="markDone(this)">Pushed to GitHub</span>
+    <span class="tdot" onclick="markDone(this)">Week 2 plan read</span>
+  </div>
+</div>
+
+<!-- SKILLS MAP -->
+<div class="section" id="skills">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Week 1 skills recap — what you now own</span>
+    <span class="sec-badge" style="background:var(--js-dim);color:var(--js);">days 1–6</span>
+  </div>
+  <div class="skill-map">
+    <div class="skill-card">
+      <div class="skill-card-head">
+        <span class="skill-day" style="background:var(--js-dim);color:var(--js);">Day 1</span>
+        <span class="skill-name">JS Fundamentals</span>
+      </div>
+      <ul class="skill-list">
+        <li>6 falsy values, truthy/falsy coercion</li>
+        <li>=== vs == and when each applies</li>
+        <li>var vs let vs const — scope rules</li>
+        <li>Temporal Dead Zone</li>
+      </ul>
+    </div>
+    <div class="skill-card">
+      <div class="skill-card-head">
+        <span class="skill-day" style="background:var(--green-dim);color:var(--green);">Day 2</span>
+        <span class="skill-name">Arrays &amp; Objects</span>
+      </div>
+      <ul class="skill-list">
+        <li>map / filter / reduce / find / some / every</li>
+        <li>Destructuring with rename and defaults</li>
+        <li>Spread and rest operators</li>
+        <li>Optional chaining and ??, Object.entries</li>
+      </ul>
+    </div>
+    <div class="skill-card">
+      <div class="skill-card-head">
+        <span class="skill-day" style="background:var(--teal-dim);color:var(--teal);">Day 3</span>
+        <span class="skill-name">Functions &amp; Async</span>
+      </div>
+      <ul class="skill-list">
+        <li>Closures, memoize, debounce, once</li>
+        <li>Higher-order functions and currying</li>
+        <li>Promises — all, allSettled, race</li>
+        <li>async/await, try/catch, fetch API</li>
+      </ul>
+    </div>
+    <div class="skill-card">
+      <div class="skill-card-head">
+        <span class="skill-day" style="background:var(--purple-dim);color:var(--purple);">Day 4 + 5</span>
+        <span class="skill-name">DOM, Events &amp; Classes</span>
+      </div>
+      <ul class="skill-list">
+        <li>querySelector, classList, dataset</li>
+        <li>addEventListener, event bubbling</li>
+        <li>Event delegation with closest()</li>
+        <li>ES6 classes, extends, super, private #fields</li>
+      </ul>
+    </div>
+    <div class="skill-card">
+      <div class="skill-card-head">
+        <span class="skill-day" style="background:var(--pink-dim);color:var(--pink);">Day 6</span>
+        <span class="skill-name">Modules, Iterators &amp; Generators</span>
+      </div>
+      <ul class="skill-list">
+        <li>import / export, barrel files</li>
+        <li>Symbol.iterator, iterable protocol</li>
+        <li>Generator functions, yield, yield*</li>
+        <li>Async generators, for await...of</li>
+      </ul>
+    </div>
+    <div class="skill-card" style="border-color:rgba(247,223,30,.2);">
+      <div class="skill-card-head">
+        <span class="skill-day" style="background:var(--amber-dim);color:var(--amber);">Today</span>
+        <span class="skill-name">All combined</span>
+      </div>
+      <ul class="skill-list">
+        <li>State management with classes + closures</li>
+        <li>Immutable updates with spread + filter + map</li>
+        <li>DOM rendering driven by pure data</li>
+        <li>Event delegation for dynamic list items</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:14px;">
+    <div style="padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);">Week 1 — key patterns to cement before Week 2 React</div>
+    <table class="week-table">
+      <tr><th>Pattern</th><th>Where used</th><th>Week 2 React equivalent</th></tr>
+      <tr><td>Immutable array update with spread/filter/map</td><td>State updates in project</td><td><code>setState(prev => [...prev, item])</code></td></tr>
+      <tr><td>Pure function — same input → same output</td><td>Reducers, formatters</td><td>React components are pure functions</td></tr>
+      <tr><td>Event delegation on parent container</td><td>Dynamic list handling</td><td>React's synthetic event system</td></tr>
+      <tr><td>Closures over state in callbacks</td><td>Event handlers referencing data</td><td>React hooks closing over state</td></tr>
+      <tr><td>Data → UI (render from state)</td><td>renderTasks() function</td><td>JSX: <code>tasks.map(t => &lt;Task /&gt;)</code></td></tr>
+      <tr><td>Async/await with error handling</td><td>API fetch, local storage</td><td><code>useEffect</code> async data fetching</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- LIVE PROJECT -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Live project — Task Manager</span></div>
+
+<div class="section" id="project">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Interactive Task Manager — fully working</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">live demo</span>
+  </div>
+
+  <p style="font-size:14px;color:var(--muted);margin-bottom:18px;line-height:1.75;">This is the completed version. Study it, run it, then scroll down to build it yourself from scratch using the guided challenges below.</p>
+
+  <div class="project-demo">
+    <div class="demo-toolbar">
+      <span class="demo-title">JavaScript Task Manager</span>
+      <span class="demo-badge">live</span>
+      <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);">zero dependencies · pure JS</span>
+    </div>
+    <div class="demo-area" id="tm-app">
+      <!-- Stats -->
+      <div class="tm-stats">
+        <div class="tm-stat"><div class="tm-stat-num" id="tm-total">0</div><div class="tm-stat-lbl">total</div></div>
+        <div class="tm-stat"><div class="tm-stat-num" id="tm-done" style="color:var(--green)">0</div><div class="tm-stat-lbl">done</div></div>
+        <div class="tm-stat"><div class="tm-stat-num" id="tm-pending" style="color:var(--amber)">0</div><div class="tm-stat-lbl">pending</div></div>
+        <div class="tm-stat"><div class="tm-stat-num" id="tm-highpri" style="color:var(--coral)">0</div><div class="tm-stat-lbl">high priority</div></div>
+      </div>
+      <!-- Add form -->
+      <div class="tm-top">
+        <input class="tm-input" id="tm-new-text" type="text" placeholder="Add a new task…" />
+        <select class="tm-select" id="tm-new-priority">
+          <option value="low">Low priority</option>
+          <option value="medium" selected>Medium priority</option>
+          <option value="high">High priority</option>
+        </select>
+        <select class="tm-select" id="tm-new-category">
+          <option value="personal">Personal</option>
+          <option value="work">Work</option>
+          <option value="learning">Learning</option>
+        </select>
+        <button class="tm-btn tm-btn-add" id="tm-add-btn">+ Add Task</button>
+      </div>
+      <!-- Filters + search -->
+      <div class="tm-filters">
+        <button class="tm-filter-btn active" data-filter="all">All</button>
+        <button class="tm-filter-btn" data-filter="pending">Pending</button>
+        <button class="tm-filter-btn" data-filter="done">Done</button>
+        <button class="tm-filter-btn" data-filter="high">High priority</button>
+        <input class="tm-search" id="tm-search" type="text" placeholder="Search tasks…" />
+      </div>
+      <!-- Sort -->
+      <div class="tm-sort-row">
+        <span>Sort by:</span>
+        <button class="tm-filter-btn" data-sort="created">Newest</button>
+        <button class="tm-filter-btn active" data-sort="priority">Priority</button>
+        <button class="tm-filter-btn" data-sort="alpha">A–Z</button>
+        <span style="margin-left:auto;font-size:11px;" id="tm-count-label"></span>
+      </div>
+      <!-- Task list -->
+      <div class="tm-list" id="tm-list"></div>
+      <!-- History log -->
+      <div class="tm-history" id="tm-history-wrap">
+        <div class="tm-history-title">Action history</div>
+        <div id="tm-history-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHITECTURE -->
+<div class="section" id="architecture">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Architecture breakdown — every concept mapped</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">deep dive</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">TaskStore class — state management with private fields + closure</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Day 5 (Classes) + Day 1 (closures) + Day 2 (immutable updates) ──</span>
+<span class="kw">class</span> <span class="fn">TaskStore</span> {
+  #<span class="var">tasks</span>     = []          <span class="cm">// private field — Day 5</span>
+  #<span class="var">listeners</span> = []          <span class="cm">// subscribers — Day 5 EventEmitter pattern</span>
+  #<span class="var">history</span>   = []
+  #<span class="var">nextId</span>
+
+  <span class="kw">constructor</span>() {
+    <span class="kw">this</span>.#<span class="var">nextId</span> = <span class="kw">this</span>.#<span class="fn">makeIdGenerator</span>()  <span class="cm">// closure — Day 3</span>
+  }
+
+  <span class="cm">// Generator for unique IDs — Day 6</span>
+  *#<span class="fn">makeIdGenerator</span>() {
+    <span class="kw">let</span> <span class="var">id</span> = <span class="num">1</span>
+    <span class="kw">while</span> (<span class="kw">true</span>) <span class="kw">yield</span> `task_<span class="rx">${</span><span class="var">id</span>++<span class="rx">}</span>`
+  }
+
+  <span class="fn">add</span>({ <span class="var">text</span>, <span class="var">priority</span> = <span class="str">"medium"</span>, <span class="var">category</span> = <span class="str">"personal"</span> }) {
+    <span class="kw">const</span> <span class="var">task</span> = {
+      <span class="prop">id</span>:        <span class="kw">this</span>.#<span class="var">nextId</span>.<span class="fn">next</span>().<span class="prop">value</span>,  <span class="cm">// generator — Day 6</span>
+      <span class="var">text</span>,
+      <span class="var">priority</span>,
+      <span class="var">category</span>,
+      <span class="prop">done</span>:      <span class="kw">false</span>,
+      <span class="prop">createdAt</span>: <span class="kw">new</span> <span class="fn">Date</span>()
+    }
+    <span class="kw">this</span>.#<span class="var">tasks</span> = [...<span class="kw">this</span>.#<span class="var">tasks</span>, <span class="var">task</span>]  <span class="cm">// immutable — Day 2</span>
+    <span class="kw">this</span>.#<span class="fn">log</span>(`Added: "<span class="rx">${</span><span class="var">text</span><span class="rx">}</span>"`)
+    <span class="kw">this</span>.#<span class="fn">notify</span>()
+    <span class="kw">return</span> <span class="kw">this</span>
+  }
+
+  <span class="fn">toggle</span>(<span class="var">id</span>) {
+    <span class="kw">this</span>.#<span class="var">tasks</span> = <span class="kw">this</span>.#<span class="var">tasks</span>.<span class="fn">map</span>(<span class="var">t</span> =>   <span class="cm">// map — Day 2</span>
+      <span class="var">t</span>.<span class="prop">id</span> === <span class="var">id</span> ? { ...<span class="var">t</span>, <span class="prop">done</span>: !<span class="var">t</span>.<span class="prop">done</span> } : <span class="var">t</span>
+    )
+    <span class="kw">this</span>.#<span class="fn">notify</span>()
+  }
+
+  <span class="fn">delete</span>(<span class="var">id</span>) {
+    <span class="kw">const</span> <span class="var">task</span> = <span class="kw">this</span>.#<span class="var">tasks</span>.<span class="fn">find</span>(<span class="var">t</span> => <span class="var">t</span>.<span class="prop">id</span> === <span class="var">id</span>)
+    <span class="kw">this</span>.#<span class="var">tasks</span> = <span class="kw">this</span>.#<span class="var">tasks</span>.<span class="fn">filter</span>(<span class="var">t</span> => <span class="var">t</span>.<span class="prop">id</span> !== <span class="var">id</span>)  <span class="cm">// filter — Day 2</span>
+    <span class="kw">this</span>.#<span class="fn">log</span>(`Deleted: "<span class="rx">${</span><span class="var">task</span>?.<span class="prop">text</span><span class="rx">}</span>"`)
+    <span class="kw">this</span>.#<span class="fn">notify</span>()
+  }
+
+  <span class="fn">getFiltered</span>({ <span class="var">filter</span> = <span class="str">"all"</span>, <span class="var">search</span> = <span class="str">""</span>, <span class="var">sort</span> = <span class="str">"priority"</span> } = {}) {
+    <span class="kw">const</span> <span class="var">PRIORITY</span> = { <span class="prop">high</span>: <span class="num">3</span>, <span class="prop">medium</span>: <span class="num">2</span>, <span class="prop">low</span>: <span class="num">1</span> }
+
+    <span class="kw">return</span> [...<span class="kw">this</span>.#<span class="var">tasks</span>]       <span class="cm">// spread copy to avoid mutating — Day 2</span>
+      .<span class="fn">filter</span>(<span class="var">t</span> => {               <span class="cm">// filter + chaining — Day 2</span>
+        <span class="kw">if</span> (<span class="var">filter</span> === <span class="str">"done"</span>)    <span class="kw">return</span> <span class="var">t</span>.<span class="prop">done</span>
+        <span class="kw">if</span> (<span class="var">filter</span> === <span class="str">"pending"</span>) <span class="kw">return</span> !<span class="var">t</span>.<span class="prop">done</span>
+        <span class="kw">if</span> (<span class="var">filter</span> === <span class="str">"high"</span>)    <span class="kw">return</span> <span class="var">t</span>.<span class="prop">priority</span> === <span class="str">"high"</span>
+        <span class="kw">return</span> <span class="kw">true</span>
+      })
+      .<span class="fn">filter</span>(<span class="var">t</span> => !<span class="var">search</span> || <span class="var">t</span>.<span class="prop">text</span>.<span class="fn">toLowerCase</span>().<span class="fn">includes</span>(<span class="var">search</span>.<span class="fn">toLowerCase</span>()))
+      .<span class="fn">sort</span>((<span class="var">a</span>, <span class="var">b</span>) => {
+        <span class="kw">if</span> (<span class="var">sort</span> === <span class="str">"priority"</span>) <span class="kw">return</span> <span class="var">PRIORITY</span>[<span class="var">b</span>.<span class="prop">priority</span>] - <span class="var">PRIORITY</span>[<span class="var">a</span>.<span class="prop">priority</span>]
+        <span class="kw">if</span> (<span class="var">sort</span> === <span class="str">"alpha"</span>)    <span class="kw">return</span> <span class="var">a</span>.<span class="prop">text</span>.<span class="fn">localeCompare</span>(<span class="var">b</span>.<span class="prop">text</span>)
+        <span class="kw">return</span> <span class="var">b</span>.<span class="prop">createdAt</span> - <span class="var">a</span>.<span class="prop">createdAt</span>  <span class="cm">// newest first</span>
+      })
+  }
+
+  <span class="fn">getStats</span>() {
+    <span class="kw">return</span> <span class="kw">this</span>.#<span class="var">tasks</span>.<span class="fn">reduce</span>((<span class="var">acc</span>, <span class="var">t</span>) => ({  <span class="cm">// reduce — Day 2</span>
+      ...<span class="var">acc</span>,
+      <span class="prop">total</span>:   <span class="var">acc</span>.<span class="prop">total</span>   + <span class="num">1</span>,
+      <span class="prop">done</span>:    <span class="var">acc</span>.<span class="prop">done</span>    + (<span class="var">t</span>.<span class="prop">done</span> ? <span class="num">1</span> : <span class="num">0</span>),
+      <span class="prop">pending</span>: <span class="var">acc</span>.<span class="prop">pending</span> + (<span class="var">t</span>.<span class="prop">done</span> ? <span class="num">0</span> : <span class="num">1</span>),
+      <span class="prop">high</span>:    <span class="var">acc</span>.<span class="prop">high</span>    + (<span class="var">t</span>.<span class="prop">priority</span> === <span class="str">"high"</span> && !<span class="var">t</span>.<span class="prop">done</span> ? <span class="num">1</span> : <span class="num">0</span>)
+    }), { <span class="prop">total</span>:<span class="num">0</span>, <span class="prop">done</span>:<span class="num">0</span>, <span class="prop">pending</span>:<span class="num">0</span>, <span class="prop">high</span>:<span class="num">0</span> })
+  }
+
+  <span class="cm">// Subscribe to state changes — Day 5 pattern</span>
+  <span class="fn">subscribe</span>(<span class="var">fn</span>) {
+    <span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">push</span>(<span class="var">fn</span>)
+    <span class="kw">return</span> () => { <span class="kw">this</span>.#<span class="var">listeners</span> = <span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">filter</span>(<span class="var">l</span> => <span class="var">l</span> !== <span class="var">fn</span>) }
+  }
+
+  #<span class="fn">notify</span>() { <span class="kw">this</span>.#<span class="var">listeners</span>.<span class="fn">forEach</span>(<span class="var">fn</span> => <span class="fn">fn</span>()) }
+  #<span class="fn">log</span>(<span class="var">msg</span>)  { <span class="kw">this</span>.#<span class="var">history</span>.<span class="fn">unshift</span>({ <span class="var">msg</span>, <span class="prop">time</span>: <span class="kw">new</span> <span class="fn">Date</span>() }) }
+  <span class="fn">getHistory</span>() { <span class="kw">return</span> <span class="kw">this</span>.#<span class="var">history</span>.<span class="fn">slice</span>(<span class="num">0</span>, <span class="num">10</span>) }
+}</pre></div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">UI layer — DOM rendering, event delegation, debounced search</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Render function — data → DOM ───────────────────────────</span>
+<span class="cm">// Day 5 (DOM manipulation) + Day 4 (template strings)</span>
+<span class="kw">function</span> <span class="fn">renderTasks</span>(<span class="var">tasks</span>, <span class="var">container</span>) {
+  <span class="kw">if</span> (<span class="var">tasks</span>.<span class="prop">length</span> === <span class="num">0</span>) {
+    <span class="var">container</span>.<span class="prop">innerHTML</span> = <span class="str">'&lt;div class="tm-empty"&gt;No tasks here yet.&lt;/div&gt;'</span>
+    <span class="kw">return</span>
+  }
+  <span class="cm">// Use DocumentFragment for batch DOM insert — one reflow</span>
+  <span class="kw">const</span> <span class="var">frag</span> = <span class="fn">document</span>.<span class="fn">createDocumentFragment</span>()
+
+  <span class="var">tasks</span>.<span class="fn">forEach</span>(<span class="var">task</span> => {
+    <span class="kw">const</span> <span class="var">el</span> = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"div"</span>)
+    <span class="var">el</span>.<span class="prop">className</span> = `tm-item<span class="rx">${</span><span class="var">task</span>.<span class="prop">done</span> ? <span class="str">" done-item"</span> : <span class="str">""</span><span class="rx">}</span>`
+    <span class="var">el</span>.<span class="prop">dataset</span>.<span class="prop">id</span> = <span class="var">task</span>.<span class="prop">id</span>
+
+    <span class="var">el</span>.<span class="prop">innerHTML</span> = `
+      &lt;div class="tm-check<span class="rx">${</span><span class="var">task</span>.<span class="prop">done</span> ? <span class="str">" checked"</span> : <span class="str">""</span><span class="rx">}</span>" data-action="toggle"&gt;&lt;/div&gt;
+      &lt;span class="tm-text<span class="rx">${</span><span class="var">task</span>.<span class="prop">done</span> ? <span class="str">" striked"</span> : <span class="str">""</span><span class="rx">}</span>"&gt;<span class="rx">${</span><span class="fn">escapeHtml</span>(<span class="var">task</span>.<span class="prop">text</span>)<span class="rx">}</span>&lt;/span&gt;
+      &lt;span class="tm-priority tm-pri-<span class="rx">${</span><span class="var">task</span>.<span class="prop">priority</span><span class="rx">}</span>"&gt;<span class="rx">${</span><span class="var">task</span>.<span class="prop">priority</span><span class="rx">}</span>&lt;/span&gt;
+      &lt;div class="tm-actions"&gt;
+        &lt;button class="tm-btn-sm" data-action="delete"&gt;delete&lt;/button&gt;
+      &lt;/div&gt;`
+    <span class="var">frag</span>.<span class="fn">appendChild</span>(<span class="var">el</span>)
+  })
+
+  <span class="var">container</span>.<span class="prop">innerHTML</span> = <span class="str">""</span>
+  <span class="var">container</span>.<span class="fn">appendChild</span>(<span class="var">frag</span>)
+}
+
+<span class="cm">// ── Event delegation on list container — Day 5 ─────────────</span>
+<span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"tm-list"</span>).<span class="fn">addEventListener</span>(<span class="str">"click"</span>, (<span class="var">e</span>) => {
+  <span class="kw">const</span> <span class="var">action</span> = <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">dataset</span>.<span class="prop">action</span>
+  <span class="kw">const</span> <span class="var">item</span>   = <span class="var">e</span>.<span class="prop">target</span>.<span class="fn">closest</span>(<span class="str">".tm-item"</span>)    <span class="cm">// closest() — Day 5</span>
+  <span class="kw">if</span> (!<span class="var">item</span>) <span class="kw">return</span>
+  <span class="kw">const</span> { <span class="var">id</span> } = <span class="var">item</span>.<span class="prop">dataset</span>                    <span class="cm">// destructuring — Day 2</span>
+  <span class="kw">if</span> (<span class="var">action</span> === <span class="str">"toggle"</span>) <span class="var">store</span>.<span class="fn">toggle</span>(<span class="var">id</span>)
+  <span class="kw">if</span> (<span class="var">action</span> === <span class="str">"delete"</span>) <span class="var">store</span>.<span class="fn">delete</span>(<span class="var">id</span>)
+})
+
+<span class="cm">// ── Debounced search — Day 3 (closure) ────────────────────</span>
+<span class="kw">const</span> <span class="fn">debounce</span> = (<span class="var">fn</span>, <span class="var">ms</span>) => {
+  <span class="kw">let</span> <span class="var">timer</span>
+  <span class="kw">return</span> (...<span class="var">args</span>) => { <span class="fn">clearTimeout</span>(<span class="var">timer</span>); <span class="var">timer</span> = <span class="fn">setTimeout</span>(() => <span class="fn">fn</span>(...<span class="var">args</span>), <span class="var">ms</span>) }
+}
+<span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"tm-search"</span>)
+  .<span class="fn">addEventListener</span>(<span class="str">"input"</span>, <span class="fn">debounce</span>((<span class="var">e</span>) => {
+    <span class="var">state</span>.<span class="prop">search</span> = <span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span>
+    <span class="fn">render</span>()
+  }, <span class="num">200</span>))</pre></div>
+  </div>
+</div>
+
+<!-- CHALLENGES -->
+<div class="section" id="challenges">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Build it yourself — 6 guided challenges</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">hands-on</span>
+  </div>
+
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Build the Task Manager piece by piece. Each challenge adds a layer. By challenge 6 you'll have the complete app. Run each one to verify before moving to the next.</p>
+
+  <!-- CHALLENGE 1 -->
+  <div class="runner">
+    <div class="runner-head">
+      <div>
+        <div class="runner-title">Challenge 1 — TaskStore class with private state</div>
+        <div class="runner-meta">Day 2 arrays · Day 5 classes · Day 6 generators</div>
+      </div>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+    </div>
+    <div class="runner-code">
+      <textarea id="ch1-code">// Build the TaskStore class:
+// • Private #tasks array and #nextId generator
+// • add({ text, priority, category }) — returns this (chainable)
+// • toggle(id) — flips done boolean immutably
+// • delete(id) — removes task immutably
+// • getAll() — returns copy of tasks array
+// • getStats() — returns { total, done, pending, high }
+
+class TaskStore {
+  #tasks  = []
+  #nextId
+
+  constructor() {
+    this.#nextId = this.#idGen()
+  }
+
+  *#idGen() {
+    let n = 1
+    while (true) yield `task_${n++}`
+  }
+
+  add({ text, priority = "medium", category = "personal" }) {
+    // YOUR CODE: create task object, spread append, return this
+  }
+
+  toggle(id) {
+    // YOUR CODE: map over tasks, flip done for matching id
+  }
+
+  delete(id) {
+    // YOUR CODE: filter out matching id
+  }
+
+  getAll()  { return [...this.#tasks] }
+
+  getStats() {
+    // YOUR CODE: use reduce to compute { total, done, pending, high }
+  }
+}
+
+// Test
+const store = new TaskStore()
+store
+  .add({ text: "Learn closures",  priority: "high",   category: "learning" })
+  .add({ text: "Buy groceries",   priority: "medium", category: "personal" })
+  .add({ text: "Write unit tests",priority: "high",   category: "work" })
+  .add({ text: "Read JS book",    priority: "low",    category: "learning" })
+
+console.log("Tasks added:", store.getAll().length)
+
+store.toggle("task_1")
+console.log("task_1 done:", store.getAll().find(t => t.id === "task_1").done)
+
+store.delete("task_2")
+console.log("After delete:", store.getAll().length)
+
+console.log("Stats:", JSON.stringify(store.getStats()))</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">expected output</div><div class="output-box" id="ch1-out">Tasks added: 4
+task_1 done: true
+After delete: 3
+Stats: {"total":3,"done":1,"pending":2,"high":2}</div></div>
+  </div>
+
+  <!-- CHALLENGE 2 -->
+  <div class="runner">
+    <div class="runner-head">
+      <div>
+        <div class="runner-title">Challenge 2 — Filtering, sorting &amp; searching pipeline</div>
+        <div class="runner-meta">Day 2 filter/sort · Day 3 closures</div>
+      </div>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+    </div>
+    <div class="runner-code">
+      <textarea id="ch2-code">// Add a getFiltered({ filter, search, sort }) method to TaskStore
+// filter: "all" | "done" | "pending" | "high"
+// search: string (case insensitive text match)
+// sort:   "priority" | "alpha" | "created"
+
+// Use the PRIORITY map for numeric comparison:
+const PRIORITY = { high: 3, medium: 2, low: 1 }
+
+// Standalone function — then add it to TaskStore later
+function getFiltered(tasks, { filter = "all", search = "", sort = "priority" } = {}) {
+  return [...tasks]
+    .filter(t => {
+      // YOUR CODE: apply filter condition
+    })
+    .filter(t => {
+      // YOUR CODE: apply search (case-insensitive includes)
+    })
+    .sort((a, b) => {
+      // YOUR CODE: sort by priority / alpha / created
+    })
+}
+
+// Test data
+const tasks = [
+  { id:"1", text:"Learn closures",   priority:"high",   done:false, createdAt: new Date(2024,0,3) },
+  { id:"2", text:"Buy groceries",    priority:"medium", done:true,  createdAt: new Date(2024,0,1) },
+  { id:"3", text:"Write unit tests", priority:"high",   done:false, createdAt: new Date(2024,0,2) },
+  { id:"4", text:"Read JS book",     priority:"low",    done:false, createdAt: new Date(2024,0,4) },
+]
+
+console.log("All by priority:",  getFiltered(tasks).map(t => t.text))
+console.log("Pending only:",     getFiltered(tasks, { filter:"pending" }).map(t => t.text))
+console.log("Search 'learn':",   getFiltered(tasks, { search:"learn" }).map(t => t.text))
+console.log("Alpha sort:",       getFiltered(tasks, { sort:"alpha" }).map(t => t.text))
+console.log("Newest first:",     getFiltered(tasks, { sort:"created" }).map(t => t.text))</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">expected output</div><div class="output-box" id="ch2-out">All by priority: ["Learn closures","Write unit tests","Buy groceries","Read JS book"]
+Pending only: ["Learn closures","Write unit tests","Read JS book"]
+Search 'learn': ["Learn closures"]
+Alpha sort: ["Buy groceries","Learn closures","Read JS book","Write unit tests"]
+Newest first: ["Read JS book","Learn closures","Write unit tests","Buy groceries"]</div></div>
+  </div>
+
+  <!-- CHALLENGE 3 -->
+  <div class="runner">
+    <div class="runner-head">
+      <div>
+        <div class="runner-title">Challenge 3 — Debounce + throttle utilities</div>
+        <div class="runner-meta">Day 3 closures · higher-order functions</div>
+      </div>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+    </div>
+    <div class="runner-code">
+      <textarea id="ch3-code">// Implement debounce AND throttle using closures
+// debounce(fn, ms)  — only fire after ms of silence
+// throttle(fn, ms)  — fire at most once per ms window
+
+function debounce(fn, ms) {
+  let timer
+  return (...args) => {
+    // YOUR CODE
+  }
+}
+
+function throttle(fn, ms) {
+  let lastCall = 0
+  return (...args) => {
+    const now = Date.now()
+    // YOUR CODE: only call fn if ms has elapsed since lastCall
+  }
+}
+
+// Test debounce — only last call should fire
+const dLog = debounce((msg) => console.log("Debounced:", msg), 50)
+dLog("a")
+dLog("b")
+dLog("c")   // only this should fire after 50ms
+
+// Test throttle — fires immediately, then throttles
+let throttleCount = 0
+const tLog = throttle((n) => { throttleCount++; console.log("Throttled call:", n) }, 50)
+tLog(1)   // fires immediately
+tLog(2)   // suppressed (within 50ms)
+tLog(3)   // suppressed
+
+setTimeout(() => {
+  tLog(4)  // fires — 50ms+ elapsed
+  console.log("Total throttle fires:", throttleCount)  // 2
+  console.log("Debounce test: only 'c' above?", true)
+}, 100)</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">expected output</div><div class="output-box" id="ch3-out">Throttled call: 1
+Debounced: c
+Throttled call: 4
+Total throttle fires: 2
+Debounce test: only 'c' above? true</div></div>
+  </div>
+
+  <!-- CHALLENGE 4 -->
+  <div class="runner">
+    <div class="runner-head">
+      <div>
+        <div class="runner-title">Challenge 4 — Async persistence with localStorage</div>
+        <div class="runner-meta">Day 3 async/await · Day 5 classes</div>
+      </div>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+    </div>
+    <div class="runner-code">
+      <textarea id="ch4-code">// Add async save() and load() methods to TaskStore
+// Simulate async persistence (in real app: fetch to API)
+
+const STORAGE_KEY = "js_tasks_week1"
+
+// Simulated async storage
+const asyncStorage = {
+  store: {},
+  async setItem(key, val) {
+    await new Promise(r => setTimeout(r, 10))
+    this.store[key] = val
+  },
+  async getItem(key) {
+    await new Promise(r => setTimeout(r, 10))
+    return this.store[key] ?? null
+  }
+}
+
+class PersistentStore {
+  #tasks   = []
+  #loading = false
+  #saving  = false
+
+  async save() {
+    this.#saving = true
+    try {
+      // YOUR CODE: save this.#tasks to asyncStorage as JSON
+      // key: STORAGE_KEY
+      console.log("Saved", this.#tasks.length, "tasks")
+    } catch (err) {
+      console.error("Save failed:", err.message)
+    } finally {
+      this.#saving = false
+    }
+  }
+
+  async load() {
+    this.#loading = true
+    try {
+      // YOUR CODE: load from asyncStorage, parse JSON, set this.#tasks
+      // If nothing saved yet, default to []
+      console.log("Loaded", this.#tasks.length, "tasks")
+    } catch (err) {
+      console.error("Load failed:", err.message)
+      this.#tasks = []
+    } finally {
+      this.#loading = false
+    }
+  }
+
+  add(task) { this.#tasks.push({ id: Date.now().toString(), ...task }); return this }
+  getAll()  { return [...this.#tasks] }
+  get isLoading() { return this.#loading }
+}
+
+// Test
+async function testPersistence() {
+  const store = new PersistentStore()
+  store.add({ text: "Persisted task 1", priority: "high" })
+  store.add({ text: "Persisted task 2", priority: "low" })
+
+  await store.save()
+
+  const store2 = new PersistentStore()
+  await store2.load()
+  console.log("Loaded tasks:", store2.getAll().map(t => t.text))
+  console.log("Persistence works:", store2.getAll().length === 2)
+}
+testPersistence()</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">expected output</div><div class="output-box" id="ch4-out">Saved 2 tasks
+Loaded 2 tasks
+Loaded tasks: ["Persisted task 1","Persisted task 2"]
+Persistence works: true</div></div>
+  </div>
+
+  <!-- CHALLENGE 5 -->
+  <div class="runner">
+    <div class="runner-head">
+      <div>
+        <div class="runner-title">Challenge 5 — Undo/redo with iterator pattern</div>
+        <div class="runner-meta">Day 6 iterators · Day 5 classes · Day 3 closures</div>
+      </div>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+    </div>
+    <div class="runner-code">
+      <textarea id="ch5-code">// Implement an UndoableStore using the command pattern
+// Each action is stored as { do: fn, undo: fn }
+// undo() reverses the last action
+// redo() re-applies an undone action
+// historyIterator() — generator that yields history entries
+
+class UndoableStore {
+  #tasks   = []
+  #history = []   // stack of { label, snapshot }
+  #future  = []   // redo stack
+
+  #snapshot() { return [...this.#tasks] }
+
+  #commit(label, action) {
+    const before = this.#snapshot()
+    action()
+    this.#history.push({ label, before })
+    this.#future = []   // clear redo stack on new action
+  }
+
+  add(task) {
+    this.#commit(`Add: "${task.text}"`, () => {
+      this.#tasks.push({ id: `t${this.#tasks.length + 1}`, done: false, ...task })
+    })
+    return this
+  }
+
+  delete(id) {
+    this.#commit(`Delete: "${this.#tasks.find(t=>t.id===id)?.text}"`, () => {
+      this.#tasks = this.#tasks.filter(t => t.id !== id)
+    })
+  }
+
+  undo() {
+    // YOUR CODE:
+    // Pop last history entry, save current state to future, restore before snapshot
+    if (this.#history.length === 0) return console.log("Nothing to undo")
+    // ...
+  }
+
+  redo() {
+    // YOUR CODE:
+    // Pop future entry, save current to history, restore that snapshot
+    if (this.#future.length === 0) return console.log("Nothing to redo")
+    // ...
+  }
+
+  // Generator — yields history entries newest first
+  *historyIterator() {
+    // YOUR CODE: yield { label, index } from history array, newest first
+  }
+
+  getAll()  { return [...this.#tasks] }
+}
+
+// Test
+const store = new UndoableStore()
+store.add({ text: "Task A", priority: "high" })
+store.add({ text: "Task B", priority: "low" })
+store.add({ text: "Task C", priority: "medium" })
+console.log("After 3 adds:", store.getAll().length)  // 3
+
+store.delete("t2")
+console.log("After delete:", store.getAll().map(t=>t.text))  // ["Task A","Task C"]
+
+store.undo()
+console.log("After undo:", store.getAll().map(t=>t.text))    // ["Task A","Task B","Task C"]
+
+store.undo()
+console.log("After undo2:", store.getAll().map(t=>t.text))   // ["Task A","Task B"]
+
+store.redo()
+console.log("After redo:", store.getAll().map(t=>t.text))    // ["Task A","Task B","Task C"]
+
+console.log("History:")
+for (const { label, index } of store.historyIterator()) {
+  console.log(` ${index}. ${label}`)
+}</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">expected output</div><div class="output-box" id="ch5-out">After 3 adds: 3
+After delete: ["Task A","Task C"]
+After undo: ["Task A","Task B","Task C"]
+After undo2: ["Task A","Task B"]
+After redo: ["Task A","Task B","Task C"]
+History:
+ 3. Add: "Task C"
+ 2. Add: "Task B"
+ 1. Add: "Task A"</div></div>
+  </div>
+
+  <!-- CHALLENGE 6 -->
+  <div class="runner">
+    <div class="runner-head">
+      <div>
+        <div class="runner-title">Challenge 6 — Async task importer with generator pipeline</div>
+        <div class="runner-meta">Day 6 async generators · Day 3 async/await · Day 2 arrays</div>
+      </div>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+    </div>
+    <div class="runner-code">
+      <textarea id="ch6-code">// Build a bulk task importer using an async generator
+// It "fetches" tasks from a simulated paginated source,
+// validates each, transforms it, and yields valid tasks one at a time
+
+// Simulated paginated task source
+async function* taskSource() {
+  const pages = [
+    [
+      { title: "Review PR",        pri: "high",   cat: "work"     },
+      { title: "",                 pri: "medium", cat: "personal" }, // invalid — empty title
+      { title: "Buy milk",         pri: "low",    cat: "personal" },
+    ],
+    [
+      { title: "Write tests",      pri: "critical", cat: "work"  }, // invalid priority
+      { title: "Read Clean Code",  pri: "medium", cat: "learning" },
+      { title: "Go for a run",     pri: "low",    cat: "personal" },
+    ],
+    [
+      { title: "Learn generators", pri: "high",   cat: "learning" },
+    ]
+  ]
+  for (const page of pages) {
+    await new Promise(r => setTimeout(r, 20))  // simulate network
+    yield page
+  }
+}
+
+// Your async generator — validate, transform, and yield individual tasks
+async function* importTasks(source) {
+  const VALID_PRIORITIES = new Set(["low", "medium", "high"])
+  let   id = 1
+
+  // YOUR CODE:
+  // for await each page from source
+  // for each task in the page:
+  //   skip if title is empty or priority is invalid (log a warning)
+  //   otherwise yield a clean task object:
+  //   { id: `import_${id++}`, text: task.title, priority: task.pri,
+  //     category: task.cat, done: false, createdAt: new Date() }
+}
+
+// Collect and display imported tasks
+async function runImport() {
+  const imported = []
+
+  for await (const task of importTasks(taskSource())) {
+    imported.push(task)
+    console.log(`Imported: "${task.text}" [${task.priority}]`)
+  }
+
+  console.log(`\nTotal imported: ${imported.length}`)
+  console.log("IDs:", imported.map(t => t.id).join(", "))
+
+  // Stats using reduce
+  const stats = imported.reduce((acc, t) => {
+    acc[t.priority] = (acc[t.priority] || 0) + 1
+    return acc
+  }, {})
+  console.log("By priority:", JSON.stringify(stats))
+}
+
+runImport()</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">expected output</div><div class="output-box" id="ch6-out">Imported: "Review PR" [high]
+⚠ Skipped: empty title
+Imported: "Buy milk" [low]
+⚠ Skipped: invalid priority "critical"
+Imported: "Read Clean Code" [medium]
+Imported: "Go for a run" [low]
+Imported: "Learn generators" [high]
+
+Total imported: 5
+IDs: import_1, import_2, import_3, import_4, import_5
+By priority: {"high":2,"low":2,"medium":1}</div></div>
+  </div>
+</div>
+
+<!-- WEEK REVIEW -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Week 1 self-assessment</span></div>
+
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Week 1 checklist — be honest with yourself</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">self-assessment</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it right now without reference. Anything unchecked should be revisited before starting Week 2 React — these are the foundations React is built on.</p>
+
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know all 6 falsy values and can explain truthy/falsy coercion <span class="cl-tag" style="background:var(--js-dim);color:var(--js);">Day 1</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write <code>map</code>, <code>filter</code>, and <code>reduce</code> for any data transformation without docs <span class="cl-tag" style="background:var(--green-dim);color:var(--green);">Day 2</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can add, update, and remove items from an array immutably (spread/filter/map) <span class="cl-tag" style="background:var(--green-dim);color:var(--green);">Day 2</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can destructure a nested object with renames and defaults in a function param <span class="cl-tag" style="background:var(--green-dim);color:var(--green);">Day 2</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement <code>debounce</code> and <code>memoize</code> from scratch using closures <span class="cl-tag" style="background:var(--teal-dim);color:var(--teal);">Day 3</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write sequential vs parallel async patterns and explain the perf difference <span class="cl-tag" style="background:var(--teal-dim);color:var(--teal);">Day 3</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know why <code>fetch</code> doesn't throw on 404/500 and how to handle HTTP errors properly <span class="cl-tag" style="background:var(--teal-dim);color:var(--teal);">Day 3</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement event delegation with <code>closest()</code> and <code>data-action</code> attributes <span class="cl-tag" style="background:var(--blue-dim);color:var(--blue);">Day 4–5</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write an ES6 class with private <code>#fields</code>, getters, static methods, and inheritance <span class="cl-tag" style="background:var(--blue-dim);color:var(--blue);">Day 4–5</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the prototype chain and how method lookup works <span class="cl-tag" style="background:var(--blue-dim);color:var(--blue);">Day 4–5</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know named vs default exports and can write a barrel file <span class="cl-tag" style="background:var(--pink-dim);color:var(--pink);">Day 6</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement <code>[Symbol.iterator]</code> on a custom class and use it with <code>for...of</code> <span class="cl-tag" style="background:var(--pink-dim);color:var(--pink);">Day 6</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a generator with <code>yield</code>, <code>yield*</code>, and an infinite sequence <span class="cl-tag" style="background:var(--pink-dim);color:var(--pink);">Day 6</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed all 6 challenges today and pushed the project to GitHub <span class="cl-tag" style="background:var(--amber-dim);color:var(--amber);">Day 7</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I have 3+ deployed projects on Vercel with clean GitHub commit history <span class="cl-tag" style="background:var(--coral-dim);color:var(--coral);">portfolio</span></div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(247,223,30,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--js);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Final recall — write from blank, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Build a <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">Store</code> class: private <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">#items</code>, add/remove/toggle via immutable updates, <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">subscribe(fn)</code>, <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">getStats()</code> via reduce<br>
+      2. Write a <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">debounce</code> and a <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">throttle</code> function using closures<br>
+      3. Fetch data from an API with proper error handling, parallel requests with <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">Promise.all</code><br>
+      4. Implement event delegation on a list — toggle/delete/edit via <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">data-action</code> + <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">closest()</code>
+    </div>
+  </div>
+</div>
+
+<!-- WEEK 2 PREP -->
+<div class="section" id="next">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Week 2 preview — React starts Monday</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">coming up</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:24px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);margin-bottom:10px;">Day 8 — Monday</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">React essentials</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">JSX, components, props, useState, useEffect — your Week 1 JS directly becomes Week 2 React. Everything you built today maps directly.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--purple);margin-bottom:10px;">Day 9 — Tuesday</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">State and events</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">Controlled inputs, lifting state, event handlers. Your Week 1 immutable update patterns become <code style="font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">setState</code> calls.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--amber);margin-bottom:10px;">Day 10–11</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">React hooks</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">useEffect, useRef, useMemo, useCallback — all built on closures. Your Day 3 closure knowledge makes these immediately click.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--coral);margin-bottom:10px;">Day 12–13</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">React Router + Context</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">Multi-page apps, global state, custom hooks. Your Day 5 event delegation knowledge explains how React Router works internally.</div>
+    </div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(247,223,30,.15);border-radius:14px;padding:24px;text-align:center;">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace;">Week 1 complete</div>
+    <div style="font-size:24px;font-weight:800;margin-bottom:8px;">You know JavaScript. Really.</div>
+    <div style="font-size:14px;color:var(--muted);max-width:560px;margin:0 auto 20px;line-height:1.75;">Most developers who "learn React" don't understand the JavaScript it runs on. You've spent a week building that foundation deliberately. Week 2 will feel like everything clicking into place.</div>
+    <button class="day-btn primary" onclick="navigateTo('day8_react_intro.html',8)" style="font-size:14px;padding:12px 28px;border-radius:10px;margin:0 auto;">Start Week 2 — React Essentials →</button>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div class="footer-day-info">
+      <div class="footer-day-label">Week 1 complete</div>
+      <div class="footer-day-name">Day 7 — Week 1 Review Project</div>
+      <div class="footer-day-next">Next: <strong>Day 8 — React Essentials (Week 2 begins)</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 1 complete</span><span id="week-pct-label">0%</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" id="week-prog" style="width:0%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day6_es6_modules_iterators_generators.html',6)">← Day 6</button>
+      <button class="footer-btn primary" onclick="navigateTo('day8_react_essentials.html',8)">Week 2: React →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Day plan ── */
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html",           label:"JS Fundamentals"},
+  {num:2,file:"day2_javascript_arrays_objects.html",         label:"Arrays & Objects"},
+  {num:3,file:"day3_functions_async_js.html",                label:"Functions & Async"},
+  {num:4,file:"day4_dom_events_classes.html",                label:"DOM & Classes"},
+  {num:5,file:"day5_dom_events_classes.html",                label:"DOM, Events & Classes"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html",  label:"Modules & Generators"},
+  {num:7,file:"day7_week1_review_project.html",              label:"Week 1 Review",current:true},
+]
+const CURRENT = 7
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+])
+
+function navigateTo(file,dayNum){
+  if(AVAILABLE.has(file)){window.location.href=file}
+  else showToast(`Day ${dayNum} coming soon — keep building! 🚀`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div')
+  t.className='toast'
+  t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  const s=document.createElement('style')
+  s.textContent=`@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`
+  document.head.appendChild(s)
+  document.body.appendChild(t)
+  setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}: ${d.label}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+
+/* ── Code runner ── */
+function runCode(btn){
+  const wrap=btn.closest('.runner')
+  const ta=wrap.querySelector('textarea')
+  const out=wrap.querySelector('.output-box')
+  const logs=[]
+  const orig=console.log,origWarn=console.warn,origErr=console.error
+  console.log  =(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x,null,2):String(x)).join(' '))
+  console.warn =(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=orig;console.warn=origWarn;console.error=origErr
+}
+
+/* ── Checklist + progress ── */
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+  const wp=document.getElementById('week-prog')
+  const wl=document.getElementById('week-pct-label')
+  if(wp){wp.style.width=p+'%'}
+  if(wl){wl.textContent=p+'%'}
+}
+
+/* ── Nav highlight ── */
+const secs=document.querySelectorAll('.section')
+const links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+
+/* ══════════════════════════════════════════════════════
+   LIVE TASK MANAGER APP
+══════════════════════════════════════════════════════ */
+(function(){
+  /* ── Store ── */
+  class TaskStore{
+    #tasks=[];#listeners=[];#history=[];#nextId
+    constructor(){this.#nextId=this.#idGen()}
+    *#idGen(){let n=1;while(true)yield `task_${n++}`}
+    add({text,priority='medium',category='personal'}){
+      if(!text.trim())return this
+      const task={id:this.#nextId.next().value,text:text.trim(),priority,category,done:false,createdAt:new Date()}
+      this.#tasks=[...this.#tasks,task]
+      this.#log(`Added: "${text.trim()}"`)
+      this.#notify();return this
+    }
+    toggle(id){
+      const t=this.#tasks.find(t=>t.id===id)
+      this.#tasks=this.#tasks.map(t=>t.id===id?{...t,done:!t.done}:t)
+      this.#log(`${t?.done?'Uncompleted':'Completed'}: "${t?.text}"`)
+      this.#notify()
+    }
+    delete(id){
+      const t=this.#tasks.find(t=>t.id===id)
+      this.#tasks=this.#tasks.filter(t=>t.id!==id)
+      this.#log(`Deleted: "${t?.text}"`)
+      this.#notify()
+    }
+    getFiltered({filter='all',search='',sort='priority'}={}){
+      const PRI={high:3,medium:2,low:1}
+      return[...this.#tasks]
+        .filter(t=>{
+          if(filter==='done')return t.done
+          if(filter==='pending')return!t.done
+          if(filter==='high')return t.priority==='high'&&!t.done
+          return true
+        })
+        .filter(t=>!search||t.text.toLowerCase().includes(search.toLowerCase()))
+        .sort((a,b)=>{
+          if(sort==='priority')return PRI[b.priority]-PRI[a.priority]
+          if(sort==='alpha')return a.text.localeCompare(b.text)
+          return b.createdAt-a.createdAt
+        })
+    }
+    getStats(){
+      return this.#tasks.reduce((a,t)=>({...a,total:a.total+1,done:a.done+(t.done?1:0),pending:a.pending+(t.done?0:1),high:a.high+(t.priority==='high'&&!t.done?1:0)}),{total:0,done:0,pending:0,high:0})
+    }
+    subscribe(fn){this.#listeners.push(fn);return()=>{this.#listeners=this.#listeners.filter(l=>l!==fn)}}
+    #notify(){this.#listeners.forEach(fn=>fn())}
+    #log(msg){this.#history.unshift({msg,time:new Date()})}
+    getHistory(){return this.#history.slice(0,8)}
+  }
+
+  /* ── Helpers ── */
+  function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+  function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+
+  /* ── State ── */
+  const store=new TaskStore()
+  let state={filter:'all',search:'',sort:'priority'}
+
+  /* ── Seed data ── */
+  store.add({text:'Learn JavaScript closures',priority:'high',category:'learning'})
+  store.add({text:'Build the Week 1 project',priority:'high',category:'learning'})
+  store.add({text:'Review Day 3 async patterns',priority:'medium',category:'learning'})
+  store.add({text:'Push code to GitHub',priority:'medium',category:'work'})
+  store.add({text:'Plan Week 2 React schedule',priority:'low',category:'learning'})
+
+  /* ── Render ── */
+  function render(){
+    const tasks=store.getFiltered(state)
+    const stats=store.getStats()
+    const list=document.getElementById('tm-list')
+    const countLbl=document.getElementById('tm-count-label')
+
+    // Stats
+    document.getElementById('tm-total').textContent=stats.total
+    document.getElementById('tm-done').textContent=stats.done
+    document.getElementById('tm-pending').textContent=stats.pending
+    document.getElementById('tm-highpri').textContent=stats.high
+    if(countLbl)countLbl.textContent=`${tasks.length} task${tasks.length!==1?'s':''}`
+
+    // Tasks
+    if(!list)return
+    if(tasks.length===0){list.innerHTML='<div class="tm-empty">No tasks match — try a different filter.</div>';return}
+    const frag=document.createDocumentFragment()
+    tasks.forEach(t=>{
+      const el=document.createElement('div')
+      el.className=`tm-item${t.done?' done-item':''}`
+      el.dataset.id=t.id
+      el.innerHTML=`
+        <div class="tm-check${t.done?' checked':''}" data-action="toggle"></div>
+        <span class="tm-text${t.done?' striked':''}">${escHtml(t.text)}</span>
+        <span class="tm-priority tm-pri-${t.priority}">${t.priority}</span>
+        <div class="tm-actions">
+          <button class="tm-btn-sm tm-btn-del" data-action="delete">delete</button>
+        </div>`
+      frag.appendChild(el)
+    })
+    list.innerHTML='';list.appendChild(frag)
+
+    // History
+    const histList=document.getElementById('tm-history-list')
+    if(histList){
+      histList.innerHTML=''
+      store.getHistory().forEach(h=>{
+        const d=document.createElement('div')
+        d.className='tm-history-item'
+        d.innerHTML=`<span>${escHtml(h.msg)}</span><span>${h.time.toLocaleTimeString()}</span>`
+        histList.appendChild(d)
+      })
+    }
+  }
+
+  store.subscribe(render)
+
+  /* ── Events ── */
+  const addBtn=document.getElementById('tm-add-btn')
+  const newText=document.getElementById('tm-new-text')
+  const newPri=document.getElementById('tm-new-priority')
+  const newCat=document.getElementById('tm-new-category')
+  const listEl=document.getElementById('tm-list')
+  const searchEl=document.getElementById('tm-search')
+
+  function addTask(){
+    const text=newText?.value||''
+    if(!text.trim())return
+    store.add({text,priority:newPri?.value||'medium',category:newCat?.value||'personal'})
+    if(newText)newText.value=''
+  }
+
+  if(addBtn)addBtn.addEventListener('click',addTask)
+  if(newText){
+    newText.addEventListener('keydown',e=>{if(e.key==='Enter')addTask()})
+  }
+
+  // Event delegation on list
+  if(listEl)listEl.addEventListener('click',e=>{
+    const action=e.target.dataset.action
+    const item=e.target.closest('.tm-item')
+    if(!item||!action)return
+    const{id}=item.dataset
+    if(action==='toggle')store.toggle(id)
+    if(action==='delete')store.delete(id)
+  })
+
+  // Filter buttons
+  document.querySelectorAll('.tm-filter-btn[data-filter]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      state.filter=btn.dataset.filter
+      document.querySelectorAll('.tm-filter-btn[data-filter]').forEach(b=>b.classList.remove('active'))
+      btn.classList.add('active')
+      render()
+    })
+  })
+
+  // Sort buttons
+  document.querySelectorAll('.tm-filter-btn[data-sort]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      state.sort=btn.dataset.sort
+      document.querySelectorAll('.tm-filter-btn[data-sort]').forEach(b=>b.classList.remove('active'))
+      btn.classList.add('active')
+      render()
+    })
+  })
+
+  // Debounced search
+  if(searchEl)searchEl.addEventListener('input',debounce(e=>{
+    state.search=e.target.value
+    render()
+  },200))
+
+  // Initial render
+  render()
+})()
+</script>
+</body>
+</html>

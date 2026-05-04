@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 15 — Advanced React Query</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --rq:#ff4154;--rq-dim:rgba(255,65,84,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --react:#61dafb;--react-dim:rgba(97,218,251,0.09);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--rq);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--rq);border-bottom-color:var(--rq);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--rq);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--rq);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--rq-dim);color:var(--rq);border-color:rgba(255,65,84,.3);}
+.day-btn.primary:hover{background:rgba(255,65,84,.18);}
+
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--rq);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--rq);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--rq);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:620px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--rq);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--rq-dim);color:var(--rq);border-color:rgba(255,65,84,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--rq);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);position:relative;}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--rq-dim);color:var(--rq);border:1px solid rgba(255,65,84,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(255,65,84,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:200px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(255,65,84,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--rq);}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--rq-dim);color:var(--rq);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--rq);border-color:var(--rq);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--rq-dim);color:var(--rq);border-color:rgba(255,65,84,.3);}
+.footer-btn.primary:hover{background:rgba(255,65,84,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--rq);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 15 · RQ Advanced</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#pagination">Pagination</a>
+  <a href="#infinite">Infinite Scroll</a>
+  <a href="#prefetch">Prefetching</a>
+  <a href="#parallel">Parallel & Suspense</a>
+  <a href="#patterns">Patterns</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 3 · <span>Day 15 of 56</span> · Advanced React Query</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day14_react_query.html',14)">← Day 14</button>
+      <button class="day-btn primary" onclick="navigateTo('day16_react_hook_form.html',16)">Day 16 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 3 · Day 15 · 8-week plan</div>
+  <h1>Advanced<br><em>React Query</em></h1>
+  <p class="hero-sub">Paginated data, infinite scrolling feeds, hover prefetching, parallel queries, Suspense integration, and the patterns that make real production apps feel instant. This is where React Query's power becomes undeniable.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(255,65,84,.3);color:var(--rq);">paginated queries</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">keepPreviousData</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">useInfiniteQuery</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">prefetchQuery</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">useQueries — parallel</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">Suspense mode</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">SSR / hydration</span>
+    <span class="topic-pill" style="border-color:rgba(97,218,251,.3);color:var(--react);">error boundaries</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--rq);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>Paginated queries — page number strategy</li>
+        <li>keepPreviousData / placeholderData pattern</li>
+        <li>Cursor-based pagination</li>
+        <li>useInfiniteQuery — the full API</li>
+        <li>getNextPageParam + fetchNextPage</li>
+        <li>Infinite scroll with IntersectionObserver</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>Prefetching on hover and on route enter</li>
+        <li>useQueries — parallel, dynamic count</li>
+        <li>useSuspenseQuery — Suspense integration</li>
+        <li>Error boundaries with React Query</li>
+        <li>SSR &amp; hydration with dehydrate/hydrate</li>
+        <li>Global error / loading patterns</li>
+        <li>Exercises 1–6</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Push code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 15 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Paginated queries</span>
+    <span class="tdot" onclick="markDone(this)">keepPreviousData</span>
+    <span class="tdot" onclick="markDone(this)">useInfiniteQuery</span>
+    <span class="tdot" onclick="markDone(this)">Infinite scroll</span>
+    <span class="tdot" onclick="markDone(this)">Prefetching</span>
+    <span class="tdot" onclick="markDone(this)">useQueries</span>
+    <span class="tdot" onclick="markDone(this)">Suspense mode</span>
+    <span class="tdot" onclick="markDone(this)">Error boundaries</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. PAGINATION -->
+<div class="section" id="pagination">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Paginated queries — page numbers &amp; keepPreviousData</span>
+    <span class="sec-badge" style="background:var(--rq-dim);color:var(--rq);">pagination</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">the naive problem</span>
+      <div class="cc-title">Page change → loading flash</div>
+      <div class="cc-body">With plain <code>useQuery</code>, changing the page number changes the query key, which means no cached data for the new page — the component shows a loading spinner. Every page navigation feels like the first load. This is the wrong UX for a paginated table or grid.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">keepPreviousData fix</span>
+      <div class="cc-title">Show current page while next page loads</div>
+      <div class="cc-body">Set <code>placeholderData: keepPreviousData</code>. When the page changes, React Query keeps showing the current page's data (slightly faded) while the next page fetches in the background. The UI never flashes a loading state — it just feels fast. Use <code>isPlaceholderData</code> to dim the content or disable the Next button.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--blue-dim);color:var(--blue);">prefetch next page</span>
+      <div class="cc-title">Preload page N+1 while viewing page N</div>
+      <div class="cc-body">Call <code>queryClient.prefetchQuery</code> for the next page immediately after rendering the current page. When the user clicks Next, the data is already in cache — navigation feels instant. This is how modern data tables achieve zero-loading pagination.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Paginated query — keepPreviousData + prefetch next page</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useQuery</span>, <span class="var">useQueryClient</span>, <span class="var">keepPreviousData</span> } <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+<span class="kw">import</span> { <span class="var">useState</span>, <span class="var">useEffect</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="kw">async function</span> <span class="fn">fetchProducts</span>({ <span class="var">page</span>, <span class="var">pageSize</span> = <span class="num">20</span>, <span class="var">category</span> }) {
+  <span class="kw">const</span> <span class="var">params</span> = <span class="kw">new</span> <span class="fn">URLSearchParams</span>({ <span class="var">page</span>, <span class="var">pageSize</span>, ...<span class="var">category</span> &amp;&amp; { <span class="var">category</span> } })
+  <span class="kw">const</span> <span class="var">res</span> = <span class="kw">await</span> <span class="fn">fetch</span>(`/api/products?${<span class="var">params</span>}`)
+  <span class="kw">if</span> (!<span class="var">res</span>.<span class="prop">ok</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Failed to fetch"</span>)
+  <span class="kw">return</span> <span class="var">res</span>.<span class="fn">json</span>()
+  <span class="cm">// returns: { items: [...], total: 248, page: 2, totalPages: 13 }</span>
+}
+
+<span class="kw">function</span> <span class="fn">ProductsPage</span>() {
+  <span class="kw">const</span> [<span class="var">page</span>,     <span class="fn">setPage</span>]     = <span class="fn">useState</span>(<span class="num">1</span>)
+  <span class="kw">const</span> [<span class="var">category</span>, <span class="fn">setCategory</span>] = <span class="fn">useState</span>(<span class="str">""</span>)
+  <span class="kw">const</span> <span class="var">queryClient</span> = <span class="fn">useQueryClient</span>()
+
+  <span class="kw">const</span> { <span class="var">data</span>, <span class="var">isLoading</span>, <span class="var">isPlaceholderData</span> } = <span class="fn">useQuery</span>({
+    <span class="prop">queryKey</span>:        [<span class="str">"products"</span>, { <span class="var">page</span>, <span class="var">category</span> }],
+    <span class="prop">queryFn</span>:         () =&gt; <span class="fn">fetchProducts</span>({ <span class="var">page</span>, <span class="var">category</span> }),
+    <span class="prop">placeholderData</span>: <span class="var">keepPreviousData</span>,  <span class="cm">// ← no flash on page change</span>
+    <span class="prop">staleTime</span>:       <span class="num">1000</span> * <span class="num">60</span>,
+  })
+
+  <span class="cm">// Prefetch the NEXT page while showing the current one</span>
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">if</span> (<span class="var">data</span> &amp;&amp; <span class="var">page</span> &lt; <span class="var">data</span>.<span class="prop">totalPages</span>) {
+      <span class="var">queryClient</span>.<span class="fn">prefetchQuery</span>({
+        <span class="prop">queryKey</span>: [<span class="str">"products"</span>, { <span class="prop">page</span>: <span class="var">page</span> + <span class="num">1</span>, <span class="var">category</span> }],
+        <span class="prop">queryFn</span>:  () =&gt; <span class="fn">fetchProducts</span>({ <span class="prop">page</span>: <span class="var">page</span> + <span class="num">1</span>, <span class="var">category</span> }),
+        <span class="prop">staleTime</span>: <span class="num">1000</span> * <span class="num">60</span>,
+      })
+    }
+  }, [<span class="var">data</span>, <span class="var">page</span>, <span class="var">category</span>, <span class="var">queryClient</span>])
+
+  <span class="kw">if</span> (<span class="var">isLoading</span>) <span class="kw">return</span> <span class="tag">&lt;Spinner</span> <span class="tag">/&gt;</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;div</span>
+        <span class="attr">style</span>={{ <span class="prop">opacity</span>: <span class="var">isPlaceholderData</span> ? <span class="num">0.6</span> : <span class="num">1</span>, <span class="prop">transition</span>: <span class="str">"opacity 0.2s"</span> }}
+      <span class="tag">&gt;</span>
+        {<span class="var">data</span>.<span class="prop">items</span>.<span class="fn">map</span>(<span class="var">p</span> =&gt; <span class="tag">&lt;ProductCard</span> <span class="attr">key</span>={<span class="var">p</span>.<span class="prop">id</span>} <span class="attr">product</span>={<span class="var">p</span>} <span class="tag">/&gt;</span>)}
+      <span class="tag">&lt;/div&gt;</span>
+
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"pagination"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;button</span>
+          <span class="attr">onClick</span>={() =&gt; <span class="fn">setPage</span>(<span class="var">p</span> =&gt; <span class="fn">Math</span>.<span class="fn">max</span>(<span class="num">1</span>, <span class="var">p</span> - <span class="num">1</span>)}
+          <span class="attr">disabled</span>={<span class="var">page</span> === <span class="num">1</span>}
+        <span class="tag">&gt;</span>← Prev<span class="tag">&lt;/button&gt;</span>
+
+        <span class="tag">&lt;span&gt;</span>Page {<span class="var">page</span>} of {<span class="var">data</span>.<span class="prop">totalPages</span>}<span class="tag">&lt;/span&gt;</span>
+
+        <span class="tag">&lt;button</span>
+          <span class="attr">onClick</span>={() =&gt; <span class="fn">setPage</span>(<span class="var">p</span> =&gt; <span class="var">p</span> + <span class="num">1</span>)}
+          <span class="cm">{/* Disable while placeholder showing OR on last page */}</span>
+          <span class="attr">disabled</span>={<span class="var">isPlaceholderData</span> || <span class="var">page</span> === <span class="var">data</span>.<span class="prop">totalPages</span>}
+        <span class="tag">&gt;</span>Next →<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 02. INFINITE QUERY -->
+<div class="section" id="infinite">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">useInfiniteQuery — infinite scroll feeds</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">infinite scroll</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--amber);"></span>How useInfiniteQuery differs from useQuery</div>
+    <div class="mm-grid">
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--amber);">data shape</div>
+        <div class="mm-value"><code>data.pages</code> is an array of all page results. <code>data.pageParams</code> is the array of params used. You flatten or map over <code>data.pages</code> to render all loaded items.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--green);">getNextPageParam</div>
+        <div class="mm-value">A function that receives the last page's data and returns the next page's cursor/param. Return <code>undefined</code> to signal there are no more pages. React Query calls this to know <em>how</em> to fetch the next page.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--react);">fetchNextPage()</div>
+        <div class="mm-value">Call this to load the next page. React Query uses the result of <code>getNextPageParam</code> as the <code>pageParam</code> argument to your <code>queryFn</code>. Pair with <code>hasNextPage</code> to know when to stop.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--purple);">IntersectionObserver</div>
+        <div class="mm-value">The standard way to trigger <code>fetchNextPage</code> — observe a sentinel element at the bottom of the list. When it enters the viewport, call <code>fetchNextPage</code>. No scroll event listeners needed.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">useInfiniteQuery — cursor pagination + IntersectionObserver trigger</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useInfiniteQuery</span> } <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+<span class="kw">import</span> { <span class="var">useRef</span>, <span class="var">useEffect</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="cm">// API returns: { items: [...], nextCursor: "cursor_xyz" | null }</span>
+<span class="kw">async function</span> <span class="fn">fetchPosts</span>({ <span class="var">pageParam</span> = <span class="kw">null</span> }) {
+  <span class="kw">const</span> <span class="var">url</span> = <span class="var">pageParam</span>
+    ? `/api/posts?cursor=${<span class="var">pageParam</span>}`
+    : <span class="str">"/api/posts"</span>
+  <span class="kw">return</span> <span class="fn">fetch</span>(<span class="var">url</span>).<span class="fn">then</span>(<span class="var">r</span> =&gt; <span class="var">r</span>.<span class="fn">json</span>())
+}
+
+<span class="kw">function</span> <span class="fn">PostFeed</span>() {
+  <span class="kw">const</span> <span class="var">sentinelRef</span> = <span class="fn">useRef</span>(<span class="kw">null</span>)  <span class="cm">// invisible div at bottom of list</span>
+
+  <span class="kw">const</span> {
+    <span class="var">data</span>,
+    <span class="var">fetchNextPage</span>,
+    <span class="var">hasNextPage</span>,         <span class="cm">// true when getNextPageParam returns non-undefined</span>
+    <span class="var">isFetchingNextPage</span>,  <span class="cm">// true while the next page is loading</span>
+    <span class="var">isLoading</span>,
+    <span class="var">isError</span>,
+    <span class="var">error</span>,
+  } = <span class="fn">useInfiniteQuery</span>({
+    <span class="prop">queryKey</span>: [<span class="str">"posts"</span>],
+    <span class="prop">queryFn</span>:  <span class="fn">fetchPosts</span>,                    <span class="cm">// receives { pageParam }</span>
+    <span class="prop">initialPageParam</span>: <span class="kw">null</span>,                   <span class="cm">// first call pageParam = null</span>
+    <span class="prop">getNextPageParam</span>: (<span class="var">lastPage</span>) =&gt;
+      <span class="var">lastPage</span>.<span class="prop">nextCursor</span> ?? <span class="kw">undefined</span>,      <span class="cm">// undefined = no more pages</span>
+  })
+
+  <span class="cm">// IntersectionObserver — auto-load when sentinel enters viewport</span>
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">const</span> <span class="var">el</span> = <span class="var">sentinelRef</span>.<span class="prop">current</span>
+    <span class="kw">if</span> (!<span class="var">el</span>) <span class="kw">return</span>
+
+    <span class="kw">const</span> <span class="var">observer</span> = <span class="kw">new</span> <span class="fn">IntersectionObserver</span>(([<span class="var">entry</span>]) =&gt; {
+      <span class="kw">if</span> (<span class="var">entry</span>.<span class="prop">isIntersecting</span> &amp;&amp; <span class="var">hasNextPage</span> &amp;&amp; !<span class="var">isFetchingNextPage</span>) {
+        <span class="fn">fetchNextPage</span>()
+      }
+    }, { <span class="prop">threshold</span>: <span class="num">0.1</span> })
+
+    <span class="var">observer</span>.<span class="fn">observe</span>(<span class="var">el</span>)
+    <span class="kw">return</span> () =&gt; <span class="var">observer</span>.<span class="fn">disconnect</span>()
+  }, [<span class="var">hasNextPage</span>, <span class="var">isFetchingNextPage</span>, <span class="var">fetchNextPage</span>])
+
+  <span class="kw">if</span> (<span class="var">isLoading</span>) <span class="kw">return</span> <span class="tag">&lt;Spinner</span> <span class="tag">/&gt;</span>
+  <span class="kw">if</span> (<span class="var">isError</span>)   <span class="kw">return</span> <span class="tag">&lt;p&gt;</span>Error: {<span class="var">error</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>
+
+  <span class="cm">// Flatten all pages into one list</span>
+  <span class="kw">const</span> <span class="var">allPosts</span> = <span class="var">data</span>.<span class="prop">pages</span>.<span class="fn">flatMap</span>(<span class="var">page</span> =&gt; <span class="var">page</span>.<span class="prop">items</span>)
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      {<span class="var">allPosts</span>.<span class="fn">map</span>(<span class="var">post</span> =&gt; (
+        <span class="tag">&lt;PostCard</span> <span class="attr">key</span>={<span class="var">post</span>.<span class="prop">id</span>} <span class="attr">post</span>={<span class="var">post</span>} <span class="tag">/&gt;</span>
+      ))}
+
+      <span class="cm">{/* Sentinel — triggers next page fetch when visible */}</span>
+      <span class="tag">&lt;div</span> <span class="attr">ref</span>={<span class="var">sentinelRef</span>} <span class="attr">style</span>={{ <span class="prop">height</span>: <span class="str">"1px"</span> }} <span class="tag">/&gt;</span>
+
+      {<span class="var">isFetchingNextPage</span> &amp;&amp; <span class="tag">&lt;Spinner</span> <span class="tag">/&gt;</span>}
+      {!<span class="var">hasNextPage</span> &amp;&amp; <span class="tag">&lt;p&gt;</span>You've reached the end!<span class="tag">&lt;/p&gt;</span>}
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── Offset pagination variant ─────────────────────────────</span>
+<span class="cm">// API returns: { items: [...], total: 248, page: 2, hasMore: true }</span>
+<span class="fn">useInfiniteQuery</span>({
+  <span class="prop">queryKey</span>:       [<span class="str">"posts"</span>, <span class="str">"feed"</span>],
+  <span class="prop">queryFn</span>:        ({ <span class="var">pageParam</span> }) =&gt; <span class="fn">fetchPosts</span>({ <span class="prop">page</span>: <span class="var">pageParam</span> }),
+  <span class="prop">initialPageParam</span>: <span class="num">1</span>,
+  <span class="prop">getNextPageParam</span>: (<span class="var">lastPage</span>, <span class="var">allPages</span>) =&gt;
+    <span class="var">lastPage</span>.<span class="prop">hasMore</span> ? <span class="var">allPages</span>.<span class="prop">length</span> + <span class="num">1</span> : <span class="kw">undefined</span>,
+  <span class="cm">// allPages.length = pages fetched so far, +1 = next page number</span>
+})</pre></div>
+  </div>
+</div>
+
+<!-- 03. PREFETCHING -->
+<div class="section" id="prefetch">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Prefetching — data before the user asks for it</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">prefetch</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">on hover</span>
+      <div class="cc-title">Fetch when mouse enters a link</div>
+      <div class="cc-body">When a user hovers over a link, there's ~200–400ms before they actually click. Call <code>prefetchQuery</code> on <code>onMouseEnter</code>. By the time they click and navigate, the data is already in cache. The destination page shows content instantly with zero loading state.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">on route change</span>
+      <div class="cc-title">Prefetch in the parent before rendering children</div>
+      <div class="cc-body">Before a route renders, the parent route component can call <code>prefetchQuery</code> for the data that the child page will need. When the child mounts and calls <code>useQuery</code>, it finds data already in cache. This is the router-level prefetch pattern.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">with loaders (future)</span>
+      <div class="cc-title">React Router v6.4+ loaders + React Query</div>
+      <div class="cc-body">React Router's new <code>loader</code> function runs before the component renders. You can call <code>queryClient.prefetchQuery</code> inside the loader to guarantee data is in cache when the component mounts — zero loading states, even on first navigation.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Prefetch on hover, on mount, and with React Router loaders</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useQueryClient</span> } <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+<span class="kw">import</span> { <span class="var">Link</span> }           <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+
+<span class="cm">// ── Hover prefetch on a list item ─────────────────────────</span>
+<span class="kw">function</span> <span class="fn">ProductLink</span>({ <span class="var">product</span> }) {
+  <span class="kw">const</span> <span class="var">queryClient</span> = <span class="fn">useQueryClient</span>()
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;Link</span>
+      <span class="attr">to</span>={`/products/${<span class="var">product</span>.<span class="prop">id</span>}`}
+      <span class="attr">onMouseEnter</span>={() =&gt;
+        <span class="var">queryClient</span>.<span class="fn">prefetchQuery</span>({
+          <span class="prop">queryKey</span>: [<span class="str">"products"</span>, <span class="var">product</span>.<span class="prop">id</span>],
+          <span class="prop">queryFn</span>:  () =&gt; <span class="fn">fetchProduct</span>(<span class="var">product</span>.<span class="prop">id</span>),
+          <span class="prop">staleTime</span>: <span class="num">1000</span> * <span class="num">60</span>,  <span class="cm">// skip if already fresh</span>
+        })
+      }
+    <span class="tag">&gt;</span>
+      {<span class="var">product</span>.<span class="prop">name</span>}
+    <span class="tag">&lt;/Link&gt;</span>
+  )
+}
+
+<span class="cm">// ── Prefetch on parent component mount ────────────────────</span>
+<span class="cm">// A list page can prefetch the first N detail pages immediately</span>
+<span class="kw">function</span> <span class="fn">ProductList</span>({ <span class="var">products</span> }) {
+  <span class="kw">const</span> <span class="var">queryClient</span> = <span class="fn">useQueryClient</span>()
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="cm">// Prefetch the first 3 products' detail pages on list mount</span>
+    <span class="var">products</span>.<span class="fn">slice</span>(<span class="num">0</span>, <span class="num">3</span>).<span class="fn">forEach</span>(<span class="var">p</span> =&gt;
+      <span class="var">queryClient</span>.<span class="fn">prefetchQuery</span>({
+        <span class="prop">queryKey</span>: [<span class="str">"products"</span>, <span class="var">p</span>.<span class="prop">id</span>],
+        <span class="prop">queryFn</span>:  () =&gt; <span class="fn">fetchProduct</span>(<span class="var">p</span>.<span class="prop">id</span>),
+      })
+    )
+  }, [<span class="var">products</span>, <span class="var">queryClient</span>])
+
+  <span class="kw">return</span> <span class="var">products</span>.<span class="fn">map</span>(<span class="var">p</span> =&gt; <span class="tag">&lt;ProductLink</span> <span class="attr">key</span>={<span class="var">p</span>.<span class="prop">id</span>} <span class="attr">product</span>={<span class="var">p</span>} <span class="tag">/&gt;</span>)
+}
+
+<span class="cm">// ── React Router v6.4+ loader integration ────────────────</span>
+<span class="cm">// In router setup (main.jsx):</span>
+<span class="kw">const</span> <span class="var">router</span> = <span class="fn">createBrowserRouter</span>([
+  {
+    <span class="prop">path</span>: <span class="str">"/products/:id"</span>,
+    <span class="prop">element</span>: <span class="tag">&lt;ProductDetail</span> <span class="tag">/&gt;</span>,
+    <span class="prop">loader</span>: ({ <span class="var">params</span> }) =&gt;
+      <span class="var">queryClient</span>.<span class="fn">prefetchQuery</span>({
+        <span class="prop">queryKey</span>: [<span class="str">"products"</span>, <span class="fn">Number</span>(<span class="var">params</span>.<span class="prop">id</span>)],
+        <span class="prop">queryFn</span>:  () =&gt; <span class="fn">fetchProduct</span>(<span class="fn">Number</span>(<span class="var">params</span>.<span class="prop">id</span>)),
+      })
+    <span class="cm">// Data is in cache when ProductDetail mounts → zero loading state</span>
+  },
+])</pre></div>
+  </div>
+</div>
+
+<!-- 04. PARALLEL & SUSPENSE -->
+<div class="section" id="parallel">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">useQueries, useSuspenseQuery &amp; error boundaries</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">parallel &amp; suspense</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">useQueries for parallel dynamic fetches, useSuspenseQuery, error boundaries</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useQueries</span>, <span class="var">useSuspenseQuery</span>, <span class="var">useSuspenseQueries</span> } <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+
+<span class="cm">// ── useQueries — N parallel queries with dynamic count ────</span>
+<span class="cm">// Can't use N separate useQuery calls in a loop (breaks rules of hooks)</span>
+<span class="cm">// useQueries handles dynamic arrays cleanly</span>
+<span class="kw">function</span> <span class="fn">MultiUserCard</span>({ <span class="var">userIds</span> }) {
+  <span class="kw">const</span> <span class="var">results</span> = <span class="fn">useQueries</span>({
+    <span class="prop">queries</span>: <span class="var">userIds</span>.<span class="fn">map</span>(<span class="var">id</span> =&gt; ({
+      <span class="prop">queryKey</span>: [<span class="str">"users"</span>, <span class="var">id</span>],
+      <span class="prop">queryFn</span>:  () =&gt; <span class="fn">fetchUser</span>(<span class="var">id</span>),
+      <span class="prop">staleTime</span>: <span class="num">1000</span> * <span class="num">60</span>,
+    }))
+  })
+  <span class="cm">// results: array of useQuery result objects in same order as queries</span>
+  <span class="kw">const</span> <span class="var">allLoaded</span> = <span class="var">results</span>.<span class="fn">every</span>(<span class="var">r</span> =&gt; <span class="var">r</span>.<span class="prop">isSuccess</span>)
+  <span class="kw">if</span> (!<span class="var">allLoaded</span>) <span class="kw">return</span> <span class="tag">&lt;Spinner</span> <span class="tag">/&gt;</span>
+  <span class="kw">return</span> <span class="var">results</span>.<span class="fn">map</span>(<span class="var">r</span> =&gt; <span class="tag">&lt;UserCard</span> <span class="attr">key</span>={<span class="var">r</span>.<span class="prop">data</span>.<span class="prop">id</span>} <span class="attr">user</span>={<span class="var">r</span>.<span class="prop">data</span>} <span class="tag">/&gt;</span>)
+}
+
+<span class="cm">// ── combine option — aggregate all results ────────────────</span>
+<span class="kw">const</span> { <span class="var">data</span>: <span class="var">combinedData</span>, <span class="var">isPending</span> } = <span class="fn">useQueries</span>({
+  <span class="prop">queries</span>: <span class="var">ids</span>.<span class="fn">map</span>(<span class="var">id</span> =&gt; ({ <span class="prop">queryKey</span>: [<span class="str">"items"</span>, <span class="var">id</span>], <span class="prop">queryFn</span>: () =&gt; <span class="fn">fetchItem</span>(<span class="var">id</span>) })),
+  <span class="prop">combine</span>: (<span class="var">results</span>) =&gt; ({
+    <span class="prop">data</span>:      <span class="var">results</span>.<span class="fn">map</span>(<span class="var">r</span> =&gt; <span class="var">r</span>.<span class="prop">data</span>).<span class="fn">filter</span>(<span class="fn">Boolean</span>),
+    <span class="prop">isPending</span>: <span class="var">results</span>.<span class="fn">some</span>(<span class="var">r</span> =&gt; <span class="var">r</span>.<span class="prop">isPending</span>),
+    <span class="prop">isError</span>:   <span class="var">results</span>.<span class="fn">some</span>(<span class="var">r</span> =&gt; <span class="var">r</span>.<span class="prop">isError</span>),
+  }),
+})
+
+<span class="cm">// ── useSuspenseQuery — integrates with React Suspense ──────</span>
+<span class="cm">// Throws a Promise when loading (Suspense catches it)</span>
+<span class="cm">// Throws an Error when errored (Error Boundary catches it)</span>
+<span class="cm">// NEVER returns isLoading / isError — they're always handled above</span>
+<span class="kw">function</span> <span class="fn">UserProfile</span>({ <span class="var">userId</span> }) {
+  <span class="cm">// data is ALWAYS defined here — no need for isLoading check</span>
+  <span class="kw">const</span> { <span class="var">data</span>: <span class="var">user</span> } = <span class="fn">useSuspenseQuery</span>({
+    <span class="prop">queryKey</span>: [<span class="str">"users"</span>, <span class="var">userId</span>],
+    <span class="prop">queryFn</span>:  () =&gt; <span class="fn">fetchUser</span>(<span class="var">userId</span>),
+  })
+  <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>{<span class="var">user</span>.<span class="prop">name</span>}<span class="tag">&lt;/div&gt;</span>  <span class="cm">// no null checks needed</span>
+}
+
+<span class="cm">// ── Wrap with Suspense + ErrorBoundary ────────────────────</span>
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ErrorBoundary</span> <span class="attr">fallback</span>={<span class="tag">&lt;ErrorPage</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;Suspense</span> <span class="attr">fallback</span>={<span class="tag">&lt;PageSkeleton</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+        <span class="tag">&lt;UserProfile</span> <span class="attr">userId</span>={<span class="num">42</span>} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/Suspense&gt;</span>
+    <span class="tag">&lt;/ErrorBoundary&gt;</span>
+  )
+}
+
+<span class="cm">// ── React Query + react-error-boundary package ────────────</span>
+<span class="cm">// npm install react-error-boundary</span>
+<span class="kw">import</span> { <span class="var">ErrorBoundary</span> } <span class="kw">from</span> <span class="str">"react-error-boundary"</span>
+
+<span class="kw">function</span> <span class="fn">QueryErrorBoundary</span>({ <span class="var">children</span> }) {
+  <span class="kw">const</span> <span class="var">queryClient</span> = <span class="fn">useQueryClient</span>()
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ErrorBoundary</span>
+      <span class="attr">fallbackRender</span>={({ <span class="var">error</span>, <span class="var">resetErrorBoundary</span> }) =&gt; (
+        <span class="tag">&lt;div&gt;</span>
+          <span class="tag">&lt;p&gt;</span>Something went wrong: {<span class="var">error</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>
+          <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; {
+            <span class="var">queryClient</span>.<span class="fn">resetQueries</span>()    <span class="cm">// clear errored query state</span>
+            <span class="fn">resetErrorBoundary</span>()           <span class="cm">// reset the error boundary</span>
+          }}<span class="tag">&gt;</span>Try again<span class="tag">&lt;/button&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+      )}
+    <span class="tag">&gt;</span>
+      {<span class="var">children</span>}
+    <span class="tag">&lt;/ErrorBoundary&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 05. PATTERNS -->
+<div class="section" id="patterns">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Production patterns — global loading, SSR, devtools</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">production</span>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">useQuery vs useInfiniteQuery vs useSuspenseQuery — choosing the right hook</div>
+    <table class="comp-table">
+      <tr><th>Hook</th><th>Use when…</th><th>Data shape</th><th>Loading handled by</th></tr>
+      <tr>
+        <td><code>useQuery</code></td>
+        <td>Single resource, paginated table, any standard fetch</td>
+        <td>Single value (<code>data</code>)</td>
+        <td>You — check <code>isLoading</code> / <code>isError</code> in component</td>
+      </tr>
+      <tr>
+        <td><code>useInfiniteQuery</code></td>
+        <td>Infinite scroll feeds, "load more" lists</td>
+        <td><code>data.pages[]</code> — array of pages</td>
+        <td>You — check <code>isLoading</code>, trigger <code>fetchNextPage</code></td>
+      </tr>
+      <tr>
+        <td><code>useQueries</code></td>
+        <td>Dynamic number of parallel queries (array of IDs)</td>
+        <td>Array of query results</td>
+        <td>You — iterate results array</td>
+      </tr>
+      <tr>
+        <td><code>useSuspenseQuery</code></td>
+        <td>When you want Suspense + Error Boundary to handle states</td>
+        <td>Always-defined <code>data</code></td>
+        <td>Suspense boundary (loading) + Error Boundary (error)</td>
+      </tr>
+      <tr>
+        <td><code>useSuspenseInfiniteQuery</code></td>
+        <td>Infinite scroll with Suspense</td>
+        <td><code>data.pages[]</code></td>
+        <td>Suspense + Error Boundary</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Global loading indicator, network status, SSR dehydration pattern</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useIsFetching</span>, <span class="var">useIsMutating</span> } <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+
+<span class="cm">// ── Global loading indicator (top progress bar) ───────────</span>
+<span class="cm">// Shows whenever ANY query is fetching — like GitHub's top progress bar</span>
+<span class="kw">function</span> <span class="fn">GlobalLoadingBar</span>() {
+  <span class="kw">const</span> <span class="var">isFetching</span>  = <span class="fn">useIsFetching</span>()   <span class="cm">// count of in-flight queries</span>
+  <span class="kw">const</span> <span class="var">isMutating</span>  = <span class="fn">useIsMutating</span>()   <span class="cm">// count of in-flight mutations</span>
+  <span class="kw">const</span> <span class="var">isActive</span>    = <span class="var">isFetching</span> + <span class="var">isMutating</span> &gt; <span class="num">0</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span>
+      <span class="attr">style</span>={{
+        <span class="prop">position</span>: <span class="str">"fixed"</span>, <span class="prop">top</span>: <span class="num">0</span>, <span class="prop">left</span>: <span class="num">0</span>, <span class="prop">right</span>: <span class="num">0</span>, <span class="prop">height</span>: <span class="str">"3px"</span>,
+        <span class="prop">background</span>: <span class="str">"#ff4154"</span>,
+        <span class="prop">transform</span>: <span class="var">isActive</span> ? <span class="str">"scaleX(1)"</span> : <span class="str">"scaleX(0)"</span>,
+        <span class="prop">transformOrigin</span>: <span class="str">"left"</span>,
+        <span class="prop">transition</span>: <span class="str">"transform 0.3s"</span>,
+      }}
+    <span class="tag">/&gt;</span>
+  )
+}
+
+<span class="cm">// ── SSR pattern — dehydrate on server, hydrate on client ──</span>
+<span class="cm">// Server-side (Next.js, Remix, or Vite SSR):</span>
+<span class="kw">import</span> { <span class="var">dehydrate</span>, <span class="var">HydrationBoundary</span> } <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+
+<span class="kw">export async function</span> <span class="fn">getServerSideProps</span>() {
+  <span class="kw">const</span> <span class="var">qc</span> = <span class="kw">new</span> <span class="fn">QueryClient</span>()
+  <span class="kw">await</span> <span class="var">qc</span>.<span class="fn">prefetchQuery</span>({ <span class="prop">queryKey</span>: [<span class="str">"products"</span>], <span class="prop">queryFn</span>: <span class="fn">fetchProducts</span> })
+  <span class="kw">return</span> { <span class="prop">props</span>: { <span class="prop">dehydratedState</span>: <span class="fn">dehydrate</span>(<span class="var">qc</span>) } }
+}
+
+<span class="cm">// Client-side: wrap with HydrationBoundary to reuse server-fetched data</span>
+<span class="kw">function</span> <span class="fn">Page</span>({ <span class="var">dehydratedState</span> }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;HydrationBoundary</span> <span class="attr">state</span>={<span class="var">dehydratedState</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;ProductList</span> <span class="tag">/&gt;</span>  <span class="cm">{/* useQuery finds data already in cache — no fetch */}</span>
+    <span class="tag">&lt;/HydrationBoundary&gt;</span>
+  )
+}
+
+<span class="cm">// ── Mutation error handling with toast ────────────────────</span>
+<span class="kw">const</span> <span class="var">queryClient</span> = <span class="kw">new</span> <span class="fn">QueryClient</span>({
+  <span class="prop">mutationCache</span>: <span class="kw">new</span> <span class="fn">MutationCache</span>({
+    <span class="prop">onError</span>: (<span class="var">error</span>) =&gt; {
+      <span class="cm">// Global mutation error handler — toast for all mutations</span>
+      <span class="fn">toast</span>.<span class="fn">error</span>(<span class="var">error</span>.<span class="prop">message</span>)
+    },
+  }),
+  <span class="prop">queryCache</span>: <span class="kw">new</span> <span class="fn">QueryCache</span>({
+    <span class="prop">onError</span>: (<span class="var">error</span>, <span class="var">query</span>) =&gt; {
+      <span class="cm">// Only show toast for background refetch errors (data already exists)</span>
+      <span class="kw">if</span> (<span class="var">query</span>.<span class="prop">state</span>.<span class="prop">data</span> !== <span class="kw">undefined</span>) {
+        <span class="fn">toast</span>.<span class="fn">error</span>(`Failed to refresh: ${<span class="var">error</span>.<span class="prop">message</span>}`)
+      }
+    },
+  }),
+})</pre></div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Coding exercises — advanced patterns in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Paginated query — keepPreviousData simulation</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>createPaginatedQuery(fetcher, staleTime)</code> that mimics <code>keepPreviousData</code>: when the page changes, the previous page's data is returned immediately (marked as placeholder), while the new page fetches in background. Verify that the UI never shows a blank state during page transitions.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — keepPreviousData simulation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">async function mockFetchPage(page) {
+  await new Promise(r => setTimeout(r, 60))
+  return { items: Array.from({length:5}, (_,i) => `Page${page}-Item${i+1}`), page, total: 25, totalPages: 5 }
+}
+
+function createPaginatedQuery(fetcher) {
+  const cache   = new Map()  // page → data
+  const inflight= new Map()  // page → Promise
+  let subscribers = []
+  let currentPage = 1
+  let state = { data: null, isPlaceholderData: false, isFetching: false, page: 1 }
+
+  const notify = () => subscribers.forEach(fn => fn({ ...state }))
+
+  async function goToPage(page) {
+    // YOUR CODE:
+    // 1. If cache has page data: set it as data immediately (isPlaceholderData = false if same page, or true if switching pages while keeping previous)
+    // 2. Start fetching the new page if not already in-flight
+    // 3. KEY INSIGHT: if we have OLD data from a different page, show it as placeholder while loading
+    // 4. When fetch completes: update cache, set isPlaceholderData=false, isFetching=false, notify
+  }
+
+  function subscribe(fn) { subscribers.push(fn) }
+  function getState()    { return { ...state } }
+
+  return { goToPage, subscribe, getState }
+}
+
+// Test
+async function runTests() {
+  const pq   = createPaginatedQuery(mockFetchPage)
+  const log  = []
+  pq.subscribe(s => log.push({
+    page: s.page, items: s.data?.items?.length ?? 0,
+    placeholder: s.isPlaceholderData, fetching: s.isFetching
+  }))
+
+  // Load page 1
+  await pq.goToPage(1)
+  console.log("Page 1 loaded:", pq.getState().data.items[0])  // Page1-Item1
+  console.log("isPlaceholder:", pq.getState().isPlaceholderData)  // false
+
+  // Navigate to page 2 — should show page 1 data briefly (placeholder)
+  const navPromise = pq.goToPage(2)
+
+  // Check state IMMEDIATELY after navigation starts
+  const midState = pq.getState()
+  console.log("During page 2 load — has data:", midState.data !== null)  // true (prev page)
+  console.log("During page 2 load — isPlaceholder:", midState.isPlaceholderData)  // true
+
+  await navPromise
+  console.log("Page 2 loaded:", pq.getState().data.items[0])   // Page2-Item1
+  console.log("isPlaceholder after load:", pq.getState().isPlaceholderData)  // false
+
+  // Navigate back to page 1 — already cached, instant
+  await pq.goToPage(1)
+  console.log("Back to page 1, instant:", pq.getState().data.page)  // 1
+
+  console.log("\nState transitions:", log.length, "total")
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">async function</span> <span class="fn">goToPage</span>(<span class="var">page</span>) {
+  <span class="kw">const</span> <span class="var">prevData</span> = <span class="var">state</span>.<span class="prop">data</span>
+  <span class="cm">// Show previous data as placeholder while new page loads</span>
+  <span class="var">state</span> = {
+    <span class="prop">data</span>:              <span class="var">cache</span>.<span class="fn">has</span>(<span class="var">page</span>) ? <span class="var">cache</span>.<span class="fn">get</span>(<span class="var">page</span>) : <span class="var">prevData</span>,
+    <span class="prop">isPlaceholderData</span>: !<span class="var">cache</span>.<span class="fn">has</span>(<span class="var">page</span>) &amp;&amp; <span class="var">prevData</span> !== <span class="kw">null</span>,
+    <span class="prop">isFetching</span>:        !<span class="var">cache</span>.<span class="fn">has</span>(<span class="var">page</span>),
+    <span class="var">page</span>
+  }
+  <span class="fn">notify</span>()
+  <span class="kw">if</span> (<span class="var">cache</span>.<span class="fn">has</span>(<span class="var">page</span>)) <span class="kw">return</span>
+  <span class="kw">if</span> (<span class="var">inflight</span>.<span class="fn">has</span>(<span class="var">page</span>)) <span class="kw">return</span> <span class="var">inflight</span>.<span class="fn">get</span>(<span class="var">page</span>)
+  <span class="kw">const</span> <span class="var">p</span> = <span class="fn">fetcher</span>(<span class="var">page</span>).<span class="fn">then</span>(<span class="var">data</span> => {
+    <span class="var">cache</span>.<span class="fn">set</span>(<span class="var">page</span>, <span class="var">data</span>)
+    <span class="var">inflight</span>.<span class="fn">delete</span>(<span class="var">page</span>)
+    <span class="kw">if</span> (<span class="var">state</span>.<span class="prop">page</span> === <span class="var">page</span>) {
+      <span class="var">state</span> = { <span class="var">data</span>, <span class="prop">isPlaceholderData</span>: <span class="kw">false</span>, <span class="prop">isFetching</span>: <span class="kw">false</span>, <span class="var">page</span> }
+      <span class="fn">notify</span>()
+    }
+  })
+  <span class="var">inflight</span>.<span class="fn">set</span>(<span class="var">page</span>, <span class="var">p</span>)
+  <span class="kw">return</span> <span class="var">p</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Infinite query engine — pages array, cursor, hasNextPage</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>createInfiniteQuery(queryFn, getNextPageParam)</code> that manages an accumulating <code>pages</code> array, tracks <code>hasNextPage</code> and <code>isFetchingNextPage</code>, and exposes a <code>fetchNextPage()</code> method. Test with cursor-based and page-number-based APIs.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — infinite query engine</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">// Cursor-based API
+async function mockCursorAPI({ pageParam = null } = {}) {
+  await new Promise(r => setTimeout(r, 30))
+  const page = pageParam ? parseInt(pageParam.split("_")[1]) : 1
+  const nextCursor = page < 4 ? `cursor_${page + 1}` : null
+  return {
+    items: Array.from({length:3}, (_,i) => ({ id: (page-1)*3+i+1, text: `Item ${(page-1)*3+i+1}` })),
+    nextCursor
+  }
+}
+
+function createInfiniteQuery(queryFn, getNextPageParam, initialPageParam = null) {
+  let state = {
+    pages:              [],      // accumulated page results
+    pageParams:         [],      // params used for each page
+    hasNextPage:        true,
+    isFetchingNextPage: false,
+    isLoading:          true,
+    isError:            false,
+    error:              null,
+  }
+  let subscribers = []
+  const notify = () => subscribers.forEach(fn => fn({ ...state, allItems: state.pages.flatMap(p => p.items) }))
+
+  // YOUR CODE: implement loadInitial() and fetchNextPage()
+  // loadInitial: fetch with initialPageParam, store in pages[0] and pageParams[0]
+  //              call getNextPageParam(firstPage) to set hasNextPage
+  // fetchNextPage: get the next param from getNextPageParam(lastPage),
+  //               fetch it, append to pages and pageParams,
+  //               update hasNextPage based on new last page
+
+  async function loadInitial() {
+    state.isLoading = true; notify()
+    try {
+      const data = await queryFn({ pageParam: initialPageParam })
+      const nextParam = getNextPageParam(data, [data])
+      state = {
+        ...state,
+        pages: [data], pageParams: [initialPageParam],
+        hasNextPage: nextParam !== undefined,
+        isLoading: false
+      }
+    } catch(e) { state = { ...state, isError: true, error: e, isLoading: false } }
+    notify()
+  }
+
+  async function fetchNextPage() {
+    if (!state.hasNextPage || state.isFetchingNextPage) return
+    const lastPage  = state.pages[state.pages.length - 1]
+    const nextParam = getNextPageParam(lastPage, state.pages)
+    if (nextParam === undefined) return
+
+    state.isFetchingNextPage = true; notify()
+    try {
+      const data = await queryFn({ pageParam: nextParam })
+      const newPages = [...state.pages, data]
+      const newParams = [...state.pageParams, nextParam]
+      const furtherParam = getNextPageParam(data, newPages)
+      state = { ...state, pages: newPages, pageParams: newParams,
+                hasNextPage: furtherParam !== undefined, isFetchingNextPage: false }
+    } catch(e) { state = { ...state, isError: true, error: e, isFetchingNextPage: false } }
+    notify()
+  }
+
+  function subscribe(fn) { subscribers.push(fn) }
+  function getState()    { return { ...state, allItems: state.pages.flatMap(p => p.items) } }
+
+  return { loadInitial, fetchNextPage, subscribe, getState }
+}
+
+// Test
+async function runTests() {
+  const iq = createInfiniteQuery(
+    mockCursorAPI,
+    (lastPage) => lastPage.nextCursor ?? undefined
+  )
+
+  await iq.loadInitial()
+  console.log("After load — items:", iq.getState().allItems.length)    // 3
+  console.log("hasNextPage:", iq.getState().hasNextPage)               // true
+  console.log("pages count:", iq.getState().pages.length)              // 1
+
+  await iq.fetchNextPage()
+  console.log("After page 2 — items:", iq.getState().allItems.length)  // 6
+  console.log("hasNextPage:", iq.getState().hasNextPage)               // true
+
+  await iq.fetchNextPage()
+  await iq.fetchNextPage()
+  console.log("After page 4 — items:", iq.getState().allItems.length)  // 12
+  console.log("hasNextPage:", iq.getState().hasNextPage)               // false (last page)
+
+  // Calling fetchNextPage when no more pages — no-op
+  const before = iq.getState().allItems.length
+  await iq.fetchNextPage()
+  console.log("No-op after last page:", iq.getState().allItems.length === before)  // true
+
+  // Verify item IDs are sequential
+  const ids = iq.getState().allItems.map(i => i.id)
+  console.log("Sequential IDs:", JSON.stringify(ids))  // [1,2,3,4,5,6,7,8,9,10,11,12]
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Prefetch queue — pre-load by priority</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createPrefetchQueue(queryClient)</code> that accepts <code>prefetch(key, fn, priority)</code> calls and processes them in priority order (high first), respecting a concurrency limit of 2. Verify that hovering over multiple links doesn't flood the network — they queue and execute in order.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — prefetch queue</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">const fetchLog = []
+async function mockFetch(id, delay = 30) {
+  await new Promise(r => setTimeout(r, delay))
+  fetchLog.push(`fetched:${id}`)
+  return { id, data: `data-${id}` }
+}
+
+// Simple query cache for simulation
+const cache = new Map()
+const mockQueryClient = {
+  getQueryData: (key) => cache.get(JSON.stringify(key))?.data,
+  prefetchQuery: async ({ queryKey, queryFn, staleTime }) => {
+    const k = JSON.stringify(queryKey)
+    const entry = cache.get(k)
+    if (entry && (Date.now() - entry.ts) < (staleTime || 5000)) return  // already fresh
+    const data = await queryFn()
+    cache.set(k, { data, ts: Date.now() })
+  }
+}
+
+function createPrefetchQueue(queryClient, { concurrency = 2 } = {}) {
+  let queue   = []   // [{ key, fn, priority, staleTime }]
+  let running = 0
+
+  // YOUR CODE: implement enqueue(key, fn, priority, staleTime) and drain()
+  // enqueue: add to queue sorted by priority (higher = first), call drain()
+  // drain:   while running < concurrency and queue not empty,
+  //          dequeue the highest-priority item, run it, decrement running, drain again
+
+  function enqueue(key, fn, priority = 0, staleTime = 5000) {
+    // Skip if already in queue
+    if (queue.some(q => JSON.stringify(q.key) === JSON.stringify(key))) return
+    // Skip if already cached
+    if (queryClient.getQueryData(key)) return
+
+    queue.push({ key, fn, priority, staleTime })
+    queue.sort((a, b) => b.priority - a.priority)  // high priority first
+    drain()
+  }
+
+  function drain() {
+    while (running < concurrency && queue.length > 0) {
+      const item = queue.shift()
+      running++
+      queryClient.prefetchQuery({ queryKey: item.key, queryFn: item.fn, staleTime: item.staleTime })
+        .then(() => { running--; drain() })
+        .catch(() => { running--; drain() })
+    }
+  }
+
+  function getStats() {
+    return { queued: queue.length, running }
+  }
+
+  return { enqueue, getStats }
+}
+
+// Test
+async function runTests() {
+  fetchLog.length = 0
+  cache.clear()
+  const q = createPrefetchQueue(mockQueryClient, { concurrency: 2 })
+
+  // Enqueue 5 items — only 2 should start immediately
+  q.enqueue(["items", 1], () => mockFetch(1, 60), 1)
+  q.enqueue(["items", 2], () => mockFetch(2, 60), 3)   // highest priority
+  q.enqueue(["items", 3], () => mockFetch(3, 60), 2)
+  q.enqueue(["items", 4], () => mockFetch(4, 60), 0)
+  q.enqueue(["items", 5], () => mockFetch(5, 60), 4)   // highest priority
+
+  const stats = q.getStats()
+  console.log("Items in queue after enqueue:", stats.queued + stats.running)  // 5
+  console.log("Currently running:", stats.running)   // 2 (concurrency limit)
+
+  // Wait for all to complete
+  await new Promise(r => setTimeout(r, 400))
+  console.log("Fetch order:", fetchLog)
+  // First 2 started: items 5 and 2 (highest priority)
+  // Then items 3, 1, 4 in priority order
+  console.log("All 5 fetched:", fetchLog.length === 5)
+
+  // Test: duplicate enqueue is ignored
+  fetchLog.length = 0
+  q.enqueue(["items", 1], () => mockFetch(1), 99)  // already cached
+  await new Promise(r => setTimeout(r, 50))
+  console.log("Duplicate skipped:", fetchLog.length === 0)  // true
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">useQueries — parallel fetch aggregation with combine</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Simulate <code>useQueries</code> with the <code>combine</code> option. Given an array of user IDs, run parallel fetches and aggregate results into a single object: <code>{ users, isLoading, hasError, loadedCount }</code>. Show that adding a new ID to the array only fetches the new one — existing ones use cache.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — useQueries with combine</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">let fetchCalls = 0
+const userDB = { 1:"Alice", 2:"Bob", 3:"Charlie", 4:"Diana", 5:"Eve" }
+async function fetchUser(id) {
+  fetchCalls++
+  await new Promise(r => setTimeout(r, 20 + Math.random()*20))
+  if (!userDB[id]) throw new Error(`User ${id} not found`)
+  return { id, name: userDB[id] }
+}
+
+// Simulate useQueries with shared cache
+function createUseQueries(fetcher) {
+  const cache  = new Map()
+  const queued = new Map()  // id → Promise
+
+  // YOUR CODE: implement useQueries(ids, combine)
+  // Run all fetches in parallel (deduplicated via cache/queued)
+  // Apply the combine function to the array of result objects
+  // Each result: { data, isSuccess, isLoading, isError, error }
+
+  async function useQueries(ids, combine) {
+    // Fetch all in parallel, using cache for already-loaded items
+    const promises = ids.map(id => {
+      if (cache.has(id)) {
+        return Promise.resolve({ data: cache.get(id), isSuccess: true, isLoading: false, isError: false, error: null })
+      }
+      if (queued.has(id)) {
+        return queued.get(id)
+      }
+      const p = fetcher(id)
+        .then(data => {
+          cache.set(id, data)
+          queued.delete(id)
+          return { data, isSuccess: true, isLoading: false, isError: false, error: null }
+        })
+        .catch(e => ({ data: null, isSuccess: false, isLoading: false, isError: true, error: e }))
+      queued.set(id, p)
+      return p
+    })
+
+    const results = await Promise.all(promises)
+    return combine ? combine(results) : results
+  }
+
+  return { useQueries }
+}
+
+// Test
+async function runTests() {
+  const { useQueries } = createUseQueries(fetchUser)
+  fetchCalls = 0
+
+  // Combine function — aggregate all results
+  const combine = (results) => ({
+    users:       results.filter(r => r.isSuccess).map(r => r.data),
+    isLoading:   results.some(r => r.isLoading),
+    hasError:    results.some(r => r.isError),
+    loadedCount: results.filter(r => r.isSuccess).length,
+    errorCount:  results.filter(r => r.isError).length,
+  })
+
+  // Test 1: fetch 3 users in parallel
+  fetchCalls = 0
+  const result1 = await useQueries([1, 2, 3], combine)
+  console.log("Users:", result1.users.map(u => u.name))       // Alice, Bob, Charlie
+  console.log("Loaded:", result1.loadedCount)                  // 3
+  console.log("Fetch calls:", fetchCalls)                      // 3 (one per user)
+
+  // Test 2: add user 4 — only 1 new fetch (1,2,3 cached)
+  fetchCalls = 0
+  const result2 = await useQueries([1, 2, 3, 4], combine)
+  console.log("After adding user 4 — users:", result2.users.map(u => u.name))
+  console.log("New fetch calls:", fetchCalls)                  // 1 (only user 4)
+
+  // Test 3: fetch with error (user 99 doesn't exist)
+  fetchCalls = 0
+  const result3 = await useQueries([1, 99, 2], combine)
+  console.log("Has error:", result3.hasError)                  // true
+  console.log("Loaded count:", result3.loadedCount)            // 2
+  console.log("Error count:", result3.errorCount)              // 1
+
+  // Test 4: all cached — zero fetches
+  fetchCalls = 0
+  const result4 = await useQueries([1, 2, 3], combine)
+  console.log("All cached — fetch calls:", fetchCalls)         // 0
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Suspense query simulation — throw-while-pending pattern</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement the Suspense-compatible query pattern: when data is loading, <em>throw a Promise</em> (Suspense catches it). When data errors, <em>throw an Error</em> (Error Boundary catches it). When data is ready, return it. Show that the calling code never needs to handle loading or error states inline.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — Suspense query (throw-while-pending)</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">// Simulate Suspense resource pattern
+function createSuspenseQuery(fetcher) {
+  // Track: "pending" | "success" | "error"
+  let status  = "pending"
+  let result  = null  // resolved data or error
+  const promise = fetcher()
+    .then(data  => { status = "success"; result = data  })
+    .catch(err  => { status = "error";   result = err   })
+
+  // YOUR CODE: implement read()
+  // If pending: throw the promise (Suspense catches it, re-renders when resolved)
+  // If error:   throw the error   (Error Boundary catches it)
+  // If success: return the data
+  function read() {
+    if      (status === "pending") throw promise
+    else if (status === "error")   throw result
+    else                           return result
+  }
+
+  return { read }
+}
+
+// Simulate Suspense boundary
+async function withSuspense(resourceFn) {
+  const resource = resourceFn()
+  let result, caught
+
+  while (true) {
+    try {
+      result = resource.read()
+      break  // data is ready
+    } catch (thrown) {
+      if (thrown instanceof Promise) {
+        await thrown   // wait for the pending promise
+      } else {
+        caught = thrown  // it's a real error
+        break
+      }
+    }
+  }
+
+  return { data: result, error: caught }
+}
+
+// Simulate ErrorBoundary
+async function withErrorBoundary(fn) {
+  try { return await fn() }
+  catch (e) { return { error: e } }
+}
+
+// Tests
+async function runTests() {
+  // Test 1: successful data
+  const successQuery = createSuspenseQuery(async () => {
+    await new Promise(r => setTimeout(r, 40))
+    return { id: 1, name: "Alice" }
+  })
+
+  const { data, error } = await withSuspense(() => successQuery)
+  console.log("Success - data:", data.name)    // Alice
+  console.log("Success - error:", error)       // undefined
+  console.log("After resolve:", successQuery.read().name)  // Alice - no throw now
+
+  // Test 2: error state
+  const errorQuery = createSuspenseQuery(async () => {
+    await new Promise(r => setTimeout(r, 20))
+    throw new Error("Network failure")
+  })
+
+  const errResult = await withSuspense(() => errorQuery)
+  console.log("Error state:", errResult.error?.message)  // "Network failure"
+
+  // Test 3: component-like usage (read before and after)
+  const query = createSuspenseQuery(async () => {
+    await new Promise(r => setTimeout(r, 30))
+    return [1, 2, 3]
+  })
+
+  let threwPromise = false
+  try { query.read() } catch(e) { if (e instanceof Promise) threwPromise = true }
+  console.log("Threw promise before resolve:", threwPromise)  // true
+
+  await new Promise(r => setTimeout(r, 50))
+  const readAfter = query.read()
+  console.log("Data after resolve:", JSON.stringify(readAfter))  // [1,2,3]
+  console.log("No throw after resolve: ✓")
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Full React Query feature integration — Products page</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a complete <code>ProductsPageEngine</code> that combines: paginated query with <code>keepPreviousData</code>, hover prefetching of detail pages, a cart mutation with optimistic updates, and a "load more" button using <code>fetchNextPage</code>. This simulates the entire data layer of the React Shop products page.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — full Products page engine</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// Mock APIs
+let networkCalls = []
+const mockDB = { products: Array.from({length:25},(_,i)=>({ id:i+1, name:`Product ${i+1}`, price: 10*(i+1), category: i%3===0?"electronics":i%3===1?"clothing":"books" })), cart:[] }
+
+async function api(endpoint, opts={}) {
+  networkCalls.push(endpoint)
+  await new Promise(r => setTimeout(r, 15))
+  if (endpoint.startsWith("GET /products?")) {
+    const url = new URLSearchParams(endpoint.split("?")[1])
+    const page = parseInt(url.get("page")||1), size = parseInt(url.get("size")||5)
+    const cat = url.get("category")
+    let items = cat ? mockDB.products.filter(p=>p.category===cat) : mockDB.products
+    return { items: items.slice((page-1)*size, page*size), total: items.length, page, totalPages: Math.ceil(items.length/size), hasMore: page*size < items.length }
+  }
+  if (endpoint.startsWith("GET /products/")) {
+    const id = parseInt(endpoint.split("/")[2])
+    return mockDB.products.find(p=>p.id===id)
+  }
+  if (endpoint === "POST /cart") {
+    const item = {...opts.body, qty:1}
+    mockDB.cart.push(item)
+    return { cart: mockDB.cart, itemCount: mockDB.cart.length }
+  }
+}
+
+// Build the full page engine
+function buildProductsPageEngine() {
+  // Cache + pagination state
+  const cache    = new Map()
+  let   page     = 1
+  let   category = ""
+  let   cart     = []
+  const cacheKey = (p, c) => `page:${p}:cat:${c}`
+
+  async function getPage(p, cat) {
+    const k = cacheKey(p, cat)
+    if (cache.has(k)) return cache.get(k)
+    const result = await api(`GET /products?page=${p}&size=5${cat?"&category="+cat:""}`)
+    cache.set(k, result)
+    return result
+  }
+
+  async function prefetchDetail(id) {
+    const k = `detail:${id}`
+    if (cache.has(k)) return
+    const data = await api(`GET /products/${id}`)
+    cache.set(k, data)
+  }
+
+  async function addToCart(product, shouldFail = false) {
+    // Optimistic update
+    const prev = [...cart]
+    cart = [...cart, {...product, qty:1}]
+
+    try {
+      if (shouldFail) throw new Error("Cart API failed")
+      await api("POST /cart", { body: product })
+      return { success: true, cart }
+    } catch(e) {
+      cart = prev  // rollback
+      return { success: false, error: e.message, cart }
+    }
+  }
+
+  return { getPage, prefetchDetail, addToCart, getCart: () => cart,
+           setCategory: (c) => { category = c; page = 1 } }
+}
+
+// Integration test
+async function runIntegrationTest() {
+  const engine = buildProductsPageEngine()
+  networkCalls = []
+
+  // 1. Load page 1
+  const page1 = await engine.getPage(1, "")
+  console.log("Page 1:", page1.items.map(p=>p.name).join(", "))
+  console.log("Total pages:", page1.totalPages)  // 5
+
+  // 2. Prefetch page 2 while viewing page 1
+  await engine.getPage(2, "")
+  console.log("Network calls so far:", networkCalls.length)  // 2
+
+  // 3. Page 2 from cache — no network call
+  const nc_before = networkCalls.length
+  await engine.getPage(2, "")
+  console.log("Page 2 from cache:", networkCalls.length === nc_before)  // true
+
+  // 4. Hover prefetch detail pages
+  await Promise.all([1,2,3].map(id => engine.prefetchDetail(id)))
+  console.log("After prefetching 3 details, calls:", networkCalls.length)  // 5
+
+  // 5. Successful cart add — optimistic
+  const product = page1.items[0]
+  const r1 = await engine.addToCart(product)
+  console.log("Cart after add:", engine.getCart().length)   // 1
+  console.log("Add success:", r1.success)                   // true
+
+  // 6. Failed cart add — rollback
+  const r2 = await engine.addToCart(page1.items[1], true)
+  console.log("Cart after failed add:", engine.getCart().length)  // still 1
+  console.log("Error message:", r2.error)                          // "Cart API failed"
+
+  // 7. Category filter — new fetches
+  engine.setCategory("electronics")
+  await engine.getPage(1, "electronics")
+  console.log("Electronics page 1 items:", (await engine.getPage(1,"electronics")).items.length)
+
+  console.log("\nTotal network calls:", networkCalls.length)
+  console.log("✓ Full integration test passed!")
+}
+
+runIntegrationTest()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">How does keepPreviousData (placeholderData) improve pagination UX?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Without it: changing the page number changes the query key, there's no cached data for the new page, and the component shows a loading spinner every time. The content area flashes blank on every page navigation — jarring UX.<br><br>With <code>placeholderData: keepPreviousData</code>: when the query key changes (page changes), React Query returns the previous page's data immediately while fetching the new page in the background. The <code>isPlaceholderData</code> flag is true during this time — use it to slightly fade the content or disable the Next button to indicate stale data is showing.<br><br>The pattern to pair with it: prefetch the next page with <code>queryClient.prefetchQuery</code> as soon as the current page renders. When the user clicks Next, the data is already in cache — navigation feels instant, zero loading states at all.</div>
+    <div class="tip-box">In React Query v5, <code>keepPreviousData</code> was removed as a boolean option and replaced with <code>placeholderData: keepPreviousData</code> where <code>keepPreviousData</code> is an imported function. Worth mentioning the v4→v5 change.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">Explain useInfiniteQuery — what is getNextPageParam and how does the data shape differ from useQuery?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useInfiniteQuery</code> is designed for "load more" / infinite scroll patterns where new data is appended to a growing list rather than replacing it.<br><br><strong>Data shape</strong>: instead of a single <code>data</code> value, you get <code>data.pages</code> (an array of each page's API response) and <code>data.pageParams</code> (the params used to fetch each page). To render all items, you <code>flatMap</code> the pages: <code>data.pages.flatMap(page =&gt; page.items)</code>.<br><br><strong>getNextPageParam</strong>: a function you provide that receives the last page's response and all pages so far, and returns the param for the next fetch. For cursor pagination: <code>(lastPage) =&gt; lastPage.nextCursor</code>. Return <code>undefined</code> to signal no more pages — this sets <code>hasNextPage</code> to false.<br><br>Call <code>fetchNextPage()</code> to trigger the next load. In practice you call it when a sentinel element at the bottom of the list becomes visible via IntersectionObserver.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">When would you use useQueries instead of multiple useQuery calls?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">When the number of queries is dynamic — determined at runtime by an array. React's rules of hooks prevent calling hooks inside loops or conditions, so you can't do <code>ids.forEach(id =&gt; useQuery(...))</code>.<br><br><code>useQueries({ queries: ids.map(id =&gt; ({ queryKey: [...], queryFn: ... })) })</code> handles this correctly — it accepts an array of query configs and returns an array of results in the same order. The queries run in parallel.<br><br>The <code>combine</code> option is particularly powerful: instead of iterating the results array yourself, you provide a function that transforms the results array into any shape you want — like <code>combine: results =&gt; ({ users: results.map(r =&gt; r.data), isLoading: results.some(r =&gt; r.isLoading) })</code>. The component only re-renders when the <em>combined</em> output changes, not on every individual query update.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">What is the difference between useQuery and useSuspenseQuery?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">With <code>useQuery</code>, loading and error states are returned as flags — the component is responsible for checking <code>isLoading</code> and <code>isError</code> and rendering appropriate UI. <code>data</code> may be undefined.<br><br>With <code>useSuspenseQuery</code>, loading throws a Promise (which React's Suspense boundary catches and shows the fallback for), and errors throw an Error (which an ErrorBoundary catches). The component never sees a loading or error state — by the time the component renders, <code>data</code> is guaranteed to be defined. No null checks needed.<br><br>The trade-off: you must wrap the component with a <code>Suspense</code> boundary and an <code>ErrorBoundary</code> above it in the tree. But this co-locates the loading/error UI at a single boundary point rather than scattering it across every component. In large apps this is cleaner — components just declare their data needs and the boundaries handle the states.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">How do you implement hover prefetching, and what prevents redundant fetches?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Call <code>queryClient.prefetchQuery</code> in the <code>onMouseEnter</code> handler of the link: <code>&lt;Link onMouseEnter={() =&gt; queryClient.prefetchQuery({ queryKey, queryFn })}&gt;</code>.<br><br>Redundant fetches are prevented in three ways. First, <code>prefetchQuery</code> checks the cache — if data already exists and is fresher than <code>staleTime</code>, it skips the fetch entirely. Second, if a fetch is already in-flight for the same key (another component already started it), React Query deduplicates and returns the same Promise. Third, you can set a generous <code>staleTime</code> on the prefetch so that hovering the same link multiple times within that window only fetches once.<br><br>In practice this means: user hovers a link, a fetch starts in ~0ms. By the time they click (~200ms later), the data is in cache. The detail page renders without any loading state — feels instant.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">What is isFetchingNextPage and when is it different from isFetching?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">In <code>useInfiniteQuery</code>, <code>isFetching</code> is true whenever any fetch is in-flight — including the initial load and any background refetch of existing pages. <code>isFetchingNextPage</code> is specifically true only when <code>fetchNextPage()</code> is in-flight — appending a new page to the list.<br><br>Why the distinction matters: when a user scrolls to the bottom and triggers <code>fetchNextPage</code>, you want to show a "Loading more…" spinner at the bottom of the list — not replace the entire list with a loading state. Using <code>isFetchingNextPage</code> for the bottom spinner and ignoring <code>isFetching</code> achieves this.<br><br>Similarly there's <code>isFetchingPreviousPage</code> and <code>fetchPreviousPage</code> for bi-directional infinite scroll (like a chat with historical messages).</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">How do React Query and React Router loaders work together?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">React Router v6.4 introduced loaders — async functions that run before a route renders. React Query integrates by calling <code>queryClient.prefetchQuery</code> inside the loader. The loader doesn't need to return the data — it just populates the React Query cache. When the component mounts and calls <code>useQuery</code>, it finds the data already in cache and renders immediately with zero loading state.<br><br>The loader pattern: <code>loader: ({ params }) =&gt; queryClient.prefetchQuery({ queryKey: ["products", params.id], queryFn: () =&gt; fetchProduct(params.id) })</code>. The component then uses <code>useQuery({ queryKey: ["products", id] })</code> normally — it just always finds data already there.<br><br>This is the gold standard for eliminating loading states entirely. Server-rendered apps do the same with <code>dehydrate/HydrationBoundary</code>: the server populates the cache, serialises it, sends it to the client, and the client rehydrates — no client-side fetch needed on first load.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">How do you handle errors globally in React Query without wrapping every component in a try/catch?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Two levels of global error handling. First, the <code>QueryCache</code> and <code>MutationCache</code> accept an <code>onError</code> callback in the <code>QueryClient</code> constructor — this fires for every query or mutation error, regardless of which component triggered it. Use it to show toast notifications for background refetch failures:<br><br><code>new QueryClient({ queryCache: new QueryCache({ onError: (error, query) =&gt; query.state.data !== undefined &amp;&amp; toast.error(error.message) }) })</code><br><br>Second, for the Suspense approach, a single <code>ErrorBoundary</code> component above the query consumers catches all thrown errors from <code>useSuspenseQuery</code>. The boundary provides a retry button that calls <code>queryClient.resetQueries()</code> to clear the error state and re-trigger fetches.<br><br>The recommended pattern: global QueryCache onError for background errors, ErrorBoundary for Suspense-mode errors, and per-component <code>isError</code> handling only for cases where each component needs custom error UI.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">What is the Suspense query "throw-while-pending" pattern and how does React catch it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">React's Suspense works through a protocol: if a component throws a Promise during render, React catches it, shows the nearest Suspense fallback, and re-renders the component when the Promise resolves. If the component throws an Error, the nearest ErrorBoundary catches it.<br><br><code>useSuspenseQuery</code> implements this: when the query is pending (no data yet), it throws the in-flight Promise. React catches this, shows the <code>Suspense fallback</code>, waits for the Promise, then re-renders the component. This time the data is in cache, the query returns it normally, and the component renders without any loading check.<br><br>The elegance is that the component never needs to handle loading state at all — it's as if async data is synchronous from the component's perspective. The component just reads its data and renders. The complexity is pushed to the boundary layer above, which is often exactly where you want it.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">How would you implement "load more" vs infinite scroll — what's the difference?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Both use <code>useInfiniteQuery</code> with the same underlying mechanics — the difference is <em>when</em> <code>fetchNextPage()</code> is triggered.<br><br><strong>Load more button</strong>: render a button that calls <code>fetchNextPage()</code> on click. Show it when <code>hasNextPage</code> is true, disable it when <code>isFetchingNextPage</code> is true. Simplest implementation, gives users full control — useful for content feeds where auto-loading would be disruptive.<br><br><strong>Infinite scroll</strong>: render an invisible sentinel element at the bottom of the list and observe it with <code>IntersectionObserver</code>. When it becomes visible, call <code>fetchNextPage()</code>. The observer fires automatically as the user scrolls — seamless, no button needed. Must be careful to stop observing when <code>!hasNextPage || isFetchingNextPage</code> to avoid double-fetching.<br><br>In practice: social feeds, image galleries → infinite scroll. Search results, data tables → load more button (users want to feel in control).</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain <code>keepPreviousData</code> and implement seamless pagination with prefetch-next-page</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>useInfiniteQuery</code> with cursor pagination and implement <code>getNextPageParam</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can wire an <code>IntersectionObserver</code> to trigger <code>fetchNextPage</code> for infinite scroll</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between <code>isFetching</code> and <code>isFetchingNextPage</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement hover prefetching on a list of links and explain how redundant fetches are prevented</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>useQueries</code> for parallel dynamic queries and the <code>combine</code> option</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the difference between <code>useQuery</code> and <code>useSuspenseQuery</code> and know when to use each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can set up a <code>Suspense</code> boundary + <code>ErrorBoundary</code> around <code>useSuspenseQuery</code> components</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>useIsFetching</code> to build a global loading indicator</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can add a global error handler via <code>QueryCache</code> in the <code>QueryClient</code> constructor</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed exercises 2, 4, and 6 (infinite query, useQueries, full integration)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I added infinite scroll or paginated products to my React Shop project today</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I used React Query DevTools to inspect <code>pages</code> arrays and cache state during development</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My code is committed and pushed to GitHub</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(255,65,84,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--rq);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Write a paginated products component with <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);">keepPreviousData</code> and next-page prefetch from memory<br>
+      2. Write a <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);">useInfiniteQuery</code> hook with <code>getNextPageParam</code> returning a cursor and <code>flatMap</code> to render all items<br>
+      3. Add an <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);">IntersectionObserver</code> sentinel div that calls <code>fetchNextPage</code> when visible<br>
+      4. Refactor a component to use <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);">useSuspenseQuery</code> and explain what wraps it in the parent
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 3 · Day 15</div>
+      <div class="footer-day-name">Advanced React Query</div>
+      <div class="footer-day-next">Next up: <strong>Day 16 — React Hook Form + Zod</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 3 progress</span><span>Day 2 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:28%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day14_react_query.html',14)">← Day 14</button>
+      <button class="footer-btn primary" onclick="navigateTo('day16_react_hook_form.html',16)">Day 16 — RHF + Zod →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html",current:true},
+]
+const CURRENT=15
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+])
+
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep going! 🔴`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

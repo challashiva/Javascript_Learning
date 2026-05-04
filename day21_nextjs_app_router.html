@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 21 — Next.js App Router</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --accent:#000000;--accent-fg:#ffffff;
+  --next:#000;--next-dim:rgba(255,255,255,0.07);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --react:#61dafb;--react-dim:rgba(97,218,251,0.09);
+  --emerald:#10b981;--emerald-dim:rgba(16,185,129,0.09);
+  /* Primary accent for this page: white-ish for Next.js dark branding */
+  --nxt:#e2e8f0;--nxt-dim:rgba(226,232,240,0.07);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--nxt);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--nxt);border-bottom-color:var(--nxt);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--nxt);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--nxt);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--nxt-dim);color:var(--nxt);border-color:rgba(226,232,240,.2);}
+.day-btn.primary:hover{background:rgba(226,232,240,.12);}
+
+.week-banner{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(45,212,191,.04));border-bottom:1px solid var(--border);padding:12px 48px;}
+.week-banner-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.week-badge{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--emerald-dim);color:var(--emerald);border:1px solid rgba(16,185,129,.25);white-space:nowrap;}
+.week-text{font-size:13px;color:var(--muted);}
+.week-text strong{color:var(--text);}
+
+.hero{padding:56px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--nxt);margin-bottom:16px;display:flex;align-items:center;gap:10px;opacity:.7;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--nxt);opacity:.4;}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,#fff 30%,#a0aec0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+/* Topics to cover — replaces schedule */
+.topics-strip{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;}
+.topic-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.topic-info{}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.topic-sub{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--nxt);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--nxt-dim);color:var(--nxt);border-color:rgba(226,232,240,.2);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--teal);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+.ty{color:#38bdf8;}.file{color:#a78bfa;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);}
+
+.before-after{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;}
+.ba-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.ba-head{padding:8px 14px;font-size:11px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--border);}
+.ba-body{padding:14px 16px;overflow-x:auto;}
+.ba-body pre{font-size:12px;line-height:1.8;white-space:pre;}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--emerald-dim);color:var(--emerald);border:1px solid rgba(16,185,129,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(16,185,129,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:200px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(16,185,129,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--teal);}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--nxt-dim);color:var(--nxt);border:1px solid rgba(226,232,240,.15);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--emerald);border-color:var(--emerald);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--emerald-dim);color:var(--emerald);border-color:rgba(16,185,129,.3);}
+.footer-btn.primary:hover{background:rgba(16,185,129,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--emerald);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.topics-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav,.week-banner{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .before-after{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 21 · Next.js</div>
+  <a href="#why">Why Next.js</a>
+  <a href="#routing">File Routing</a>
+  <a href="#server">Server Components</a>
+  <a href="#client">Client Components</a>
+  <a href="#data">Data Fetching</a>
+  <a href="#actions">Server Actions</a>
+  <a href="#patterns">Patterns</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="week-banner">
+  <div class="week-banner-inner">
+    <span class="week-badge">Week 4 · Day 2</span>
+    <span class="week-text"><strong>Next.js App Router</strong> — the full-stack React framework that ships 90% of production React apps. Today you learn why, and how it works.</span>
+  </div>
+</div>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 4 · <span>Day 21 of 56</span> · Next.js App Router</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day20_advanced_patterns.html',20)">← Day 20</button>
+      <button class="day-btn primary" onclick="navigateTo('day22_auth_clerk.html',22)">Day 22 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 4 · Day 21 · Full-stack React</div>
+  <h1>Next.js<br><em>App Router</em></h1>
+  <p class="hero-sub">Next.js is how React was always meant to be used at scale. File-based routing, server components, streaming, server actions — the abstractions that eliminate loading states, reduce bundle sizes, and make full-stack TypeScript feel effortless.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(226,232,240,.2);color:var(--nxt);">file-based routing</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">server components</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">client components</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">layouts &amp; templates</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">data fetching</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">server actions</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">streaming &amp; Suspense</span>
+    <span class="topic-pill" style="border-color:rgba(16,185,129,.3);color:var(--emerald);">metadata &amp; SEO</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">9</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">focus time</div></div>
+  </div>
+</div>
+
+<!-- TOPICS TO COVER (replaces schedule) -->
+<div class="topics-strip">
+  <div class="topics-grid">
+    <div class="topic-card">
+      <span class="topic-icon">🗂️</span>
+      <div class="topic-info"><div class="topic-name">File-based Routing</div><div class="topic-sub">app/, page.tsx, layout.tsx</div></div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🖥️</span>
+      <div class="topic-info"><div class="topic-name">Server Components</div><div class="topic-sub">async, no JS bundle, DB access</div></div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">⚡</span>
+      <div class="topic-info"><div class="topic-name">Client Components</div><div class="topic-sub">"use client", hooks, events</div></div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🔄</span>
+      <div class="topic-info"><div class="topic-name">Data Fetching</div><div class="topic-sub">fetch(), cache, revalidate</div></div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🚀</span>
+      <div class="topic-info"><div class="topic-name">Server Actions</div><div class="topic-sub">form mutation, "use server"</div></div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🌊</span>
+      <div class="topic-info"><div class="topic-name">Streaming + Suspense</div><div class="topic-sub">loading.tsx, Suspense</div></div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🔀</span>
+      <div class="topic-info"><div class="topic-name">Route Handlers</div><div class="topic-sub">route.ts, GET/POST</div></div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🔍</span>
+      <div class="topic-info"><div class="topic-name">Metadata + SEO</div><div class="topic-sub">generateMetadata, og tags</div></div>
+    </div>
+    <div class="topic-card">
+      <span class="topic-icon">🛡️</span>
+      <div class="topic-info"><div class="topic-name">Middleware</div><div class="topic-sub">auth guards, redirects</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 21 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Why Next.js</span>
+    <span class="tdot" onclick="markDone(this)">File routing</span>
+    <span class="tdot" onclick="markDone(this)">Server components</span>
+    <span class="tdot" onclick="markDone(this)">Client components</span>
+    <span class="tdot" onclick="markDone(this)">Data fetching</span>
+    <span class="tdot" onclick="markDone(this)">Server actions</span>
+    <span class="tdot" onclick="markDone(this)">Streaming</span>
+    <span class="tdot" onclick="markDone(this)">Route handlers</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. WHY NEXT.JS -->
+<div class="section" id="why">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Why Next.js — what vanilla React can't do</span>
+    <span class="sec-badge" style="background:var(--emerald-dim);color:var(--emerald);">motivation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">SPA limitations</span>
+      <div class="cc-title">Vite + React ships a blank HTML shell</div>
+      <div class="cc-body">A pure React SPA sends an empty <code>&lt;div id="root"&gt;</code> to the browser. JavaScript downloads, parses, executes, fetches data, then renders. The user sees a blank screen or spinner for 2–4 seconds. Bots and search engines see nothing crawlable. Every route change triggers another fetch waterfall.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">Next.js solution</span>
+      <div class="cc-title">HTML arrives pre-rendered with real content</div>
+      <div class="cc-body">Next.js runs React on the server, fetches data there, and sends HTML with <strong>actual content</strong> to the browser. First paint is near-instant. Search engines index real text. Subsequent navigation uses JavaScript for smooth SPA-style transitions. You get both SEO and interactivity.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">full-stack in one repo</span>
+      <div class="cc-title">API routes, DB queries, auth — all co-located</div>
+      <div class="cc-body">Next.js lets you write server-side code (database queries, secret API keys, auth logic) right next to your components. No separate Express server needed. Route Handlers replace REST API files. Server Actions replace manual POST endpoints. One TypeScript codebase handles everything.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">the ecosystem</span>
+      <div class="cc-title">Vercel, shadcn/ui, Prisma — built for Next.js</div>
+      <div class="cc-body">The entire modern React ecosystem converged on Next.js. Vercel deploys it with zero config. shadcn/ui components are Next.js first. Prisma's connection pooling integrates seamlessly. Clerk's auth SDK wraps the App Router. Choosing Next.js means choosing the path of least resistance.</div>
+    </div>
+  </div>
+
+  <div class="before-after">
+    <div class="ba-card">
+      <div class="ba-head" style="background:var(--coral-dim);color:var(--coral);">❌ Vite React SPA — fetch waterfall</div>
+      <div class="ba-body"><pre style="font-size:12px;color:var(--muted);line-height:1.9;">Browser requests /products
+↓ Server sends: &lt;div id="root"&gt;&lt;/div&gt;
+
+Browser downloads React bundle (200KB)
+↓ ~1.2s on mobile
+
+React renders: &lt;Spinner /&gt;
+↓ Component mounts
+
+useEffect fires → fetch('/api/products')
+↓ ~400ms network round trip
+
+React renders: &lt;ProductList items={data} /&gt;
+↓ Total time to content: ~2s
+
+SEO bot sees: empty div ❌
+First contentful paint: ~1.2s ❌</pre></div>
+    </div>
+    <div class="ba-card">
+      <div class="ba-head" style="background:var(--green-dim);color:var(--green);">✅ Next.js App Router — server renders</div>
+      <div class="ba-body"><pre style="font-size:12px;color:var(--muted);line-height:1.9;">Browser requests /products
+↓ Server runs React + fetches DB
+
+Server sends full HTML:
+&lt;ul&gt;
+  &lt;li&gt;MacBook Pro — $1999&lt;/li&gt;
+  &lt;li&gt;iPad Pro — $799&lt;/li&gt;
+&lt;/ul&gt;
+↓ ~200ms (all on fast server)
+
+Browser paints real content immediately
+↓ React "hydrates" for interactivity
+
+SEO bot sees: full product list ✅
+First contentful paint: ~200ms ✅
+Zero client-side data fetching needed ✅</pre></div>
+    </div>
+  </div>
+</div>
+
+<!-- 02. FILE ROUTING -->
+<div class="section" id="routing">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">File-based routing — the App Router conventions</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">routing</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">text + tsx</span><span class="cb-desc">App Router file conventions — every file that matters</span></div>
+    <div class="cb-body"><pre style="color:var(--muted);font-size:13px;line-height:2.1;">app/
+├── <span class="file">layout.tsx</span>          <span class="cm">← Root layout: &lt;html&gt;&lt;body&gt; — wraps EVERYTHING</span>
+├── <span class="file">page.tsx</span>            <span class="cm">← Route: /</span>
+├── <span class="file">loading.tsx</span>         <span class="cm">← Shown while page.tsx suspends (Suspense fallback)</span>
+├── <span class="file">error.tsx</span>           <span class="cm">← Error boundary for this route ("use client" required)</span>
+├── <span class="file">not-found.tsx</span>       <span class="cm">← Shown when notFound() is called</span>
+├── <span class="file">globals.css</span>
+│
+├── products/
+│   ├── <span class="file">layout.tsx</span>      <span class="cm">← Layout wrapping /products AND all children</span>
+│   ├── <span class="file">page.tsx</span>        <span class="cm">← Route: /products</span>
+│   ├── <span class="file">loading.tsx</span>     <span class="cm">← Loading UI for /products</span>
+│   └── [id]/
+│       └── <span class="file">page.tsx</span>    <span class="cm">← Route: /products/42 — params.id = "42"</span>
+│
+├── blog/
+│   └── [...slug]/
+│       └── <span class="file">page.tsx</span>    <span class="cm">← Catch-all: /blog/a/b/c — params.slug = ["a","b","c"]</span>
+│
+├── (marketing)/         <span class="cm">← Route group — (name) doesn't affect URL</span>
+│   ├── about/page.tsx   <span class="cm">← Route: /about  (same as without group)</span>
+│   └── pricing/page.tsx <span class="cm">← Route: /pricing</span>
+│
+├── dashboard/
+│   ├── <span class="file">layout.tsx</span>      <span class="cm">← Dashboard shell: sidebar + main</span>
+│   ├── page.tsx         <span class="cm">← /dashboard</span>
+│   └── settings/
+│       └── page.tsx     <span class="cm">← /dashboard/settings</span>
+│
+└── api/
+    └── products/
+        └── <span class="file">route.ts</span>    <span class="cm">← Route Handler: GET/POST /api/products</span></pre></div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Layouts — nested, persistent, receive children</span></div>
+    <div class="cb-body"><pre><span class="cm">// app/layout.tsx — Root layout: wraps every page</span>
+<span class="kw">import</span> <span class="kw">type</span> { <span class="ty">Metadata</span> } <span class="kw">from</span> <span class="str">"next"</span>
+<span class="kw">import</span> { <span class="var">Inter</span> }        <span class="kw">from</span> <span class="str">"next/font/google"</span>
+<span class="kw">import</span> <span class="str">"./globals.css"</span>
+
+<span class="kw">const</span> <span class="var">inter</span> = <span class="fn">Inter</span>({ <span class="prop">subsets</span>: [<span class="str">"latin"</span>] })
+
+<span class="kw">export const</span> <span class="var">metadata</span>: <span class="ty">Metadata</span> = {
+  <span class="prop">title</span>:       { <span class="prop">template</span>: <span class="str">"%s | ShopCo"</span>, <span class="prop">default</span>: <span class="str">"ShopCo"</span> },
+  <span class="prop">description</span>: <span class="str">"The best products at the best prices"</span>,
+  <span class="prop">openGraph</span>:   { <span class="prop">siteName</span>: <span class="str">"ShopCo"</span>, <span class="prop">type</span>: <span class="str">"website"</span> },
+}
+
+<span class="kw">export default function</span> <span class="fn">RootLayout</span>({ <span class="var">children</span> }: { <span class="prop">children</span>: <span class="ty">React.ReactNode</span> }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;html</span> <span class="attr">lang</span>=<span class="str">"en"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;body</span> <span class="attr">className</span>={<span class="var">inter</span>.<span class="prop">className</span>}<span class="tag">&gt;</span>
+        <span class="tag">&lt;Navbar</span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;main&gt;</span>{<span class="var">children</span>}<span class="tag">&lt;/main&gt;</span>
+        <span class="tag">&lt;Footer</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/body&gt;</span>
+    <span class="tag">&lt;/html&gt;</span>
+  )
+}
+
+<span class="cm">// app/products/[id]/page.tsx — dynamic route</span>
+<span class="kw">interface</span> <span class="ty">Props</span> {
+  <span class="prop">params</span>:      <span class="ty">Promise</span>&lt;{ <span class="prop">id</span>: <span class="ty">string</span> }&gt;   <span class="cm">// Next.js 15: params is async</span>
+  <span class="prop">searchParams</span>:<span class="ty">Promise</span>&lt;{ <span class="prop">tab</span>?: <span class="ty">string</span> }&gt;  <span class="cm">// ?tab=reviews</span>
+}
+
+<span class="kw">export async function</span> <span class="fn">generateMetadata</span>({ <span class="var">params</span> }: <span class="ty">Props</span>): <span class="ty">Promise</span>&lt;<span class="ty">Metadata</span>&gt; {
+  <span class="kw">const</span> { <span class="var">id</span> } = <span class="kw">await</span> <span class="var">params</span>
+  <span class="kw">const</span> <span class="var">product</span> = <span class="kw">await</span> <span class="fn">getProduct</span>(<span class="var">id</span>)   <span class="cm">// deduped — same fetch in page.tsx reuses cache</span>
+  <span class="kw">return</span> {
+    <span class="prop">title</span>:       <span class="var">product</span>.<span class="prop">name</span>,
+    <span class="prop">description</span>: <span class="var">product</span>.<span class="prop">description</span>,
+    <span class="prop">openGraph</span>:   { <span class="prop">images</span>: [{ <span class="prop">url</span>: <span class="var">product</span>.<span class="prop">image</span> }] },
+  }
+}
+
+<span class="kw">export default async function</span> <span class="fn">ProductPage</span>({ <span class="var">params</span>, <span class="var">searchParams</span> }: <span class="ty">Props</span>) {
+  <span class="kw">const</span> { <span class="var">id</span> }  = <span class="kw">await</span> <span class="var">params</span>
+  <span class="kw">const</span> { <span class="var">tab</span> } = <span class="kw">await</span> <span class="var">searchParams</span>
+  <span class="kw">const</span> <span class="var">product</span> = <span class="kw">await</span> <span class="fn">getProduct</span>(<span class="var">id</span>)    <span class="cm">// server-side: no useEffect, no spinner</span>
+  <span class="kw">if</span> (!<span class="var">product</span>) <span class="fn">notFound</span>()               <span class="cm">// → app/not-found.tsx</span>
+  <span class="kw">return</span> <span class="tag">&lt;ProductDetail</span> <span class="attr">product</span>={<span class="var">product</span>} <span class="attr">activeTab</span>={<span class="var">tab</span>} <span class="tag">/&gt;</span>
+}</pre></div>
+  </div>
+</div>
+
+<!-- 03. SERVER VS CLIENT COMPONENTS -->
+<div class="section" id="server">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Server vs Client components — the most important mental model</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">core concept</span>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">Server Component vs Client Component — what can each do?</div>
+    <table class="comp-table">
+      <tr><th>Capability</th><th>Server Component</th><th>Client Component</th></tr>
+      <tr><td>Default in App Router</td><td style="color:var(--green);">✅ Yes — no directive needed</td><td><code>"use client"</code> at top of file required</td></tr>
+      <tr><td>Run location</td><td>Server only — never in browser</td><td>Server (initial HTML) + browser (interactivity)</td></tr>
+      <tr><td>Can use hooks</td><td style="color:var(--coral);">❌ No hooks at all</td><td style="color:var(--green);">✅ useState, useEffect, etc.</td></tr>
+      <tr><td>Can access DB / secrets</td><td style="color:var(--green);">✅ Directly — no API needed</td><td style="color:var(--coral);">❌ Never expose DB on client</td></tr>
+      <tr><td>Browser APIs</td><td style="color:var(--coral);">❌ No window/document</td><td style="color:var(--green);">✅ localStorage, navigator, etc.</td></tr>
+      <tr><td>Event handlers</td><td style="color:var(--coral);">❌ No onClick, onChange</td><td style="color:var(--green);">✅ All event handlers</td></tr>
+      <tr><td>JS bundle size</td><td style="color:var(--green);">✅ Zero — code never sent to client</td><td>Included in JS bundle</td></tr>
+      <tr><td>Can render Server Components</td><td style="color:var(--green);">✅ Yes</td><td style="color:var(--coral);">❌ Cannot import Server Components</td></tr>
+      <tr><td>Can accept Server Components as children</td><td style="color:var(--green);">✅ Yes</td><td style="color:var(--green);">✅ Via props/children pattern</td></tr>
+    </table>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">The boundary — async server component + "use client" interactive child</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Server Component — async, fetches DB, no JS bundle ────</span>
+<span class="cm">// app/products/page.tsx</span>
+<span class="cm">// NO "use client" — this is a Server Component by default</span>
+<span class="kw">import</span> { <span class="fn">db</span> }         <span class="kw">from</span> <span class="str">"@/lib/db"</span>            <span class="cm">// direct DB access — safe on server!</span>
+<span class="kw">import</span> { <span class="var">AddToCart</span> }  <span class="kw">from</span> <span class="str">"./AddToCart"</span>       <span class="cm">// Client Component</span>
+<span class="kw">import</span> { <span class="var">ProductCard</span> } <span class="kw">from</span> <span class="str">"./ProductCard"</span>     <span class="cm">// Server Component</span>
+
+<span class="kw">export default async function</span> <span class="fn">ProductsPage</span>() {
+  <span class="cm">// Runs on server — no loading spinner, no useEffect, no useState</span>
+  <span class="kw">const</span> <span class="var">products</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({
+    <span class="prop">where</span>:   { <span class="prop">inStock</span>: <span class="kw">true</span> },
+    <span class="prop">orderBy</span>: { <span class="prop">name</span>: <span class="str">"asc"</span> },
+  })
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"</span><span class="tag">&gt;</span>
+      {<span class="var">products</span>.<span class="fn">map</span>(<span class="var">product</span> =&gt; (
+        <span class="tag">&lt;ProductCard</span> <span class="attr">key</span>={<span class="var">product</span>.<span class="prop">id</span>} <span class="attr">product</span>={<span class="var">product</span>}<span class="tag">&gt;</span>
+          <span class="cm">{/* Pass Client Component as child — composition pattern */}</span>
+          <span class="tag">&lt;AddToCart</span> <span class="attr">productId</span>={<span class="var">product</span>.<span class="prop">id</span>} <span class="attr">price</span>={<span class="var">product</span>.<span class="prop">price</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/ProductCard&gt;</span>
+      ))}
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── Client Component — interactive, hooks, events ──────────</span>
+<span class="cm">// components/AddToCart.tsx</span>
+<span class="str">"use client"</span>   <span class="cm">// ← This directive makes it a Client Component</span>
+
+<span class="kw">import</span> { <span class="var">useState</span> } <span class="kw">from</span> <span class="str">"react"</span>
+<span class="kw">import</span> { <span class="var">useCart</span> }  <span class="kw">from</span> <span class="str">"@/contexts/CartContext"</span>
+
+<span class="kw">export function</span> <span class="fn">AddToCart</span>({ <span class="var">productId</span>, <span class="var">price</span> }: { <span class="prop">productId</span>: <span class="ty">string</span>; <span class="prop">price</span>: <span class="ty">number</span> }) {
+  <span class="kw">const</span> [<span class="var">added</span>, <span class="fn">setAdded</span>] = <span class="fn">useState</span>(<span class="kw">false</span>)
+  <span class="kw">const</span> { <span class="fn">addItem</span> }    = <span class="fn">useCart</span>()   <span class="cm">// hook — only works in Client Components</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;button</span>
+      <span class="attr">onClick</span>={() => { <span class="fn">addItem</span>({ <span class="var">productId</span>, <span class="var">price</span> }); <span class="fn">setAdded</span>(<span class="kw">true</span>) }}
+      <span class="attr">className</span>=<span class="str">"w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"</span>
+    <span class="tag">&gt;</span>
+      {<span class="var">added</span> ? <span class="str">"✓ Added"</span> : <span class="str">"Add to cart"</span>}
+    <span class="tag">&lt;/button&gt;</span>
+  )
+}
+
+<span class="cm">// ── Key rule: "use client" propagates DOWN the tree ──────</span>
+<span class="cm">// If a component is "use client", ALL its imports are also client.</span>
+<span class="cm">// If a component has NO directive, it's a Server Component.</span>
+<span class="cm">// The boundary is one-way: server can render client, not vice versa.</span>
+<span class="cm">// Exception: server components can be passed as children/props to client components.</span></pre></div>
+  </div>
+</div>
+
+<!-- 04. CLIENT COMPONENTS -->
+<div class="section" id="client">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Client components — when and how to use them</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">client</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--amber);"></span>When to add "use client"</div>
+    <div class="mm-grid">
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--green);">✅ Always use "use client" for</div>
+        <div class="mm-value">Components that use <code>useState</code>, <code>useEffect</code>, <code>useRef</code>, <code>useContext</code>, or any other hook. Event handlers (<code>onClick</code>, <code>onChange</code>). Browser APIs (<code>localStorage</code>, <code>navigator</code>, <code>window</code>). Third-party libraries that use these.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--coral);">❌ Don't use "use client" for</div>
+        <div class="mm-value">Components that only receive props and render HTML. Data fetching components (fetch from DB on server instead). Static UI like <code>Footer</code>, <code>Navbar</code> links, prose content. Anything that doesn't need interactivity.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--amber);">Push "use client" down</div>
+        <div class="mm-value">Keep the client boundary as low as possible in the tree. A page should be a Server Component; only the interactive button inside needs <code>"use client"</code>. This minimises JS bundle and maximises server rendering.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--purple);">The children pattern</div>
+        <div class="mm-value">Server Components can be passed as <code>children</code> to Client Components. <code>&lt;ClientShell&gt;&lt;ServerContent /&gt;&lt;/ClientShell&gt;</code> works because <code>ServerContent</code> is already rendered on the server before being passed as a prop.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Client component patterns — Context providers, hooks, interactive islands</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Providers must be Client Components ─────────────────</span>
+<span class="cm">// app/providers.tsx</span>
+<span class="str">"use client"</span>
+
+<span class="kw">import</span> { <span class="var">QueryClient</span>, <span class="var">QueryClientProvider</span> } <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+<span class="kw">import</span> { <span class="var">useState</span> }                          <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="kw">export function</span> <span class="fn">Providers</span>({ <span class="var">children</span> }: { <span class="prop">children</span>: <span class="ty">React.ReactNode</span> }) {
+  <span class="cm">// useState prevents QueryClient from being shared across requests on the server</span>
+  <span class="kw">const</span> [<span class="var">queryClient</span>] = <span class="fn">useState</span>(() => <span class="kw">new</span> <span class="fn">QueryClient</span>())
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;QueryClientProvider</span> <span class="attr">client</span>={<span class="var">queryClient</span>}<span class="tag">&gt;</span>
+      {<span class="var">children</span>}  <span class="cm">{/* children can be Server Components! */}</span>
+    <span class="tag">&lt;/QueryClientProvider&gt;</span>
+  )
+}
+
+<span class="cm">// app/layout.tsx — wraps providers around server-rendered children</span>
+<span class="kw">export default function</span> <span class="fn">RootLayout</span>({ <span class="var">children</span> }: { <span class="prop">children</span>: <span class="ty">React.ReactNode</span> }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;html&gt;</span><span class="tag">&lt;body&gt;</span>
+      <span class="tag">&lt;Providers&gt;</span>      <span class="cm">{/* Client Component */}</span>
+        {<span class="var">children</span>}     <span class="cm">{/* Server Components — passed as children */}</span>
+      <span class="tag">&lt;/Providers&gt;</span>
+    <span class="tag">&lt;/body&gt;</span><span class="tag">&lt;/html&gt;</span>
+  )
+}
+
+<span class="cm">// ── useRouter, usePathname, useSearchParams ───────────────</span>
+<span class="cm">// app/components/SearchBar.tsx</span>
+<span class="str">"use client"</span>
+
+<span class="kw">import</span> { <span class="var">useRouter</span>, <span class="var">useSearchParams</span>, <span class="var">usePathname</span> } <span class="kw">from</span> <span class="str">"next/navigation"</span>
+
+<span class="kw">export function</span> <span class="fn">SearchBar</span>() {
+  <span class="kw">const</span> <span class="var">router</span>       = <span class="fn">useRouter</span>()
+  <span class="kw">const</span> <span class="var">pathname</span>     = <span class="fn">usePathname</span>()      <span class="cm">// /products</span>
+  <span class="kw">const</span> <span class="var">searchParams</span> = <span class="fn">useSearchParams</span>()  <span class="cm">// ?q=laptop&category=electronics</span>
+
+  <span class="kw">function</span> <span class="fn">handleSearch</span>(<span class="var">q</span>: <span class="ty">string</span>) {
+    <span class="kw">const</span> <span class="var">params</span> = <span class="kw">new</span> <span class="fn">URLSearchParams</span>(<span class="var">searchParams</span>.<span class="fn">toString</span>())
+    <span class="kw">if</span> (<span class="var">q</span>) <span class="var">params</span>.<span class="fn">set</span>(<span class="str">"q"</span>, <span class="var">q</span>)
+    <span class="kw">else</span> <span class="var">params</span>.<span class="fn">delete</span>(<span class="str">"q"</span>)
+    <span class="var">router</span>.<span class="fn">replace</span>(`${<span class="var">pathname</span>}?${<span class="var">params</span>}`)  <span class="cm">// updates URL without full page reload</span>
+  }
+
+  <span class="kw">return</span> <span class="tag">&lt;input</span>
+    <span class="attr">defaultValue</span>={<span class="var">searchParams</span>.<span class="fn">get</span>(<span class="str">"q"</span>) ?? <span class="str">""</span>}
+    <span class="attr">onChange</span>={<span class="var">e</span> => <span class="fn">handleSearch</span>(<span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span>)}
+  <span class="tag">/&gt;</span>
+}</pre></div>
+  </div>
+</div>
+
+<!-- 05. DATA FETCHING -->
+<div class="section" id="data">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Data fetching — fetch(), cache, revalidate</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">data</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Server-side data fetching — fetch options, cache(), unstable_cache, parallel</span></div>
+    <div class="cb-body"><pre><span class="cm">// Next.js extends the native fetch() API with caching options.</span>
+<span class="cm">// All fetch() calls in Server Components are automatically deduped.</span>
+
+<span class="cm">// ── fetch() caching options ───────────────────────────────</span>
+<span class="cm">// Default: cached forever until manually revalidated (ISR)</span>
+<span class="kw">const</span> <span class="var">data</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"https://api.example.com/products"</span>)
+
+<span class="cm">// Revalidate every 60 seconds (ISR — Incremental Static Regeneration)</span>
+<span class="kw">const</span> <span class="var">data</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"https://api.example.com/products"</span>, {
+  <span class="prop">next</span>: { <span class="prop">revalidate</span>: <span class="num">60</span> }
+})
+
+<span class="cm">// Never cache — always fetch fresh (equivalent to getServerSideProps)</span>
+<span class="kw">const</span> <span class="var">data</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"https://api.example.com/cart"</span>, {
+  <span class="prop">cache</span>: <span class="str">"no-store"</span>
+})
+
+<span class="cm">// ── cache() — deduplicate expensive operations ────────────</span>
+<span class="kw">import</span> { <span class="fn">cache</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="cm">// Memoized for the duration of a single request — safe to call in multiple components</span>
+<span class="kw">export const</span> <span class="fn">getProduct</span> = <span class="fn">cache</span>(<span class="kw">async</span> (<span class="var">id</span>: <span class="ty">string</span>) => {
+  <span class="kw">return</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findUnique</span>({ <span class="prop">where</span>: { <span class="var">id</span> } })
+})
+<span class="cm">// Called in page.tsx AND generateMetadata() — DB only hit once!</span>
+
+<span class="cm">// ── unstable_cache — persistent cache with tags ───────────</span>
+<span class="kw">import</span> { <span class="var">unstable_cache</span> } <span class="kw">from</span> <span class="str">"next/cache"</span>
+
+<span class="kw">export const</span> <span class="fn">getCachedProduct</span> = <span class="fn">unstable_cache</span>(
+  <span class="kw">async</span> (<span class="var">id</span>: <span class="ty">string</span>) => <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findUnique</span>({ <span class="prop">where</span>: { <span class="var">id</span> } }),
+  [<span class="str">"product"</span>],              <span class="cm">// cache key prefix</span>
+  { <span class="prop">tags</span>: [<span class="str">"products"</span>], <span class="prop">revalidate</span>: <span class="num">3600</span> }
+)
+<span class="cm">// Invalidate with: revalidateTag("products") in a Server Action</span>
+
+<span class="cm">// ── Parallel data fetching — don't await sequentially ────</span>
+<span class="kw">export default async function</span> <span class="fn">ProductPage</span>({ <span class="var">params</span> }: <span class="ty">Props</span>) {
+  <span class="kw">const</span> { <span class="var">id</span> } = <span class="kw">await</span> <span class="var">params</span>
+
+  <span class="cm">// ❌ Sequential — slow (each awaits previous)</span>
+  <span class="kw">const</span> <span class="var">product</span>  = <span class="kw">await</span> <span class="fn">getProduct</span>(<span class="var">id</span>)
+  <span class="kw">const</span> <span class="var">reviews</span>  = <span class="kw">await</span> <span class="fn">getReviews</span>(<span class="var">id</span>)
+  <span class="kw">const</span> <span class="var">related</span>  = <span class="kw">await</span> <span class="fn">getRelated</span>(<span class="var">id</span>)
+
+  <span class="cm">// ✅ Parallel — fast (all fire at once)</span>
+  <span class="kw">const</span> [<span class="var">product</span>, <span class="var">reviews</span>, <span class="var">related</span>] = <span class="kw">await</span> <span class="fn">Promise</span>.<span class="fn">all</span>([
+    <span class="fn">getProduct</span>(<span class="var">id</span>),
+    <span class="fn">getReviews</span>(<span class="var">id</span>),
+    <span class="fn">getRelated</span>(<span class="var">id</span>),
+  ])
+
+  <span class="kw">return</span> <span class="tag">&lt;ProductDetail</span> <span class="attr">product</span>={<span class="var">product</span>} <span class="attr">reviews</span>={<span class="var">reviews</span>} <span class="attr">related</span>={<span class="var">related</span>} <span class="tag">/&gt;</span>
+}</pre></div>
+  </div>
+</div>
+
+<!-- 06. SERVER ACTIONS -->
+<div class="section" id="actions">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Server Actions — mutations without an API layer</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">mutations</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Server Actions — form submission, revalidation, progressive enhancement</span></div>
+    <div class="cb-body"><pre><span class="cm">// Server Actions are async functions that run on the server.</span>
+<span class="cm">// They're called directly from components — no fetch("/api/...") needed.</span>
+<span class="cm">// Progressive enhancement: work without JavaScript (native form POST).</span>
+
+<span class="cm">// ── Define in a server action file ────────────────────────</span>
+<span class="cm">// app/actions/products.ts</span>
+<span class="str">"use server"</span>   <span class="cm">// marks this module as server-only</span>
+
+<span class="kw">import</span> { <span class="var">revalidatePath</span>, <span class="var">revalidateTag</span> } <span class="kw">from</span> <span class="str">"next/cache"</span>
+<span class="kw">import</span> { <span class="var">redirect</span> }                       <span class="kw">from</span> <span class="str">"next/navigation"</span>
+<span class="kw">import</span> { <span class="var">z</span> }                              <span class="kw">from</span> <span class="str">"zod"</span>
+
+<span class="kw">const</span> <span class="var">createProductSchema</span> = <span class="var">z</span>.<span class="fn">object</span>({
+  <span class="prop">name</span>:  <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">1</span>),
+  <span class="prop">price</span>: <span class="var">z</span>.<span class="fn">coerce</span>.<span class="fn">number</span>().<span class="fn">positive</span>(),  <span class="cm">// coerce: form values are strings</span>
+})
+
+<span class="kw">export async function</span> <span class="fn">createProduct</span>(<span class="var">prevState</span>: <span class="kw">unknown</span>, <span class="var">formData</span>: <span class="ty">FormData</span>) {
+  <span class="cm">// Validate with Zod</span>
+  <span class="kw">const</span> <span class="var">parsed</span> = <span class="var">createProductSchema</span>.<span class="fn">safeParse</span>({
+    <span class="prop">name</span>:  <span class="var">formData</span>.<span class="fn">get</span>(<span class="str">"name"</span>),
+    <span class="prop">price</span>: <span class="var">formData</span>.<span class="fn">get</span>(<span class="str">"price"</span>),
+  })
+  <span class="kw">if</span> (!<span class="var">parsed</span>.<span class="prop">success</span>) {
+    <span class="kw">return</span> { <span class="prop">errors</span>: <span class="var">parsed</span>.<span class="prop">error</span>.<span class="fn">flatten</span>().<span class="prop">fieldErrors</span> }
+  }
+
+  <span class="cm">// Direct DB write — no API route needed</span>
+  <span class="kw">const</span> <span class="var">product</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">create</span>({ <span class="prop">data</span>: <span class="var">parsed</span>.<span class="prop">data</span> })
+
+  <span class="cm">// Revalidate — next visit to /products will fetch fresh data</span>
+  <span class="fn">revalidatePath</span>(<span class="str">"/products"</span>)
+  <span class="fn">revalidateTag</span>(<span class="str">"products"</span>)
+
+  <span class="cm">// Redirect to new product page</span>
+  <span class="fn">redirect</span>(`/products/${<span class="var">product</span>.<span class="prop">id</span>}`)
+}
+
+<span class="cm">// ── Use in a form component ────────────────────────────────</span>
+<span class="cm">// app/admin/products/new/page.tsx (Server Component)</span>
+<span class="kw">import</span> { <span class="fn">createProduct</span> } <span class="kw">from</span> <span class="str">"@/app/actions/products"</span>
+
+<span class="kw">export default function</span> <span class="fn">NewProductPage</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">action</span>={<span class="fn">createProduct</span>}<span class="tag">&gt;</span>  <span class="cm">{/* action prop = Server Action */}</span>
+      <span class="tag">&lt;input</span> <span class="attr">name</span>=<span class="str">"name"</span>  <span class="attr">type</span>=<span class="str">"text"</span>   <span class="attr">placeholder</span>=<span class="str">"Product name"</span>  <span class="attr">required</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">name</span>=<span class="str">"price"</span> <span class="attr">type</span>=<span class="str">"number"</span> <span class="attr">placeholder</span>=<span class="str">"Price"</span>          <span class="attr">required</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"submit"</span><span class="tag">&gt;</span>Create<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}
+
+<span class="cm">// ── useActionState — pending + errors in Client Component ─</span>
+<span class="str">"use client"</span>
+
+<span class="kw">import</span> { <span class="var">useActionState</span> } <span class="kw">from</span> <span class="str">"react"</span>
+<span class="kw">import</span> { <span class="fn">createProduct</span> } <span class="kw">from</span> <span class="str">"@/app/actions/products"</span>
+
+<span class="kw">export function</span> <span class="fn">CreateProductForm</span>() {
+  <span class="kw">const</span> [<span class="var">state</span>, <span class="var">formAction</span>, <span class="var">isPending</span>] = <span class="fn">useActionState</span>(<span class="fn">createProduct</span>, <span class="kw">null</span>)
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">action</span>={<span class="var">formAction</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">name</span>=<span class="str">"name"</span> <span class="tag">/&gt;</span>
+      {<span class="var">state</span>?.<span class="prop">errors</span>?.<span class="prop">name</span> &amp;&amp; <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"text-red-500"</span><span class="tag">&gt;</span>{<span class="var">state</span>.<span class="prop">errors</span>.<span class="prop">name</span>}<span class="tag">&lt;/p&gt;</span>}
+      <span class="tag">&lt;button</span> <span class="attr">disabled</span>={<span class="var">isPending</span>}<span class="tag">&gt;</span>
+        {<span class="var">isPending</span> ? <span class="str">"Creating..."</span> : <span class="str">"Create"</span>}
+      <span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 07. STREAMING -->
+<div class="section" id="patterns">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Streaming, loading.tsx, Route Handlers &amp; Middleware</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">streaming + API</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx + ts</span><span class="cb-desc">Streaming with Suspense, loading.tsx, Route Handlers, Middleware</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── loading.tsx — automatic Suspense boundary ─────────────</span>
+<span class="cm">// app/products/loading.tsx — shown while page.tsx fetches data</span>
+<span class="kw">export default function</span> <span class="fn">ProductsLoading</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"grid grid-cols-3 gap-6"</span><span class="tag">&gt;</span>
+      {<span class="fn">Array</span>.<span class="fn">from</span>({ <span class="prop">length</span>: <span class="num">6</span> }).<span class="fn">map</span>((<span class="var">_</span>, <span class="var">i</span>) =&gt; (
+        <span class="tag">&lt;div</span> <span class="attr">key</span>={<span class="var">i</span>} <span class="attr">className</span>=<span class="str">"h-64 bg-gray-200 rounded-xl animate-pulse"</span> <span class="tag">/&gt;</span>
+      ))}
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── Manual Suspense — stream individual sections ──────────</span>
+<span class="cm">// app/products/[id]/page.tsx</span>
+<span class="kw">import</span> { <span class="var">Suspense</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="kw">export default async function</span> <span class="fn">ProductPage</span>({ <span class="var">params</span> }: <span class="ty">Props</span>) {
+  <span class="kw">const</span> { <span class="var">id</span> } = <span class="kw">await</span> <span class="var">params</span>
+  <span class="kw">const</span> <span class="var">product</span> = <span class="kw">await</span> <span class="fn">getProduct</span>(<span class="var">id</span>)   <span class="cm">// fast — renders product immediately</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;ProductInfo</span> <span class="attr">product</span>={<span class="var">product</span>} <span class="tag">/&gt;</span>   <span class="cm">{/* renders immediately */}</span>
+
+      <span class="cm">{/* Reviews are slow — stream them in later */}</span>
+      <span class="tag">&lt;Suspense</span> <span class="attr">fallback</span>={<span class="tag">&lt;ReviewsSkeleton</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+        <span class="tag">&lt;Reviews</span> <span class="attr">productId</span>={<span class="var">id</span>} <span class="tag">/&gt;</span>   <span class="cm">{/* async component, streams when ready */}</span>
+      <span class="tag">&lt;/Suspense&gt;</span>
+
+      <span class="cm">{/* Related products — separate stream */}</span>
+      <span class="tag">&lt;Suspense</span> <span class="attr">fallback</span>={<span class="tag">&lt;GridSkeleton</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+        <span class="tag">&lt;RelatedProducts</span> <span class="attr">categoryId</span>={<span class="var">product</span>.<span class="prop">categoryId</span>} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/Suspense&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+<span class="cm">// User sees product info instantly, reviews + related stream in as they're ready.</span>
+<span class="cm">// No loading spinners — skeletons until each section resolves.</span>
+
+<span class="cm">// ── Route Handler — REST API in Next.js ───────────────────</span>
+<span class="cm">// app/api/products/route.ts</span>
+<span class="kw">import</span> { <span class="ty">NextResponse</span>, <span class="kw">type</span> <span class="ty">NextRequest</span> } <span class="kw">from</span> <span class="str">"next/server"</span>
+
+<span class="kw">export async function</span> <span class="fn">GET</span>(<span class="var">request</span>: <span class="ty">NextRequest</span>) {
+  <span class="kw">const</span> { <span class="var">searchParams</span> } = <span class="kw">new</span> <span class="fn">URL</span>(<span class="var">request</span>.<span class="prop">url</span>)
+  <span class="kw">const</span> <span class="var">page</span>     = <span class="var">searchParams</span>.<span class="fn">get</span>(<span class="str">"page"</span>) ?? <span class="str">"1"</span>
+  <span class="kw">const</span> <span class="var">products</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({ <span class="prop">take</span>: <span class="num">20</span>, <span class="prop">skip</span>: (+<span class="var">page</span>-<span class="num">1</span>)*<span class="num">20</span> })
+  <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">json</span>({ <span class="var">products</span>, <span class="var">page</span>: +<span class="var">page</span> })
+}
+
+<span class="kw">export async function</span> <span class="fn">POST</span>(<span class="var">request</span>: <span class="ty">NextRequest</span>) {
+  <span class="kw">const</span> <span class="var">body</span>    = <span class="kw">await</span> <span class="var">request</span>.<span class="fn">json</span>()
+  <span class="kw">const</span> <span class="var">session</span> = <span class="kw">await</span> <span class="fn">getSession</span>()
+  <span class="kw">if</span> (!<span class="var">session</span>) <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">json</span>({ <span class="prop">error</span>: <span class="str">"Unauthorized"</span> }, { <span class="prop">status</span>: <span class="num">401</span> })
+  <span class="kw">const</span> <span class="var">product</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">create</span>({ <span class="prop">data</span>: <span class="var">body</span> })
+  <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">json</span>(<span class="var">product</span>, { <span class="prop">status</span>: <span class="num">201</span> })
+}
+
+<span class="cm">// ── Middleware — auth guard, A/B tests, redirects ─────────</span>
+<span class="cm">// middleware.ts (at root, next to app/)</span>
+<span class="kw">import</span> { <span class="ty">NextResponse</span>, <span class="kw">type</span> <span class="ty">NextRequest</span> } <span class="kw">from</span> <span class="str">"next/server"</span>
+<span class="kw">import</span> { <span class="fn">getSessionFromCookie</span> }          <span class="kw">from</span> <span class="str">"@/lib/auth"</span>
+
+<span class="kw">export async function</span> <span class="fn">middleware</span>(<span class="var">request</span>: <span class="ty">NextRequest</span>) {
+  <span class="kw">const</span> <span class="var">isProtected</span> = <span class="var">request</span>.<span class="prop">nextUrl</span>.<span class="prop">pathname</span>.<span class="fn">startsWith</span>(<span class="str">"/dashboard"</span>)
+  <span class="kw">if</span> (<span class="var">isProtected</span>) {
+    <span class="kw">const</span> <span class="var">session</span> = <span class="kw">await</span> <span class="fn">getSessionFromCookie</span>(<span class="var">request</span>.<span class="prop">cookies</span>)
+    <span class="kw">if</span> (!<span class="var">session</span>) {
+      <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">redirect</span>(<span class="kw">new</span> <span class="fn">URL</span>(<span class="str">"/login"</span>, <span class="var">request</span>.<span class="prop">url</span>))
+    }
+  }
+  <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">next</span>()
+}
+<span class="kw">export const</span> <span class="var">config</span> = { <span class="prop">matcher</span>: [<span class="str">"/dashboard/:path*"</span>, <span class="str">"/api/:path*"</span>] }</pre></div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Coding exercises — Next.js concepts in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">File router — simulate App Router path resolution</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>createAppRouter(fileTree)</code> that takes a file structure and resolves URL paths to the correct <code>page.tsx</code> handler — supporting static routes, dynamic <code>[id]</code> segments, catch-all <code>[...slug]</code>, and route groups <code>(group)</code> that don't appear in URLs.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — App Router path resolver</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">function createAppRouter(routes) {
+  // routes: array of { path: "app/products/[id]/page.tsx", handler: fn }
+  // Convert file paths to URL patterns, then match incoming URLs
+
+  function filePathToPattern(filePath) {
+    // Remove "app/" prefix and "/page.tsx" suffix
+    let pattern = filePath
+      .replace(/^app\//, "")
+      .replace(/\/page\.tsx$/, "")
+      .replace(/\/page\.ts$/, "")
+
+    // Root page
+    if (!pattern || pattern === "") return "/"
+
+    // Route groups: (marketing) → remove from URL
+    pattern = pattern.replace(/\([^)]+\)\//g, "")
+
+    // Catch-all: [...slug] → special marker
+    pattern = pattern.replace(/\[\.\.\.([^\]]+)\]/g, "CATCHALL:$1")
+
+    // Dynamic segments: [id] → :id
+    pattern = pattern.replace(/\[([^\]]+)\]/g, ":$1")
+
+    return "/" + pattern
+  }
+
+  const compiled = routes.map(r => ({
+    pattern:  filePathToPattern(r.path),
+    handler:  r.handler,
+    original: r.path,
+  }))
+
+  function match(url) {
+    const urlParts = url.replace(/^\//, "").split("/").filter(Boolean)
+
+    for (const route of compiled) {
+      if (route.pattern === "CATCHALL_ROOT") {
+        return { handler: route.handler, params: { slug: urlParts } }
+      }
+      const patternParts = route.pattern.replace(/^\//, "").split("/").filter(Boolean)
+
+      // Check for catch-all
+      const catchAllIdx = patternParts.findIndex(p => p.startsWith("CATCHALL:"))
+      if (catchAllIdx !== -1 && urlParts.length >= catchAllIdx) {
+        const paramName  = patternParts[catchAllIdx].replace("CATCHALL:", "")
+        const staticOk   = patternParts.slice(0, catchAllIdx).every((p,i) =>
+          !p.startsWith(":") ? p === urlParts[i] : true
+        )
+        if (staticOk) {
+          const params = {}
+          params[paramName] = urlParts.slice(catchAllIdx)
+          patternParts.slice(0,catchAllIdx).forEach((p,i) => {
+            if (p.startsWith(":")) params[p.slice(1)] = urlParts[i]
+          })
+          return { handler: route.handler, params }
+        }
+        continue
+      }
+
+      if (patternParts.length !== urlParts.length) continue
+
+      const params = {}
+      const match  = patternParts.every((part, i) => {
+        if (part.startsWith(":")) { params[part.slice(1)] = urlParts[i]; return true }
+        return part === urlParts[i]
+      })
+      if (match) return { handler: route.handler, params }
+    }
+    return null
+  }
+
+  return { match, routes: compiled }
+}
+
+// Define routes
+const router = createAppRouter([
+  { path: "app/page.tsx",                        handler: () => "Home page" },
+  { path: "app/products/page.tsx",               handler: () => "Products list" },
+  { path: "app/products/[id]/page.tsx",          handler: ({ id }) => `Product #${id}` },
+  { path: "app/(marketing)/about/page.tsx",      handler: () => "About page" },
+  { path: "app/(marketing)/pricing/page.tsx",    handler: () => "Pricing page" },
+  { path: "app/blog/[...slug]/page.tsx",         handler: ({ slug }) => `Blog: ${slug.join("/")}` },
+  { path: "app/dashboard/settings/page.tsx",     handler: () => "Settings page" },
+])
+
+// Test routes
+const tests = [
+  "/",
+  "/products",
+  "/products/42",
+  "/about",
+  "/pricing",
+  "/blog/2024/january/my-post",
+  "/dashboard/settings",
+  "/nonexistent",
+]
+
+tests.forEach(url => {
+  const result = router.match(url)
+  if (result) {
+    const output = result.handler(result.params)
+    const params = Object.keys(result.params).length ? JSON.stringify(result.params) : "(no params)"
+    console.log(`${url.padEnd(35)} → ${output} ${params}`)
+  } else {
+    console.log(`${url.padEnd(35)} → 404 not found`)
+  }
+})</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Server vs Client — classify components and find boundary errors</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>analyzeComponents(components)</code> function that classifies each component as <code>server</code> or <code>client</code>, detects invalid patterns (using hooks in server components, importing server components from client components), and recommends where to push the boundary down.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — server/client boundary analyser</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">function analyzeComponents(components) {
+  // components: [{ name, useClient, usesHooks, accessesDB, importsFrom, isAsync }]
+  const results = []
+  const HOOKS = ["useState","useEffect","useRef","useCallback","useContext","useMemo"]
+
+  for (const comp of components) {
+    const issues = []
+    const type = comp.useClient ? "client" : "server"
+
+    if (type === "server") {
+      // Server component rules
+      const usedHooks = (comp.usesHooks || []).filter(h => HOOKS.includes(h))
+      if (usedHooks.length > 0)
+        issues.push(`❌ Server component uses hooks: ${usedHooks.join(", ")} → add "use client"`)
+      if (comp.hasEventHandlers)
+        issues.push(`❌ Server component has event handlers (onClick etc.) → add "use client"`)
+      if (comp.usesBrowserAPI)
+        issues.push(`❌ Server component uses browser API (window/localStorage) → add "use client"`)
+    }
+
+    if (type === "client") {
+      // Client component rules
+      if (comp.accessesDB)
+        issues.push(`❌ Client component directly accesses DB → move to server action or route handler`)
+      if (comp.usesSecretEnvVar)
+        issues.push(`❌ Client component uses secret env var → move to server component`)
+
+      // Check if it imports server components
+      const serverImports = (comp.importsFrom || []).filter(i => {
+        const imported = components.find(c => c.name === i)
+        return imported && !imported.useClient
+      })
+      if (serverImports.length > 0)
+        issues.push(`❌ Client imports Server Components: ${serverImports.join(", ")} → pass as children instead`)
+    }
+
+    // Suggest pushing boundary down
+    if (type === "client" && !comp.usesHooks?.length && !comp.hasEventHandlers && !comp.usesBrowserAPI) {
+      issues.push(`💡 No interactivity detected — consider removing "use client" and making this a Server Component`)
+    }
+
+    results.push({ name: comp.name, type, issues, valid: issues.filter(i=>i.startsWith("❌")).length === 0 })
+  }
+
+  return results
+}
+
+// Analyse a realistic component tree
+const components = [
+  { name:"ProductsPage",   useClient:false, isAsync:true,  accessesDB:true },
+  { name:"ProductCard",    useClient:false, isAsync:false },
+  { name:"AddToCart",      useClient:true,  usesHooks:["useState"], hasEventHandlers:true },
+  { name:"BadServerComp",  useClient:false, usesHooks:["useState","useEffect"], hasEventHandlers:true },
+  { name:"BadClientComp",  useClient:true,  accessesDB:true, usesSecretEnvVar:true },
+  { name:"Navbar",         useClient:true,  importsFrom:["ProductsPage"] },
+  { name:"UnnecessaryCC",  useClient:true  },
+  { name:"SearchBar",      useClient:true,  usesHooks:["useState"], hasEventHandlers:true },
+]
+
+const results = analyzeComponents(components)
+
+console.log("=== Component Boundary Analysis ===\n")
+results.forEach(r => {
+  const status = r.valid ? "✅" : "⚠️"
+  console.log(`${status} ${r.name.padEnd(18)} [${r.type}]`)
+  r.issues.forEach(issue => console.log(`   ${issue}`))
+  if (r.issues.length === 0) console.log(`   All rules satisfied`)
+})
+
+console.log("\n=== Summary ===")
+const valid   = results.filter(r => r.valid).length
+const invalid = results.filter(r => !r.valid).length
+console.log(`Valid: ${valid}/${results.length} | Issues: ${invalid}`)
+const serverCount = results.filter(r => r.type === "server").length
+const clientCount = results.filter(r => r.type === "client").length
+console.log(`Server: ${serverCount} | Client: ${clientCount} (minimise client for smaller bundles)`)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Data fetching — cache, deduplication, and revalidation</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Simulate Next.js's <code>fetch()</code> caching behaviour: <code>cache()</code> deduplication within a request, <code>revalidate</code> TTL, and <code>revalidatePath</code>. Show that two components requesting the same data within one render only hit the origin once, and that stale cache is refreshed after TTL expires.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — Next.js fetch cache simulation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">// Simulate Next.js fetch() caching with deduplication + revalidation
+
+let originHits = 0
+let now = Date.now()
+const advanceTime = (ms) => { now += ms }
+
+// Persistent cache (across requests)
+const persistentCache = new Map()
+// Request-scoped dedup cache (cleared per request)
+let requestCache = new Map()
+
+async function nextFetch(url, options = {}) {
+  const { revalidate = Infinity, cache: cacheMode = "force-cache" } = options.next || options
+
+  // "no-store" — always hit origin
+  if (cacheMode === "no-store") {
+    originHits++
+    return { url, data: `fresh:${url}:${originHits}`, ts: now }
+  }
+
+  // Request-scoped deduplication (simulate React cache())
+  if (requestCache.has(url)) {
+    return { ...requestCache.get(url), deduped: true }
+  }
+
+  // Check persistent cache
+  const cached = persistentCache.get(url)
+  if (cached) {
+    const age = now - cached.ts
+    const isStale = revalidate !== Infinity && age > revalidate * 1000
+
+    if (!isStale) {
+      const result = { ...cached, fromCache: true }
+      requestCache.set(url, result)
+      return result
+    }
+    // Stale → revalidate in background (ISR)
+    originHits++
+    const fresh = { url, data: `fresh:${url}:${originHits}`, ts: now }
+    persistentCache.set(url, fresh)
+    requestCache.set(url, fresh)
+    return { ...fresh, revalidated: true }
+  }
+
+  // Cache miss — hit origin
+  originHits++
+  const result = { url, data: `origin:${url}:${originHits}`, ts: now }
+  persistentCache.set(url, result)
+  requestCache.set(url, result)
+  return result
+}
+
+function newRequest() { requestCache = new Map() }  // simulate new request
+function revalidatePath(path) {
+  for (const [k] of persistentCache) {
+    if (k.includes(path)) persistentCache.delete(k)
+  }
+}
+
+// === Tests ===
+async function runTests() {
+  originHits = 0
+
+  // Request 1: two components fetch same URL
+  console.log("=== Request 1: Deduplication ===")
+  newRequest()
+  const [r1a, r1b] = await Promise.all([
+    nextFetch("/api/products", { next: { revalidate: 60 } }),
+    nextFetch("/api/products", { next: { revalidate: 60 } }),  // same URL
+  ])
+  console.log("Both got data:", r1a.data === r1b.data)  // true — same object
+  console.log("Origin hits:", originHits)               // 1 — deduplicated!
+  console.log("First deduped:", r1a.deduped ?? false, "Second deduped:", r1b.deduped ?? false)
+
+  // Request 2: cache hit (within TTL)
+  console.log("\n=== Request 2: Cache hit (0s elapsed) ===")
+  newRequest()
+  const r2 = await nextFetch("/api/products", { next: { revalidate: 60 } })
+  console.log("From cache:", r2.fromCache)   // true
+  console.log("Origin hits:", originHits)    // still 1
+
+  // Advance time past TTL
+  advanceTime(61_000)
+  console.log("\n=== Request 3: After TTL (61s elapsed) ===")
+  newRequest()
+  const r3 = await nextFetch("/api/products", { next: { revalidate: 60 } })
+  console.log("Revalidated:", r3.revalidated)  // true
+  console.log("Origin hits:", originHits)       // 2
+
+  // no-store — always fresh
+  console.log("\n=== no-store: Always hits origin ===")
+  newRequest()
+  const r4 = await nextFetch("/api/cart", { next: { cache: "no-store" } })
+  const r5 = await nextFetch("/api/cart", { next: { cache: "no-store" } })
+  console.log("No-store hits origin:", originHits - 2, "times")  // 2 (no dedup)
+
+  // revalidatePath clears cache
+  console.log("\n=== revalidatePath(/api/products) ===")
+  revalidatePath("/api/products")
+  newRequest()
+  const r6 = await nextFetch("/api/products", { next: { revalidate: 60 } })
+  console.log("After invalidation — from cache:", r6.fromCache ?? false)  // false
+  console.log("Total origin hits:", originHits)
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Server Action — validate, mutate, revalidate pipeline</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement the full Server Action pipeline: parse <code>FormData</code>, validate with a schema, write to a mock DB, revalidate the cache, and return structured state that <code>useActionState</code> can consume. Test success, validation failure, and DB error paths.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — Server Action pipeline</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">// Simulate Server Action: FormData → validate → DB → revalidate → state
+
+const mockDB = { products: [], nextId: 1 }
+const invalidatedPaths = []
+
+function revalidatePath(path) { invalidatedPaths.push(path) }
+
+// Zod-like validation
+function validate(schema, data) {
+  const errors = {}
+  for (const [field, rules] of Object.entries(schema)) {
+    const val = data[field]
+    if (rules.required && (!val || String(val).trim() === ""))
+      errors[field] = [rules.required]
+    else if (val !== undefined && val !== "") {
+      if (rules.minLength && String(val).length < rules.minLength.value)
+        errors[field] = [rules.minLength.message]
+      if (rules.min !== undefined && Number(val) < rules.min.value)
+        errors[field] = [rules.min.message]
+      if (rules.max !== undefined && Number(val) > rules.max.value)
+        errors[field] = [rules.max.message]
+    }
+  }
+  return Object.keys(errors).length === 0
+    ? { success: true, data }
+    : { success: false, fieldErrors: errors }
+}
+
+// The Server Action
+async function createProductAction(prevState, formData) {
+  // 1. Parse FormData
+  const raw = {
+    name:     formData.get("name"),
+    price:    formData.get("price"),
+    category: formData.get("category"),
+    stock:    formData.get("stock"),
+  }
+
+  // 2. Validate
+  const result = validate({
+    name:     { required: "Name is required", minLength: { value:2, message:"Min 2 chars" } },
+    price:    { required: "Price is required", min: { value:0.01, message:"Price must be positive" } },
+    category: { required: "Category is required" },
+    stock:    { min: { value:0, message:"Stock cannot be negative" } },
+  }, raw)
+
+  if (!result.success) {
+    return { status: "error", fieldErrors: result.fieldErrors, message: null }
+  }
+
+  // 3. Simulate DB write (with possible failure)
+  await new Promise(r => setTimeout(r, 10))
+  if (raw.name === "ERROR") {
+    return { status: "error", fieldErrors: {}, message: "Database connection failed" }
+  }
+
+  const product = {
+    id:       mockDB.nextId++,
+    name:     raw.name,
+    price:    Number(raw.price),
+    category: raw.category,
+    stock:    Number(raw.stock || 0),
+    createdAt: new Date().toISOString(),
+  }
+  mockDB.products.push(product)
+
+  // 4. Revalidate
+  revalidatePath("/products")
+  revalidatePath(`/products/${product.id}`)
+
+  // 5. Return success state
+  return { status: "success", product, fieldErrors: {}, message: `"${product.name}" created!` }
+}
+
+// Helper to simulate FormData
+function formData(obj) {
+  return { get: k => obj[k] ?? null }
+}
+
+// Test all paths
+async function runTests() {
+  console.log("=== Test 1: Valid product ===")
+  const r1 = await createProductAction(null, formData({
+    name:"MacBook Pro", price:"1999.99", category:"electronics", stock:"10"
+  }))
+  console.log("Status:", r1.status)                // success
+  console.log("Product:", r1.product.name, "$" + r1.product.price)
+  console.log("Revalidated:", invalidatedPaths.slice(-2).join(", "))
+  console.log("Message:", r1.message)
+
+  console.log("\n=== Test 2: Validation errors ===")
+  const r2 = await createProductAction(null, formData({
+    name:"X", price:"-5", category:"", stock:"-1"
+  }))
+  console.log("Status:", r2.status)                // error
+  console.log("Name error:", r2.fieldErrors.name?.[0])      // Min 2 chars
+  console.log("Price error:", r2.fieldErrors.price?.[0])    // Price must be positive
+  console.log("Category error:", r2.fieldErrors.category?.[0]) // Required
+  console.log("DB products count:", mockDB.products.length) // 1 (only test 1)
+
+  console.log("\n=== Test 3: DB error ===")
+  const r3 = await createProductAction(null, formData({
+    name:"ERROR", price:"99", category:"books"
+  }))
+  console.log("Status:", r3.status)                // error
+  console.log("Message:", r3.message)              // Database connection failed
+  console.log("DB products count:", mockDB.products.length) // still 1
+
+  console.log("\n=== Test 4: Missing required fields ===")
+  const r4 = await createProductAction(null, formData({}))
+  console.log("Status:", r4.status)
+  console.log("Errors:", Object.keys(r4.fieldErrors).join(", "))
+
+  console.log("\n=== DB state ===")
+  mockDB.products.forEach(p => console.log(`  #${p.id}: ${p.name} $${p.price}`))
+  console.log("Total invalidated paths:", invalidatedPaths.length)
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Middleware — auth guard with route matching</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>createMiddleware(config)</code> that runs before each route, checking authentication for protected paths. Support role-based access (admin-only routes), public routes that bypass auth, and redirect to login with a <code>callbackUrl</code> query param so the user returns after login.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — Middleware auth guard</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">function createMiddleware(config) {
+  // config: { publicRoutes, protectedRoutes, adminRoutes, loginPath }
+
+  function matchesPattern(pathname, patterns) {
+    return patterns.some(pattern => {
+      if (pattern.endsWith("/:path*")) {
+        const base = pattern.replace("/:path*", "")
+        return pathname === base || pathname.startsWith(base + "/")
+      }
+      return pathname === pattern
+    })
+  }
+
+  function run(request) {
+    const { pathname, session, callbackUrl } = request
+
+    // Always allow public routes
+    if (matchesPattern(pathname, config.publicRoutes)) {
+      return { action: "next", reason: "public route" }
+    }
+
+    // Check if route needs protection
+    const needsAuth  = matchesPattern(pathname, config.protectedRoutes)
+    const needsAdmin = matchesPattern(pathname, config.adminRoutes)
+
+    if (!needsAuth && !needsAdmin) {
+      return { action: "next", reason: "unrestricted route" }
+    }
+
+    // Not authenticated
+    if (!session) {
+      const loginUrl = `${config.loginPath}?callbackUrl=${encodeURIComponent(pathname)}`
+      return { action: "redirect", to: loginUrl, reason: "not authenticated" }
+    }
+
+    // Needs admin but user isn't admin
+    if (needsAdmin && session.role !== "admin") {
+      return { action: "redirect", to: "/unauthorized", reason: "insufficient role" }
+    }
+
+    // All good
+    return {
+      action: "next",
+      reason: "authenticated",
+      headers: { "x-user-id": session.userId, "x-user-role": session.role },
+    }
+  }
+
+  return { run }
+}
+
+const middleware = createMiddleware({
+  loginPath:       "/login",
+  publicRoutes:    ["/", "/login", "/register", "/products/:path*", "/about"],
+  protectedRoutes: ["/dashboard/:path*", "/account/:path*", "/checkout/:path*"],
+  adminRoutes:     ["/admin/:path*"],
+})
+
+// Sessions
+const noSession    = null
+const userSession  = { userId:"u1", role:"user",  email:"alice@test.com" }
+const adminSession = { userId:"u2", role:"admin", email:"admin@test.com" }
+
+const tests = [
+  // Public routes — everyone passes
+  { path:"/",                  session:noSession,    expect:"next" },
+  { path:"/products/42",       session:noSession,    expect:"next" },
+  { path:"/login",             session:noSession,    expect:"next" },
+
+  // Protected routes — needs auth
+  { path:"/dashboard",         session:noSession,    expect:"redirect" },
+  { path:"/dashboard/settings",session:noSession,    expect:"redirect" },
+  { path:"/account/profile",   session:noSession,    expect:"redirect" },
+  { path:"/checkout/payment",  session:noSession,    expect:"redirect" },
+
+  // Protected routes — authenticated user passes
+  { path:"/dashboard",         session:userSession,  expect:"next" },
+  { path:"/checkout/payment",  session:userSession,  expect:"next" },
+
+  // Admin routes — user blocked
+  { path:"/admin/products",    session:userSession,  expect:"redirect" },
+  { path:"/admin/users",       session:noSession,    expect:"redirect" },
+
+  // Admin routes — admin passes
+  { path:"/admin/products",    session:adminSession, expect:"next" },
+  { path:"/admin/users",       session:adminSession, expect:"next" },
+]
+
+console.log("=== Middleware Tests ===")
+let passed = 0
+tests.forEach(t => {
+  const result = middleware.run({ pathname:t.path, session:t.session })
+  const ok     = result.action === t.expect
+  if (ok) passed++
+  const role   = t.session?.role ?? "anonymous"
+  console.log(`${ok?"✓":"✗"} ${role.padEnd(10)} ${t.path.padEnd(25)} → ${result.action} (${result.reason})`)
+  if (result.action === "redirect" && result.to?.includes("callbackUrl")) {
+    console.log(`  ↳ Redirect to: ${decodeURIComponent(result.to)}`)
+  }
+})
+console.log(`\nPassed: ${passed}/${tests.length}`)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Full Next.js app simulation — request lifecycle</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Simulate the full Next.js request lifecycle for a <code>/products/42</code> page: middleware auth check → route matching → layout rendering → server component data fetch → streaming (with Suspense) → metadata generation. Measure time saved vs traditional SPA.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — full Next.js request lifecycle</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// Simulate the complete Next.js request lifecycle
+
+async function simulateNextRequest(url, session) {
+  const timeline = []
+  const t0 = Date.now()
+  const elapsed = () => Date.now() - t0
+
+  const log = (msg) => timeline.push({ t: elapsed(), msg })
+  const wait = (ms) => new Promise(r => setTimeout(r, ms))
+
+  log(`Request: GET ${url}`)
+
+  // ── 1. Middleware ─────────────────────────────────────────
+  const pathname = new URL("http://x" + url).pathname
+  const protectedPaths = ["/dashboard", "/account"]
+  if (protectedPaths.some(p => pathname.startsWith(p)) && !session) {
+    log("Middleware: unauthenticated → redirect /login")
+    return { type:"redirect", to:`/login?callbackUrl=${pathname}`, timeline }
+  }
+  log(`Middleware: passed (user: ${session?.email ?? "anonymous"})`)
+
+  // ── 2. Route matching ─────────────────────────────────────
+  const match = pathname.match(/^\/products\/(\d+)/)
+  const productId = match?.[1]
+  if (!productId) {
+    log("Router: no match → 404")
+    return { type:"notFound", timeline }
+  }
+  log(`Router: matched /products/[id] → id=${productId}`)
+
+  // ── 3. Root layout (Server Component) ────────────────────
+  log("Layout: RootLayout renders (no data fetch)")
+
+  // ── 4. generateMetadata (parallel with page) ─────────────
+  const [meta, product, reviews] = await Promise.all([
+    // Metadata generation
+    wait(30).then(() => {
+      log("Metadata: fetched product for og:title")
+      return { title:`Product #${productId}`, og:"..." }
+    }),
+    // Page data — main product (fast)
+    wait(40).then(() => {
+      log("Server: product fetched from DB (fast query)")
+      return { id:productId, name:`Product ${productId}`, price: 99.99 * productId }
+    }),
+    // Reviews — slow, streamed separately with Suspense
+    wait(200).then(() => {
+      log("Server: reviews fetched (slow query — streamed)")
+      return [{ id:1, rating:5, text:"Great!" }]
+    }),
+  ])
+
+  // ── 5. HTML generation phases ─────────────────────────────
+  await wait(5)
+  log(`HTML shell sent: <head><title>${meta.title}</title>...`)
+  log(`First HTML chunk sent: product info (${product.name}, $${product.price})`)
+  log(`Suspense fallback sent: <ReviewsSkeleton /> while reviews load`)
+
+  await wait(150)  // simulate reviews streaming in later
+  log(`Reviews chunk streamed: ${reviews.length} review(s) replace skeleton`)
+
+  const totalTime = elapsed()
+  log(`Total server time: ${totalTime}ms`)
+
+  return {
+    type: "success",
+    product,
+    meta,
+    reviews,
+    timeline,
+    metrics: {
+      timeToFirstByte: 30,
+      timeToContent: 50,  // product info (no spinner!)
+      timeToFullPage: totalTime,
+      clientSideJS: "0KB for product info (Server Component)",
+    }
+  }
+}
+
+async function main() {
+  console.log("=== SPA (Vite React) vs Next.js ===\n")
+
+  const spaTimeline = [
+    "0ms:    Browser receives <div id='root'></div>",
+    "1200ms: React JS bundle parsed",
+    "1200ms: Component mounts → useEffect fires",
+    "1600ms: fetch('/api/products/42') resolves",
+    "1600ms: Product renders (spinner shown for 1.6s)",
+    "2000ms: fetch('/api/reviews/42') resolves",
+    "2000ms: Full page visible",
+    "Total first contentful paint: ~1200ms (spinner)",
+    "Total time to full content:   ~2000ms",
+    "SEO: bot sees empty div ❌",
+  ]
+
+  console.log("SPA timeline:")
+  spaTimeline.forEach(t => console.log("  " + t))
+
+  console.log("\n=== Next.js App Router request (authenticated user) ===")
+  const result = await simulateNextRequest(
+    "/products/42",
+    { email:"alice@test.com", role:"user" }
+  )
+
+  if (result.type === "success") {
+    result.timeline.forEach(({ t, msg }) =>
+      console.log(`  ${String(t).padStart(4)}ms: ${msg}`)
+    )
+    console.log("\n  Metrics:")
+    Object.entries(result.metrics).forEach(([k,v]) =>
+      console.log(`    ${k}: ${v}`)
+    )
+  }
+
+  console.log("\n=== Redirect test (unauthenticated → /dashboard) ===")
+  const redirect = await simulateNextRequest("/dashboard/settings", null)
+  redirect.timeline.forEach(({ t, msg }) => console.log(`  ${t}ms: ${msg}`))
+  console.log("  Redirected to:", redirect.to)
+}
+
+main()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">What problems does Next.js App Router solve that plain React/Vite can't?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Three concrete problems. First, <strong>SEO and performance</strong>: a Vite React SPA sends an empty HTML shell — bots see nothing and users wait for JS to execute before seeing content. Next.js renders on the server and sends real HTML, making first-paint near-instant and making every page crawlable.<br><br>Second, <strong>data fetch waterfalls</strong>: in a SPA, data fetching starts only after the JS executes and components mount. Next.js fetches data during server rendering — by the time HTML arrives at the browser, the data is already embedded in it. No loading spinners for initial page loads.<br><br>Third, <strong>full-stack in one project</strong>: Next.js lets you write server-side logic (DB queries, auth checks, API keys) co-located with your components. Server Actions and Route Handlers eliminate the need for a separate API server. One TypeScript codebase handles frontend and backend with shared types.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">What is a Server Component and how does it differ from a Client Component?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Server Components run <em>only on the server</em> — they're never sent to the browser as JavaScript. They can be <code>async</code>, use <code>await</code>, access databases directly, use secret environment variables, and produce zero JS bundle. They cannot use hooks, event handlers, or browser APIs.<br><br>Client Components are marked with <code>"use client"</code>. They run on the server for the initial HTML (server-side rendering), then the JavaScript is sent to the browser for hydration and interactivity. They can use all React hooks, browser APIs, and event handlers — but cannot access the database or secrets directly.<br><br>In the App Router, everything is a Server Component by default. You opt in to Client Components only when you need interactivity. The design goal: push the <code>"use client"</code> boundary as low as possible in the tree to minimise JavaScript sent to the browser.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">How does file-based routing work in the App Router?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">The <code>app/</code> directory structure maps directly to URL routes. A <code>page.tsx</code> file defines a route — <code>app/products/page.tsx</code> → <code>/products</code>. Dynamic segments use brackets: <code>app/products/[id]/page.tsx</code> → <code>/products/:id</code>, with the ID available via <code>params.id</code>. Catch-all segments use spread: <code>[...slug]</code> → matches any number of segments.<br><br>Special files: <code>layout.tsx</code> wraps a route and its children, persisting across navigation (like a shell); <code>loading.tsx</code> is an automatic Suspense fallback shown while the page fetches; <code>error.tsx</code> is an error boundary; <code>not-found.tsx</code> renders when <code>notFound()</code> is called.<br><br>Route groups use parentheses — <code>(marketing)/about/page.tsx</code> routes to <code>/about</code>. The group name doesn't appear in the URL. This lets you apply different layouts to different sections without affecting URLs.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">What are Server Actions and how do they work?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Server Actions are async functions marked with <code>"use server"</code> that run on the server. They're called directly from components — no <code>fetch("/api/...")</code> needed. When a form's <code>action</code> prop is set to a Server Action, submitting the form POSTs to the server, the action runs, and the response is returned — this even works without JavaScript (progressive enhancement).<br><br>The lifecycle: function receives <code>FormData</code> → validate with Zod → write to database → call <code>revalidatePath()</code> or <code>revalidateTag()</code> to invalidate cache → optionally <code>redirect()</code> or return state.<br><br>For rich client-side feedback, pair with <code>useActionState</code> in a Client Component: it provides the pending state, the returned state, and the form action function. The action still runs on the server — the client just gets status updates and can show loading/error UI.</div>
+    <div class="tip-box">Server Actions replace what you'd previously do with an API route handler + fetch + useState(loading/error). They collapse 4 files into 1 function.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">How does Next.js caching work — what are the different caching layers?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Next.js has multiple caching layers. The <strong>fetch cache</strong> is the most important: Next.js extends the native <code>fetch()</code> API — by default requests are cached indefinitely (equivalent to ISR). You opt into revalidation with <code>{ next: { revalidate: 60 } }</code> (revalidate every 60s) or opt out with <code>{ cache: "no-store" }</code> (always fresh).<br><br>Within a single request, <strong>request memoization</strong> deduplicates identical fetch calls. If <code>generateMetadata</code> and <code>page.tsx</code> both call <code>getProduct(id)</code>, the database is only hit once. The React <code>cache()</code> function makes this explicit for non-fetch operations like direct DB calls.<br><br><strong>Revalidation</strong>: call <code>revalidatePath("/products")</code> in a Server Action after a mutation to mark that path's cache as stale. <code>revalidateTag("products")</code> invalidates all fetches tagged with "products", regardless of URL. On next request, Next.js regenerates the page.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">How do you pass data from a Server Component to a Client Component?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Pass data as props — the same as always. The Server Component fetches data, then passes it to the Client Component via props. The key constraint: the props must be serialisable (no functions, no class instances, no circular references) because they cross the server-client boundary.<br><br><code>async function ProductPage() { const product = await db.product.findUnique({...}); return &lt;AddToCart productId={product.id} price={product.price} /&gt; }</code><br><br>For more complex sharing, Server Components can be passed as <code>children</code> to Client Components. A Client Component provider can wrap Server Component pages: the server-rendered HTML is passed as <code>children</code> already rendered, so it doesn't re-render when the Client Component state changes. This is the pattern for wrapping with QueryClient, ThemeProvider, etc.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">What is streaming and how does loading.tsx enable it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Streaming lets Next.js send HTML to the browser in chunks as each part of the page becomes ready, rather than waiting for all data to be fetched before sending anything. The browser can display fast sections immediately while slower sections load.<br><br><code>loading.tsx</code> creates an automatic Suspense boundary around the page. While the <code>page.tsx</code> Server Component is fetching data, Next.js streams the layout + loading skeleton to the browser instantly. When the page data is ready, the next chunk streams in, replacing the skeleton. The user sees content immediately — no blank page.<br><br>For finer control, use manual <code>&lt;Suspense&gt;</code> boundaries inside a page. Wrap slow sections — reviews, related products — with their own Suspense and fallback. Fast sections (product name, price) render immediately; slow sections stream in as they complete, each replacing its skeleton independently.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">What is middleware in Next.js and what can you use it for?</span><span class="qa-chev">▶</span></div>
+    <div class="ans-text"><div class="ans-label">model answer</div>
+    Middleware runs before every request, before the route is matched and before caching is applied. It runs at the Edge (close to the user, not the full Node.js runtime), so it's extremely fast but has limited APIs — no database access, no heavy computation.<br><br>Common uses: <strong>auth guards</strong> (redirect unauthenticated users to login before they see the page), <strong>A/B testing</strong> (read a cookie, rewrite to different variants), <strong>internationalisation</strong> (detect locale from headers, redirect to /en or /fr), <strong>rate limiting</strong> (count requests in Edge KV), <strong>custom headers</strong> (add security headers to all responses).<br><br>Configure which routes middleware runs on with the <code>matcher</code> export. Without a matcher, middleware runs on every route — including static files — which is slow. Be specific: <code>matcher: ["/dashboard/:path*", "/api/:path*"]</code>.</div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">How do Route Handlers differ from Server Actions and when do you use each?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><strong>Route Handlers</strong> (<code>route.ts</code>) are REST API endpoints — they handle arbitrary HTTP methods and are accessible from anywhere (browser, mobile apps, third-party services, cron jobs). They return a <code>Response</code> or <code>NextResponse</code> and are consumed with <code>fetch()</code>.<br><br><strong>Server Actions</strong> are called directly from React components — no manual fetch needed. They're tightly coupled to your UI and work with progressive enhancement (native form POST). They return state consumed by <code>useActionState</code> and can redirect or revalidate cache.<br><br>Use Route Handlers when: you're building an API consumed by external clients (mobile app, third-party webhooks, cron jobs), you need explicit control over HTTP status codes and headers, or you're building a REST API for other teams. Use Server Actions when: the mutation is triggered by your own UI, you want type safety and no manual fetch, or you want progressive enhancement for forms.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">How do you handle SEO and metadata in Next.js App Router?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">The App Router has a built-in Metadata API. Export a <code>metadata</code> object from any <code>page.tsx</code> or <code>layout.tsx</code>: <code>export const metadata: Metadata = { title: "Products", description: "..." }</code>. For dynamic metadata, export an async <code>generateMetadata</code> function that receives <code>params</code> and <code>searchParams</code>.<br><br>The root layout uses a <code>title.template</code> to add the site name automatically: <code>{ template: "%s | ShopCo", default: "ShopCo" }</code> — every page's title automatically gets " | ShopCo" appended without the page needing to know about it.<br><br>Open Graph and Twitter card metadata is also handled: <code>openGraph: { images: [{ url: product.image }], type: "product" }</code>. Next.js generates the correct <code>&lt;meta&gt;</code> tags and handles the <code>generateMetadata</code> call in parallel with <code>page.tsx</code> rendering — the fetch is deduplicated so the database is only hit once even if both functions call <code>getProduct(id)</code>.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">10</span>
+    <span class="sec-title">Night review — self-assessment</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">14 items</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the SPA vs SSR performance difference — first paint, SEO, bundle size</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know all the special files: <code>page.tsx</code>, <code>layout.tsx</code>, <code>loading.tsx</code>, <code>error.tsx</code>, <code>not-found.tsx</code>, <code>route.ts</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can create a dynamic route with <code>[id]</code>, access <code>params</code>, and call <code>notFound()</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the Server Component / Client Component boundary — what each can and can't do</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to add <code>"use client"</code> and why to push it as low as possible in the tree</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write an <code>async</code> Server Component that fetches from a DB with no <code>useEffect</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand Next.js fetch caching: <code>force-cache</code>, <code>revalidate</code>, <code>no-store</code>, and deduplication</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>Promise.all()</code> for parallel data fetching in a Server Component</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a Server Action — <code>"use server"</code>, FormData, Zod validation, DB write, revalidation</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>useActionState</code> in a Client Component to get pending state + server errors</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how <code>loading.tsx</code> and manual <code>&lt;Suspense&gt;</code> enable streaming</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a Route Handler with <code>GET</code> and <code>POST</code> exports using <code>NextResponse</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write middleware with route matching and redirect unauthenticated users</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I migrated (or planned the migration of) the React Shop to Next.js App Router today</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--emerald);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank Next.js project</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Create <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">app/products/[id]/page.tsx</code> — async server component, fetch product from DB, handle notFound<br>
+      2. Create a <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">AddToCart</code> Client Component — <code>"use client"</code>, useState, onClick event handler<br>
+      3. Write a Server Action <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">createProduct</code> — "use server", FormData, Zod, db.create, revalidatePath<br>
+      4. Write <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">middleware.ts</code> — protect /dashboard, redirect unauthenticated to /login?callbackUrl
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 4 · Day 21</div>
+      <div class="footer-day-name">Next.js App Router</div>
+      <div class="footer-day-next">Next up: <strong>Day 22 — Authentication with Clerk</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 4 progress</span><span>Day 2 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:28%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day20_advanced_patterns.html',20)">← Day 20</button>
+      <button class="footer-btn primary" onclick="navigateTo('day22_auth_clerk.html',22)">Day 22 — Auth →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html",current:true},
+]
+const CURRENT=21
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+  "day18_tailwind_css.html","day19_week3_review.html",
+  "day20_advanced_patterns.html","day21_nextjs_app_router.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep building! ▲`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.style.display='inline-block'
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 1 — JavaScript Fundamentals</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Fraunces:wght@400;600;700;900&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link href="assets/css/base.css" rel="stylesheet">
+<style>
+
+:root {
+  --bg: #f9f8f4;
+  --surface: #ffffff;
+  --surface2: #f3f1eb;
+  --border: #e5e2d9;
+  --text: #1a1814;
+  --muted: #6b6760;
+  --hint: #a8a49e;
+  --js: #c8930a;
+  --js-bg: #fef9ec;
+  --js-border: #f5d87a;
+  --code-bg: #1c1c22;
+  --code-text: #e8e6e0;
+  --green: #1a7a4a;
+  --green-bg: #edf7f2;
+  --red: #c0392b;
+  --red-bg: #fdf0ee;
+  --purple: #5b42c4;
+  --purple-bg: #f0eeff;
+  --blue: #1a5fa8;
+  --blue-bg: #edf3fc;
+  --tag-bg: #ede9e0;
+  --tag-text: #4a4740;
+}
+
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.7; }
+
+/* NAV */
+nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; align-items: center; gap: 0; position: sticky; top: 0; z-index: 100; overflow-x: auto; }
+.nav-tab { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 16px 18px; cursor: pointer; border: none; background: none; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s, border-color 0.15s; }
+.nav-tab.active { color: var(--js); border-bottom-color: var(--js); }
+.nav-tab:hover:not(.active) { color: var(--text); }
+.nav-brand { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700; color: var(--text); margin-right: 24px; white-space: nowrap; flex-shrink: 0; }
+
+/* HERO */
+.hero { background: var(--js-bg); border-bottom: 1px solid var(--js-border); padding: 56px 40px 48px; }
+.hero-inner { max-width: 860px; margin: 0 auto; }
+.hero-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--js); text-transform: uppercase; margin-bottom: 16px; }
+.hero h1 { font-family: 'Fraunces', serif; font-size: clamp(32px, 5vw, 56px); font-weight: 900; line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 16px; }
+.hero-sub { font-size: 16px; color: var(--muted); max-width: 560px; margin-bottom: 32px; }
+.hero-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+.pill.active { background: var(--js); border-color: var(--js); color: #fff; }
+
+/* SECTION */
+.section { display: none; max-width: 860px; margin: 0 auto; padding: 48px 40px; }
+.section.active { display: block; }
+.section-title { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+.section-sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; border-bottom: 1px solid var(--border); padding-bottom: 24px; }
+
+/* CONCEPT CARDS */
+.concept { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 24px; overflow: hidden; }
+.concept-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.concept-title { font-size: 17px; font-weight: 500; margin-bottom: 4px; }
+.concept-tagline { font-size: 13px; color: var(--muted); }
+.concept-body { padding: 20px 24px; }
+.concept-body p { font-size: 14px; color: var(--muted); line-height: 1.8; margin-bottom: 16px; }
+.concept-body p:last-child { margin-bottom: 0; }
+.tag { font-size: 11px; font-family: 'JetBrains Mono', monospace; padding: 3px 8px; border-radius: 4px; background: var(--tag-bg); color: var(--tag-text); flex-shrink: 0; }
+
+/* HIGHLIGHT BOXES */
+.note { border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-size: 13px; line-height: 1.7; }
+.note.green { background: var(--green-bg); border-left: 3px solid var(--green); color: #145534; border-radius: 0; }
+.note.amber { background: var(--js-bg); border-left: 3px solid var(--js); color: #7a5200; border-radius: 0; }
+.note.red { background: var(--red-bg); border-left: 3px solid var(--red); color: #8c2a1f; border-radius: 0; }
+.note.blue { background: var(--blue-bg); border-left: 3px solid var(--blue); color: #1a3d6b; border-radius: 0; }
+.note strong { font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+/* CODE BLOCKS */
+pre { background: var(--code-bg); border-radius: 10px; padding: 20px 22px; margin: 16px 0; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.75; color: var(--code-text); }
+.kw { color: #c792ea; }
+.str { color: #c3e88d; }
+.num { color: #f78c6c; }
+.fn { color: #82aaff; }
+.cmt { color: #546e7a; font-style: italic; }
+.op { color: #89ddff; }
+.bool { color: #ff5370; }
+code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--tag-bg); padding: 2px 6px; border-radius: 4px; color: var(--purple); }
+
+/* TWO COL */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+.col-card { background: var(--surface2); border-radius: 8px; padding: 16px; }
+.col-card h4 { font-size: 13px; font-weight: 500; margin-bottom: 10px; }
+.col-card pre { margin: 0; font-size: 12px; padding: 14px; }
+
+/* EXERCISES */
+.exercise { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+.ex-header { background: var(--surface2); padding: 14px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+.ex-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; background: var(--js); color: #fff; padding: 2px 8px; border-radius: 4px; }
+.ex-title { font-size: 14px; font-weight: 500; }
+.ex-diff { font-size: 11px; color: var(--muted); margin-left: auto; }
+.ex-body { padding: 16px 20px; }
+.ex-body p { font-size: 14px; color: var(--muted); margin-bottom: 12px; }
+.ex-task { font-size: 13px; background: var(--blue-bg); border-radius: 6px; padding: 12px 16px; margin-bottom: 12px; color: var(--blue); }
+textarea { width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; background: var(--code-bg); color: var(--code-text); border: 1px solid #333; border-radius: 8px; padding: 14px; resize: vertical; min-height: 120px; line-height: 1.7; }
+.run-btn { margin-top: 10px; font-size: 13px; font-weight: 500; padding: 8px 20px; background: var(--js); color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+.run-btn:hover { opacity: 0.88; }
+.output { margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 12px 16px; background: #0f0f14; color: #a8ff78; border-radius: 8px; min-height: 36px; white-space: pre-wrap; display: none; }
+.show-sol { font-size: 12px; color: var(--muted); text-decoration: underline; cursor: pointer; margin-top: 8px; display: inline-block; background: none; border: none; }
+.solution { display: none; margin-top: 12px; }
+
+/* INTERVIEW */
+.interview-q { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.iq-header { padding: 16px 20px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+.iq-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--purple-bg); color: var(--purple); padding: 3px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+.iq-q { font-size: 14px; font-weight: 500; flex: 1; line-height: 1.5; }
+.iq-level { font-size: 11px; color: var(--muted); flex-shrink: 0; margin-top: 3px; }
+.iq-chevron { color: var(--muted); font-size: 16px; flex-shrink: 0; transition: transform 0.2s; margin-top: 1px; }
+.iq-body { display: none; border-top: 1px solid var(--border); padding: 16px 20px 20px; }
+.iq-body.open { display: block; }
+.iq-answer { font-size: 14px; color: var(--muted); line-height: 1.8; margin-bottom: 12px; }
+
+/* PROGRESS */
+.progress-bar { background: var(--surface2); border-radius: 4px; height: 4px; margin-bottom: 32px; overflow: hidden; }
+.progress-fill { height: 4px; background: var(--js); border-radius: 4px; transition: width 0.4s; }
+.progress-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+
+/* SCHEDULE */
+.schedule-row { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+.sched-time { background: var(--surface2); padding: 14px 18px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); min-width: 130px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid var(--border); }
+.sched-body { padding: 14px 18px; flex: 1; }
+.sched-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.sched-desc { font-size: 13px; color: var(--muted); }
+.sched-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.stag { font-size: 11px; font-family: 'JetBrains Mono', monospace; background: var(--tag-bg); color: var(--tag-text); padding: 2px 7px; border-radius: 4px; }
+
+@media (max-width: 680px) {
+  .hero, .section { padding: 32px 20px; }
+  nav { padding: 0 12px; }
+  .two-col { grid-template-columns: 1fr; }
+  .schedule-row { flex-direction: column; }
+  .sched-time { border-right: none; border-bottom: 1px solid var(--border); min-width: 0; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">JS Day 1</div>
+  <button class="nav-tab active" onclick="showTab('schedule')">Schedule</button>
+  <button class="nav-tab" onclick="showTab('concepts')">Concepts</button>
+  <button class="nav-tab" onclick="showTab('exercises')">Exercises</button>
+  <button class="nav-tab" onclick="showTab('interview')">Interview Q&A</button>
+  <button class="nav-tab" onclick="showTab('review')">Review</button>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">Week 1 · Day 1 · JavaScript Fundamentals</div>
+    <h1>Variables, Types<br>&amp; Functions</h1>
+    <p class="hero-sub">The foundational 20% that appears in 100% of JavaScript code. Master these and everything else becomes learnable.</p>
+    <div class="hero-pills">
+      <span class="pill active">10:00 – 12:30 · Morning learn</span>
+      <span class="pill">15:00 – 19:00 · Evening practice</span>
+      <span class="pill">22:00 – 23:20 · Night review</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SCHEDULE ═══════════════════ -->
+<div class="section active" id="tab-schedule">
+  <div class="section-title">Today's schedule</div>
+  <p class="section-sub">6.5 hours structured across three sessions. Each block has a clear purpose — never mix learning and building in the same hour.</p>
+
+  <div class="schedule-row">
+    <div class="sched-time">10:00<br>↓<br>12:30</div>
+    <div class="sched-body">
+      <div class="sched-title">Morning — learn new concepts</div>
+      <div class="sched-desc">Read javascript.info chapters 1–6 in order. Do the in-page tasks as you go. Take short notes in your own words — not copy-paste.</div>
+      <div class="sched-tags">
+        <span class="stag">javascript.info ch 1–6</span>
+        <span class="stag">variables</span>
+        <span class="stag">data types</span>
+        <span class="stag">functions</span>
+        <span class="stag">scope</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="schedule-row">
+    <div class="sched-time">12:30<br>↓<br>15:00</div>
+    <div class="sched-body">
+      <div class="sched-title">Break — mandatory, not optional</div>
+      <div class="sched-desc">Eat. Walk. Your brain consolidates what you've read during rest. Skipping breaks cuts retention by ~40%.</div>
+      <div class="sched-tags"><span class="stag">rest</span></div>
+    </div>
+  </div>
+
+  <div class="schedule-row">
+    <div class="sched-time">15:00<br>↓<br>17:00</div>
+    <div class="sched-body">
+      <div class="sched-title">Evening — Exercism practice</div>
+      <div class="sched-desc">Open exercism.org → JavaScript track. Solve: <strong>hello-world</strong>, <strong>two-fer</strong>, <strong>bob</strong>. Read community solutions after each one to see better patterns.</div>
+      <div class="sched-tags">
+        <span class="stag">Exercism</span>
+        <span class="stag">hello-world</span>
+        <span class="stag">two-fer</span>
+        <span class="stag">bob</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="schedule-row">
+    <div class="sched-time">17:00<br>↓<br>19:00</div>
+    <div class="sched-body">
+      <div class="sched-title">Evening — JavaScript30 project</div>
+      <div class="sched-desc">Open javascript30.com. Build project #1 (Drum Kit). Pause the video and try each step yourself before watching the solution. This is where it clicks.</div>
+      <div class="sched-tags">
+        <span class="stag">JavaScript30</span>
+        <span class="stag">project #1</span>
+        <span class="stag">DOM events</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="schedule-row">
+    <div class="sched-time">22:00<br>↓<br>23:20</div>
+    <div class="sched-body">
+      <div class="sched-title">Night — recall + review</div>
+      <div class="sched-desc">Close all tabs. Open a blank file. Write from memory: 3 variable declarations, 2 functions (one arrow, one regular), and explain <code>typeof</code> in a comment. Then check this plan's Review tab.</div>
+      <div class="sched-tags">
+        <span class="stag">recall practice</span>
+        <span class="stag">no tutorials</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="note blue" style="margin-top:24px;">
+    <strong>Why this order matters</strong>
+    Learn → rest → practice → build → recall. Each step primes the next. If you only read and never build, retention drops to under 10% within 48 hours.
+  </div>
+</div>
+
+<!-- ═══════════════════ CONCEPTS ═══════════════════ -->
+<div class="section" id="tab-concepts">
+  <div class="section-title">Core concepts</div>
+  <p class="section-sub">Five foundational topics. Read each in full — every word is there because it shows up in interviews or real codebases.</p>
+
+  <!-- 1. VARIABLES -->
+  <div class="concept">
+    <div class="concept-header">
+      <div>
+        <div class="concept-title">1. Variables — <code>var</code>, <code>let</code>, <code>const</code></div>
+        <div class="concept-tagline">How JavaScript stores and manages data in memory</div>
+      </div>
+      <span class="tag">foundational</span>
+    </div>
+    <div class="concept-body">
+      <p>A variable is a named container for a value. JavaScript has three ways to declare one — and the differences between them come up in virtually every junior interview.</p>
+
+      <pre><span class="cmt">// const — use by default. Can't be reassigned.</span>
+<span class="kw">const</span> name <span class="op">=</span> <span class="str">"Alice"</span>;
+<span class="cmt">// name = "Bob";  ← TypeError: Assignment to constant variable</span>
+
+<span class="cmt">// let — use when the value will change.</span>
+<span class="kw">let</span> score <span class="op">=</span> <span class="num">0</span>;
+score <span class="op">=</span> <span class="num">10</span>;  <span class="cmt">// ✓ fine</span>
+
+<span class="cmt">// var — old way, avoid in modern code.</span>
+<span class="kw">var</span> age <span class="op">=</span> <span class="num">25</span>;  <span class="cmt">// function-scoped, hoisted — causes confusing bugs</span></pre>
+
+      <div class="note amber">
+        <strong>The golden rule</strong>
+        Default to <code>const</code>. Only use <code>let</code> when you know the variable will be reassigned (like a counter). Never use <code>var</code> — it behaves unexpectedly with scope and hoisting.
+      </div>
+
+      <p>The biggest difference between <code>let</code>/<code>const</code> and <code>var</code> is <strong>scope</strong>. <code>let</code> and <code>const</code> are block-scoped (they live inside the nearest <code>{}</code>). <code>var</code> is function-scoped (it ignores blocks like <code>if</code> and <code>for</code>).</p>
+
+      <pre><span class="kw">if</span> (<span class="bool">true</span>) {
+  <span class="kw">let</span> x <span class="op">=</span> <span class="num">10</span>;
+  <span class="kw">var</span> y <span class="op">=</span> <span class="num">20</span>;
+}
+<span class="fn">console</span>.<span class="fn">log</span>(y);  <span class="cmt">// 20 — var leaks out of the block!</span>
+<span class="fn">console</span>.<span class="fn">log</span>(x);  <span class="cmt">// ReferenceError — let stays inside</span></pre>
+
+      <div class="note green">
+        <strong>Real-world use</strong>
+        In React, you'll write <code>const [count, setCount] = useState(0)</code> hundreds of times. Understanding why <code>const</code> is used here (the variable binding doesn't change, even though the state does) will help you reason about React code correctly from day one.
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. DATA TYPES -->
+  <div class="concept">
+    <div class="concept-header">
+      <div>
+        <div class="concept-title">2. Data types — primitives vs objects</div>
+        <div class="concept-tagline">What kinds of values JavaScript can hold and how they behave</div>
+      </div>
+      <span class="tag">foundational</span>
+    </div>
+    <div class="concept-body">
+      <p>JavaScript has 7 primitive types. Everything else is an object. This distinction matters because primitives are copied by <em>value</em>, while objects are copied by <em>reference</em>.</p>
+
+      <pre><span class="cmt">// The 7 primitive types</span>
+<span class="kw">const</span> str    <span class="op">=</span> <span class="str">"hello"</span>;          <span class="cmt">// string</span>
+<span class="kw">const</span> num    <span class="op">=</span> <span class="num">42</span>;               <span class="cmt">// number  (JS has only ONE number type)</span>
+<span class="kw">const</span> big    <span class="op">=</span> <span class="num">9007199254740991n</span>; <span class="cmt">// bigint</span>
+<span class="kw">const</span> bool   <span class="op">=</span> <span class="bool">true</span>;             <span class="cmt">// boolean</span>
+<span class="kw">const</span> empty  <span class="op">=</span> <span class="bool">null</span>;             <span class="cmt">// null — intentional empty</span>
+<span class="kw">const</span> miss   <span class="op">=</span> <span class="bool">undefined</span>;        <span class="cmt">// undefined — not yet assigned</span>
+<span class="kw">const</span> id     <span class="op">=</span> Symbol(<span class="str">"uid"</span>);    <span class="cmt">// symbol — unique identifier</span>
+
+<span class="cmt">// typeof operator — check a value's type at runtime</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">typeof</span> <span class="str">"hello"</span>);   <span class="cmt">// "string"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">typeof</span> <span class="num">42</span>);        <span class="cmt">// "number"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">typeof</span> <span class="bool">null</span>);      <span class="cmt">// "object" ← famous JS bug, not fixable</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">typeof</span> <span class="bool">undefined</span>); <span class="cmt">// "undefined"</span></pre>
+
+      <div class="note red">
+        <strong>Common gotcha — value vs reference</strong>
+        Primitives are copied. Objects are shared. This trips up almost every beginner.
+      </div>
+
+      <pre><span class="cmt">// Primitive — copy by VALUE</span>
+<span class="kw">let</span> a <span class="op">=</span> <span class="num">5</span>;
+<span class="kw">let</span> b <span class="op">=</span> a;
+b <span class="op">=</span> <span class="num">10</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(a); <span class="cmt">// 5 — unchanged</span>
+
+<span class="cmt">// Object — copy by REFERENCE</span>
+<span class="kw">const</span> obj1 <span class="op">=</span> { x: <span class="num">1</span> };
+<span class="kw">const</span> obj2 <span class="op">=</span> obj1;  <span class="cmt">// same object in memory!</span>
+obj2.x <span class="op">=</span> <span class="num">99</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(obj1.x); <span class="cmt">// 99 — obj1 also changed!</span></pre>
+
+      <div class="note green">
+        <strong>Real-world use</strong>
+        In React, this is why you never mutate state directly. When you do <code>state.count = 5</code>, React doesn't see the change because it's the same object reference. You must create a new object: <code>setState({ ...state, count: 5 })</code>.
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. TYPE COERCION -->
+  <div class="concept">
+    <div class="concept-header">
+      <div>
+        <div class="concept-title">3. Type coercion and equality</div>
+        <div class="concept-tagline">How JavaScript converts types automatically — and how to avoid the traps</div>
+      </div>
+      <span class="tag">tricky</span>
+    </div>
+    <div class="concept-body">
+      <p>JavaScript automatically converts types when you compare or operate on them. This is called <em>implicit coercion</em> and it's the source of some of the language's most infamous quirks.</p>
+
+      <pre><span class="cmt">// == (loose equality) — coerces types before comparing</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="num">0</span> <span class="op">==</span> <span class="str">""</span>);    <span class="cmt">// true  ← both coerce to falsy</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="num">1</span> <span class="op">==</span> <span class="str">"1"</span>);   <span class="cmt">// true  ← string coerced to number</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="bool">null</span> <span class="op">==</span> <span class="bool">undefined</span>); <span class="cmt">// true</span>
+
+<span class="cmt">// === (strict equality) — no coercion, always use this</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="num">1</span> <span class="op">===</span> <span class="str">"1"</span>);   <span class="cmt">// false</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="bool">null</span> <span class="op">===</span> <span class="bool">undefined</span>); <span class="cmt">// false</span>
+
+<span class="cmt">// Truthy and falsy values</span>
+<span class="cmt">// FALSY: false, 0, "", null, undefined, NaN</span>
+<span class="cmt">// TRUTHY: everything else (including "0", [], {})</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="bool">Boolean</span>(<span class="str">""</span>));      <span class="cmt">// false</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="bool">Boolean</span>(<span class="str">"0"</span>));     <span class="cmt">// true  ← non-empty string!</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="bool">Boolean</span>([]));      <span class="cmt">// true  ← empty array is truthy!</span></pre>
+
+      <div class="note amber">
+        <strong>Industry rule</strong>
+        Always use <code>===</code> and <code>!==</code>. Never use <code>==</code> or <code>!=</code>. ESLint's <code>eqeqeq</code> rule enforces this on every professional codebase.
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. FUNCTIONS -->
+  <div class="concept">
+    <div class="concept-header">
+      <div>
+        <div class="concept-title">4. Functions — declarations, expressions, arrow functions</div>
+        <div class="concept-tagline">The building block of all JavaScript logic</div>
+      </div>
+      <span class="tag">critical</span>
+    </div>
+    <div class="concept-body">
+      <p>JavaScript has three main ways to write a function. Each behaves slightly differently, and React uses arrow functions almost exclusively — so understanding the distinctions is essential.</p>
+
+      <div class="two-col">
+        <div class="col-card">
+          <h4>Function declaration</h4>
+          <pre><span class="cmt">// Hoisted — can call</span>
+<span class="cmt">// before the definition</span>
+<span class="fn">greet</span>(); <span class="cmt">// ✓ works</span>
+
+<span class="kw">function</span> <span class="fn">greet</span>() {
+  <span class="kw">return</span> <span class="str">"hello"</span>;
+}</span></pre>
+        </div>
+        <div class="col-card">
+          <h4>Arrow function (modern)</h4>
+          <pre><span class="cmt">// Not hoisted, shorter</span>
+<span class="cmt">// syntax, no own 'this'</span>
+<span class="kw">const</span> <span class="fn">greet</span> <span class="op">=</span> () <span class="op">=></span> {
+  <span class="kw">return</span> <span class="str">"hello"</span>;
+};
+
+<span class="cmt">// Implicit return (1 line)</span>
+<span class="kw">const</span> <span class="fn">add</span> <span class="op">=</span> (a, b) <span class="op">=></span> a <span class="op">+</span> b;</pre>
+        </div>
+      </div>
+
+      <pre><span class="cmt">// Parameters and default values</span>
+<span class="kw">const</span> <span class="fn">greetUser</span> <span class="op">=</span> (name <span class="op">=</span> <span class="str">"stranger"</span>) <span class="op">=></span> {
+  <span class="kw">return</span> <span class="str">`Hello, ${name}!`</span>;   <span class="cmt">// template literal</span>
+};
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">greetUser</span>(<span class="str">"Alice"</span>)); <span class="cmt">// "Hello, Alice!"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">greetUser</span>());        <span class="cmt">// "Hello, stranger!"</span>
+
+<span class="cmt">// Functions are first-class values in JS</span>
+<span class="cmt">// — you can pass them around like any other value</span>
+<span class="kw">const</span> numbers <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>];
+<span class="kw">const</span> doubled <span class="op">=</span> numbers.<span class="fn">map</span>(n <span class="op">=></span> n <span class="op">*</span> <span class="num">2</span>);
+<span class="fn">console</span>.<span class="fn">log</span>(doubled); <span class="cmt">// [2, 4, 6, 8]</span></pre>
+
+      <div class="note green">
+        <strong>Real-world use</strong>
+        In React: <code>onClick={() => handleClick()}</code>, <code>array.map(item => &lt;Card key={item.id} /&gt;)</code>, and every component is itself a function. Arrow functions are everywhere.
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. SCOPE + HOISTING -->
+  <div class="concept">
+    <div class="concept-header">
+      <div>
+        <div class="concept-title">5. Scope and hoisting</div>
+        <div class="concept-tagline">Where variables live and how JavaScript processes your code before running it</div>
+      </div>
+      <span class="tag">interview favourite</span>
+    </div>
+    <div class="concept-body">
+      <p>Scope determines <em>where</em> a variable is accessible. Hoisting is what JavaScript does <em>before</em> running your code — it moves declarations to the top of their scope.</p>
+
+      <pre><span class="cmt">// Global scope — accessible everywhere</span>
+<span class="kw">const</span> globalVar <span class="op">=</span> <span class="str">"I'm everywhere"</span>;
+
+<span class="kw">function</span> <span class="fn">outer</span>() {
+  <span class="cmt">// Function scope</span>
+  <span class="kw">const</span> outerVar <span class="op">=</span> <span class="str">"I'm in outer"</span>;
+
+  <span class="kw">function</span> <span class="fn">inner</span>() {
+    <span class="cmt">// Block scope — can see outerVar (closure!)</span>
+    <span class="fn">console</span>.<span class="fn">log</span>(outerVar);   <span class="cmt">// ✓ "I'm in outer"</span>
+    <span class="fn">console</span>.<span class="fn">log</span>(globalVar);  <span class="cmt">// ✓ "I'm everywhere"</span>
+  }
+
+  <span class="fn">inner</span>();
+}
+
+<span class="cmt">// Hoisting — declarations moved to top before execution</span>
+<span class="fn">console</span>.<span class="fn">log</span>(x); <span class="cmt">// undefined (not ReferenceError!) — var hoisted</span>
+<span class="kw">var</span> x <span class="op">=</span> <span class="num">5</span>;
+
+<span class="fn">console</span>.<span class="fn">log</span>(y); <span class="cmt">// ReferenceError — let is NOT initialized</span>
+<span class="kw">let</span> y <span class="op">=</span> <span class="num">5</span>;</pre>
+
+      <div class="note blue">
+        <strong>The temporal dead zone (TDZ)</strong>
+        <code>let</code> and <code>const</code> are hoisted but not initialized. The period between the start of their scope and their declaration is called the TDZ. Accessing them there throws a ReferenceError. Interviewers love asking about this.
+      </div>
+
+      <pre><span class="cmt">// Closure — a function that remembers its outer scope</span>
+<span class="kw">function</span> <span class="fn">makeCounter</span>() {
+  <span class="kw">let</span> count <span class="op">=</span> <span class="num">0</span>;  <span class="cmt">// lives in makeCounter's scope</span>
+  <span class="kw">return</span> () <span class="op">=></span> {
+    count<span class="op">++</span>;
+    <span class="kw">return</span> count;
+  };
+}
+
+<span class="kw">const</span> counter <span class="op">=</span> <span class="fn">makeCounter</span>();
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">counter</span>()); <span class="cmt">// 1</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">counter</span>()); <span class="cmt">// 2</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">counter</span>()); <span class="cmt">// 3 — count persists!</span></pre>
+
+      <div class="note green">
+        <strong>Real-world use</strong>
+        Closures power React hooks. <code>useState</code> is essentially a closure — the state value persists between renders because the hook "closes over" its own internal storage. Understanding closures makes hooks intuitive rather than magical.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ EXERCISES ═══════════════════ -->
+<div class="section" id="tab-exercises">
+  <div class="section-title">Coding exercises</div>
+  <p class="section-sub">8 exercises — complete in order. Don't look at the solution until you've genuinely tried. Getting stuck and solving it yourself is the entire point.</p>
+
+  <div class="exercise">
+    <div class="ex-header">
+      <span class="ex-num">Ex 01</span>
+      <span class="ex-title">Variable declaration</span>
+      <span class="ex-diff">Warm-up</span>
+    </div>
+    <div class="ex-body">
+      <p>Practice choosing the right variable keyword for each situation.</p>
+      <div class="ex-task">Declare: (1) a constant for your name, (2) a counter starting at 0 that will increment, (3) a variable for today's date that might update. Then log all three.</div>
+      <textarea id="ex1-code" spellcheck="false">// Write your solution here
+</textarea>
+      <button class="run-btn" onclick="runEx(1)">Run code</button>
+      <div class="output" id="ex1-out"></div>
+      <button class="show-sol" onclick="toggleSol(1)">Show solution</button>
+      <div class="solution" id="ex1-sol">
+        <pre><span class="kw">const</span> myName <span class="op">=</span> <span class="str">"Alice"</span>;         <span class="cmt">// won't change</span>
+<span class="kw">let</span> counter <span class="op">=</span> <span class="num">0</span>;                 <span class="cmt">// will be reassigned</span>
+<span class="kw">let</span> today <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>();         <span class="cmt">// might update
+
+</span><span class="fn">console</span>.<span class="fn">log</span>(myName, counter, today);</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="ex-header">
+      <span class="ex-num">Ex 02</span>
+      <span class="ex-title">Type detection</span>
+      <span class="ex-diff">Warm-up</span>
+    </div>
+    <div class="ex-body">
+      <p>Use <code>typeof</code> to inspect values and handle the classic <code>null</code> bug.</p>
+      <div class="ex-task">Write a function <code>getType(val)</code> that returns the correct type string for any value — including returning <code>"null"</code> for <code>null</code> (not <code>"object"</code>).</div>
+      <textarea id="ex2-code" spellcheck="false">function getType(val) {
+  // Your code here
+}
+
+console.log(getType("hello"));    // "string"
+console.log(getType(42));         // "number"
+console.log(getType(null));       // "null"  ← fix the bug!
+console.log(getType(undefined));  // "undefined"
+console.log(getType([]));         // "object"
+</textarea>
+      <button class="run-btn" onclick="runEx(2)">Run code</button>
+      <div class="output" id="ex2-out"></div>
+      <button class="show-sol" onclick="toggleSol(2)">Show solution</button>
+      <div class="solution" id="ex2-sol">
+        <pre><span class="kw">function</span> <span class="fn">getType</span>(val) {
+  <span class="kw">if</span> (val <span class="op">===</span> <span class="bool">null</span>) <span class="kw">return</span> <span class="str">"null"</span>;
+  <span class="kw">return</span> <span class="kw">typeof</span> val;
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="ex-header">
+      <span class="ex-num">Ex 03</span>
+      <span class="ex-title">Arrow function conversions</span>
+      <span class="ex-diff">Easy</span>
+    </div>
+    <div class="ex-body">
+      <p>Practice converting functions to arrow function syntax — including implicit returns.</p>
+      <div class="ex-task">Convert all three functions to arrow functions. The last one should use an implicit return (no braces, no <code>return</code> keyword).</div>
+      <textarea id="ex3-code" spellcheck="false">// Convert these to arrow functions:
+
+function double(n) {
+  return n * 2;
+}
+
+function greet(name) {
+  return `Hello, ${name}!`;
+}
+
+function isEven(n) {
+  return n % 2 === 0;
+}
+
+// Test your conversions:
+console.log(double(5));       // 10
+console.log(greet("World"));  // "Hello, World!"
+console.log(isEven(4));       // true
+</textarea>
+      <button class="run-btn" onclick="runEx(3)">Run code</button>
+      <div class="output" id="ex3-out"></div>
+      <button class="show-sol" onclick="toggleSol(3)">Show solution</button>
+      <div class="solution" id="ex3-sol">
+        <pre><span class="kw">const</span> <span class="fn">double</span> <span class="op">=</span> n <span class="op">=></span> n <span class="op">*</span> <span class="num">2</span>;
+<span class="kw">const</span> <span class="fn">greet</span> <span class="op">=</span> name <span class="op">=></span> <span class="str">`Hello, ${name}!`</span>;
+<span class="kw">const</span> <span class="fn">isEven</span> <span class="op">=</span> n <span class="op">=></span> n <span class="op">%</span> <span class="num">2</span> <span class="op">===</span> <span class="num">0</span>;</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="ex-header">
+      <span class="ex-num">Ex 04</span>
+      <span class="ex-title">Default parameters</span>
+      <span class="ex-diff">Easy</span>
+    </div>
+    <div class="ex-body">
+      <p>Default parameters make functions more robust against missing arguments.</p>
+      <div class="ex-task">Write a function <code>createUser(name, role = "viewer", active = true)</code> that returns an object. Test it with 1, 2, and 3 arguments.</div>
+      <textarea id="ex4-code" spellcheck="false">// Write createUser here
+
+console.log(createUser("Alice"));
+// { name: "Alice", role: "viewer", active: true }
+
+console.log(createUser("Bob", "admin"));
+// { name: "Bob", role: "admin", active: true }
+
+console.log(createUser("Carol", "editor", false));
+// { name: "Carol", role: "editor", active: false }
+</textarea>
+      <button class="run-btn" onclick="runEx(4)">Run code</button>
+      <div class="output" id="ex4-out"></div>
+      <button class="show-sol" onclick="toggleSol(4)">Show solution</button>
+      <div class="solution" id="ex4-sol">
+        <pre><span class="kw">const</span> <span class="fn">createUser</span> <span class="op">=</span> (
+  name,
+  role <span class="op">=</span> <span class="str">"viewer"</span>,
+  active <span class="op">=</span> <span class="bool">true</span>
+) <span class="op">=></span> ({ name, role, active });
+<span class="cmt">// Note: wrap object in () for implicit return</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="ex-header">
+      <span class="ex-num">Ex 05</span>
+      <span class="ex-title">Scope — spot the bug</span>
+      <span class="ex-diff">Medium</span>
+    </div>
+    <div class="ex-body">
+      <p>Read the code, predict the output, then run it to verify. Then fix the bug.</p>
+      <div class="ex-task">Predict what logs for each <code>console.log</code>. Then fix the code so all three log the correct loop index (0, 1, 2).</div>
+      <textarea id="ex5-code" spellcheck="false">// Buggy version — what does this print?
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => console.log("var:", i), 0);
+}
+
+// Fix: make it print 0, 1, 2 correctly
+// Write your fix below:
+</textarea>
+      <button class="run-btn" onclick="runEx(5)">Run code</button>
+      <div class="output" id="ex5-out"></div>
+      <button class="show-sol" onclick="toggleSol(5)">Show solution</button>
+      <div class="solution" id="ex5-sol">
+        <pre><span class="cmt">// Bug: var i is shared across all iterations</span>
+<span class="cmt">// Prints: 3, 3, 3 (loop finishes before callbacks run)</span>
+
+<span class="cmt">// Fix: use let — creates new binding each iteration</span>
+<span class="kw">for</span> (<span class="kw">let</span> i <span class="op">=</span> <span class="num">0</span>; i <span class="op">&lt;</span> <span class="num">3</span>; i<span class="op">++</span>) {
+  <span class="fn">setTimeout</span>(() <span class="op">=></span> <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"let:"</span>, i), <span class="num">0</span>);
+}
+<span class="cmt">// Prints: 0, 1, 2 ✓</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="ex-header">
+      <span class="ex-num">Ex 06</span>
+      <span class="ex-title">Closure counter</span>
+      <span class="ex-diff">Medium</span>
+    </div>
+    <div class="ex-body">
+      <p>Build a closure that maintains private state — a classic interview exercise.</p>
+      <div class="ex-task">Write <code>makeCounter(start = 0)</code> that returns an object with three methods: <code>increment()</code>, <code>decrement()</code>, and <code>reset()</code>. The count should never be directly accessible from outside.</div>
+      <textarea id="ex6-code" spellcheck="false">function makeCounter(start = 0) {
+  // count is private — only accessible via methods
+  // Your code here
+}
+
+const c = makeCounter(10);
+console.log(c.increment()); // 11
+console.log(c.increment()); // 12
+console.log(c.decrement()); // 11
+console.log(c.reset());     // 10
+</textarea>
+      <button class="run-btn" onclick="runEx(6)">Run code</button>
+      <div class="output" id="ex6-out"></div>
+      <button class="show-sol" onclick="toggleSol(6)">Show solution</button>
+      <div class="solution" id="ex6-sol">
+        <pre><span class="kw">function</span> <span class="fn">makeCounter</span>(start <span class="op">=</span> <span class="num">0</span>) {
+  <span class="kw">let</span> count <span class="op">=</span> start;
+  <span class="kw">return</span> {
+    <span class="fn">increment</span>: () <span class="op">=></span> <span class="op">++</span>count,
+    <span class="fn">decrement</span>: () <span class="op">=></span> <span class="op">--</span>count,
+    <span class="fn">reset</span>: () <span class="op">=></span> { count <span class="op">=</span> start; <span class="kw">return</span> count; }
+  };
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="ex-header">
+      <span class="ex-num">Ex 07</span>
+      <span class="ex-title">Truthy/falsy filter</span>
+      <span class="ex-diff">Medium</span>
+    </div>
+    <div class="ex-body">
+      <p>A practical exercise that shows up in real data cleaning code.</p>
+      <div class="ex-task">Write <code>compact(arr)</code> — removes all falsy values from an array. Do it in one line using <code>.filter()</code>. Then write <code>compactDeep(arr)</code> that also removes empty strings and zero.</div>
+      <textarea id="ex7-code" spellcheck="false">// compact — remove falsy values
+const compact = (arr) => /* one line */;
+
+// compactDeep — also remove "" and 0
+const compactDeep = (arr) => /* one line */;
+
+const data = [0, 1, false, 2, "", 3, null, undefined, NaN, 4];
+
+console.log(compact(data));
+// [1, 2, 3, 4]
+
+console.log(compactDeep(data));
+// [1, 2, 3, 4]  (same here since "" and 0 are falsy)
+
+// What about this?
+console.log(compact([0, "", "hello", false, 42, null]));
+// ["hello", 42]
+</textarea>
+      <button class="run-btn" onclick="runEx(7)">Run code</button>
+      <div class="output" id="ex7-out"></div>
+      <button class="show-sol" onclick="toggleSol(7)">Show solution</button>
+      <div class="solution" id="ex7-sol">
+        <pre><span class="kw">const</span> <span class="fn">compact</span> <span class="op">=</span> arr <span class="op">=></span> arr.<span class="fn">filter</span>(Boolean);
+<span class="cmt">// Boolean is a function — filter passes each item to it</span>
+<span class="cmt">// Boolean(value) returns true/false based on truthiness</span>
+
+<span class="kw">const</span> <span class="fn">compactDeep</span> <span class="op">=</span> arr <span class="op">=></span>
+  arr.<span class="fn">filter</span>(v <span class="op">=></span> v <span class="op">!==</span> <span class="str">""</span> <span class="op">&&</span> v <span class="op">!==</span> <span class="num">0</span> <span class="op">&&</span> <span class="bool">Boolean</span>(v));</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="ex-header">
+      <span class="ex-num">Ex 08</span>
+      <span class="ex-title">Mini calculator — bringing it all together</span>
+      <span class="ex-diff">Challenge</span>
+    </div>
+    <div class="ex-body">
+      <p>This exercise combines all of today's concepts in one realistic function.</p>
+      <div class="ex-task">Build <code>calculate(a, operator, b)</code> that handles <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, and <code>%</code>. Guard against division by zero. Return a descriptive error string for invalid inputs.</div>
+      <textarea id="ex8-code" spellcheck="false">const calculate = (a, operator, b) => {
+  // Type check
+  // Division by zero guard
+  // Handle all 5 operators
+  // Return error for unknown operator
+};
+
+console.log(calculate(10, "+", 5));   // 15
+console.log(calculate(10, "-", 3));   // 7
+console.log(calculate(10, "*", 4));   // 40
+console.log(calculate(10, "/", 2));   // 5
+console.log(calculate(10, "%", 3));   // 1
+console.log(calculate(10, "/", 0));   // "Error: division by zero"
+console.log(calculate("a", "+", 5));  // "Error: inputs must be numbers"
+console.log(calculate(5, "^", 2));    // "Error: unknown operator ^"
+</textarea>
+      <button class="run-btn" onclick="runEx(8)">Run code</button>
+      <div class="output" id="ex8-out"></div>
+      <button class="show-sol" onclick="toggleSol(8)">Show solution</button>
+      <div class="solution" id="ex8-sol">
+        <pre><span class="kw">const</span> <span class="fn">calculate</span> <span class="op">=</span> (a, operator, b) <span class="op">=></span> {
+  <span class="kw">if</span> (<span class="kw">typeof</span> a <span class="op">!==</span> <span class="str">"number"</span> <span class="op">||</span> <span class="kw">typeof</span> b <span class="op">!==</span> <span class="str">"number"</span>)
+    <span class="kw">return</span> <span class="str">"Error: inputs must be numbers"</span>;
+  <span class="kw">if</span> (b <span class="op">===</span> <span class="num">0</span> <span class="op">&&</span> (operator <span class="op">===</span> <span class="str">"/"</span> <span class="op">||</span> operator <span class="op">===</span> <span class="str">"%"</span>))
+    <span class="kw">return</span> <span class="str">"Error: division by zero"</span>;
+  <span class="kw">const</span> ops <span class="op">=</span> {
+    <span class="str">"+"</span>: (a, b) <span class="op">=></span> a <span class="op">+</span> b,
+    <span class="str">"-"</span>: (a, b) <span class="op">=></span> a <span class="op">-</span> b,
+    <span class="str">"*"</span>: (a, b) <span class="op">=></span> a <span class="op">*</span> b,
+    <span class="str">"/"</span>: (a, b) <span class="op">=></span> a <span class="op">/</span> b,
+    <span class="str">"%"</span>: (a, b) <span class="op">=></span> a <span class="op">%</span> b,
+  };
+  <span class="kw">if</span> (<span class="op">!</span>ops[operator])
+    <span class="kw">return</span> <span class="str">`Error: unknown operator ${operator}`</span>;
+  <span class="kw">return</span> ops[operator](a, b);
+};</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ INTERVIEW ═══════════════════ -->
+<div class="section" id="tab-interview">
+  <div class="section-title">Interview Q&amp;A</div>
+  <p class="section-sub">10 questions aligned with real junior JavaScript interviews in 2025–26. Click to expand each answer. Study the answer structure — not just the content.</p>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <span class="iq-num">Q1</span>
+      <span class="iq-q">What is the difference between <code>var</code>, <code>let</code>, and <code>const</code>?</span>
+      <span class="iq-level">Very common</span>
+      <span class="iq-chevron">›</span>
+    </div>
+    <div class="iq-body">
+      <p class="iq-answer"><code>var</code> is function-scoped, hoisted and initialized to <code>undefined</code>, and can be redeclared. <code>let</code> and <code>const</code> are block-scoped, hoisted but not initialized (entering the temporal dead zone), and cannot be redeclared in the same scope.</p>
+      <p class="iq-answer">The key difference between <code>let</code> and <code>const</code> is that <code>const</code> prevents reassignment of the variable binding — but it does not make objects or arrays immutable. You can still do <code>const arr = []; arr.push(1)</code>.</p>
+      <p class="iq-answer">In modern JavaScript, the rule is simple: use <code>const</code> by default, <code>let</code> only when you need to reassign, and never use <code>var</code>.</p>
+      <pre><span class="kw">const</span> arr <span class="op">=</span> [];
+arr.<span class="fn">push</span>(<span class="num">1</span>);  <span class="cmt">// ✓ allowed — mutating, not reassigning</span>
+arr <span class="op">=</span> [];    <span class="cmt">// ✗ TypeError — reassigning the binding</span></pre>
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <span class="iq-num">Q2</span>
+      <span class="iq-q">What is hoisting in JavaScript?</span>
+      <span class="iq-level">Common</span>
+      <span class="iq-chevron">›</span>
+    </div>
+    <div class="iq-body">
+      <p class="iq-answer">Hoisting is JavaScript's behaviour of moving declarations to the top of their scope during the compilation phase, before code executes. Function declarations are fully hoisted — both the declaration and definition. <code>var</code> declarations are hoisted and initialized to <code>undefined</code>. <code>let</code> and <code>const</code> are hoisted but not initialized, creating the temporal dead zone.</p>
+      <pre><span class="fn">sayHi</span>();          <span class="cmt">// "Hi!" — function declaration is fully hoisted</span>
+<span class="fn">console</span>.<span class="fn">log</span>(x);   <span class="cmt">// undefined — var hoisted, not yet assigned</span>
+<span class="fn">console</span>.<span class="fn">log</span>(y);   <span class="cmt">// ReferenceError — let in TDZ</span>
+
+<span class="kw">function</span> <span class="fn">sayHi</span>() { <span class="kw">return</span> <span class="str">"Hi!"</span>; }
+<span class="kw">var</span> x <span class="op">=</span> <span class="num">10</span>;
+<span class="kw">let</span> y <span class="op">=</span> <span class="num">20</span>;</pre>
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <span class="iq-num">Q3</span>
+      <span class="iq-q">What is a closure? Give a practical example.</span>
+      <span class="iq-level">Very common</span>
+      <span class="iq-chevron">›</span>
+    </div>
+    <div class="iq-body">
+      <p class="iq-answer">A closure is a function that retains access to its outer scope's variables even after that outer function has finished executing. In JavaScript, every function creates a closure over the scope in which it was defined.</p>
+      <p class="iq-answer">A practical use is data privacy — you can create private variables that can only be accessed through controlled methods:</p>
+      <pre><span class="kw">function</span> <span class="fn">bankAccount</span>(initialBalance) {
+  <span class="kw">let</span> balance <span class="op">=</span> initialBalance; <span class="cmt">// private</span>
+  <span class="kw">return</span> {
+    <span class="fn">deposit</span>: amount <span class="op">=></span> { balance <span class="op">+=</span> amount; },
+    <span class="fn">withdraw</span>: amount <span class="op">=></span> { balance <span class="op">-=</span> amount; },
+    <span class="fn">getBalance</span>: () <span class="op">=></span> balance,
+  };
+}
+<span class="kw">const</span> acc <span class="op">=</span> <span class="fn">bankAccount</span>(<span class="num">100</span>);
+acc.<span class="fn">deposit</span>(<span class="num">50</span>);
+<span class="fn">console</span>.<span class="fn">log</span>(acc.<span class="fn">getBalance</span>()); <span class="cmt">// 150</span>
+<span class="cmt">// acc.balance is undefined — it's private</span></pre>
+      <p class="iq-answer">Closures also power React hooks. <code>useState</code> relies on closures to persist state values between renders.</p>
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <span class="iq-num">Q4</span>
+      <span class="iq-q">What is the difference between <code>==</code> and <code>===</code>?</span>
+      <span class="iq-level">Very common</span>
+      <span class="iq-chevron">›</span>
+    </div>
+    <div class="iq-body">
+      <p class="iq-answer"><code>==</code> is loose equality — it performs type coercion before comparing. <code>===</code> is strict equality — it checks both value and type with no coercion. In professional code, always use <code>===</code>.</p>
+      <pre><span class="fn">console</span>.<span class="fn">log</span>(<span class="num">1</span> <span class="op">==</span> <span class="str">"1"</span>);    <span class="cmt">// true  — "1" coerced to 1</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="num">1</span> <span class="op">===</span> <span class="str">"1"</span>);   <span class="cmt">// false — different types</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="bool">null</span> <span class="op">==</span> <span class="bool">undefined</span>);  <span class="cmt">// true</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="bool">null</span> <span class="op">===</span> <span class="bool">undefined</span>); <span class="cmt">// false</span></pre>
+      <p class="iq-answer">The only legitimate use of <code>==</code> today is the <code>null == undefined</code> check — when you want to catch both without caring which one it is.</p>
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <span class="iq-num">Q5</span>
+      <span class="iq-q">What are truthy and falsy values? Name all the falsy values in JavaScript.</span>
+      <span class="iq-level">Common</span>
+      <span class="iq-chevron">›</span>
+    </div>
+    <div class="iq-body">
+      <p class="iq-answer">There are exactly 6 falsy values in JavaScript: <code>false</code>, <code>0</code>, <code>""</code> (empty string), <code>null</code>, <code>undefined</code>, and <code>NaN</code>. Everything else is truthy — including <code>"0"</code>, empty arrays <code>[]</code>, and empty objects <code>{}</code>.</p>
+      <pre><span class="cmt">// Truthy surprises (common interview traps)</span>
+<span class="fn">Boolean</span>(<span class="str">"0"</span>)    <span class="cmt">// true — non-empty string</span>
+<span class="fn">Boolean</span>([])     <span class="cmt">// true — empty array</span>
+<span class="fn">Boolean</span>({})     <span class="cmt">// true — empty object</span>
+<span class="fn">Boolean</span>(<span class="str">" "</span>)    <span class="cmt">// true — space is a character</span></pre>
+      <p class="iq-answer">This matters in real code: <code>if (user.name)</code> will only run if the name is a non-empty string — silently ignoring <code>name = 0</code> or <code>name = false</code>. For stricter checks, use <code>user.name !== undefined && user.name !== null</code> or optional chaining.</p>
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <span class="iq-num">Q6</span>
+      <span class="iq-q">What is the difference between a function declaration and a function expression?</span>
+      <span class="iq-level">Common</span>
+      <span class="iq-chevron">›</span>
+    </div>
+    <div class="iq-body">
+      <p class="iq-answer">A function declaration uses the <code>function</code> keyword as a statement and is fully hoisted — you can call it before its definition in the file. A function expression assigns a function to a variable and is not hoisted — calling it before the line throws an error.</p>
+      <pre><span class="cmt">// Declaration — hoisted</span>
+<span class="fn">hello</span>();  <span class="cmt">// ✓ works</span>
+<span class="kw">function</span> <span class="fn">hello</span>() { <span class="kw">return</span> <span class="str">"hi"</span>; }
+
+<span class="cmt">// Expression — NOT hoisted</span>
+<span class="fn">world</span>();  <span class="cmt">// TypeError: world is not a function</span>
+<span class="kw">const</span> <span class="fn">world</span> <span class="op">=</span> () <span class="op">=></span> <span class="str">"hi"</span>;</pre>
+      <p class="iq-answer">In modern JavaScript and React codebases, function expressions (especially arrow functions) are preferred because they make hoisting behaviour explicit and consistent.</p>
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <span class="iq-num">Q7</span>
+      <span class="iq-q">What is the temporal dead zone (TDZ)?</span>
+      <span class="iq-level">Intermediate</span>
+      <span class="iq-chevron">›</span>
+    </div>
+    <div class="iq-body">
+      <p class="iq-answer">The temporal dead zone is the period between the start of a block scope and the point where a <code>let</code> or <code>const</code> variable is declared. During this period, the variable exists in scope (it has been hoisted) but is not yet initialized — accessing it throws a <code>ReferenceError</code>.</p>
+      <pre><span class="kw">function</span> <span class="fn">example</span>() {
+  <span class="cmt">// TDZ for 'name' starts here</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(name); <span class="cmt">// ReferenceError — in TDZ</span>
+  <span class="kw">const</span> name <span class="op">=</span> <span class="str">"Alice"</span>; <span class="cmt">// TDZ ends here</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(name); <span class="cmt">// "Alice" — now accessible</span>
+}</pre>
+      <p class="iq-answer">The TDZ exists to catch programming errors — specifically using a variable before it's been assigned a value. It's one of the reasons <code>let</code>/<code>const</code> are safer than <code>var</code>.</p>
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <span class="iq-num">Q8</span>
+      <span class="iq-q">Explain pass-by-value vs pass-by-reference in JavaScript.</span>
+      <span class="iq-level">Common</span>
+      <span class="iq-chevron">›</span>
+    </div>
+    <div class="iq-body">
+      <p class="iq-answer">Primitive values (numbers, strings, booleans, null, undefined, symbol) are passed by value — a copy is made, and the original is unaffected. Objects (including arrays and functions) are passed by reference — both variables point to the same object in memory, so changes affect both.</p>
+      <pre><span class="cmt">// Primitive — pass by value</span>
+<span class="kw">let</span> x <span class="op">=</span> <span class="num">10</span>;
+<span class="kw">function</span> <span class="fn">change</span>(n) { n <span class="op">=</span> <span class="num">99</span>; }
+<span class="fn">change</span>(x);
+<span class="fn">console</span>.<span class="fn">log</span>(x); <span class="cmt">// 10 — unchanged</span>
+
+<span class="cmt">// Object — pass by reference</span>
+<span class="kw">const</span> user <span class="op">=</span> { name: <span class="str">"Alice"</span> };
+<span class="kw">function</span> <span class="fn">rename</span>(obj) { obj.name <span class="op">=</span> <span class="str">"Bob"</span>; }
+<span class="fn">rename</span>(user);
+<span class="fn">console</span>.<span class="fn">log</span>(user.name); <span class="cmt">// "Bob" — original mutated!</span></pre>
+      <p class="iq-answer">This is why in React, you never mutate state directly. Mutating an object doesn't create a new reference, so React's shallow equality check doesn't detect the change and won't re-render.</p>
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <span class="iq-num">Q9</span>
+      <span class="iq-q">What does <code>typeof null === "object"</code> mean? Is it a bug?</span>
+      <span class="iq-level">Trivia / culture</span>
+      <span class="iq-chevron">›</span>
+    </div>
+    <div class="iq-body">
+      <p class="iq-answer">Yes, it is a bug — one of the most famous in JavaScript history. In the original JavaScript implementation (1995), values were stored with a type tag. The tag for objects was <code>000</code>. <code>null</code> was represented as the null pointer, which is also all zeros — so it was incorrectly classified as an object.</p>
+      <p class="iq-answer">A proposal to fix it (making <code>typeof null === "null"</code>) was rejected because it would break millions of existing websites. So we're stuck with it. The correct way to check for null is strict equality:</p>
+      <pre><span class="kw">const</span> val <span class="op">=</span> <span class="bool">null</span>;
+
+<span class="cmt">// Wrong — typeof null is "object"</span>
+<span class="kw">if</span> (<span class="kw">typeof</span> val <span class="op">===</span> <span class="str">"object"</span>) { <span class="cmt">/* triggered by null! */</span> }
+
+<span class="cmt">// Correct</span>
+<span class="kw">if</span> (val <span class="op">===</span> <span class="bool">null</span>) { <span class="cmt">/* safe */</span> }
+
+<span class="cmt">// Or check for non-null objects</span>
+<span class="kw">if</span> (val <span class="op">!==</span> <span class="bool">null</span> <span class="op">&&</span> <span class="kw">typeof</span> val <span class="op">===</span> <span class="str">"object"</span>) { <span class="cmt">/* true object */</span> }</pre>
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <span class="iq-num">Q10</span>
+      <span class="iq-q">What is the difference between <code>null</code> and <code>undefined</code>?</span>
+      <span class="iq-level">Common</span>
+      <span class="iq-chevron">›</span>
+    </div>
+    <div class="iq-body">
+      <p class="iq-answer"><code>undefined</code> means a variable has been declared but not yet assigned a value — it's JavaScript's way of saying "this hasn't been given a value yet." <code>null</code> is an intentional absence of value — a developer explicitly assigns it to mean "this is deliberately empty."</p>
+      <pre><span class="kw">let</span> x;            <span class="cmt">// undefined — never assigned</span>
+<span class="kw">let</span> y <span class="op">=</span> <span class="bool">null</span>;     <span class="cmt">// null — intentionally empty</span>
+
+<span class="cmt">// Function that hasn't returned anything</span>
+<span class="kw">const</span> <span class="fn">doNothing</span> <span class="op">=</span> () <span class="op">=></span> {};
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">doNothing</span>()); <span class="cmt">// undefined</span>
+
+<span class="cmt">// API response — user not loaded yet vs user doesn't exist</span>
+<span class="kw">let</span> user <span class="op">=</span> <span class="bool">undefined</span>; <span class="cmt">// loading...</span>
+user <span class="op">=</span> <span class="bool">null</span>;           <span class="cmt">// confirmed: no user found</span></pre>
+      <p class="iq-answer">In practice: prefer <code>null</code> over <code>undefined</code> when you want to explicitly represent "no value" — it communicates intent. Let JavaScript assign <code>undefined</code> naturally rather than assigning it yourself.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ REVIEW ═══════════════════ -->
+<div class="section" id="tab-review">
+  <div class="section-title">End-of-day review</div>
+  <p class="section-sub">Complete this at 22:00. Close all tabs first. Answer from memory — then check. Honesty here is what drives real learning.</p>
+
+  <div class="progress-label" id="prog-label">Progress: 0 / 8 checked</div>
+  <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+
+  <div id="checklist"></div>
+
+  <div class="note blue" style="margin-top: 24px;">
+    <strong>Night review ritual — do this every single day</strong>
+    Open a blank file. Without looking at anything, write: 3 variable declarations (one each of const, let, and var with an explanation of why you'd use or avoid each), a regular function and an arrow function that do the same thing, and a closure that maintains private state. If you get stuck, that's the exact thing to re-read tomorrow morning.
+  </div>
+
+  <div style="margin-top:24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px;">
+    <div style="font-size:15px; font-weight:500; margin-bottom:16px;">Tomorrow — Day 2 preview</div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+      <span style="font-size:13px; background:var(--tag-bg); padding:5px 12px; border-radius:6px; color:var(--muted);">Arrays — map, filter, reduce</span>
+      <span style="font-size:13px; background:var(--tag-bg); padding:5px 12px; border-radius:6px; color:var(--muted);">Objects and destructuring</span>
+      <span style="font-size:13px; background:var(--tag-bg); padding:5px 12px; border-radius:6px; color:var(--muted);">Spread and rest operators</span>
+      <span style="font-size:13px; background:var(--tag-bg); padding:5px 12px; border-radius:6px; color:var(--muted);">Optional chaining</span>
+      <span style="font-size:13px; background:var(--tag-bg); padding:5px 12px; border-radius:6px; color:var(--muted);">javascript.info ch 9–10</span>
+    </div>
+  </div>
+
+  <div style="margin-top:16px; text-align:center; padding: 16px 0;">
+    <button onclick="sendDay2()" style="font-size:14px; font-weight:500; padding:12px 32px; background:var(--js); color:#fff; border:none; border-radius:8px; cursor:pointer;">Generate Day 2 plan ↗</button>
+  </div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function runEx(n) {
+  const code = document.getElementById('ex' + n + '-code').value;
+  const out = document.getElementById('ex' + n + '-out');
+  out.style.display = 'block';
+  const logs = [];
+  const origLog = console.log;
+  console.log = (...args) => {
+    logs.push(args.map(a => {
+      if (a === null) return 'null';
+      if (a === undefined) return 'undefined';
+      if (typeof a === 'object') return JSON.stringify(a);
+      return String(a);
+    }).join(' '));
+  };
+  try {
+    eval(code);
+    out.textContent = logs.length ? logs.join('\n') : '(no output)';
+    out.style.color = '#a8ff78';
+  } catch(e) {
+    out.textContent = 'Error: ' + e.message;
+    out.style.color = '#ff7a7a';
+  }
+  console.log = origLog;
+}
+
+function toggleSol(n) {
+  const sol = document.getElementById('ex' + n + '-sol');
+  sol.style.display = sol.style.display === 'block' ? 'none' : 'block';
+}
+
+function toggleIQ(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.iq-chevron');
+  const isOpen = body.classList.contains('open');
+  document.querySelectorAll('.iq-body.open').forEach(b => {
+    b.classList.remove('open');
+    b.previousElementSibling.querySelector('.iq-chevron').style.transform = '';
+  });
+  if (!isOpen) {
+    body.classList.add('open');
+    chevron.style.transform = 'rotate(90deg)';
+  }
+}
+
+const checkItems = [
+  'I can explain the difference between var, let, and const without looking it up',
+  'I know all 6 falsy values in JavaScript by heart',
+  'I can write an arrow function with an implicit return',
+  'I understand why === is always preferred over ==',
+  'I can explain what a closure is using a real example',
+  'I understand the difference between pass-by-value and pass-by-reference',
+  'I completed at least 5 of the 8 exercises',
+  'I can explain the typeof null bug and why it exists',
+];
+
+const cl = document.getElementById('checklist');
+let checked = new Array(checkItems.length).fill(false);
+
+checkItems.forEach((item, i) => {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer;';
+  row.innerHTML = `
+    <div id="chk${i}" style="width:18px;height:18px;border:1.5px solid var(--border);border-radius:4px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;"></div>
+    <span style="font-size:14px;color:var(--muted);line-height:1.6;" id="chktxt${i}">${item}</span>`;
+  row.onclick = () => {
+    checked[i] = !checked[i];
+    const box = document.getElementById('chk' + i);
+    const txt = document.getElementById('chktxt' + i);
+    if (checked[i]) {
+      box.style.cssText = 'width:18px;height:18px;border:1.5px solid var(--js);border-radius:4px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;background:var(--js);';
+      box.innerHTML = '<svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1" fill="none" stroke="#fff" stroke-width="1.5"/></svg>';
+      txt.style.cssText = 'font-size:14px;color:var(--hint);line-height:1.6;text-decoration:line-through;';
+    } else {
+      box.style.cssText = 'width:18px;height:18px;border:1.5px solid var(--border);border-radius:4px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;';
+      box.innerHTML = '';
+      txt.style.cssText = 'font-size:14px;color:var(--muted);line-height:1.6;';
+    }
+    const count = checked.filter(Boolean).length;
+    document.getElementById('prog-label').textContent = `Progress: ${count} / ${checkItems.length} checked`;
+    document.getElementById('prog-fill').style.width = Math.round((count / checkItems.length) * 100) + '%';
+  };
+  cl.appendChild(row);
+});
+
+function sendDay2() {
+  window.location.href = 'day2_javascript_arrays_objects.html';
+}
+</script>
+</body>
+</html>

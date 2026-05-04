@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frontend + AI Developer Roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a26;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8e8f0;
+    --muted: #7070a0;
+    --accent1: #7c6aff;
+    --accent2: #ff6a8a;
+    --accent3: #00e5b0;
+    --accent4: #ffa347;
+    --accent5: #60c8ff;
+
+    --phase1: #7c6aff;
+    --phase2: #ff6a8a;
+    --phase3: #00e5b0;
+    --phase4: #ffa347;
+    --phase5: #60c8ff;
+    --phase6: #e060ff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 24px;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,106,255,0.15) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: pulse 6s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+  }
+
+  .hero-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent1);
+    border: 1px solid rgba(124,106,255,0.3);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 32px;
+    display: inline-block;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(42px, 7vw, 90px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-bottom: 12px;
+  }
+
+  .hero h1 span.grad {
+    background: linear-gradient(135deg, var(--accent1), var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(18px, 2.5vw, 26px);
+    color: var(--muted);
+    margin-bottom: 48px;
+    max-width: 600px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 56px;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    display: block;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+  }
+
+  .scroll-hint svg { opacity: 0.5; }
+
+  /* ── TIMELINE NAV ── */
+  .timeline-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .timeline-nav::-webkit-scrollbar { display: none; }
+
+  .nav-item {
+    flex-shrink: 0;
+    padding: 16px 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .nav-item:hover { color: var(--text); }
+
+  .nav-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── PHASE SECTIONS ── */
+  .phase {
+    padding: 100px 0;
+    position: relative;
+  }
+
+  .phase + .phase {
+    border-top: 1px solid var(--border);
+  }
+
+  .phase-header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 32px;
+    align-items: start;
+    margin-bottom: 60px;
+  }
+
+  .phase-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 80px;
+    font-weight: 800;
+    line-height: 1;
+    opacity: 0.12;
+    letter-spacing: -0.05em;
+  }
+
+  .phase-meta { padding-top: 8px; }
+
+  .phase-tag {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 100px;
+    display: inline-block;
+    margin-bottom: 12px;
+    border: 1px solid;
+  }
+
+  .phase-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .phase-duration {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .phase-desc {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 600px;
+    margin-bottom: 48px;
+    line-height: 1.7;
+  }
+
+  /* ── SKILL GRID ── */
+  .skill-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .skill-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .skill-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .skill-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .skill-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .skill-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .skill-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .skill-items li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .skill-items li::before {
+    content: '→';
+    flex-shrink: 0;
+    margin-top: 1px;
+    opacity: 0.5;
+  }
+
+  /* ── MILESTONE BLOCK ── */
+  .milestones {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+
+  .milestones-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .milestone-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .milestone {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .milestone-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .milestone-text {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .milestone-text strong {
+    font-weight: 500;
+    font-family: 'Syne', sans-serif;
+  }
+
+  /* ── PROJECT CARDS ── */
+  .projects {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .project-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .project-card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .project-card-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .project-tag {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* ── SALARY BAND ── */
+  .salary-band {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .salary-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .salary-range {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+  }
+
+  .salary-note {
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  /* ── TOOLS ROW ── */
+  .tools-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+
+  .tool-chip {
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── PHASE COLOR OVERRIDES ── */
+  .p1 .phase-number, .p1 .phase-title { color: var(--phase1); }
+  .p1 .phase-tag { color: var(--phase1); border-color: rgba(124,106,255,0.3); background: rgba(124,106,255,0.05); }
+  .p1 .skill-card:hover { border-color: rgba(124,106,255,0.3); }
+  .p1 .milestone-check { border-color: var(--phase1); color: var(--phase1); }
+  .p1 .salary-range { color: var(--phase1); }
+
+  .p2 .phase-number, .p2 .phase-title { color: var(--phase2); }
+  .p2 .phase-tag { color: var(--phase2); border-color: rgba(255,106,138,0.3); background: rgba(255,106,138,0.05); }
+  .p2 .skill-card:hover { border-color: rgba(255,106,138,0.3); }
+  .p2 .milestone-check { border-color: var(--phase2); color: var(--phase2); }
+  .p2 .salary-range { color: var(--phase2); }
+
+  .p3 .phase-number, .p3 .phase-title { color: var(--phase3); }
+  .p3 .phase-tag { color: var(--phase3); border-color: rgba(0,229,176,0.3); background: rgba(0,229,176,0.05); }
+  .p3 .skill-card:hover { border-color: rgba(0,229,176,0.3); }
+  .p3 .milestone-check { border-color: var(--phase3); color: var(--phase3); }
+  .p3 .salary-range { color: var(--phase3); }
+
+  .p4 .phase-number, .p4 .phase-title { color: var(--phase4); }
+  .p4 .phase-tag { color: var(--phase4); border-color: rgba(255,163,71,0.3); background: rgba(255,163,71,0.05); }
+  .p4 .skill-card:hover { border-color: rgba(255,163,71,0.3); }
+  .p4 .milestone-check { border-color: var(--phase4); color: var(--phase4); }
+  .p4 .salary-range { color: var(--phase4); }
+
+  .p5 .phase-number, .p5 .phase-title { color: var(--phase5); }
+  .p5 .phase-tag { color: var(--phase5); border-color: rgba(96,200,255,0.3); background: rgba(96,200,255,0.05); }
+  .p5 .skill-card:hover { border-color: rgba(96,200,255,0.3); }
+  .p5 .milestone-check { border-color: var(--phase5); color: var(--phase5); }
+  .p5 .salary-range { color: var(--phase5); }
+
+  .p6 .phase-number, .p6 .phase-title { color: var(--phase6); }
+  .p6 .phase-tag { color: var(--phase6); border-color: rgba(224,96,255,0.3); background: rgba(224,96,255,0.05); }
+  .p6 .skill-card:hover { border-color: rgba(224,96,255,0.3); }
+  .p6 .milestone-check { border-color: var(--phase6); color: var(--phase6); }
+  .p6 .salary-range { color: var(--phase6); }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  footer .footer-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .skill-icon.bg1 { background: rgba(124,106,255,0.15); }
+  .skill-icon.bg2 { background: rgba(255,106,138,0.15); }
+  .skill-icon.bg3 { background: rgba(0,229,176,0.15); }
+  .skill-icon.bg4 { background: rgba(255,163,71,0.15); }
+  .skill-icon.bg5 { background: rgba(96,200,255,0.15); }
+  .skill-icon.bg6 { background: rgba(224,96,255,0.15); }
+
+  @media (max-width: 640px) {
+    .phase-header { grid-template-columns: 1fr; gap: 16px; }
+    .phase-number { font-size: 56px; }
+    .hero-stats { gap: 24px; }
+    .salary-note { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-tag">📍 Complete Developer Roadmap 2025–2030+</div>
+  <h1>From <span class="grad">Zero</span> to<br>Senior Engineer</h1>
+  <p class="hero-sub">Frontend Development + Generative AI — a full journey from beginner to 8+ year expert</p>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <span class="stat-num" style="color:var(--accent1)">6</span>
+      <span class="stat-label">Career Phases</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" style="color:var(--accent2)">8+</span>
+      <span class="stat-label">Years Journey</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" style="color:var(--accent3)">200+</span>
+      <span class="stat-label">Skills Mapped</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" style="color:var(--accent4)">30+</span>
+      <span class="stat-label">Project Ideas</span>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>scroll to explore</span>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M8 3v10M3 9l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+</section>
+
+<!-- NAV -->
+<nav class="timeline-nav">
+  <a class="nav-item" href="#phase1"><span class="nav-dot" style="background:var(--phase1)"></span>Foundation</a>
+  <a class="nav-item" href="#phase2"><span class="nav-dot" style="background:var(--phase2)"></span>Core Frontend</a>
+  <a class="nav-item" href="#phase3"><span class="nav-dot" style="background:var(--phase3)"></span>Junior Dev</a>
+  <a class="nav-item" href="#phase4"><span class="nav-dot" style="background:var(--phase4)"></span>Mid-Level</a>
+  <a class="nav-item" href="#phase5"><span class="nav-dot" style="background:var(--phase5)"></span>Senior</a>
+  <a class="nav-item" href="#phase6"><span class="nav-dot" style="background:var(--phase6)"></span>AI + Expert</a>
+</nav>
+
+<!-- PHASES -->
+<main class="container">
+
+  <!-- ═══════════════════════════════════════════ PHASE 1 ═══ -->
+  <section class="phase p1" id="phase1">
+    <div class="phase-header">
+      <div class="phase-number">01</div>
+      <div class="phase-meta">
+        <span class="phase-tag">Months 0–3</span>
+        <h2 class="phase-title">The Foundation</h2>
+        <p class="phase-duration">⏱ 3 months · Complete Beginner → HTML/CSS/JS Basics</p>
+      </div>
+    </div>
+
+    <p class="phase-desc">Every skyscraper starts underground. This phase is about wiring your brain for programming logic and building the raw materials of the web — HTML structure, CSS styling, and JavaScript behavior.</p>
+
+    <div class="section-label">Core Skills</div>
+    <div class="skill-grid">
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg1">🌐</div>
+          <span class="skill-name">HTML Fundamentals</span>
+        </div>
+        <ul class="skill-items">
+          <li>Document structure: DOCTYPE, head, body</li>
+          <li>Semantic elements: header, nav, main, section, article, footer</li>
+          <li>Forms: input, select, textarea, labels, buttons</li>
+          <li>Tables, lists, images, links</li>
+          <li>HTML5 APIs: video, audio, canvas basics</li>
+          <li>Accessibility: ARIA roles, alt text, tab order</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg1">🎨</div>
+          <span class="skill-name">CSS Fundamentals</span>
+        </div>
+        <ul class="skill-items">
+          <li>Selectors: tag, class, ID, attribute, pseudo</li>
+          <li>Box model: margin, border, padding, content</li>
+          <li>Display: block, inline, inline-block, none</li>
+          <li>Positioning: static, relative, absolute, fixed, sticky</li>
+          <li>Flexbox — the most important layout tool</li>
+          <li>CSS Grid basics</li>
+          <li>Colors, fonts, units (px, %, rem, em, vh, vw)</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg1">⚡</div>
+          <span class="skill-name">JavaScript Basics</span>
+        </div>
+        <ul class="skill-items">
+          <li>Variables: var, let, const</li>
+          <li>Data types: string, number, boolean, array, object</li>
+          <li>Functions, scope, hoisting</li>
+          <li>Control flow: if/else, switch, ternary</li>
+          <li>Loops: for, while, forEach, map, filter</li>
+          <li>DOM manipulation: querySelector, addEventListener</li>
+          <li>Basic async: setTimeout, fetch API</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg1">🛠️</div>
+          <span class="skill-name">Dev Environment</span>
+        </div>
+        <ul class="skill-items">
+          <li>VS Code setup + essential extensions</li>
+          <li>Browser DevTools: Elements, Console, Network tabs</li>
+          <li>Git basics: init, add, commit, push, pull</li>
+          <li>GitHub: create repo, clone, README</li>
+          <li>Command line basics: cd, ls, mkdir, touch</li>
+          <li>Node.js & npm: install, run scripts</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-label">Milestone Projects</div>
+    <div class="projects">
+      <div class="project-card">
+        <div class="project-card-title">🧾 Personal Profile Page</div>
+        <div class="project-card-desc">A static HTML/CSS page with your photo, bio, and links. Practice semantic HTML + Flexbox layout.</div>
+        <span class="project-tag">HTML + CSS</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">🌦️ Weather Display</div>
+        <div class="project-card-desc">Hardcoded weather data displayed with CSS cards. Practice CSS Grid and responsive units.</div>
+        <span class="project-tag">HTML + CSS</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">🖩 JavaScript Calculator</div>
+        <div class="project-card-desc">A working calculator in the browser. Practice DOM events, functions, and logic.</div>
+        <span class="project-tag">JS + DOM</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">📝 Todo List App</div>
+        <div class="project-card-desc">Add, delete, and complete tasks stored in a JS array. Classic beginner full-feature project.</div>
+        <span class="project-tag">JS + LocalStorage</span>
+      </div>
+    </div>
+
+    <div class="section-label">Resources</div>
+    <div class="tools-row">
+      <span class="tool-chip">freeCodeCamp.org</span>
+      <span class="tool-chip">MDN Web Docs</span>
+      <span class="tool-chip">The Odin Project</span>
+      <span class="tool-chip">css-tricks.com</span>
+      <span class="tool-chip">javascript.info</span>
+      <span class="tool-chip">Flexbox Froggy</span>
+      <span class="tool-chip">CSS Grid Garden</span>
+    </div>
+
+    <div class="milestones">
+      <div class="milestones-title">✅ Phase Complete When You Can…</div>
+      <div class="milestone-list">
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text">Build a multi-section webpage from scratch without looking up basic HTML tags</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text">Center anything on the screen using Flexbox without Googling it</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text">Write a JS function that takes input and returns output with conditionals</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text">Push a project to GitHub with a proper README</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="salary-band">
+      <span class="salary-label">💰 Market Rate</span>
+      <span class="salary-range" style="color:var(--phase1)">Not job-ready yet</span>
+      <span class="salary-note">Keep building. This phase is pure investment.</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ PHASE 2 ═══ -->
+  <section class="phase p2" id="phase2">
+    <div class="phase-header">
+      <div class="phase-number">02</div>
+      <div class="phase-meta">
+        <span class="phase-tag">Months 3–9</span>
+        <h2 class="phase-title">Core Frontend Dev</h2>
+        <p class="phase-duration">⏱ 6 months · Fundamentals → Framework-Ready</p>
+      </div>
+    </div>
+
+    <p class="phase-desc">This is where you go from "I understand HTML" to "I can build real things." You'll learn responsive design, modern JavaScript, your first framework (React), and how real software teams work.</p>
+
+    <div class="section-label">Core Skills</div>
+    <div class="skill-grid">
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg2">📐</div>
+          <span class="skill-name">Responsive Design</span>
+        </div>
+        <ul class="skill-items">
+          <li>Mobile-first approach and methodology</li>
+          <li>Media queries: breakpoints, min/max-width</li>
+          <li>CSS Grid: template areas, auto-fill, minmax</li>
+          <li>Responsive images: srcset, picture element</li>
+          <li>CSS Custom Properties (variables)</li>
+          <li>CSS transitions and basic animations</li>
+          <li>SASS/SCSS: nesting, variables, mixins</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg2">🚀</div>
+          <span class="skill-name">Modern JavaScript (ES6+)</span>
+        </div>
+        <ul class="skill-items">
+          <li>Arrow functions, template literals</li>
+          <li>Destructuring: arrays and objects</li>
+          <li>Spread/rest operators</li>
+          <li>Promises, async/await</li>
+          <li>Modules: import/export</li>
+          <li>Classes and prototypal inheritance</li>
+          <li>Array methods: map, filter, reduce, find</li>
+          <li>Error handling: try/catch/finally</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg2">⚛️</div>
+          <span class="skill-name">React Fundamentals</span>
+        </div>
+        <ul class="skill-items">
+          <li>JSX syntax and component architecture</li>
+          <li>Props and state management</li>
+          <li>Hooks: useState, useEffect, useRef</li>
+          <li>Event handling in React</li>
+          <li>Conditional rendering and lists/keys</li>
+          <li>Component lifecycle understanding</li>
+          <li>React Router: navigation, params, routes</li>
+          <li>Fetching data from APIs</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg2">🔧</div>
+          <span class="skill-name">Dev Tools & Workflow</span>
+        </div>
+        <ul class="skill-items">
+          <li>Git branching: feature branches, merge, rebase</li>
+          <li>Pull requests, code reviews on GitHub</li>
+          <li>npm scripts, Vite or Create React App</li>
+          <li>ESLint + Prettier for code quality</li>
+          <li>Chrome DevTools: debugging, breakpoints</li>
+          <li>REST APIs: GET, POST, PUT, DELETE</li>
+          <li>Postman or Insomnia for API testing</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-label">Milestone Projects</div>
+    <div class="projects">
+      <div class="project-card">
+        <div class="project-card-title">🌍 Responsive Business Site</div>
+        <div class="project-card-desc">Multi-page site that works on all screen sizes. Use CSS Grid + media queries. Add a contact form.</div>
+        <span class="project-tag">HTML + CSS + Responsive</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">🎬 Movie Search App</div>
+        <div class="project-card-desc">Call the OMDB or TMDB API. Search for movies, display results in cards, click for details.</div>
+        <span class="project-tag">React + API</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">📊 Finance Tracker</div>
+        <div class="project-card-desc">Add income/expenses, show totals, filter by category. Use React state management + local storage.</div>
+        <span class="project-tag">React + State</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">💬 GitHub Profile Viewer</div>
+        <div class="project-card-desc">Search any GitHub username, display repos, stars, followers using the GitHub API.</div>
+        <span class="project-tag">React + GitHub API</span>
+      </div>
+    </div>
+
+    <div class="section-label">Tools to Learn</div>
+    <div class="tools-row">
+      <span class="tool-chip">React</span>
+      <span class="tool-chip">SASS/SCSS</span>
+      <span class="tool-chip">Vite</span>
+      <span class="tool-chip">Git / GitHub</span>
+      <span class="tool-chip">Postman</span>
+      <span class="tool-chip">ESLint</span>
+      <span class="tool-chip">Prettier</span>
+      <span class="tool-chip">Tailwind CSS</span>
+      <span class="tool-chip">Figma (basics)</span>
+    </div>
+
+    <div class="milestones">
+      <div class="milestones-title">✅ Phase Complete When You Can…</div>
+      <div class="milestone-list">
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Build a multi-page React app</strong> that fetches real API data and handles loading/error states</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Make any site fully responsive</strong> without using a framework like Bootstrap</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Use Git branching</strong> with meaningful commit messages and create pull requests</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Debug your own bugs</strong> using console + DevTools without immediately Googling the error</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="salary-band">
+      <span class="salary-label">💰 Internship / Entry Potential</span>
+      <span class="salary-range">$30k–$55k</span>
+      <span class="salary-note">India: ₹3–8 LPA · US: $40–65k</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ PHASE 3 ═══ -->
+  <section class="phase p3" id="phase3">
+    <div class="phase-header">
+      <div class="phase-number">03</div>
+      <div class="phase-meta">
+        <span class="phase-tag">Year 1–2</span>
+        <h2 class="phase-title">Junior Developer</h2>
+        <p class="phase-duration">⏱ 12–18 months · First Job → Productive Team Member</p>
+      </div>
+    </div>
+
+    <p class="phase-desc">You're employed. Now the real learning begins. This phase is about surviving and thriving on a real team — understanding codebases you didn't write, shipping features under deadlines, and learning the craft of production code.</p>
+
+    <div class="section-label">Core Skills</div>
+    <div class="skill-grid">
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg3">⚛️</div>
+          <span class="skill-name">Advanced React</span>
+        </div>
+        <ul class="skill-items">
+          <li>Custom hooks: encapsulate reusable logic</li>
+          <li>Context API for global state</li>
+          <li>useMemo, useCallback for performance</li>
+          <li>Code splitting and lazy loading</li>
+          <li>React Query / TanStack Query for server state</li>
+          <li>Form libraries: React Hook Form, Formik</li>
+          <li>Component composition patterns</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg3">🧪</div>
+          <span class="skill-name">Testing</span>
+        </div>
+        <ul class="skill-items">
+          <li>Unit testing with Jest</li>
+          <li>Component testing: React Testing Library</li>
+          <li>Test-driven development (TDD) basics</li>
+          <li>Mocking API calls in tests</li>
+          <li>E2E testing with Cypress or Playwright</li>
+          <li>Code coverage reports</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg3">📦</div>
+          <span class="skill-name">State Management</span>
+        </div>
+        <ul class="skill-items">
+          <li>Redux Toolkit: slices, thunks, selectors</li>
+          <li>Zustand: lightweight alternative</li>
+          <li>When to use global vs local state</li>
+          <li>Derived state and memoization</li>
+          <li>Optimistic UI updates</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg3">🌐</div>
+          <span class="skill-name">TypeScript</span>
+        </div>
+        <ul class="skill-items">
+          <li>Types vs interfaces</li>
+          <li>Generics and utility types</li>
+          <li>Typing React components and hooks</li>
+          <li>Enums and union types</li>
+          <li>tsconfig and strict mode</li>
+          <li>Type narrowing and guards</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg3">🔄</div>
+          <span class="skill-name">Team & Process Skills</span>
+        </div>
+        <ul class="skill-items">
+          <li>Agile/Scrum: standups, sprints, retros</li>
+          <li>Jira or Linear for ticket management</li>
+          <li>Code review etiquette: give and receive feedback</li>
+          <li>Reading other people's code effectively</li>
+          <li>Writing meaningful commit messages</li>
+          <li>Documentation: JSDoc, README updates</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg3">🎯</div>
+          <span class="skill-name">CSS Mastery</span>
+        </div>
+        <ul class="skill-items">
+          <li>Tailwind CSS: utility-first deep dive</li>
+          <li>CSS-in-JS: styled-components, Emotion</li>
+          <li>CSS Modules for scoped styles</li>
+          <li>Animation: keyframes, Web Animations API</li>
+          <li>Design tokens and theming systems</li>
+          <li>Storybook for component documentation</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-label">Milestone Projects</div>
+    <div class="projects">
+      <div class="project-card">
+        <div class="project-card-title">🛒 E-commerce Store</div>
+        <div class="project-card-desc">Product listing, cart with state management, checkout form with validation. Full TypeScript.</div>
+        <span class="project-tag">React + Redux + TS</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">📋 Project Management Tool</div>
+        <div class="project-card-desc">Kanban board with drag-and-drop. Create, edit, delete tasks. Persist with a real backend or Firebase.</div>
+        <span class="project-tag">React + Firebase</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">💬 Real-time Chat App</div>
+        <div class="project-card-desc">WebSocket-based messaging with rooms, user presence indicators, and message history.</div>
+        <span class="project-tag">React + WebSockets</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">📊 Analytics Dashboard</div>
+        <div class="project-card-desc">Charts (Chart.js or Recharts), date range filters, multiple data sources, dark/light mode toggle.</div>
+        <span class="project-tag">React + Data Viz</span>
+      </div>
+    </div>
+
+    <div class="section-label">Also Learn</div>
+    <div class="tools-row">
+      <span class="tool-chip">TypeScript</span>
+      <span class="tool-chip">Jest</span>
+      <span class="tool-chip">React Testing Library</span>
+      <span class="tool-chip">Redux Toolkit</span>
+      <span class="tool-chip">React Query</span>
+      <span class="tool-chip">Storybook</span>
+      <span class="tool-chip">Cypress</span>
+      <span class="tool-chip">Firebase</span>
+      <span class="tool-chip">Figma (intermediate)</span>
+      <span class="tool-chip">Webpack basics</span>
+    </div>
+
+    <div class="milestones">
+      <div class="milestones-title">✅ Phase Complete When You Can…</div>
+      <div class="milestone-list">
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Write typed React components</strong> end-to-end in TypeScript with no "any" types</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Write unit and integration tests</strong> that give you confidence before deploying</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Navigate a large codebase</strong> you didn't write and make changes without breaking things</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Receive critical code review</strong> and improve your code without taking it personally</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="salary-band">
+      <span class="salary-label">💰 Junior Developer</span>
+      <span class="salary-range">$55k–$85k</span>
+      <span class="salary-note">India: ₹6–15 LPA · US: $65–95k</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ PHASE 4 ═══ -->
+  <section class="phase p4" id="phase4">
+    <div class="phase-header">
+      <div class="phase-number">04</div>
+      <div class="phase-meta">
+        <span class="phase-tag">Year 2–5</span>
+        <h2 class="phase-title">Mid-Level Engineer</h2>
+        <p class="phase-duration">⏱ 2–3 years · Reliable contributor → Technical decision maker</p>
+      </div>
+    </div>
+
+    <p class="phase-desc">This is the longest and most transformative phase. You shift from executing tasks to owning systems. You start to see the full picture: performance, scalability, architecture, and team velocity. Others start asking for your opinion.</p>
+
+    <div class="section-label">Core Skills</div>
+    <div class="skill-grid">
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg4">🏗️</div>
+          <span class="skill-name">Frontend Architecture</span>
+        </div>
+        <ul class="skill-items">
+          <li>Feature-based folder structure and monorepos</li>
+          <li>Design system architecture and component libraries</li>
+          <li>Micro-frontend patterns</li>
+          <li>Module federation with Webpack 5</li>
+          <li>Nx or Turborepo for monorepo management</li>
+          <li>Dependency injection patterns in frontend</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg4">⚡</div>
+          <span class="skill-name">Performance Engineering</span>
+        </div>
+        <ul class="skill-items">
+          <li>Core Web Vitals: LCP, FID, CLS — measure and fix</li>
+          <li>Bundle analysis: webpack-bundle-analyzer</li>
+          <li>Code splitting, tree shaking, lazy loading</li>
+          <li>Image optimization: WebP, AVIF, srcset, lazy</li>
+          <li>Caching strategies: HTTP headers, Service Workers</li>
+          <li>Virtual scrolling for large lists</li>
+          <li>React profiler and performance audits</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg4">🔐</div>
+          <span class="skill-name">Backend & APIs</span>
+        </div>
+        <ul class="skill-items">
+          <li>Node.js + Express: build your own REST API</li>
+          <li>GraphQL: queries, mutations, Apollo Client</li>
+          <li>Authentication: JWT, OAuth 2.0, session cookies</li>
+          <li>SQL basics: PostgreSQL queries, joins, indexes</li>
+          <li>ORMs: Prisma or Drizzle</li>
+          <li>REST vs GraphQL vs tRPC trade-offs</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg4">☁️</div>
+          <span class="skill-name">DevOps & Deployment</span>
+        </div>
+        <ul class="skill-items">
+          <li>CI/CD pipelines: GitHub Actions</li>
+          <li>Docker: containers, docker-compose</li>
+          <li>Vercel, Netlify, AWS S3 + CloudFront</li>
+          <li>Environment variables and secrets management</li>
+          <li>Error monitoring: Sentry</li>
+          <li>Logging and observability basics</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg4">📐</div>
+          <span class="skill-name">Next.js / Meta-Frameworks</span>
+        </div>
+        <ul class="skill-items">
+          <li>App Router vs Pages Router</li>
+          <li>SSR, SSG, ISR — when to use each</li>
+          <li>Server Components and Client Components</li>
+          <li>API routes and middleware</li>
+          <li>Edge runtime and streaming</li>
+          <li>Image and font optimization built-ins</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg4">🧠</div>
+          <span class="skill-name">Engineering Maturity</span>
+        </div>
+        <ul class="skill-items">
+          <li>SOLID principles in frontend context</li>
+          <li>Design patterns: Observer, Factory, Singleton, Strategy</li>
+          <li>Refactoring legacy code safely</li>
+          <li>Technical debt: identifying and communicating it</li>
+          <li>Writing technical specs and proposals (RFCs)</li>
+          <li>Mentoring junior developers</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-label">Milestone Projects</div>
+    <div class="projects">
+      <div class="project-card">
+        <div class="project-card-title">🏢 Full-Stack SaaS App</div>
+        <div class="project-card-desc">Authentication, subscriptions (Stripe), dashboard, user settings. Next.js + Prisma + PostgreSQL.</div>
+        <span class="project-tag">Next.js + Full Stack</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">🎨 Component Library</div>
+        <div class="project-card-desc">Build and publish a reusable UI library to npm with Storybook docs and full TypeScript types.</div>
+        <span class="project-tag">React + npm publish</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">📈 Performance Audit & Fix</div>
+        <div class="project-card-desc">Take an existing slow app, audit it with Lighthouse, and document + implement improvements.</div>
+        <span class="project-tag">Performance Engineering</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">🔌 GraphQL API</div>
+        <div class="project-card-desc">Design a schema, implement resolvers, connect to a DB. Consume from React with Apollo Client.</div>
+        <span class="project-tag">GraphQL + Node</span>
+      </div>
+    </div>
+
+    <div class="section-label">Ecosystem to Master</div>
+    <div class="tools-row">
+      <span class="tool-chip">Next.js</span>
+      <span class="tool-chip">Node.js</span>
+      <span class="tool-chip">GraphQL</span>
+      <span class="tool-chip">Docker</span>
+      <span class="tool-chip">PostgreSQL</span>
+      <span class="tool-chip">Prisma</span>
+      <span class="tool-chip">GitHub Actions</span>
+      <span class="tool-chip">AWS / Vercel</span>
+      <span class="tool-chip">Sentry</span>
+      <span class="tool-chip">Lighthouse</span>
+      <span class="tool-chip">Nx / Turborepo</span>
+    </div>
+
+    <div class="milestones">
+      <div class="milestones-title">✅ Phase Complete When You Can…</div>
+      <div class="milestone-list">
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Design the architecture</strong> of a new feature without being told how to approach it</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Identify and fix performance issues</strong> using profiling tools, achieving measurable gains</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Build and deploy a full-stack app</strong> with auth, database, and CI/CD pipeline</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Mentor a junior developer</strong> through a bug or feature without just writing the code for them</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="salary-band">
+      <span class="salary-label">💰 Mid-Level Engineer</span>
+      <span class="salary-range">$85k–$130k</span>
+      <span class="salary-note">India: ₹15–35 LPA · US: $100–150k</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ PHASE 5 ═══ -->
+  <section class="phase p5" id="phase5">
+    <div class="phase-header">
+      <div class="phase-number">05</div>
+      <div class="phase-meta">
+        <span class="phase-tag">Year 5–7</span>
+        <h2 class="phase-title">Senior Engineer</h2>
+        <p class="phase-duration">⏱ 2–3 years · Technical authority → Organizational impact</p>
+      </div>
+    </div>
+
+    <p class="phase-desc">At this level, your impact is no longer measured in features shipped — it's measured in teams elevated, systems made more reliable, and decisions that save months of work. You're a force multiplier.</p>
+
+    <div class="section-label">Core Skills</div>
+    <div class="skill-grid">
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg5">🏛️</div>
+          <span class="skill-name">System Design</span>
+        </div>
+        <ul class="skill-items">
+          <li>Scalable frontend architecture for large teams</li>
+          <li>Design system governance and versioning</li>
+          <li>Cross-team API contracts and versioning</li>
+          <li>Distributed state management at scale</li>
+          <li>Real-time architectures: WebSockets, SSE, polling</li>
+          <li>CDN strategy and edge computing</li>
+          <li>Offline-first and PWA architecture</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg5">🔒</div>
+          <span class="skill-name">Security & Reliability</span>
+        </div>
+        <ul class="skill-items">
+          <li>OWASP Top 10: XSS, CSRF, injection attacks</li>
+          <li>Content Security Policy (CSP) implementation</li>
+          <li>HTTPS, HSTS, certificate management</li>
+          <li>Rate limiting and DDoS mitigation</li>
+          <li>Error boundaries and graceful degradation</li>
+          <li>Feature flags for safe deployments</li>
+          <li>A/B testing frameworks</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg5">♿</div>
+          <span class="skill-name">Accessibility (a11y)</span>
+        </div>
+        <ul class="skill-items">
+          <li>WCAG 2.1 AA compliance end-to-end</li>
+          <li>Screen reader testing: NVDA, VoiceOver</li>
+          <li>Keyboard navigation and focus management</li>
+          <li>ARIA patterns for complex widgets</li>
+          <li>Color contrast and visual accessibility</li>
+          <li>axe DevTools and automated a11y CI checks</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg5">👥</div>
+          <span class="skill-name">Leadership & Influence</span>
+        </div>
+        <ul class="skill-items">
+          <li>Technical interviews: conducting and designing them</li>
+          <li>Architecture Decision Records (ADRs)</li>
+          <li>Cross-functional collaboration with Product & Design</li>
+          <li>Engineering roadmap contribution</li>
+          <li>Breaking down complex work into sprint-sized tasks</li>
+          <li>Presenting technical trade-offs to non-technical stakeholders</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg5">📊</div>
+          <span class="skill-name">Observability & Ops</span>
+        </div>
+        <ul class="skill-items">
+          <li>Real User Monitoring (RUM) with Datadog or New Relic</li>
+          <li>Synthetic monitoring and uptime alerts</li>
+          <li>On-call rotations and incident response</li>
+          <li>Postmortems: blameless and actionable</li>
+          <li>SLOs, SLAs, SLIs for frontend services</li>
+          <li>Kubernetes basics for frontend deployment</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg5">🔬</div>
+          <span class="skill-name">Advanced Patterns</span>
+        </div>
+        <ul class="skill-items">
+          <li>Compiler and build tool internals (Rollup, esbuild)</li>
+          <li>Custom Babel/PostCSS plugins</li>
+          <li>Browser rendering pipeline deep dive</li>
+          <li>Memory leak detection and heap profiling</li>
+          <li>WebAssembly (WASM) for performance-critical code</li>
+          <li>Web Workers for off-main-thread computation</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-label">Impact at This Level</div>
+    <div class="projects">
+      <div class="project-card">
+        <div class="project-card-title">🏗️ Platform Migration</div>
+        <div class="project-card-desc">Lead migrating a legacy Angular app to React/Next.js — plan, execute, and ship without breaking production.</div>
+        <span class="project-tag">Architecture Leadership</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">📦 Internal Design System</div>
+        <div class="project-card-desc">Create the company's component library. Define tokens, patterns, governance. Used by multiple teams.</div>
+        <span class="project-tag">Design Systems</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">🚀 Performance Initiative</div>
+        <div class="project-card-desc">Improve app-wide Core Web Vitals scores. Measurable business impact (conversion, retention).</div>
+        <span class="project-tag">CWV + Business Metrics</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">🧑‍🏫 Engineering Guild</div>
+        <div class="project-card-desc">Start or lead a frontend guild. Weekly tech talks, shared best practices, cross-team code standards.</div>
+        <span class="project-tag">People Multiplier</span>
+      </div>
+    </div>
+
+    <div class="milestones">
+      <div class="milestones-title">✅ Phase Complete When You Can…</div>
+      <div class="milestone-list">
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Own an entire system end-to-end</strong> — from architecture to deployment to on-call</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Influence engineering culture</strong> through writing, talks, or standards that others adopt</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Say no to bad ideas</strong> with data and alternatives, and have people respect that</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Onboard a new team member</strong> from zero to productive in under two weeks</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="salary-band">
+      <span class="salary-label">💰 Senior Engineer</span>
+      <span class="salary-range">$130k–$200k</span>
+      <span class="salary-note">India: ₹35–80 LPA · US: $140–250k+</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ PHASE 6 ═══ -->
+  <section class="phase p6" id="phase6">
+    <div class="phase-header">
+      <div class="phase-number">06</div>
+      <div class="phase-meta">
+        <span class="phase-tag">Year 7–8+ · The Frontier</span>
+        <h2 class="phase-title">AI-Integrated Expert</h2>
+        <p class="phase-duration">⏱ Ongoing · Senior → AI-Native Frontend Expert & Architect</p>
+      </div>
+    </div>
+
+    <p class="phase-desc">The final phase doesn't have a finish line. This is where your years of deep frontend mastery meet the explosive world of Generative and Agentic AI. You don't just use AI tools — you build products powered by them.</p>
+
+    <div class="section-label">Generative AI Skills</div>
+    <div class="skill-grid">
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg6">🤖</div>
+          <span class="skill-name">LLM API Integration</span>
+        </div>
+        <ul class="skill-items">
+          <li>OpenAI, Anthropic Claude, Google Gemini APIs</li>
+          <li>Prompt engineering: system prompts, few-shot examples</li>
+          <li>Streaming responses with Server-Sent Events</li>
+          <li>Function calling / tool use with LLMs</li>
+          <li>Token management and cost optimization</li>
+          <li>Model selection: trade-offs of speed vs quality vs cost</li>
+          <li>Fine-tuning concepts and when to use them</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg6">🔗</div>
+          <span class="skill-name">RAG & Knowledge Systems</span>
+        </div>
+        <ul class="skill-items">
+          <li>Embeddings: what they are and how to generate them</li>
+          <li>Vector databases: Pinecone, Weaviate, pgvector</li>
+          <li>Retrieval-Augmented Generation (RAG) pipeline</li>
+          <li>Chunking strategies for documents</li>
+          <li>Semantic search implementation</li>
+          <li>Hybrid search: keyword + semantic</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg6">🕸️</div>
+          <span class="skill-name">Agentic AI Systems</span>
+        </div>
+        <ul class="skill-items">
+          <li>LangChain / LangGraph for agent workflows</li>
+          <li>Multi-agent orchestration patterns</li>
+          <li>Tool use: giving AI access to APIs, databases</li>
+          <li>Human-in-the-loop design patterns</li>
+          <li>Agent memory: short-term, long-term, episodic</li>
+          <li>Evaluation and testing AI agents</li>
+          <li>MCP (Model Context Protocol) integrations</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg6">🎨</div>
+          <span class="skill-name">AI-Powered UI Patterns</span>
+        </div>
+        <ul class="skill-items">
+          <li>Chat interfaces with streaming + markdown rendering</li>
+          <li>AI copilot sidebars and inline suggestions</li>
+          <li>Vercel AI SDK for React/Next.js apps</li>
+          <li>Progressive loading for AI responses</li>
+          <li>Feedback loops: thumbs up/down, regenerate</li>
+          <li>Responsible AI UI: citations, confidence, disclaimers</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg6">🐍</div>
+          <span class="skill-name">Python for AI</span>
+        </div>
+        <ul class="skill-items">
+          <li>Python fundamentals for scripting and automation</li>
+          <li>FastAPI: build AI backend services</li>
+          <li>LangChain, LlamaIndex, CrewAI frameworks</li>
+          <li>Jupyter notebooks for prototyping</li>
+          <li>Data manipulation with pandas</li>
+          <li>Deploying Python microservices to cloud</li>
+        </ul>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div class="skill-icon bg6">🎯</div>
+          <span class="skill-name">AI Product Strategy</span>
+        </div>
+        <ul class="skill-items">
+          <li>Identifying where AI adds genuine value vs hype</li>
+          <li>AI evaluation: accuracy, latency, cost metrics</li>
+          <li>Guardrails and content moderation for AI outputs</li>
+          <li>Privacy: what data can/can't go to LLM APIs</li>
+          <li>AI product metrics: task completion, deflection rate</li>
+          <li>Prompt injection and AI security concerns</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-label">Expert-Level Projects to Build</div>
+    <div class="projects">
+      <div class="project-card">
+        <div class="project-card-title">🧠 AI Research Assistant</div>
+        <div class="project-card-desc">Upload PDFs, embed them in a vector DB, ask questions. Full RAG pipeline with streaming chat UI.</div>
+        <span class="project-tag">RAG + React + Python</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">✍️ AI Writing Copilot</div>
+        <div class="project-card-desc">Inline suggestions, tone rewriting, auto-complete. Like Notion AI built from scratch.</div>
+        <span class="project-tag">LLM + Rich Text Editor</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">🤖 Autonomous AI Agent</div>
+        <div class="project-card-desc">Agent that browses the web, reads emails, and creates Jira tickets. Multi-step, multi-tool workflow.</div>
+        <span class="project-tag">Agentic AI + LangGraph</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">🏢 Enterprise AI Chatbot</div>
+        <div class="project-card-desc">Company knowledge base chatbot with auth, usage analytics, prompt guardrails, and admin UI.</div>
+        <span class="project-tag">Production AI System</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">🔊 Voice AI Interface</div>
+        <div class="project-card-desc">Real-time voice input/output with Whisper + TTS. Build a voice-first AI assistant in the browser.</div>
+        <span class="project-tag">Speech + LLM + WebRTC</span>
+      </div>
+      <div class="project-card">
+        <div class="project-card-title">🎨 AI Design Tool</div>
+        <div class="project-card-desc">Describe a UI in natural language, generate React components in real time. Like v0.dev but custom.</div>
+        <span class="project-tag">Code Generation + AI</span>
+      </div>
+    </div>
+
+    <div class="section-label">AI Ecosystem Tools</div>
+    <div class="tools-row">
+      <span class="tool-chip">OpenAI API</span>
+      <span class="tool-chip">Anthropic Claude API</span>
+      <span class="tool-chip">LangChain</span>
+      <span class="tool-chip">LangGraph</span>
+      <span class="tool-chip">Pinecone</span>
+      <span class="tool-chip">Vercel AI SDK</span>
+      <span class="tool-chip">FastAPI</span>
+      <span class="tool-chip">LlamaIndex</span>
+      <span class="tool-chip">Hugging Face</span>
+      <span class="tool-chip">Ollama (local LLMs)</span>
+      <span class="tool-chip">CrewAI</span>
+      <span class="tool-chip">Supabase pgvector</span>
+    </div>
+
+    <div class="section-label">Certifications Worth Getting</div>
+    <div class="tools-row">
+      <span class="tool-chip">DeepLearning.AI Short Courses</span>
+      <span class="tool-chip">Google Cloud AI Professional</span>
+      <span class="tool-chip">AWS Certified ML Specialty</span>
+      <span class="tool-chip">Anthropic Partner Certification</span>
+      <span class="tool-chip">LangChain Academy</span>
+    </div>
+
+    <div class="milestones">
+      <div class="milestones-title">✅ You Are at Expert Level When…</div>
+      <div class="milestone-list">
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>You can build a production AI product</strong> from idea to deployment without needing a data scientist</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>You evaluate AI tool trade-offs</strong> and make build vs buy decisions for AI features</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>You define the AI roadmap</strong> for products and align engineering, product, and business</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-check">✓</div>
+          <div class="milestone-text"><strong>Others seek you out</strong> as the go-to person for AI-integrated frontend decisions</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="salary-band">
+      <span class="salary-label">💰 AI-Integrated Senior / Staff</span>
+      <span class="salary-range">$180k–$350k+</span>
+      <span class="salary-note">India: ₹60–180 LPA · US FAANG/AI startups: $200–500k+ total comp</span>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-title">The Journey Never Ends</div>
+    <p style="color:var(--muted); max-width:500px; margin: 12px auto 0; font-size:13px; line-height:1.7;">
+      Technology evolves. The best engineers aren't the ones who learned the most — they're the ones who never stopped learning. Ship things. Break things. Fix them. Repeat.
+    </p>
+    <div style="margin-top:32px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <span style="background:var(--surface); border:1px solid var(--border); padding:6px 16px; border-radius:100px; font-size:11px; color:var(--muted);">Frontend Developer Roadmap 2025</span>
+      <span style="background:var(--surface); border:1px solid var(--border); padding:6px 16px; border-radius:100px; font-size:11px; color:var(--muted);">Gen AI Integration Guide</span>
+      <span style="background:var(--surface); border:1px solid var(--border); padding:6px 16px; border-radius:100px; font-size:11px; color:var(--muted);">0 → 8+ Years Experience</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

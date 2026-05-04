@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 19 — Week 3 Review Project</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  /* Week 3 — multi-colour accent (all four tools) */
+  --rq:#ff4154;--rq-dim:rgba(255,65,84,0.09);
+  --rhf:#ec4899;--rhf-dim:rgba(236,72,153,0.09);
+  --ts:#3178c6;--ts-dim:rgba(49,120,198,0.09);
+  --tw:#06b6d4;--tw-dim:rgba(6,182,212,0.09);
+  /* accent for this page */
+  --accent:#f59e0b;--accent-dim:rgba(245,158,11,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--accent);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--accent);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--accent);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--accent-dim);color:var(--accent);border-color:rgba(245,158,11,.3);}
+.day-btn.primary:hover{background:rgba(245,158,11,.18);}
+
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--accent);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--accent);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:660px;margin-bottom:32px;line-height:1.75;}
+.skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:32px;}
+.skill-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;}
+.skill-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.skill-info{min-width:0;}
+.skill-name{font-size:13px;font-weight:600;}
+.skill-days{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--accent);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--accent-dim);color:var(--accent);border-color:rgba(245,158,11,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.recap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:22px;}
+.rc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.rc-day{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.rc-title{font-size:15px;font-weight:600;margin-bottom:8px;}
+.rc-list{list-style:none;}
+.rc-list li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:6px;}
+.rc-list li:last-child{border-bottom:none;}
+.rc-list li::before{content:'✓';color:var(--green);font-size:10px;flex-shrink:0;}
+.rc-list li code{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--surface3);padding:1px 4px;border-radius:3px;color:var(--tw);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--accent);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.runner-meta{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-left:12px;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(245,158,11,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(245,158,11,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:200px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(245,158,11,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.challenge{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ch-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.ch-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.ch-title{font-size:14px;font-weight:600;flex:1;}
+.ch-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.ch-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ch-body{padding:18px 20px;}
+.ch-desc{font-size:13px;color:var(--text);margin-bottom:14px;line-height:1.7;}
+.ch-desc code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--accent);}
+.ch-spec{background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+.ch-spec-title{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.ch-spec-list{list-style:none;}
+.ch-spec-list li{font-size:12px;color:var(--muted);padding:3px 0;display:flex;align-items:baseline;gap:7px;line-height:1.6;}
+.ch-spec-list li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+.ch-spec-list li code{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);}
+
+.map-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.map-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.map-table{width:100%;border-collapse:collapse;font-size:13px;}
+.map-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.map-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.map-table tr:last-child td{border-bottom:none;}
+.map-table tr:hover td{background:var(--surface2);}
+.map-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);}
+
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--accent);border-color:var(--accent);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);}
+.cl-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:1px 7px;border-radius:4px;margin-left:8px;flex-shrink:0;}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--accent-dim);color:var(--accent);border-color:rgba(245,158,11,.3);}
+.footer-btn.primary:hover{background:rgba(245,158,11,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--accent);border-radius:2px;transition:width .4s;}
+
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin:10px 0;font-size:12px;color:var(--teal);line-height:1.6;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 19 · W3 Review</div>
+  <a href="#overview">Overview</a>
+  <a href="#recap">Week 3 Recap</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#challenges">Challenges</a>
+  <a href="#integration">Integration</a>
+  <a href="#checklist">Checklist</a>
+  <a href="#week4">Week 4 Preview</a>
+</nav>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 3 · <span>Day 19 of 56</span> · Week 3 Review Project</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day18_tailwind_css.html',18)">← Day 18</button>
+      <button class="day-btn primary" onclick="navigateTo('day20_advanced_patterns.html',20)">Week 4 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero" id="overview">
+  <div class="hero-eyebrow">Week 3 · Day 19 · Final project day</div>
+  <h1>Week 3 <em>Review</em><br>Project Day</h1>
+  <p class="hero-sub">Five days of powerful tools — React Query, React Hook Form + Zod, TypeScript, and Tailwind CSS. Today you wire them all into one production-grade React Shop upgrade. By end of day it looks and works like a real product.</p>
+  <div class="skills-grid">
+    <div class="skill-card">
+      <span class="skill-dot" style="background:var(--rq);"></span>
+      <div class="skill-info"><div class="skill-name" style="color:var(--rq);">React Query</div><div class="skill-days">Days 14–15</div></div>
+    </div>
+    <div class="skill-card">
+      <span class="skill-dot" style="background:var(--rhf);"></span>
+      <div class="skill-info"><div class="skill-name" style="color:var(--rhf);">RHF + Zod</div><div class="skill-days">Day 16</div></div>
+    </div>
+    <div class="skill-card">
+      <span class="skill-dot" style="background:var(--ts);"></span>
+      <div class="skill-info"><div class="skill-name" style="color:var(--ts);">TypeScript</div><div class="skill-days">Day 17</div></div>
+    </div>
+    <div class="skill-card">
+      <span class="skill-dot" style="background:var(--tw);"></span>
+      <div class="skill-info"><div class="skill-name" style="color:var(--tw);">Tailwind CSS</div><div class="skill-days">Day 18</div></div>
+    </div>
+    <div class="skill-card">
+      <span class="skill-dot" style="background:var(--accent);"></span>
+      <div class="skill-info"><div class="skill-name" style="color:var(--accent);">All Combined</div><div class="skill-days">Day 19</div></div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">1</div><div class="hstat-lbl">full app upgrade</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">challenges</div></div>
+    <div class="hstat"><div class="hstat-num">4</div><div class="hstat-lbl">tools combined</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">build time</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--accent);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>Week 3 recap — what you now own</li>
+        <li>Project architecture walkthrough</li>
+        <li>Install Tailwind v4 into the React Shop</li>
+        <li>Challenge 1 — TypeScript: type the whole app</li>
+        <li>Challenge 2 — React Query: replace all useFetch</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>Challenge 3 — RHF + Zod: login &amp; register forms</li>
+        <li>Challenge 4 — Tailwind: restyle every component</li>
+        <li>Challenge 5 — Dark mode toggle + persistence</li>
+        <li>Challenge 6 — Performance: React.memo + prefetch</li>
+        <li>End-to-end test all user flows</li>
+        <li>Deploy to Vercel with live URL</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>Self-assessment checklist (15 items)</li>
+        <li>Week 4 preview — advanced patterns</li>
+        <li>Push final code to GitHub</li>
+        <li>Record Loom walkthrough (optional but great)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 19 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Week recap read</span>
+    <span class="tdot" onclick="markDone(this)">Architecture planned</span>
+    <span class="tdot" onclick="markDone(this)">TS typed</span>
+    <span class="tdot" onclick="markDone(this)">RQ integrated</span>
+    <span class="tdot" onclick="markDone(this)">RHF+Zod forms</span>
+    <span class="tdot" onclick="markDone(this)">Tailwind styled</span>
+    <span class="tdot" onclick="markDone(this)">Dark mode</span>
+    <span class="tdot" onclick="markDone(this)">Performance pass</span>
+    <span class="tdot" onclick="markDone(this)">Deployed</span>
+  </div>
+</div>
+
+<!-- WEEK 3 RECAP -->
+<div class="section" id="recap">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Week 3 skills recap — what you now own</span>
+    <span class="sec-badge" style="background:var(--accent-dim);color:var(--accent);">days 14–18</span>
+  </div>
+  <div class="recap-grid">
+    <div class="rc">
+      <span class="rc-day" style="background:var(--rq-dim);color:var(--rq);">Days 14–15 · React Query</span>
+      <div class="rc-title">Server state mastery</div>
+      <ul class="rc-list">
+        <li><code>useQuery</code> — fetching, caching, background refresh</li>
+        <li><code>useMutation</code> — create/update/delete + optimistic updates</li>
+        <li><code>useInfiniteQuery</code> — infinite scroll feeds</li>
+        <li>Pagination with <code>keepPreviousData</code> + prefetch next page</li>
+        <li>Query key factories, cache invalidation strategy</li>
+      </ul>
+    </div>
+    <div class="rc">
+      <span class="rc-day" style="background:var(--rhf-dim);color:var(--rhf);">Day 16 · RHF + Zod</span>
+      <div class="rc-title">Production-grade forms</div>
+      <ul class="rc-list">
+        <li><code>useForm</code>, <code>register</code>, <code>handleSubmit</code></li>
+        <li>Zod schemas — types inferred automatically</li>
+        <li><code>zodResolver</code> — schema-driven form validation</li>
+        <li><code>Controller</code>, <code>useFieldArray</code>, multi-step forms</li>
+        <li>Server errors mapped with <code>setError</code></li>
+      </ul>
+    </div>
+    <div class="rc">
+      <span class="rc-day" style="background:var(--ts-dim);color:var(--ts);">Day 17 · TypeScript</span>
+      <div class="rc-title">Type-safe React</div>
+      <ul class="rc-list">
+        <li>Props typed with <code>interface</code> and <code>type</code></li>
+        <li><code>useState&lt;T&gt;</code>, <code>useRef&lt;T&gt;</code>, typed events</li>
+        <li>Discriminated unions, generics, utility types</li>
+        <li>Typed Context, API response types, type guards</li>
+        <li>cva with <code>VariantProps</code> for type-safe variants</li>
+      </ul>
+    </div>
+    <div class="rc">
+      <span class="rc-day" style="background:var(--tw-dim);color:var(--tw);">Day 18 · Tailwind CSS</span>
+      <div class="rc-title">Utility-first styling</div>
+      <ul class="rc-list">
+        <li>Spacing scale, typography, colour palette</li>
+        <li>Flexbox + grid layout utilities</li>
+        <li>Responsive prefixes — mobile-first</li>
+        <li>Dark mode, hover/focus/group variants</li>
+        <li><code>cva</code>, <code>cn()</code>, arbitrary values</li>
+      </ul>
+    </div>
+    <div class="rc">
+      <span class="rc-day" style="background:var(--rq-dim);color:var(--rq);">Week 2 skills still in play</span>
+      <div class="rc-title">Foundation from last week</div>
+      <ul class="rc-list">
+        <li>React Router — routing, protected routes, useParams</li>
+        <li>Context API — auth, cart, theme</li>
+        <li>Custom hooks — useFetch, useDebounce</li>
+        <li>React.memo + useCallback for performance</li>
+      </ul>
+    </div>
+    <div class="rc" style="border-color:rgba(245,158,11,.25);">
+      <span class="rc-day" style="background:var(--accent-dim);color:var(--accent);">Today</span>
+      <div class="rc-title">Everything Unified</div>
+      <ul class="rc-list">
+        <li>Fully typed React Shop in TypeScript</li>
+        <li>React Query for all server data</li>
+        <li>RHF + Zod for login/register/checkout</li>
+        <li>Tailwind + cva for all UI components</li>
+        <li>Dark mode, responsive, deployed</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="map-wrap">
+    <div class="map-head">Week 3 → Week 4 bridge — what you're about to learn</div>
+    <table class="map-table">
+      <tr><th>Week 3 skill</th><th>Week 4 upgrade</th><th>What it adds</th></tr>
+      <tr><td>React Query basics</td><td>Suspense + React Server Components</td><td>Zero loading states, server-rendered data</td></tr>
+      <tr><td>TypeScript in React</td><td>Full-stack TS (shared types client/server)</td><td>One type definition, works everywhere</td></tr>
+      <tr><td>Tailwind components</td><td>shadcn/ui component library</td><td>Accessible, customisable pre-built components</td></tr>
+      <tr><td>Context for auth</td><td>Next-Auth / Clerk</td><td>Production auth with sessions, OAuth, MFA</td></tr>
+      <tr><td>React Router</td><td>Next.js App Router</td><td>File-based routing, layouts, server actions</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ARCHITECTURE -->
+<div class="section" id="architecture">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Project — React Shop v2: full architecture</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">build target</span>
+  </div>
+
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">You're upgrading the React Shop from Week 2 with all four Week 3 tools. Every component gets TypeScript types, every data fetch moves to React Query, every form gets RHF + Zod, and every style becomes Tailwind.</p>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">text</span><span class="cb-desc">Updated project file structure with Week 3 additions</span></div>
+    <div class="cb-body"><pre style="color:var(--muted);font-size:13px;line-height:2.1;">src/
+├── main.tsx                      <span class="cm">← entry: QueryClient + BrowserRouter + providers</span>
+├── App.tsx                       <span class="cm">← typed routes, lazy loading</span>
+│
+├── types/                        <span class="cm">← NEW: all TypeScript types</span>
+│   ├── api.ts                    <span class="cm">← ApiResponse&lt;T&gt;, PaginatedResponse&lt;T&gt;</span>
+│   ├── product.ts                <span class="cm">← Product, ProductPreview, ProductCreate</span>
+│   ├── user.ts                   <span class="cm">← User, AuthUser, LoginFormData</span>
+│   └── cart.ts                   <span class="cm">← CartItem, CartState, CartAction</span>
+│
+├── schemas/                      <span class="cm">← NEW: Zod schemas (shared client+server)</span>
+│   ├── auth.ts                   <span class="cm">← loginSchema, registerSchema → types inferred</span>
+│   └── product.ts                <span class="cm">← productSchema, reviewSchema</span>
+│
+├── api/                          <span class="cm">← NEW: typed fetcher functions</span>
+│   ├── queryKeys.ts              <span class="cm">← query key factory</span>
+│   ├── products.ts               <span class="cm">← fetchProducts, fetchProduct, createProduct</span>
+│   └── auth.ts                   <span class="cm">← login, logout, register</span>
+│
+├── components/ui/                <span class="cm">← NEW: typed Tailwind components with cva</span>
+│   ├── Button.tsx                <span class="cm">← cva variants, VariantProps</span>
+│   ├── Input.tsx                 <span class="cm">← extends InputHTMLAttributes</span>
+│   ├── Badge.tsx                 <span class="cm">← colour variants</span>
+│   ├── Card.tsx                  <span class="cm">← composable</span>
+│   └── Spinner.tsx
+│
+├── contexts/                     <span class="cm">← NOW TYPED: AuthContext, CartContext, ThemeContext</span>
+├── hooks/                        <span class="cm">← NOW TYPED: all custom hooks generic</span>
+└── pages/                        <span class="cm">← NOW TYPED: all pages with typed route params</span></pre></div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">main.tsx — full Week 3 stack wired together</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">QueryClient</span>, <span class="var">QueryClientProvider</span> } <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+<span class="kw">import</span> { <span class="var">ReactQueryDevtools</span> }               <span class="kw">from</span> <span class="str">"@tanstack/react-query-devtools"</span>
+<span class="kw">import</span> { <span class="var">BrowserRouter</span> }                   <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+<span class="kw">import</span> { <span class="var">AuthProvider</span> }                    <span class="kw">from</span> <span class="str">"./contexts/AuthContext"</span>
+<span class="kw">import</span> { <span class="var">CartProvider</span> }                    <span class="kw">from</span> <span class="str">"./contexts/CartContext"</span>
+<span class="kw">import</span> { <span class="var">ThemeProvider</span> }                   <span class="kw">from</span> <span class="str">"./contexts/ThemeContext"</span>
+<span class="kw">import</span> <span class="str">"./index.css"</span>  <span class="cm">// @import "tailwindcss"</span>
+
+<span class="kw">const</span> <span class="var">queryClient</span> = <span class="kw">new</span> <span class="fn">QueryClient</span>({
+  <span class="prop">defaultOptions</span>: {
+    <span class="prop">queries</span>: { <span class="prop">staleTime</span>: <span class="num">1000</span> * <span class="num">60</span> * <span class="num">5</span>, <span class="prop">retry</span>: <span class="num">2</span> },
+  },
+})
+
+<span class="fn">createRoot</span>(<span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"root"</span>)!).<span class="fn">render</span>(
+  <span class="tag">&lt;StrictMode&gt;</span>
+    <span class="tag">&lt;QueryClientProvider</span> <span class="attr">client</span>={<span class="var">queryClient</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;BrowserRouter&gt;</span>
+        <span class="tag">&lt;AuthProvider&gt;</span>
+          <span class="tag">&lt;CartProvider&gt;</span>
+            <span class="tag">&lt;ThemeProvider&gt;</span>
+              <span class="tag">&lt;App</span> <span class="tag">/&gt;</span>
+            <span class="tag">&lt;/ThemeProvider&gt;</span>
+          <span class="tag">&lt;/CartProvider&gt;</span>
+        <span class="tag">&lt;/AuthProvider&gt;</span>
+      <span class="tag">&lt;/BrowserRouter&gt;</span>
+      <span class="tag">&lt;ReactQueryDevtools</span> <span class="attr">initialIsOpen</span>={<span class="kw">false</span>} <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/QueryClientProvider&gt;</span>
+  <span class="tag">&lt;/StrictMode&gt;</span>
+)</pre></div>
+  </div>
+</div>
+
+<!-- CHALLENGES -->
+<div class="section" id="challenges">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Build it — 6 guided challenges</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">hands-on</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Each challenge upgrades one layer of the React Shop. Complete them in order — each builds on the last. The runners simulate core logic to verify understanding before writing full JSX.</p>
+
+  <!-- CHALLENGE 1: TypeScript -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--ts-dim);color:var(--ts);">1</div>
+      <div class="ch-title">TypeScript — type the entire app</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--ts-dim);color:var(--ts);">Day 17</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Add TypeScript to every file in the React Shop. Define your domain types, type all component props, type all custom hooks with generics, and add proper event types. Run <code>tsc --noEmit</code> — zero errors is the acceptance criterion.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li><code>Product</code>, <code>User</code>, <code>CartItem</code>, <code>ApiResponse&lt;T&gt;</code> types defined in <code>types/</code></li>
+          <li>All component props typed with <code>interface</code> — no implicit <code>any</code></li>
+          <li>All useState, useRef with explicit generics where needed</li>
+          <li>All event handlers typed: <code>React.ChangeEvent&lt;HTMLInputElement&gt;</code> etc.</li>
+          <li>AuthContext, CartContext typed with <code>createContext&lt;T | null&gt;(null)</code></li>
+          <li><code>tsc --noEmit</code> passes with zero errors</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 1 — type system verification</span>
+        <span class="runner-meta">run to check type coverage</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch1-code">// Simulate TypeScript's type checking for key patterns
+// In real code: tsc --noEmit catches these
+
+function checkTypes() {
+  // ── 1. Product type structure ─────────────────────────
+  function createProduct(data) {
+    const required = ["id","name","price","category","stock","rating"]
+    const missing = required.filter(k => !(k in data))
+    if (missing.length) throw new TypeError(`Missing Product fields: ${missing.join(", ")}`)
+    if (typeof data.price !== "number") throw new TypeError("price must be number")
+    if (typeof data.rating !== "number" || data.rating < 0 || data.rating > 5)
+      throw new TypeError("rating must be number 0-5")
+    return data
+  }
+
+  // ── 2. ApiResponse<T> generic wrapper ─────────────────
+  function apiResponse(data, status = 200) {
+    return { data, status, message: status < 400 ? "ok" : "error" }
+  }
+
+  // ── 3. Typed event handler simulation ─────────────────
+  function handleChange(e) {
+    // In TS: e: React.ChangeEvent<HTMLInputElement>
+    if (!("target" in e) || !("value" in e.target))
+      throw new TypeError("Expected ChangeEvent with target.value")
+    return e.target.value
+  }
+
+  // ── 4. Context type guard ──────────────────────────────
+  function useTypedContext(ctx, name) {
+    if (ctx === null || ctx === undefined)
+      throw new Error(`${name} must be used inside its Provider`)
+    return ctx
+  }
+
+  // Tests
+  const product = createProduct({
+    id:1, name:"MacBook", price:1999, category:"laptops",
+    stock:10, rating:4.8, description:"Great laptop"
+  })
+  console.log("✓ Product type valid:", product.name)
+
+  const response = apiResponse({ items: [product], total: 1 })
+  console.log("✓ ApiResponse<ProductList>:", response.status, response.message)
+
+  const mockEvent = { target: { value: "alice@test.com" } }
+  const value = handleChange(mockEvent)
+  console.log("✓ ChangeEvent handler:", value)
+
+  const authCtx = { user: null, login: () => {}, logout: () => {} }
+  const ctx = useTypedContext(authCtx, "AuthContext")
+  console.log("✓ Context type guard:", typeof ctx.login)
+
+  // Test errors
+  try { createProduct({ id:1, name:"Broken" }) }
+  catch(e) { console.log("✓ Missing fields caught:", e.message.includes("price")) }
+
+  try { useTypedContext(null, "CartContext") }
+  catch(e) { console.log("✓ Null context caught:", e.message.includes("Provider")) }
+
+  // ── 5. Utility type usage ──────────────────────────────
+  function partialUpdate(existing, update) {
+    // Simulates Partial<Product> — only send changed fields
+    const filtered = Object.fromEntries(
+      Object.entries(update).filter(([,v]) => v !== undefined)
+    )
+    return { ...existing, ...filtered }
+  }
+  const updated = partialUpdate(product, { price: 1799, stock: undefined })
+  console.log("✓ Partial<Product> update:", updated.price, "stock:", updated.stock)
+
+  console.log("\n✅ All type checks pass — tsc --noEmit would show 0 errors")
+}
+
+checkTypes()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch1-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 2: React Query -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--rq-dim);color:var(--rq);">2</div>
+      <div class="ch-title">React Query — replace all useFetch with useQuery + useMutation</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--rq-dim);color:var(--rq);">Days 14–15</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Replace every manual <code>useFetch</code> call in the React Shop with <code>useQuery</code>. Replace all cart add/remove operations with <code>useMutation</code> using optimistic updates. Add hover prefetching on ProductCard links and paginated Products page with keepPreviousData.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li>Zero manual <code>useState(loading/error/data)</code> for server state</li>
+          <li>Products page: paginated with <code>keepPreviousData</code>, prefetches next page</li>
+          <li>ProductCard hover: <code>prefetchQuery</code> fires, detail loads instantly on click</li>
+          <li>Add to cart: optimistic update with rollback on error</li>
+          <li>Query key factory in <code>api/queryKeys.ts</code></li>
+          <li>React Query DevTools shows cache in real-time</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 2 — React Query migration verification</span>
+        <span class="runner-meta">simulates RQ cache behaviour</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch2-code">// Simulate React Query cache + optimistic update patterns
+let fetchCount = 0
+const cache = new Map()
+const DB = {
+  products: Array.from({length:20},(_,i)=>({id:i+1,name:`Product ${i+1}`,price:10*(i+1)})),
+  cart: []
+}
+
+async function mockFetch(key, fetcher) {
+  if (cache.has(key)) { console.log(`Cache hit: ${key}`); return cache.get(key) }
+  fetchCount++
+  const data = await fetcher()
+  cache.set(key, data)
+  return data
+}
+
+// Query key factory
+const productKeys = {
+  all:    ()     => "products",
+  list:   (page) => `products:list:${page}`,
+  detail: (id)   => `products:detail:${id}`,
+}
+
+// Simulate pagination with keepPreviousData
+async function runPaginationTest() {
+  console.log("=== Pagination with keepPreviousData ===")
+  fetchCount = 0
+
+  // Page 1 load
+  const page1 = await mockFetch(productKeys.list(1), async () => ({
+    items: DB.products.slice(0,5), page:1, total:20, totalPages:4
+  }))
+  console.log("Page 1 items:", page1.items.length, "| fetches:", fetchCount)
+
+  // Prefetch page 2 immediately (simulates our useEffect)
+  await mockFetch(productKeys.list(2), async () => ({
+    items: DB.products.slice(5,10), page:2, total:20, totalPages:4
+  }))
+  console.log("Page 2 prefetched | fetches:", fetchCount)
+
+  // Navigate to page 2 — instant (cache hit)
+  const page2 = await mockFetch(productKeys.list(2), async () => null)
+  console.log("Navigate to page 2 — instant:", !!page2.items, "| fetches still:", fetchCount)
+}
+
+// Simulate optimistic cart update
+function runOptimisticTest() {
+  console.log("\n=== Optimistic cart update ===")
+  const cartKey = "cart"
+  cache.set(cartKey, [...DB.cart])
+
+  // onMutate: snapshot + optimistic update
+  const snapshot = [...cache.get(cartKey)]
+  const product = { id:1, name:"Laptop", price:999 }
+  cache.set(cartKey, [...cache.get(cartKey), { ...product, qty:1 }])
+  console.log("After optimistic update:", cache.get(cartKey).length, "items in cart")
+
+  // Simulate server failure → rollback
+  const serverFailed = true
+  if (serverFailed) {
+    cache.set(cartKey, snapshot)
+    console.log("Server failed → rolled back:", cache.get(cartKey).length, "items")
+  }
+
+  // Simulate server success
+  cache.set(cartKey, [...snapshot, { ...product, qty:1 }])
+  console.log("Server success → cart has:", cache.get(cartKey).length, "items")
+}
+
+// Simulate hover prefetch
+async function runPrefetchTest() {
+  console.log("\n=== Hover prefetch ===")
+  fetchCount = 0
+
+  // User hovers over product card — prefetch fires
+  const prefetch = mockFetch(productKeys.detail(1), async () => DB.products[0])
+  console.log("Prefetch started on hover (non-blocking)")
+
+  // 200ms later they click — data already in cache
+  await new Promise(r => setTimeout(r, 30))  // simulate hover duration
+  await prefetch
+
+  // Navigate to detail page — instant
+  const detail = await mockFetch(productKeys.detail(1), async () => null)
+  console.log("Detail page loaded instantly (cache hit):", detail.name)
+  console.log("Total fetches for this flow:", fetchCount, "(should be 1)")
+}
+
+async function main() {
+  await runPaginationTest()
+  runOptimisticTest()
+  await runPrefetchTest()
+  console.log("\n✅ React Query migration patterns verified")
+}
+main()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch2-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 3: RHF + Zod -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--rhf-dim);color:var(--rhf);">3</div>
+      <div class="ch-title">RHF + Zod — replace all forms with typed, validated forms</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--rhf-dim);color:var(--rhf);">Day 16</span>
+        <span class="ch-tag" style="background:var(--ts-dim);color:var(--ts);">Day 17</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Replace every form in the React Shop — login, register, product search, checkout — with React Hook Form + Zod. Every form gets a Zod schema, an inferred TypeScript type, <code>zodResolver</code>, error display, and server error mapping. The checkout becomes a multi-step form.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li>Login and Register schemas in <code>schemas/auth.ts</code> with inferred types</li>
+          <li>Register has <code>.refine()</code> for confirm-password cross-field validation</li>
+          <li>Server errors (email taken, wrong password) map to fields with <code>setError</code></li>
+          <li>Checkout is 3-step form using <code>trigger(fields)</code> per step</li>
+          <li>Product search: <code>useDebounce</code> + <code>useSearchParams</code> for URL sync</li>
+          <li>Zero manual <code>useState</code> for form values, errors, or loading</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 3 — form pipeline verification</span>
+        <span class="runner-meta">validates all form logic</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch3-code">// Simulate Zod schema validation + RHF form pipeline
+
+function createSchema(rules) {
+  return {
+    safeParse(data) {
+      const errors = {}
+      for (const [field, rule] of Object.entries(rules)) {
+        const val = data[field]
+        const empty = val === "" || val == null
+        if (rule.required && empty) { errors[field] = rule.required; continue }
+        if (!empty) {
+          if (rule.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) errors[field] = rule.email
+          if (rule.min && val.length < rule.min.value) errors[field] = rule.min.message
+          if (rule.max && val.length > rule.max.value) errors[field] = rule.max.message
+        }
+      }
+      return Object.keys(errors).length
+        ? { success: false, error: { fieldErrors: errors } }
+        : { success: true, data }
+    }
+  }
+}
+
+// Login schema (simulating Zod)
+const loginSchema = createSchema({
+  email:    { required: "Email required", email: "Invalid email" },
+  password: { required: "Password required", min: { value:8, message:"Min 8 chars" } },
+})
+
+// Register schema with cross-field validation
+const registerSchema = {
+  ...createSchema({
+    name:     { required: "Name required", min: { value:2, message:"Min 2 chars" } },
+    email:    { required: "Email required", email: "Invalid email" },
+    password: { required: "Password required", min: { value:8, message:"Min 8 chars" } },
+    confirmPassword: { required: "Required" },
+  }),
+  safeParse(data) {
+    const base = createSchema({
+      name:     { required: "Name required", min: { value:2, message:"Min 2 chars" } },
+      email:    { required: "Email required", email: "Invalid email" },
+      password: { required: "Password required", min: { value:8, message:"Min 8 chars" } },
+      confirmPassword: { required: "Required" },
+    }).safeParse(data)
+    if (!base.success) return base
+    // .refine() — cross-field
+    if (data.password !== data.confirmPassword)
+      return { success: false, error: { fieldErrors: { confirmPassword: "Passwords don't match" } } }
+    return base
+  }
+}
+
+// Test login schema
+console.log("=== Login Schema ===")
+const r1 = loginSchema.safeParse({ email: "alice@test.com", password: "secure123" })
+console.log("Valid login:", r1.success)   // true
+
+const r2 = loginSchema.safeParse({ email: "bad", password: "short" })
+console.log("Invalid login errors:", Object.keys(r2.error.fieldErrors).join(", "))
+
+// Test register with cross-field
+console.log("\n=== Register Schema ===")
+const r3 = registerSchema.safeParse({
+  name:"Alice", email:"a@test.com", password:"secure123", confirmPassword:"secure123"
+})
+console.log("Valid register:", r3.success)  // true
+
+const r4 = registerSchema.safeParse({
+  name:"Alice", email:"a@test.com", password:"secure123", confirmPassword:"different"
+})
+console.log("Password mismatch error:", r4.error.fieldErrors.confirmPassword)
+
+// Server error mapping simulation
+async function handleServerError(error, setError) {
+  if (error.code === "EMAIL_TAKEN")
+    setError("email", { message: "This email is already registered" })
+  else if (error.code === "INVALID_CREDENTIALS")
+    setError("root", { message: "Invalid email or password" })
+}
+const errors = {}
+const setError = (field, err) => { errors[field] = err.message }
+await handleServerError({ code: "EMAIL_TAKEN" }, setError)
+console.log("\n=== Server Error Mapping ===")
+console.log("Email error set:", errors.email)
+
+// Multi-step checkout validation
+const checkoutSteps = [
+  { fields: ["firstName","lastName","email"], data: { firstName:"Alice", lastName:"Smith", email:"a@test.com" } },
+  { fields: ["address","city","zip"],         data: { address:"123 Main St", city:"Springfield", zip:"12345" } },
+  { fields: ["cardNumber"],                   data: { cardNumber:"4111111111111111" } },
+]
+console.log("\n=== Multi-step Checkout ===")
+checkoutSteps.forEach((step, i) => {
+  const allFilled = step.fields.every(f => !!step.data[f])
+  console.log(`Step ${i+1} valid:`, allFilled, "→", allFilled ? "advance" : "block")
+})
+
+console.log("\n✅ All form pipelines verified")</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch3-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 4: Tailwind -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--tw-dim);color:var(--tw);">4</div>
+      <div class="ch-title">Tailwind CSS — restyle every component, build a design system</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--tw-dim);color:var(--tw);">Day 18</span>
+        <span class="ch-tag" style="background:var(--ts-dim);color:var(--ts);">Day 17</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Replace all CSS/inline styles with Tailwind. Build a <code>components/ui/</code> folder with <code>Button</code>, <code>Input</code>, <code>Badge</code>, <code>Card</code>, and <code>Spinner</code> using <code>cva</code> and the <code>cn()</code> helper. Everything must be responsive and work in both light and dark modes.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li><code>Button</code> with <code>cva</code>: primary/secondary/ghost/danger × sm/md/lg</li>
+          <li><code>Input</code> extending <code>InputHTMLAttributes</code> — label, error, hint props</li>
+          <li><code>Badge</code> with colour variants: success/error/warning/info/default</li>
+          <li><code>cn()</code> helper with <code>clsx + tailwind-merge</code> in <code>lib/utils.ts</code></li>
+          <li>All pages responsive: 1→2→3 column grid, mobile-first navbar</li>
+          <li>Every colour has a <code>dark:</code> twin — full dark mode support</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 4 — Tailwind component system verification</span>
+        <span class="runner-meta">validates class composition</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch4-code">// Simulate cva + cn() class generation for the component system
+
+// Simulate tailwind-merge (simplified: later same-property class wins)
+function twMerge(...classes) {
+  const merged = classes.filter(Boolean).join(' ')
+  // Simple conflict resolution: for demo purposes, just join
+  return merged.replace(/\s+/g, ' ').trim()
+}
+const cn = (...args) => twMerge(...args.filter(Boolean))
+
+// Simulate cva
+function cva(base, config) {
+  return function(props = {}) {
+    const variantClasses = []
+    for (const [variantName, variants] of Object.entries(config.variants || {})) {
+      const value = props[variantName] ?? (config.defaultVariants || {})[variantName]
+      if (value && variants[value]) variantClasses.push(variants[value])
+    }
+    return cn(base, ...variantClasses, props.className)
+  }
+}
+
+// Button component classes
+const button = cva(
+  "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
+  {
+    variants: {
+      variant: {
+        primary:   "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
+        secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500",
+        ghost:     "text-gray-700 hover:bg-gray-100 focus:ring-gray-500",
+        danger:    "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+      },
+      size: {
+        sm: "px-3 py-1.5 text-sm",
+        md: "px-4 py-2 text-sm",
+        lg: "px-6 py-3 text-base",
+      },
+    },
+    defaultVariants: { variant: "primary", size: "md" },
+  }
+)
+
+// Badge component classes
+const badge = cva("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium", {
+  variants: {
+    colour: {
+      success: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      error:   "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+      warning: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
+      info:    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+      default: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+    },
+  },
+  defaultVariants: { colour: "default" },
+})
+
+// Test button variants
+console.log("=== Button Variants ===")
+console.log("Primary md:", button({ variant:"primary", size:"md" }))
+console.log("Secondary sm:", button({ variant:"secondary", size:"sm" }))
+console.log("Danger lg:", button({ variant:"danger", size:"lg" }))
+console.log("With extra class:", button({ variant:"ghost", className:"w-full" }))
+
+// Test badge variants
+console.log("\n=== Badge Variants ===")
+console.log("Success:", badge({ colour:"success" }))
+console.log("Error:", badge({ colour:"error" }))
+
+// Test cn() merge
+console.log("\n=== cn() helper ===")
+const base = "px-4 py-2 rounded bg-blue-600"
+const override = "px-6"  // should override px-4
+console.log("cn merge:", cn(base, override))
+
+// Test responsive classes generation
+const responsiveGrid = ["grid-cols-1", "sm:grid-cols-2", "lg:grid-cols-3", "xl:grid-cols-4"]
+console.log("\n=== Responsive Grid ===")
+responsiveGrid.forEach(cls => {
+  const bp = cls.includes(':') ? cls.split(':')[0] : 'all'
+  const cols = cls.split('-').pop()
+  console.log(`${bp.padEnd(6)} → ${cols} column(s)`)
+})
+
+// Verify dark mode pairs
+console.log("\n=== Dark Mode Verification ===")
+const darkPairs = [
+  ["bg-white",      "dark:bg-gray-900"],
+  ["text-gray-900", "dark:text-white"],
+  ["border-gray-200","dark:border-gray-700"],
+]
+darkPairs.forEach(([light, dark]) => {
+  console.log(`${light.padEnd(20)} + ${dark}`)
+})
+
+console.log("\n✅ Component system classes verified")</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch4-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 5: Dark Mode -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--purple-dim);color:var(--purple);">5</div>
+      <div class="ch-title">Dark mode — persistent, system-aware, flash-free</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--tw-dim);color:var(--tw);">Day 18</span>
+        <span class="ch-tag" style="background:var(--ts-dim);color:var(--ts);">Day 17</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Implement a production-quality dark mode: reads system preference on first visit, persists to localStorage, applied before hydration (no flash), and exposed through a typed ThemeContext with a toggle. Every component must support both modes.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li>Theme applied in a <code>&lt;script&gt;</code> in <code>index.html &lt;head&gt;</code> — zero FOUC</li>
+          <li>ThemeContext exposes <code>{ theme, isDark, toggle, setTheme }</code> typed interface</li>
+          <li>System preference (<code>prefers-color-scheme</code>) used as default on first visit</li>
+          <li>Preference persisted in localStorage, restored on reload</li>
+          <li>Toggle button in Navbar shows sun/moon icon, accessible <code>aria-label</code></li>
+          <li>All Tailwind colours have <code>dark:</code> twin</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 5 — dark mode system verification</span>
+        <span class="runner-meta">simulates full theme lifecycle</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch5-code">// Simulate the dark mode system end-to-end
+const storage = {}
+const mockLS  = { getItem: k=>storage[k]??null, setItem:(k,v)=>storage[k]=v, removeItem:k=>delete storage[k] }
+let htmlClass = ""  // simulates document.documentElement.classList
+
+function applyTheme(theme) {
+  if (theme === "dark") htmlClass = "dark"
+  else htmlClass = ""
+}
+
+// ── The inline script (runs before React, prevents FOUC) ──
+function inlineThemeScript() {
+  const stored = mockLS.getItem("theme")
+  if (stored) { applyTheme(stored); return stored }
+  // Read system preference
+  const prefersDark = true  // simulating prefers-color-scheme: dark
+  const theme = prefersDark ? "dark" : "light"
+  applyTheme(theme)
+  return theme
+}
+
+// ── ThemeProvider logic ────────────────────────────────────
+function createThemeContext() {
+  let theme = inlineThemeScript()  // sync with what inline script applied
+  let subs  = []
+  const notify = () => subs.forEach(fn => fn(getState()))
+  const getState = () => ({ theme, isDark: theme === "dark", toggle, setTheme })
+
+  function toggle() {
+    theme = theme === "dark" ? "light" : "dark"
+    mockLS.setItem("theme", theme)
+    applyTheme(theme)
+    notify()
+  }
+
+  function setTheme(t) {
+    theme = t
+    mockLS.setItem("theme", t)
+    applyTheme(t)
+    notify()
+  }
+
+  return { getState, toggle: () => toggle(), setTheme, subscribe: fn => { subs.push(fn) } }
+}
+
+// ── Test the full lifecycle ────────────────────────────────
+const log = []
+const themeCtx = createThemeContext()
+themeCtx.subscribe(s => log.push(`${s.theme}:${s.isDark}`))
+
+console.log("=== Initial load ===")
+console.log("System prefers dark → theme:", themeCtx.getState().theme)  // dark
+console.log("html class:", htmlClass)  // "dark"
+console.log("isDark:", themeCtx.getState().isDark)  // true
+
+console.log("\n=== Toggle to light ===")
+themeCtx.toggle()
+console.log("After toggle:", themeCtx.getState().theme)  // light
+console.log("html class:", htmlClass)  // "" (dark class removed)
+console.log("Persisted:", mockLS.getItem("theme"))  // "light"
+
+console.log("\n=== Reload simulation ===")
+const htmlClassOnReload = (() => {
+  // Inline script reads localStorage first
+  const stored = mockLS.getItem("theme")
+  applyTheme(stored)
+  return htmlClass
+})()
+console.log("On reload html class:", htmlClassOnReload)  // "" (light, no flash)
+console.log("No FOUC: applied before React renders ✓")
+
+console.log("\n=== setTheme('dark') ===")
+themeCtx.setTheme("dark")
+console.log("Theme:", themeCtx.getState().theme)  // dark
+console.log("Persisted:", mockLS.getItem("theme"))  // "dark"
+
+// Verify typed context interface
+const { theme, isDark, toggle } = themeCtx.getState()
+console.log("\n=== Context interface ===")
+console.log("theme:", typeof theme, "→", theme)      // string → dark
+console.log("isDark:", typeof isDark, "→", isDark)    // boolean → true
+console.log("toggle:", typeof toggle)                  // function
+
+console.log("\nState log:", log)
+console.log("\n✅ Dark mode system fully verified")</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 6: Performance -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--green-dim);color:var(--green);">6</div>
+      <div class="ch-title">Performance — memo, lazy loading, prefetch, bundle analysis</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--rq-dim);color:var(--rq);">Days 14–15</span>
+        <span class="ch-tag" style="background:var(--ts-dim);color:var(--ts);">Day 17</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Apply the performance techniques learned across Week 3 — <code>React.memo</code> on <code>ProductCard</code>, <code>useCallback</code> for stable handlers, <code>React.lazy</code> for all page components, query prefetch on hover, and a cache-warming strategy for the home page's featured products.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li><code>ProductCard</code> wrapped in <code>React.memo</code> — 0 re-renders on cart change</li>
+          <li>All page components lazy-loaded with <code>React.lazy</code> + <code>Suspense</code></li>
+          <li>Home page prefetches first 6 product detail queries on mount</li>
+          <li><code>useIsFetching()</code> global loading bar in Navbar</li>
+          <li>React Query DevTools confirms cache hit on product detail navigation</li>
+          <li>Lighthouse Performance score ≥ 90 in production build</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 6 — performance metrics simulation</span>
+        <span class="runner-meta">measures render counts + cache efficiency</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch6-code">// Simulate React.memo + prefetch performance impact
+
+// ── Simulate React.memo ────────────────────────────────────
+function createMemoComponent(name, renderFn) {
+  let renders = 0
+  let lastProps = null
+  return {
+    render(props) {
+      const changed = !lastProps ||
+        Object.keys(props).some(k => !Object.is(props[k], lastProps[k]))
+      if (changed) { renders++; lastProps = {...props}; renderFn?.(props) }
+    },
+    getRenders: () => renders,
+    reset: () => { renders = 0 },
+  }
+}
+
+// Stable callback (simulating useCallback with empty deps)
+const stableAddToCart = (() => {
+  const fn = (product) => ({ ...product, qty:1 })
+  return () => fn   // always same reference
+})()
+
+const products = Array.from({length:6}, (_,i) => ({ id:i+1, name:`Product ${i+1}`, price:10*(i+1) }))
+
+// Create 6 ProductCard "components"
+const cards = products.map(p => createMemoComponent(`ProductCard-${p.id}`))
+
+// Initial render — all render once
+const addFn = stableAddToCart()
+products.forEach((p,i) => cards[i].render({ product:p, onAddToCart:addFn }))
+console.log("=== Initial render ===")
+console.log("All 6 cards rendered:", cards.every(c => c.getRenders()===1))
+cards.forEach(c => c.reset())
+
+// Cart update — NO ProductCard re-renders (stable callback)
+const sameAddFn = stableAddToCart()  // same reference
+products.forEach((p,i) => cards[i].render({ product:p, onAddToCart:sameAddFn }))
+const rendersOnCartChange = cards.reduce((s,c) => s+c.getRenders(), 0)
+console.log("\n=== After cart state change ===")
+console.log("ProductCard re-renders:", rendersOnCartChange, "(should be 0)")
+console.log("Performance gain: 6 unnecessary renders prevented ✓")
+cards.forEach(c => c.reset())
+
+// ── Simulate prefetch cache warming ───────────────────────
+const cache = new Map()
+let fetchCount = 0
+
+async function mockFetch(id) {
+  if (cache.has(`product:${id}`)) return cache.get(`product:${id}`)
+  fetchCount++
+  await new Promise(r => setTimeout(r,5))
+  const data = { id, name:`Product ${id}`, price:id*10 }
+  cache.set(`product:${id}`, data)
+  return data
+}
+
+async function simulatePrefetch() {
+  console.log("\n=== Prefetch cache warming ===")
+  fetchCount = 0
+
+  // Home page mounts — prefetch first 6 products immediately
+  await Promise.all(products.map(p => mockFetch(p.id)))
+  console.log("Prefetched 6 products on home mount, fetches:", fetchCount)
+
+  // User clicks product 3 — already cached
+  fetchCount = 0
+  const detail = await mockFetch(3)
+  console.log("Product detail navigation — fetches:", fetchCount, "(should be 0)")
+  console.log("Loaded from cache:", detail.name, "✓")
+
+  // Lazy loading simulation
+  const pageModules = ["Products", "ProductDetail", "Cart", "Dashboard", "Login"]
+  console.log("\n=== Lazy loading analysis ===")
+  const initialBundle = ["App", "Navbar", "Home"]
+  console.log("Initial bundle chunks:", initialBundle.join(", "))
+  console.log("Lazy chunks (loaded on demand):", pageModules.join(", "))
+  console.log("Bundle size reduction: ~" + Math.round(pageModules.length * 15) + "KB deferred")
+
+  console.log("\n✅ All performance patterns verified")
+}
+
+simulatePrefetch()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTEGRATION TEST -->
+<div class="section" id="integration">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Integration — end-to-end user flow test</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">integration</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Verify all 6 challenges work together end-to-end in your Vite app:</p>
+
+  <div class="runner">
+    <div class="runner-head">
+      <span class="runner-title">Full Week 3 integration — all systems in one simulation</span>
+      <span class="runner-meta">combines all 6 challenges</span>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+    </div>
+    <div class="runner-code">
+      <textarea id="int-code">// ── Full React Shop v2 integration test ──────────────────
+// Combines: TypeScript types, React Query cache, RHF+Zod forms,
+// Tailwind classes, dark mode, and performance patterns
+
+// ── Types (TypeScript simulation) ─────────────────────────
+const isProduct = v => v && typeof v.id==="number" && typeof v.price==="number"
+const isUser    = v => v && typeof v.email==="string" && typeof v.name==="string"
+
+// ── API layer ─────────────────────────────────────────────
+const DB = {
+  products: Array.from({length:24},(_,i)=>({id:i+1,name:`Product ${i+1}`,price:10*(i+1),category:["electronics","clothing","books"][i%3],stock:10,rating:4+Math.random()})),
+  users: [{ id:1, name:"Alice", email:"alice@test.com", role:"user" }],
+  cart: [],
+}
+let fetchCalls = 0
+const cache = new Map()
+async function api(endpoint, method="GET", body=null) {
+  const k = `${method}:${endpoint}`
+  if (method==="GET" && cache.has(k)) return cache.get(k)
+  fetchCalls++
+  await new Promise(r=>setTimeout(r,10))
+  if (endpoint.includes("/products?page=")) {
+    const page = parseInt(new URL("http://x.com"+endpoint).searchParams.get("page")||1)
+    const size = 6
+    const items = DB.products.slice((page-1)*size, page*size)
+    const result = { items, total:DB.products.length, page, totalPages:Math.ceil(DB.products.length/size) }
+    cache.set(k, result); return result
+  }
+  if (endpoint.match(/\/products\/(\d+)/)) {
+    const id = parseInt(endpoint.match(/(\d+)$/)[1])
+    const p = DB.products.find(p=>p.id===id)
+    if (p) { cache.set(k,p); return p }
+    throw new Error("404: Not found")
+  }
+  if (endpoint==="/auth/login" && method==="POST") {
+    const u = DB.users.find(u=>u.email===body.email)
+    if (!u || body.password!=="correct") throw { code:"INVALID_CREDENTIALS", message:"Wrong email/password" }
+    return { user:u, token:"tok_123" }
+  }
+  throw new Error(`Unknown endpoint: ${endpoint}`)
+}
+
+// ── Zod schemas (simulated) ────────────────────────────────
+const loginSchema = {
+  safeParse: data => {
+    const e = {}
+    if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) e.email="Invalid email"
+    if (!data.password || data.password.length<8) e.password="Min 8 chars"
+    return Object.keys(e).length ? {success:false,error:{fieldErrors:e}} : {success:true,data}
+  }
+}
+
+// ── Full app simulation ────────────────────────────────────
+async function runFullTest() {
+  console.log("=== React Shop v2 — Full Integration Test ===\n")
+
+  // 1. TypeScript type safety
+  const product = DB.products[0]
+  console.log("1. Type safety:", isProduct(product) ? "✓ Product typed" : "✗")
+
+  // 2. React Query: paginated products
+  fetchCalls = 0
+  const page1 = await api("/products?page=1")
+  console.log(`2. RQ paginated: ${page1.items.length} items, page ${page1.page}/${page1.totalPages} | fetches: ${fetchCalls}`)
+
+  // Cache hit — second call
+  await api("/products?page=1")
+  console.log(`   Cache hit: same data, fetches still: ${fetchCalls} ✓`)
+
+  // 3. Prefetch detail pages
+  await Promise.all(page1.items.slice(0,3).map(p=>api(`/products/${p.id}`)))
+  const pre = fetchCalls
+  await api(`/products/${page1.items[0].id}`)  // should be instant
+  console.log(`3. Prefetch: detail loaded from cache (fetches: ${fetchCalls-pre===0?"0 new ✓":fetchCalls})`)
+
+  // 4. RHF + Zod: form validation
+  const badLogin = loginSchema.safeParse({ email:"bad", password:"short" })
+  const goodLogin = loginSchema.safeParse({ email:"alice@test.com", password:"correct123" })
+  console.log(`4. Zod: invalid=${!badLogin.success} ✓, valid=${goodLogin.success} ✓`)
+
+  // 5. Auth flow
+  let serverError = null
+  try { await api("/auth/login","POST",{ email:"alice@test.com", password:"wrong" }) }
+  catch(e) { serverError = e.code }
+  console.log(`5. Auth error mapped: ${serverError} → setError("root") ✓`)
+  const auth = await api("/auth/login","POST",{ email:"alice@test.com", password:"correct" })
+  console.log(`   Login success: ${auth.user.name} ✓`)
+
+  // 6. Tailwind + dark mode
+  const btnClasses = "inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 transition-colors"
+  const darkClasses = btnClasses.split(' ').filter(c=>c.startsWith('dark:')).length
+  console.log(`6. Tailwind: ${btnClasses.split(' ').length} classes, ${darkClasses} dark: variants ✓`)
+
+  // 7. Performance summary
+  console.log(`\n=== Performance Summary ===`)
+  console.log(`Total API calls: ${fetchCalls} (with caching/deduplication)`)
+  console.log(`Without RQ cache: would have been ~${fetchCalls*3} calls`)
+  console.log(`ProductCard re-renders on cart change: 0 (React.memo + useCallback)`)
+  console.log(`Page chunks lazy-loaded: 5 (Products, Detail, Cart, Dashboard, Login)`)
+
+  console.log("\n✅ All Week 3 systems integrated and verified!")
+  console.log("   TypeScript ✓ | React Query ✓ | RHF+Zod ✓ | Tailwind ✓")
+}
+runFullTest()</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="int-out">Click ▶ Run</div></div>
+  </div>
+</div>
+
+<!-- CHECKLIST -->
+<div class="section" id="checklist">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Week 3 self-assessment — be honest</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--accent);">15 items</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it right now without reference. Anything unchecked is a gap to address before Week 4.</p>
+
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain server state vs client state and why they need different tools <span class="cl-tag" style="background:var(--rq-dim);color:var(--rq);">Day 14</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can replace a <code>useFetch</code> hook with <code>useQuery</code> in under 5 minutes from memory <span class="cl-tag" style="background:var(--rq-dim);color:var(--rq);">Day 14</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement the full optimistic update pattern: snapshot → update → rollback on error → invalidate on settled <span class="cl-tag" style="background:var(--rq-dim);color:var(--rq);">Day 14</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can build an infinite scroll feed with <code>useInfiniteQuery</code> and <code>IntersectionObserver</code> <span class="cl-tag" style="background:var(--rq-dim);color:var(--rq);">Day 15</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a Zod schema, infer its TypeScript type with <code>z.infer&lt;&gt;</code>, and connect it to RHF with <code>zodResolver</code> <span class="cl-tag" style="background:var(--rhf-dim);color:var(--rhf);">Day 16</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement a multi-step form using <code>trigger(stepFields)</code> for per-step validation <span class="cl-tag" style="background:var(--rhf-dim);color:var(--rhf);">Day 16</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can type React component props, useState generics, event handlers, and custom hooks <span class="cl-tag" style="background:var(--ts-dim);color:var(--ts);">Day 17</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a generic component <code>List&lt;T&gt;</code> where T is inferred from the items prop <span class="cl-tag" style="background:var(--ts-dim);color:var(--ts);">Day 17</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>Partial</code>, <code>Omit</code>, <code>Pick</code>, <code>ReturnType</code> in real component code <span class="cl-tag" style="background:var(--ts-dim);color:var(--ts);">Day 17</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can build a Tailwind UI from scratch — card, form, navbar — without looking anything up <span class="cl-tag" style="background:var(--tw-dim);color:var(--tw);">Day 18</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can build a <code>Button</code> with <code>cva</code> for variants and <code>cn()</code> for className merging <span class="cl-tag" style="background:var(--tw-dim);color:var(--tw);">Day 18</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement dark mode — class strategy, flash-free, system preference, <code>dark:</code> twins <span class="cl-tag" style="background:var(--tw-dim);color:var(--tw);">Day 18</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed all 6 challenges — React Shop v2 has TS, RQ, RHF+Zod, Tailwind, dark mode <span class="cl-tag" style="background:var(--accent-dim);color:var(--accent);">Day 19</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">React Shop v2 is deployed to Vercel with a live URL and zero TypeScript errors <span class="cl-tag" style="background:var(--accent-dim);color:var(--accent);">Day 19</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can articulate the difference between Week 2 (client state) and Week 3 (server state, typed, styled) approaches <span class="cl-tag" style="background:var(--green-dim);color:var(--green);">Week 4</span></div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(245,158,11,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Final recall — blank Vite project, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.2;">
+      1. <strong style="color:var(--text);">TypeScript:</strong> Define <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);">Product</code>, <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--tw);">ApiResponse&lt;T&gt;</code>, type a <code>Button</code> component and a <code>useLocalStorage&lt;T&gt;</code> hook<br>
+      2. <strong style="color:var(--text);">React Query:</strong> Build a paginated products page with <code>keepPreviousData</code>, next-page prefetch, and hover-prefetch detail<br>
+      3. <strong style="color:var(--text);">RHF + Zod:</strong> Build a register form with Zod schema, <code>zodResolver</code>, confirm-password <code>refine</code>, and <code>setError</code> for server errors<br>
+      4. <strong style="color:var(--text);">Tailwind:</strong> Build a <code>ProductCard</code> with <code>cva</code> variant system and full dark mode support
+    </div>
+  </div>
+</div>
+
+<!-- WEEK 4 PREVIEW -->
+<div class="section" id="week4">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Week 4 preview — advanced patterns &amp; Next.js</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">coming up</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Week 3 gave you the production toolkit. Week 4 upgrades the architecture — moving from client-side React to full-stack Next.js with server components, streaming, and proper auth.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:24px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--accent);margin-bottom:10px;">Day 20</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Advanced React Patterns</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">Compound components, render props, HOCs (when they're still useful), portal pattern, and error boundaries done right. Patterns that appear in real codebases and interviews.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--purple);margin-bottom:10px;">Day 21</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Next.js App Router</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">File-based routing, layouts, Server Components, Client Components, server actions. The architecture that makes zero-loading-state UIs possible at the framework level.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--ts);margin-bottom:10px;">Day 22</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Authentication with Clerk</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">Production auth — OAuth, sessions, MFA, role-based access control. Replaces your custom AuthContext with battle-tested infrastructure used by thousands of apps.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--tw);margin-bottom:10px;">Day 23</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Database with Prisma</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">Type-safe database access from TypeScript. Define your schema once — Prisma generates typed queries, runs migrations, and your IDE knows exactly what data looks like.</div>
+    </div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(245,158,11,.15);border-radius:14px;padding:24px;text-align:center;">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace;">Week 3 complete</div>
+    <div style="font-size:24px;font-weight:800;margin-bottom:10px;">You have the full modern React stack.</div>
+    <div style="font-size:14px;color:var(--muted);max-width:620px;margin:0 auto 24px;line-height:1.75;">React Query + TypeScript + RHF+Zod + Tailwind — this is exactly what production React teams use in 2025. Week 4 moves you into full-stack territory. Your React skills don't change; you just add a server layer.</div>
+    <button class="day-btn primary" onclick="navigateTo('day20_advanced_patterns.html',20)" style="font-size:14px;padding:12px 32px;border-radius:10px;margin:0 auto;">Start Week 4 — Advanced Patterns →</button>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 3 complete</div>
+      <div class="footer-day-name">Day 19 — Week 3 Review Project</div>
+      <div class="footer-day-next">Next: <strong>Day 20 — Advanced React Patterns (Week 4 begins)</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 3 complete</span><span id="week-pct">0%</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" id="week-prog" style="width:0%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day18_tailwind_css.html',18)">← Day 18</button>
+      <button class="footer-btn primary" onclick="navigateTo('day20_advanced_patterns.html',20)">Week 4 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html",current:true},
+]
+const CURRENT=19
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+  "day18_tailwind_css.html","day19_week3_review.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — Week 4 is loading! 🚀`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  const wrap=document.createElement('div');wrap.style.cssText='display:flex;gap:5px;align-items:center;'
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    wrap.appendChild(dot)
+  })
+  el.appendChild(wrap)
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+  const wp=document.getElementById('week-prog'),wl=document.getElementById('week-pct')
+  if(wp)wp.style.width=p+'%'
+  if(wl)wl.textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

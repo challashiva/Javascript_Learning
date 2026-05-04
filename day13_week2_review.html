@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 13 — Week 2 Review Project</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --react:#61dafb;--react-dim:rgba(97,218,251,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
+  --js:#f7df1e;--js-dim:rgba(247,223,30,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--react);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--react);border-bottom-color:var(--react);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--react);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--react);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.3);}
+.day-btn.primary:hover{background:rgba(97,218,251,.18);}
+
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--react);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--react);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--react);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:32px;}
+.skill-tag{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:8px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.skill-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--react);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.recap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px;}
+.rc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.rc-day{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.rc-title{font-size:15px;font-weight:600;margin-bottom:8px;}
+.rc-list{list-style:none;}
+.rc-list li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:6px;}
+.rc-list li:last-child{border-bottom:none;}
+.rc-list li::before{content:'✓';color:var(--green);font-size:10px;flex-shrink:0;}
+.rc-list li code{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--surface3);padding:1px 4px;border-radius:3px;color:var(--react);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--react);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);position:relative;}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.runner-meta{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-left:12px;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--react-dim);color:var(--react);border:1px solid rgba(97,218,251,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(97,218,251,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:200px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(97,218,251,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.challenge{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ch-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.ch-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.ch-title{font-size:14px;font-weight:600;flex:1;}
+.ch-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.ch-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ch-body{padding:18px 20px;}
+.ch-desc{font-size:13px;color:var(--text);margin-bottom:14px;line-height:1.7;}
+.ch-desc code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--react);}
+.ch-spec{background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+.ch-spec-title{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.ch-spec-list{list-style:none;}
+.ch-spec-list li{font-size:12px;color:var(--muted);padding:3px 0;display:flex;align-items:baseline;gap:7px;line-height:1.6;}
+.ch-spec-list li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+.ch-spec-list li code{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.map-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.map-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.map-table{width:100%;border-collapse:collapse;font-size:13px;}
+.map-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.map-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.map-table tr:last-child td{border-bottom:none;}
+.map-table tr:hover td{background:var(--surface2);}
+.map-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--react);border-color:var(--react);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);}
+.cl-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:1px 7px;border-radius:4px;margin-left:8px;flex-shrink:0;}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;align-items:center;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;text-decoration:none;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--react-dim);color:var(--react);border-color:rgba(97,218,251,.3);}
+.footer-btn.primary:hover{background:rgba(97,218,251,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--react);border-radius:2px;transition:width .4s;}
+
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin:10px 0;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin:10px 0;font-size:12px;color:var(--coral);line-height:1.6;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 13 · Review</div>
+  <a href="#overview">Overview</a>
+  <a href="#recap">Week 2 recap</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#challenges">Challenges</a>
+  <a href="#integration">Integration</a>
+  <a href="#checklist">Checklist</a>
+  <a href="#week3">Week 3 prep</a>
+</nav>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 2 · <span>Day 13 of 56</span> · Week 2 Review Project</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day12_context_global_state.html',12)">← Day 12</button>
+      <button class="day-btn primary" onclick="navigateTo('day14_react_query.html',14)">Week 3 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero" id="overview">
+  <div class="hero-eyebrow">Week 2 · Day 13 · Final project day</div>
+  <h1>Week 2 <em>Review</em><br>Project Day</h1>
+  <p class="hero-sub">You've spent 5 days learning React's core architecture. Today you build a <strong>full multi-page React app</strong> from scratch — combining routing, context, custom hooks, and performance patterns into one cohesive project.</p>
+  <div class="skills-grid">
+    <div class="skill-tag"><span class="skill-dot" style="background:var(--react);"></span>JSX + components</div>
+    <div class="skill-tag"><span class="skill-dot" style="background:var(--green);"></span>useState + useReducer</div>
+    <div class="skill-tag"><span class="skill-dot" style="background:var(--purple);"></span>useEffect + useRef</div>
+    <div class="skill-tag"><span class="skill-dot" style="background:var(--amber);"></span>useMemo + useCallback</div>
+    <div class="skill-tag"><span class="skill-dot" style="background:var(--teal);"></span>React Router v6</div>
+    <div class="skill-tag"><span class="skill-dot" style="background:var(--coral);"></span>Context API</div>
+    <div class="skill-tag"><span class="skill-dot" style="background:var(--blue);"></span>Custom hooks</div>
+    <div class="skill-tag"><span class="skill-dot" style="background:var(--pink);"></span>Protected routes</div>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">1</div><div class="hstat-lbl">full app</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">challenges</div></div>
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">skills combined</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">build time</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--react);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>Week 2 skills recap — what you now know</li>
+        <li>Project architecture walkthrough</li>
+        <li>Set up Vite + React Router + Context skeleton</li>
+        <li>Challenge 1 — AuthContext + protected routes</li>
+        <li>Challenge 2 — multi-page routing with layout</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>Challenge 3 — product list with search params</li>
+        <li>Challenge 4 — cart context + reducer</li>
+        <li>Challenge 5 — custom hooks extraction</li>
+        <li>Challenge 6 — performance: memo + callback</li>
+        <li>Wire everything together end-to-end</li>
+        <li>Test all user flows manually</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>Self-assessment checklist (15 items)</li>
+        <li>Deploy to Vercel — live URL in portfolio</li>
+        <li>Week 3 preview — data fetching</li>
+        <li>Push to GitHub with clean history</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 13 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Week recap read</span>
+    <span class="tdot" onclick="markDone(this)">Architecture planned</span>
+    <span class="tdot" onclick="markDone(this)">Challenge 1–2 done</span>
+    <span class="tdot" onclick="markDone(this)">Challenge 3–4 done</span>
+    <span class="tdot" onclick="markDone(this)">Challenge 5–6 done</span>
+    <span class="tdot" onclick="markDone(this)">End-to-end tested</span>
+    <span class="tdot" onclick="markDone(this)">Deployed to Vercel</span>
+    <span class="tdot" onclick="markDone(this)">Week 3 preview read</span>
+  </div>
+</div>
+
+<!-- WEEK 2 RECAP -->
+<div class="section" id="recap">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Week 2 skills recap — what you now own</span>
+    <span class="sec-badge" style="background:var(--react-dim);color:var(--react);">days 8–12</span>
+  </div>
+  <div class="recap-grid">
+    <div class="rc">
+      <span class="rc-day" style="background:var(--react-dim);color:var(--react);">Day 8</span>
+      <div class="rc-title">React Essentials</div>
+      <ul class="rc-list">
+        <li>JSX compiles to <code>React.createElement()</code></li>
+        <li>Function components — pure functions of props</li>
+        <li>Virtual DOM and reconciliation</li>
+        <li>Lists with <code>key</code>, conditional rendering</li>
+      </ul>
+    </div>
+    <div class="rc">
+      <span class="rc-day" style="background:var(--purple-dim);color:var(--purple);">Day 9</span>
+      <div class="rc-title">State, Events &amp; Forms</div>
+      <ul class="rc-list">
+        <li>Lifting state up — one-way data flow</li>
+        <li>Controlled inputs — generic <code>handleChange</code></li>
+        <li>Form validation with touched/blur</li>
+        <li><code>useReducer</code> for complex state</li>
+      </ul>
+    </div>
+    <div class="rc">
+      <span class="rc-day" style="background:var(--amber-dim);color:var(--amber);">Day 10</span>
+      <div class="rc-title">Hooks Deep Dive</div>
+      <ul class="rc-list">
+        <li><code>useRef</code> — DOM access &amp; mutable values</li>
+        <li><code>useMemo</code> — cached computed values</li>
+        <li><code>useCallback</code> — stable function references</li>
+        <li>Custom hooks — reusable stateful logic</li>
+      </ul>
+    </div>
+    <div class="rc">
+      <span class="rc-day" style="background:var(--teal-dim);color:var(--teal);">Day 11</span>
+      <div class="rc-title">React Router v6</div>
+      <ul class="rc-list">
+        <li>Routes, Route, Link, NavLink</li>
+        <li><code>useParams</code>, <code>useNavigate</code>, <code>useLocation</code></li>
+        <li>Nested routes with <code>&lt;Outlet /&gt;</code></li>
+        <li>Protected routes + lazy loading</li>
+      </ul>
+    </div>
+    <div class="rc">
+      <span class="rc-day" style="background:var(--coral-dim);color:var(--coral);">Day 12</span>
+      <div class="rc-title">Context &amp; Global State</div>
+      <ul class="rc-list">
+        <li><code>createContext</code> + Provider + <code>useContext</code></li>
+        <li>Custom hook wrappers (<code>useAuth</code>, <code>useTheme</code>)</li>
+        <li>Context + Reducer — global store pattern</li>
+        <li>Split state/dispatch for performance</li>
+      </ul>
+    </div>
+    <div class="rc" style="border-color:rgba(97,218,251,.2);">
+      <span class="rc-day" style="background:var(--js-dim);color:var(--js);">Today</span>
+      <div class="rc-title">Everything Combined</div>
+      <ul class="rc-list">
+        <li>Multi-page app with auth-gated routes</li>
+        <li>Global cart state with context + reducer</li>
+        <li>URL-synced filters with <code>useSearchParams</code></li>
+        <li>Custom hooks + performance optimisation</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="map-wrap">
+    <div class="map-head">Week 2 concepts → Week 3 bridge — what comes next</div>
+    <table class="map-table">
+      <tr><th>Week 2 concept</th><th>Week 3 equivalent</th><th>Why it's better</th></tr>
+      <tr><td><code>useEffect</code> + fetch + loading state</td><td>React Query / SWR</td><td>Automatic caching, background refetch, deduplication, stale-while-revalidate</td></tr>
+      <tr><td>Manual error/loading booleans</td><td><code>isLoading</code>, <code>isError</code>, <code>data</code> from React Query</td><td>Built-in states, retry logic, error boundaries integration</td></tr>
+      <tr><td>Context for server data</td><td>React Query cache</td><td>Fine-grained invalidation, no over-fetching, no stale data in context</td></tr>
+      <tr><td>Custom <code>useFetch</code> hook</td><td><code>useQuery(key, fetcher)</code></td><td>Handles deduplication, background updates, pagination, infinite scroll</td></tr>
+      <tr><td>Manual optimistic updates</td><td><code>useMutation</code> with <code>onMutate</code></td><td>Automatic rollback on error, integrated with query cache invalidation</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- PROJECT ARCHITECTURE -->
+<div class="section" id="architecture">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Project — React Shop: full architecture</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">build target</span>
+  </div>
+
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">You'll build <strong>React Shop</strong> — a multi-page e-commerce front end with auth, routing, a global cart, URL-synced filtering, and performance optimisations. Every feature maps to a Day 8–12 concept.</p>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">text</span><span class="cb-desc">Project file structure — src/ directory</span></div>
+    <div class="cb-body"><pre style="color:var(--muted);font-size:13px;line-height:2;">src/
+├── main.jsx                 <span class="cm">← entry: BrowserRouter + AppProviders</span>
+├── App.jsx                  <span class="cm">← Routes definition</span>
+│
+├── contexts/
+│   ├── AuthContext.jsx      <span class="cm">← useAuth() — Day 12</span>
+│   ├── CartContext.jsx      <span class="cm">← useCartState(), useCartActions() — Day 12</span>
+│   └── ThemeContext.jsx     <span class="cm">← useTheme() — Day 12</span>
+│
+├── hooks/
+│   ├── useFetch.js          <span class="cm">← data fetching + AbortController — Day 10</span>
+│   ├── useDebounce.js       <span class="cm">← search debounce — Day 10</span>
+│   └── useLocalStorage.js   <span class="cm">← persist cart — Day 10</span>
+│
+├── pages/
+│   ├── Home.jsx             <span class="cm">← public, shows featured products</span>
+│   ├── Products.jsx         <span class="cm">← search params filter+sort — Day 11</span>
+│   ├── ProductDetail.jsx    <span class="cm">← useParams — Day 11</span>
+│   ├── Cart.jsx             <span class="cm">← useCartState — protected</span>
+│   ├── Login.jsx            <span class="cm">← useAuth().login — saves redirect target</span>
+│   ├── Dashboard.jsx        <span class="cm">← protected, nested routes — Day 11</span>
+│   └── NotFound.jsx         <span class="cm">← 404 catch-all</span>
+│
+├── components/
+│   ├── Navbar.jsx           <span class="cm">← NavLink, useAuth, useCartState</span>
+│   ├── ProductCard.jsx      <span class="cm">← React.memo — Day 10</span>
+│   ├── CartItem.jsx         <span class="cm">← React.memo + useCartActions</span>
+│   ├── RequireAuth.jsx      <span class="cm">← protected route wrapper — Day 11</span>
+│   └── Spinner.jsx
+│
+└── services/
+    └── api.js               <span class="cm">← fetch wrappers (mock data today)</span></pre></div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">main.jsx + App.jsx — the full app skeleton</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── main.jsx ──────────────────────────────────────────────</span>
+<span class="kw">import</span> { <span class="var">StrictMode</span>, <span class="var">lazy</span>, <span class="var">Suspense</span> } <span class="kw">from</span> <span class="str">"react"</span>
+<span class="kw">import</span> { <span class="var">createRoot</span> }  <span class="kw">from</span> <span class="str">"react-dom/client"</span>
+<span class="kw">import</span> { <span class="var">BrowserRouter</span> } <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+<span class="kw">import</span> { <span class="var">AuthProvider</span> }  <span class="kw">from</span> <span class="str">"./contexts/AuthContext"</span>
+<span class="kw">import</span> { <span class="var">CartProvider</span> }  <span class="kw">from</span> <span class="str">"./contexts/CartContext"</span>
+<span class="kw">import</span> { <span class="var">ThemeProvider</span> } <span class="kw">from</span> <span class="str">"./contexts/ThemeContext"</span>
+<span class="kw">import</span> <span class="var">App</span>               <span class="kw">from</span> <span class="str">"./App"</span>
+<span class="kw">import</span> <span class="str">"./index.css"</span>
+
+<span class="fn">createRoot</span>(<span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"root"</span>)).<span class="fn">render</span>(
+  <span class="tag">&lt;StrictMode&gt;</span>
+    <span class="tag">&lt;BrowserRouter&gt;</span>
+      <span class="tag">&lt;AuthProvider&gt;</span>
+        <span class="tag">&lt;CartProvider&gt;</span>
+          <span class="tag">&lt;ThemeProvider&gt;</span>
+            <span class="tag">&lt;App</span> <span class="tag">/&gt;</span>
+          <span class="tag">&lt;/ThemeProvider&gt;</span>
+        <span class="tag">&lt;/CartProvider&gt;</span>
+      <span class="tag">&lt;/AuthProvider&gt;</span>
+    <span class="tag">&lt;/BrowserRouter&gt;</span>
+  <span class="tag">&lt;/StrictMode&gt;</span>
+)
+
+<span class="cm">// ── App.jsx ───────────────────────────────────────────────</span>
+<span class="kw">const</span> <span class="var">Products</span>     = <span class="fn">lazy</span>(() =&gt; <span class="kw">import</span>(<span class="str">"./pages/Products"</span>))
+<span class="kw">const</span> <span class="var">Dashboard</span>    = <span class="fn">lazy</span>(() =&gt; <span class="kw">import</span>(<span class="str">"./pages/Dashboard"</span>))
+
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;&gt;</span>
+      <span class="tag">&lt;Navbar</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;Suspense</span> <span class="attr">fallback</span>={<span class="tag">&lt;Spinner</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+        <span class="tag">&lt;Routes&gt;</span>
+          <span class="cm">{/* Public */}</span>
+          <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/"</span>                <span class="attr">element</span>={<span class="tag">&lt;Home</span> <span class="tag">/&gt;</span>}          <span class="tag">/&gt;</span>
+          <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/products"</span>        <span class="attr">element</span>={<span class="tag">&lt;Products</span> <span class="tag">/&gt;</span>}      <span class="tag">/&gt;</span>
+          <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/products/:id"</span>   <span class="attr">element</span>={<span class="tag">&lt;ProductDetail</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+          <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/login"</span>          <span class="attr">element</span>={<span class="tag">&lt;Login</span> <span class="tag">/&gt;</span>}         <span class="tag">/&gt;</span>
+
+          <span class="cm">{/* Protected — RequireAuth wrapper */}</span>
+          <span class="tag">&lt;Route</span> <span class="attr">element</span>={<span class="tag">&lt;RequireAuth</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+            <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/cart"</span>         <span class="attr">element</span>={<span class="tag">&lt;Cart</span> <span class="tag">/&gt;</span>}          <span class="tag">/&gt;</span>
+            <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/dashboard"</span>   <span class="attr">element</span>={<span class="tag">&lt;Dashboard</span> <span class="tag">/&gt;</span>}     <span class="tag">&gt;</span>
+              <span class="tag">&lt;Route</span> <span class="attr">index</span>              <span class="attr">element</span>={<span class="tag">&lt;DashboardHome</span> <span class="tag">/&gt;</span>} <span class="tag">/&gt;</span>
+              <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"orders"</span>     <span class="attr">element</span>={<span class="tag">&lt;Orders</span> <span class="tag">/&gt;</span>}       <span class="tag">/&gt;</span>
+              <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"settings"</span>   <span class="attr">element</span>={<span class="tag">&lt;Settings</span> <span class="tag">/&gt;</span>}     <span class="tag">/&gt;</span>
+            <span class="tag">&lt;/Route&gt;</span>
+          <span class="tag">&lt;/Route&gt;</span>
+
+          <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"*"</span>              <span class="attr">element</span>={<span class="tag">&lt;NotFound</span> <span class="tag">/&gt;</span>}       <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/Routes&gt;</span>
+      <span class="tag">&lt;/Suspense&gt;</span>
+    <span class="tag">&lt;/&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- CHALLENGES -->
+<div class="section" id="challenges">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Build it — 6 guided challenges</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">hands-on</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Each challenge builds on the last. Complete them in order. The runners simulate the core logic so you can verify understanding before writing JSX in Vite.</p>
+
+  <!-- CHALLENGE 1 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--react-dim);color:var(--react);">1</div>
+      <div class="ch-title">AuthContext — login, logout, persist, protect</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--coral-dim);color:var(--coral);">Day 12</span>
+        <span class="ch-tag" style="background:var(--blue-dim);color:var(--blue);">Day 11</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Implement the complete <code>AuthContext</code>. The Provider manages user state, a mock login/logout, token persistence in localStorage, and on-mount restoration. The <code>RequireAuth</code> component redirects to <code>/login</code> saving the intended destination, and login redirects back after success.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li><code>useAuth()</code> returns <code>{ user, isAuthenticated, login, logout, loading }</code></li>
+          <li>Calling <code>useAuth()</code> outside <code>AuthProvider</code> throws a descriptive error</li>
+          <li>Login persists token to localStorage; re-mounting app restores session</li>
+          <li><code>RequireAuth</code> passes <code>state={{ from: location }}</code> to the login redirect</li>
+          <li>Login component reads <code>location.state.from</code> and navigates back after success</li>
+          <li><code>logout()</code> clears user state and localStorage token</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 1 — auth logic simulation</span>
+        <span class="runner-meta">verify before writing JSX</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch1-code">// Simulated auth API
+async function mockLogin(email, password) {
+  await new Promise(r => setTimeout(r, 30))
+  if (password === "wrong") throw new Error("Invalid credentials")
+  return { user: { id:1, name:"Alice", email, role: email.includes("admin") ? "admin":"user" }, token: "tok_abc123" }
+}
+
+// Simulated localStorage
+const ls = {}
+const mockLS = { getItem: k => ls[k]??null, setItem: (k,v) => ls[k]=v, removeItem: k => delete ls[k] }
+
+// YOUR CODE: implement createAuthContext()
+// Returns { login, logout, getState, subscribe, restoreSession }
+// getState() → { user, isAuthenticated, loading, error }
+// subscribe(fn) → fn called on every state change, returns unsub fn
+
+function createAuthContext() {
+  let user = null, loading = false, error = null
+  let subs = []
+  const notify = () => subs.forEach(fn => fn(getState()))
+  const getState = () => ({ user, isAuthenticated: !!user, loading, error })
+
+  async function login(email, password) {
+    loading = true; error = null; notify()
+    try {
+      const data = await mockLogin(email, password)
+      user = data.user
+      mockLS.setItem("token", data.token)
+    } catch(e) { error = e.message }
+    finally { loading = false; notify() }
+  }
+
+  function logout() {
+    user = null; mockLS.removeItem("token"); notify()
+  }
+
+  function restoreSession() {
+    const token = mockLS.getItem("token")
+    if (token) user = { id:1, name:"Alice (restored)", email:"alice@test.com", role:"user" }
+  }
+
+  function subscribe(fn) {
+    subs.push(fn)
+    return () => { subs = subs.filter(s => s !== fn) }
+  }
+
+  restoreSession()
+  return { login, logout, getState, subscribe }
+}
+
+// Test all criteria
+async function runTests() {
+  const auth = createAuthContext()
+  const log  = []
+  auth.subscribe(s => log.push(s.isAuthenticated))
+
+  // 1. Initial state
+  console.log("1. Initial auth:", auth.getState().isAuthenticated)       // false
+
+  // 2. Login success
+  await auth.login("alice@test.com", "secret")
+  console.log("2. After login:", auth.getState().user?.name)              // Alice
+  console.log("   isAuth:", auth.getState().isAuthenticated)              // true
+  console.log("   token persisted:", !!mockLS.getItem("token"))          // true
+
+  // 3. Login failure
+  await auth.login("x@x.com", "wrong")
+  console.log("3. Error:", auth.getState().error)                         // Invalid credentials
+  console.log("   Still auth:", auth.getState().isAuthenticated)          // true (prev login preserved)
+
+  // 4. Logout
+  auth.logout()
+  console.log("4. After logout:", auth.getState().isAuthenticated)        // false
+  console.log("   Token cleared:", mockLS.getItem("token"))               // null
+
+  // 5. Session restore
+  mockLS.setItem("token", "existing_tok")
+  const auth2 = createAuthContext()
+  console.log("5. Restored:", auth2.getState().user?.name)               // Alice (restored)
+
+  // 6. RequireAuth logic
+  function requireAuth(isAuthenticated, currentPath) {
+    if (!isAuthenticated) return { redirect: "/login", state: { from: currentPath } }
+    return { render: true }
+  }
+  console.log("6. RequireAuth (unauthed):", JSON.stringify(requireAuth(false, "/cart")))
+  console.log("   RequireAuth (authed):",   JSON.stringify(requireAuth(true, "/cart")))
+
+  console.log("\n✓ All", log.length, "state changes captured")
+}
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch1-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 2 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--teal-dim);color:var(--teal);">2</div>
+      <div class="ch-title">Multi-page routing — nested dashboard with layout</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--blue-dim);color:var(--blue);">Day 11</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Implement the router logic: route matching, active NavLink detection for sidebar, and breadcrumb generation from the current path. Test that <code>/dashboard/orders</code> activates the right nav item and generates the right breadcrumbs.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li>Dashboard has persistent sidebar — navigating sub-routes only swaps <code>&lt;Outlet /&gt;</code></li>
+          <li>NavLink <code>end</code> prop used on <code>/dashboard</code> so it's not active on sub-routes</li>
+          <li><code>/dashboard/orders</code> activates only the Orders nav item, not Overview</li>
+          <li>Breadcrumbs generated dynamically from pathname segments</li>
+          <li>Back button from <code>/dashboard/settings</code> goes to <code>/dashboard/orders</code> (history preserved)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 2 — routing &amp; breadcrumb logic</span>
+        <span class="runner-meta">verify before writing JSX</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch2-code">// Simulate NavLink isActive logic and breadcrumb generation
+
+// isActive(linkTo, currentPath, end) — matches NavLink behaviour
+function isActive(linkTo, currentPath, end = false) {
+  // YOUR CODE:
+  // If end=true: exact match only (linkTo === currentPath)
+  // If end=false: currentPath starts with linkTo
+  // Handle trailing slashes consistently
+}
+
+// generateBreadcrumbs(pathname) — split path into segments
+// "/dashboard/orders" → [{ label:"Dashboard", path:"/dashboard" }, { label:"Orders", path:"/dashboard/orders" }]
+function generateBreadcrumbs(pathname) {
+  // YOUR CODE:
+  // Split on "/", filter empty, build cumulative paths
+  // Capitalise each label (first letter uppercase)
+}
+
+// Test isActive
+const navItems = [
+  { label:"Overview", to:"/dashboard",          end:true  },
+  { label:"Orders",   to:"/dashboard/orders",   end:false },
+  { label:"Settings", to:"/dashboard/settings", end:false },
+]
+
+const paths = ["/dashboard", "/dashboard/orders", "/dashboard/settings"]
+
+paths.forEach(currentPath => {
+  const activeItems = navItems.filter(n => isActive(n.to, currentPath, n.end))
+  console.log(`Active on ${currentPath}:`, activeItems.map(n=>n.label))
+})
+// /dashboard         → ["Overview"]
+// /dashboard/orders  → ["Orders"]   (NOT Overview, because end=true)
+// /dashboard/settings→ ["Settings"] (NOT Overview)
+
+console.log("")
+
+// Test breadcrumbs
+const crumbPaths = ["/", "/products", "/dashboard", "/dashboard/orders", "/dashboard/orders"]
+crumbPaths.forEach(p => {
+  console.log(`Breadcrumbs for ${p}:`, generateBreadcrumbs(p))
+})
+// /                   → []
+// /products           → [{ label:"Products", path:"/products" }]
+// /dashboard/orders   → [{ label:"Dashboard", path:"/dashboard" }, { label:"Orders", path:"/dashboard/orders" }]</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch2-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">isActive</span>(<span class="var">linkTo</span>, <span class="var">currentPath</span>, <span class="var">end</span> = <span class="kw">false</span>) {
+  <span class="kw">const</span> <span class="var">to</span>  = <span class="var">linkTo</span>.<span class="fn">replace</span>(<span class="op">/\/$/</span>, <span class="str">""</span>)
+  <span class="kw">const</span> <span class="var">cur</span> = <span class="var">currentPath</span>.<span class="fn">replace</span>(<span class="op">/\/$/</span>, <span class="str">""</span>)
+  <span class="kw">return</span> <span class="var">end</span> ? <span class="var">cur</span> === <span class="var">to</span> : <span class="var">cur</span> === <span class="var">to</span> || <span class="var">cur</span>.<span class="fn">startsWith</span>(<span class="var">to</span> + <span class="str">"/"</span>)
+}
+
+<span class="kw">function</span> <span class="fn">generateBreadcrumbs</span>(<span class="var">pathname</span>) {
+  <span class="kw">const</span> <span class="var">parts</span> = <span class="var">pathname</span>.<span class="fn">split</span>(<span class="str">"/"</span>).<span class="fn">filter</span>(<span class="fn">Boolean</span>)
+  <span class="kw">return</span> <span class="var">parts</span>.<span class="fn">map</span>((<span class="var">seg</span>, <span class="var">i</span>) => ({
+    <span class="prop">label</span>: <span class="var">seg</span>[<span class="num">0</span>].<span class="fn">toUpperCase</span>() + <span class="var">seg</span>.<span class="fn">slice</span>(<span class="num">1</span>),
+    <span class="prop">path</span>:  <span class="str">"/"</span> + <span class="var">parts</span>.<span class="fn">slice</span>(<span class="num">0</span>, <span class="var">i</span> + <span class="num">1</span>).<span class="fn">join</span>(<span class="str">"/"</span>)
+  }))
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 3 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--purple-dim);color:var(--purple);">3</div>
+      <div class="ch-title">Products page — URL-synced filter, sort &amp; debounced search</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--blue-dim);color:var(--blue);">Day 11</span>
+        <span class="ch-tag" style="background:var(--amber-dim);color:var(--amber);">Day 10</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Build the product filtering pipeline. State lives in the URL (<code>useSearchParams</code>) so filters survive refresh and are shareable. Search is debounced 300ms. Filtering and sorting are <code>useMemo</code>-cached so they only recompute when the source data or params change.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li>URL: <code>/products?category=electronics&sort=price&q=mac</code> — all params in URL</li>
+          <li>Page refresh keeps filters — state is in URL not component state</li>
+          <li>Search debounced 300ms — URL only updates after user stops typing</li>
+          <li>Filter + sort pipeline is <code>useMemo</code>-cached — only reruns when deps change</li>
+          <li>Changing category resets page to 1 automatically</li>
+          <li>Results count label: "Showing 12 of 48 products"</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 3 — filter + sort + search pipeline</span>
+        <span class="runner-meta">verify before writing JSX</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch3-code">const PRODUCTS = [
+  { id:1, name:"MacBook Pro",    category:"laptops",      price:1999, rating:4.8 },
+  { id:2, name:"iPhone 15",      category:"phones",       price:999,  rating:4.7 },
+  { id:3, name:"iPad Air",       category:"tablets",      price:599,  rating:4.6 },
+  { id:4, name:"AirPods Pro",    category:"audio",        price:249,  rating:4.5 },
+  { id:5, name:"MacBook Air",    category:"laptops",      price:1299, rating:4.7 },
+  { id:6, name:"Samsung Galaxy", category:"phones",       price:799,  rating:4.4 },
+  { id:7, name:"Dell XPS",       category:"laptops",      price:1499, rating:4.3 },
+  { id:8, name:"Sony WH-1000",   category:"audio",        price:349,  rating:4.6 },
+  { id:9, name:"Surface Pro",    category:"tablets",      price:899,  rating:4.2 },
+  { id:10,"name":"Pixel 8",      category:"phones",       price:699,  rating:4.5 },
+]
+
+// Simulate the filter + sort + search pipeline (useMemo equivalent)
+function getFilteredProducts(products, { category, q, sort }) {
+  // YOUR CODE:
+  // 1. Filter by category (skip if "all" or empty)
+  // 2. Filter by search query q — case-insensitive name match
+  // 3. Sort by: "price-asc", "price-desc", "rating" (desc), "name" (asc)
+  // 4. Return filtered+sorted array
+}
+
+// Simulate URL params object
+function makeParams(overrides = {}) {
+  return { category:"all", q:"", sort:"name", ...overrides }
+}
+
+// Test all filter combinations
+const tests = [
+  [makeParams(),                         10, "All, default sort"],
+  [makeParams({category:"laptops"}),     3,  "Laptops only"],
+  [makeParams({q:"mac"}),               2,  "Search 'mac'"],
+  [makeParams({q:"mac",sort:"price-asc"}),2, "Search 'mac' sorted by price asc"],
+  [makeParams({category:"phones",sort:"rating"}), 3, "Phones by rating"],
+  [makeParams({sort:"price-desc"}),      10, "All by price desc"],
+]
+
+let allPass = true
+tests.forEach(([params, expectedCount, label]) => {
+  const results = getFilteredProducts(PRODUCTS, params)
+  const pass = results.length === expectedCount
+  if (!pass) allPass = false
+  console.log(`${pass?"✓":"✗"} ${label}: ${results.length} results`)
+  if (!pass) console.log(`  Expected ${expectedCount}, got ${results.length}`)
+})
+
+// Verify sort orders
+const byPriceAsc  = getFilteredProducts(PRODUCTS, makeParams({sort:"price-asc"}))
+const byPriceDesc = getFilteredProducts(PRODUCTS, makeParams({sort:"price-desc"}))
+const byRating    = getFilteredProducts(PRODUCTS, makeParams({sort:"rating"}))
+const byName      = getFilteredProducts(PRODUCTS, makeParams({sort:"name"}))
+console.log("\nPrice asc first/last:", byPriceAsc[0].name, "/", byPriceAsc[9].name)
+console.log("Price desc first:", byPriceDesc[0].name)
+console.log("Rating desc first:", byRating[0].name)
+console.log("Name asc first:", byName[0].name)
+console.log(allPass ? "\n✓ All filter tests pass!" : "\n✗ Some tests failed")</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch3-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">getFilteredProducts</span>(<span class="var">products</span>, { <span class="var">category</span>, <span class="var">q</span>, <span class="var">sort</span> }) {
+  <span class="kw">return</span> [...<span class="var">products</span>]
+    .<span class="fn">filter</span>(<span class="var">p</span> => !<span class="var">category</span> || <span class="var">category</span> === <span class="str">"all"</span> || <span class="var">p</span>.<span class="prop">category</span> === <span class="var">category</span>)
+    .<span class="fn">filter</span>(<span class="var">p</span> => !<span class="var">q</span>         || <span class="var">p</span>.<span class="prop">name</span>.<span class="fn">toLowerCase</span>().<span class="fn">includes</span>(<span class="var">q</span>.<span class="fn">toLowerCase</span>()))
+    .<span class="fn">sort</span>((<span class="var">a</span>, <span class="var">b</span>) => {
+      <span class="kw">if</span> (<span class="var">sort</span> === <span class="str">"price-asc"</span>)  <span class="kw">return</span> <span class="var">a</span>.<span class="prop">price</span>  - <span class="var">b</span>.<span class="prop">price</span>
+      <span class="kw">if</span> (<span class="var">sort</span> === <span class="str">"price-desc"</span>) <span class="kw">return</span> <span class="var">b</span>.<span class="prop">price</span>  - <span class="var">a</span>.<span class="prop">price</span>
+      <span class="kw">if</span> (<span class="var">sort</span> === <span class="str">"rating"</span>)     <span class="kw">return</span> <span class="var">b</span>.<span class="prop">rating</span> - <span class="var">a</span>.<span class="prop">rating</span>
+      <span class="kw">return</span> <span class="var">a</span>.<span class="prop">name</span>.<span class="fn">localeCompare</span>(<span class="var">b</span>.<span class="prop">name</span>)
+    })
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 4 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ch-title">Cart context — reducer, persistence, derived state</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--coral-dim);color:var(--coral);">Day 12</span>
+        <span class="ch-tag" style="background:var(--purple-dim);color:var(--purple);">Day 9</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Build the complete cart store. Cart state is managed with a reducer (add, remove, update qty, clear). The cart persists to localStorage so items survive page refresh. Split into separate state/dispatch contexts to prevent <code>ProductCard</code> (which only dispatches) from re-rendering when state changes.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li>Adding the same product twice increments qty instead of adding a duplicate</li>
+          <li>Setting qty to 0 or less removes the item</li>
+          <li><code>itemCount</code>, <code>total</code>, <code>isEmpty</code> are derived — never stored separately</li>
+          <li>Cart state saved to localStorage on every change; restored on app load</li>
+          <li><code>useCartActions()</code> returns stable dispatch-wrapping functions (no re-renders)</li>
+          <li>Components using only <code>useCartActions()</code> never re-render on state changes</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 4 — cart reducer + persistence</span>
+        <span class="runner-meta">verify before writing JSX</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch4-code">// Cart reducer — pure function
+function cartReducer(state, action) {
+  switch (action.type) {
+    case "ADD_ITEM": {
+      const exists = state.find(i => i.id === action.payload.id)
+      if (exists) return state.map(i => i.id===action.payload.id ? {...i, qty:i.qty+1} : i)
+      return [...state, { ...action.payload, qty: 1 }]
+    }
+    case "REMOVE_ITEM":
+      return state.filter(i => i.id !== action.payload)
+    case "UPDATE_QTY": {
+      const { id, qty } = action.payload
+      if (qty <= 0) return state.filter(i => i.id !== id)
+      return state.map(i => i.id===id ? {...i, qty} : i)
+    }
+    case "CLEAR":
+      return []
+    default:
+      return state
+  }
+}
+
+// Derived state — YOUR CODE: implement getCartStats(items)
+function getCartStats(items) {
+  // Return { itemCount, total, isEmpty }
+  // itemCount: sum of all qtys
+  // total: sum of price * qty for each item
+  // isEmpty: boolean
+}
+
+// Persistence — YOUR CODE: implement loadCart() and saveCart(items)
+const storage = {}
+function loadCart()        { /* return parsed JSON from storage["cart"] or [] */ }
+function saveCart(items)   { /* save JSON stringified items to storage["cart"] */ }
+
+// Test the complete cart flow
+let cartState = loadCart()
+
+function dispatch(action) {
+  cartState = cartReducer(cartState, action)
+  saveCart(cartState)
+}
+
+const laptop = { id:1, name:"Laptop", price:999 }
+const mouse  = { id:2, name:"Mouse",  price:29  }
+
+dispatch({ type:"ADD_ITEM", payload: laptop })
+dispatch({ type:"ADD_ITEM", payload: mouse })
+dispatch({ type:"ADD_ITEM", payload: laptop })   // should increment qty
+
+console.log("Items after 3 adds:", cartState.map(i => `${i.name}×${i.qty}`))
+// ["Laptop×2","Mouse×1"]
+
+let stats = getCartStats(cartState)
+console.log("Stats:", JSON.stringify(stats))
+// { itemCount:3, total:2027, isEmpty:false }
+
+dispatch({ type:"UPDATE_QTY", payload: { id:1, qty:1 } })
+stats = getCartStats(cartState)
+console.log("After qty update:", stats.total)   // 999+29 = 1028
+
+dispatch({ type:"UPDATE_QTY", payload: { id:2, qty:0 } })
+console.log("After qty=0:", cartState.length)   // 1 (mouse removed)
+
+dispatch({ type:"CLEAR" })
+stats = getCartStats(cartState)
+console.log("After clear:", stats.isEmpty)      // true
+
+// Persistence test
+dispatch({ type:"ADD_ITEM", payload: { id:3, name:"Keyboard", price:79 } })
+saveCart(cartState)
+const restored = loadCart()
+console.log("Restored from storage:", restored[0].name, "×", restored[0].qty)
+// Keyboard × 1</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch4-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">getCartStats</span>(<span class="var">items</span>) {
+  <span class="kw">return</span> {
+    <span class="prop">itemCount</span>: <span class="var">items</span>.<span class="fn">reduce</span>((<span class="var">s</span>,<span class="var">i</span>) => <span class="var">s</span>+<span class="var">i</span>.<span class="prop">qty</span>, <span class="num">0</span>),
+    <span class="prop">total</span>:     <span class="var">items</span>.<span class="fn">reduce</span>((<span class="var">s</span>,<span class="var">i</span>) => <span class="var">s</span>+<span class="var">i</span>.<span class="prop">price</span>*<span class="var">i</span>.<span class="prop">qty</span>, <span class="num">0</span>),
+    <span class="prop">isEmpty</span>:   <span class="var">items</span>.<span class="prop">length</span> === <span class="num">0</span>
+  }
+}
+<span class="kw">function</span> <span class="fn">loadCart</span>()      { <span class="kw">try</span> { <span class="kw">return</span> <span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="var">storage</span>[<span class="str">"cart"</span>]) || [] } <span class="kw">catch</span> { <span class="kw">return</span> [] } }
+<span class="kw">function</span> <span class="fn">saveCart</span>(<span class="var">items</span>) { <span class="var">storage</span>[<span class="str">"cart"</span>] = <span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="var">items</span>) }</pre></div></div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 5 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ch-title">Custom hooks extraction — useFetch, useDebounce, useLocalStorage</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--amber-dim);color:var(--amber);">Day 10</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Extract three custom hooks that are reused across the app. <code>useFetch(url)</code> handles data fetching with AbortController. <code>useDebounce(value, delay)</code> delays the search param update. <code>useLocalStorage(key, initial)</code> syncs state to localStorage. Verify each hook in isolation.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li><code>useFetch</code>: returns <code>{ data, loading, error }</code> + AbortController cleanup on url change</li>
+          <li><code>useFetch</code>: race condition safe — rapid url changes don't show stale data</li>
+          <li><code>useDebounce</code>: returns debounced value — only updates after delay ms of silence</li>
+          <li><code>useLocalStorage</code>: initialises from storage, persists on every set, supports functional updates</li>
+          <li>All three hooks are in <code>hooks/</code> folder and exported as named exports</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 5 — custom hooks simulation</span>
+        <span class="runner-meta">verify before writing JSX</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch5-code">// ── Test useDebounce logic ────────────────────────────────
+function createDebouncer(delay) {
+  let timer = null, current = null, callbacks = []
+  return {
+    set(value) {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        current = value
+        callbacks.forEach(fn => fn(value))
+      }, delay)
+    },
+    subscribe(fn) { callbacks.push(fn) },
+    getCurrent()  { return current }
+  }
+}
+
+async function testDebounce() {
+  const d = createDebouncer(50)
+  const settled = []
+  d.subscribe(v => settled.push(v))
+
+  d.set("a"); d.set("ab"); d.set("abc")   // only "abc" should settle
+  await new Promise(r => setTimeout(r, 80))
+  console.log("Debounce settled:", settled)    // ["abc"]
+  console.log("Only once:", settled.length === 1)
+
+  d.set("x")
+  await new Promise(r => setTimeout(r, 80))
+  console.log("After 2nd burst:", settled)     // ["abc","x"]
+}
+
+// ── Test useLocalStorage logic ────────────────────────────
+function createLocalStorageHook(key, initialValue) {
+  const store = {}
+  const mockLS = { getItem: k=>store[k]??null, setItem: (k,v)=>store[k]=v }
+
+  // Load initial
+  let value = (() => {
+    try { const s = mockLS.getItem(key); return s ? JSON.parse(s) : initialValue }
+    catch { return initialValue }
+  })()
+
+  let subscribers = []
+  const notify = () => subscribers.forEach(fn => fn(value))
+
+  function setValue(newValueOrFn) {
+    value = typeof newValueOrFn === "function" ? newValueOrFn(value) : newValueOrFn
+    mockLS.setItem(key, JSON.stringify(value))
+    notify()
+  }
+
+  function subscribe(fn) { subscribers.push(fn) }
+
+  return { getValue: () => value, setValue, subscribe, store }
+}
+
+function testLocalStorage() {
+  const hook = createLocalStorageHook("theme", "light")
+  const log  = []
+  hook.subscribe(v => log.push(v))
+
+  console.log("\nInitial:", hook.getValue())           // "light"
+  hook.setValue("dark")
+  console.log("After set dark:", hook.getValue())      // "dark"
+  console.log("Persisted:", hook.store["theme"])       // '"dark"'
+
+  hook.setValue(v => v === "dark" ? "light" : "dark") // functional update
+  console.log("After toggle:", hook.getValue())        // "light"
+
+  // Restore from storage simulation
+  const hook2 = createLocalStorageHook("theme", "light")
+  // hook2 would read from same store in real implementation
+  console.log("Log entries:", log.length)              // 2
+}
+
+// ── Test useFetch race condition safety ───────────────────
+async function testFetchRace() {
+  let resolveCount = 0
+  const mockFetch = (url) => ({
+    url,
+    promise: new Promise(res => {
+      const delay = url.includes("slow") ? 100 : 20
+      setTimeout(() => { resolveCount++; res({ data: `data-from-${url}` }) }, delay)
+    }),
+    abort: () => {}
+  })
+
+  // Simulate rapid url changes — only last should show
+  let current = null
+  async function navigate(url) {
+    const req = mockFetch(url)
+    const data = await req.promise
+    current = data.data  // in real hook: only set if not aborted
+  }
+
+  // Fire slow then fast — fast should win
+  const p1 = navigate("slow-endpoint")
+  const p2 = navigate("fast-endpoint")
+  await Promise.all([p1, p2])
+
+  // Without abort, current = last to resolve (slow, since it's last)
+  // With abort pattern, current = fast-endpoint
+  console.log("\nFetch race — both resolved:", resolveCount)
+  console.log("Note: implement AbortController in real useFetch to make fast win")
+}
+
+testDebounce().then(testLocalStorage).then(testFetchRace)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 6 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ch-title">Performance — React.memo + useCallback + render counting</div>
+      <div class="ch-tags">
+        <span class="ch-tag" style="background:var(--amber-dim);color:var(--amber);">Day 10</span>
+        <span class="ch-tag" style="background:var(--coral-dim);color:var(--coral);">Day 12</span>
+      </div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">The <code>ProductCard</code> is rendered 48 times in the product grid. When the user changes the cart (cart icon count updates), none of the 48 product cards should re-render. Verify this using a render counter simulation — then implement the correct <code>React.memo</code> + stable <code>useCallback</code> pattern.</div>
+      <div class="ch-spec">
+        <div class="ch-spec-title">Acceptance criteria</div>
+        <ul class="ch-spec-list">
+          <li><code>ProductCard</code> wrapped in <code>React.memo</code> — skips render when props unchanged</li>
+          <li><code>onAddToCart</code> callback is stable via <code>useCallback</code> with empty deps (uses functional setState)</li>
+          <li>Adding to cart: 0 <code>ProductCard</code> re-renders (only <code>CartIcon</code> re-renders)</li>
+          <li>Changing search query: all <em>visible</em> <code>ProductCard</code>s re-render (new data)</li>
+          <li>Toggling theme: 0 <code>ProductCard</code> re-renders (theme not a prop)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="runner">
+      <div class="runner-head">
+        <span class="runner-title">Challenge 6 — render counting simulation</span>
+        <span class="runner-meta">verify before writing JSX</span>
+        <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      </div>
+      <div class="runner-code">
+        <textarea id="ch6-code">// Simulate React.memo behaviour — skip render if props unchanged (shallow)
+function createMemoComponent(renderFn) {
+  let lastProps = null
+  let renders   = 0
+
+  function render(props) {
+    const changed = !lastProps || Object.keys(props).some(k => props[k] !== lastProps[k])
+    if (changed) { renders++; lastProps = { ...props }; renderFn(props) }
+  }
+
+  return { render, getRenders: () => renders, resetCount: () => renders = 0 }
+}
+
+// Simulate useCallback — returns same fn reference if deps unchanged
+function createStableCallback(fn, deps) {
+  let lastDeps = null, cachedFn = null
+  return function getStable() {
+    const changed = !lastDeps || deps.some((d,i) => d !== lastDeps[i])
+    if (changed) { cachedFn = fn; lastDeps = [...deps] }
+    return cachedFn
+  }
+}
+
+// App state
+let cartItems = [], cartVersion = 0
+let query = ""
+
+// Stable addToCart — uses no outer variables, always same reference
+const getStableAddToCart = createStableCallback(
+  (product) => {
+    // In real app: dispatch({ type:"ADD_ITEM", payload: product })
+    cartItems = [...cartItems, product]
+    cartVersion++
+  },
+  []   // empty deps — created once, never recreated
+)
+
+// Create 5 ProductCards (representing 48 in real app)
+const products = [
+  { id:1, name:"Laptop",  price:999 },
+  { id:2, name:"Phone",   price:699 },
+  { id:3, name:"Tablet",  price:499 },
+  { id:4, name:"Watch",   price:299 },
+  { id:5, name:"Earbuds", price:199 },
+]
+
+const cards = products.map(p => createMemoComponent(() => {}))
+
+// Simulate initial render — all cards render
+const addToCart = getStableAddToCart()
+products.forEach((p, i) => cards[i].render({ product: p, onAddToCart: addToCart }))
+console.log("Initial render — each card renders once:", cards.every(c => c.getRenders() === 1))
+cards.forEach(c => c.resetCount())
+
+// ── Test 1: Add to cart — no ProductCard re-renders ─────
+// addToCart is STABLE — same reference — so memo sees no prop change
+const stableRef = getStableAddToCart()
+products.forEach((p, i) => cards[i].render({ product: p, onAddToCart: stableRef }))
+const rendersOnCartChange = cards.reduce((s,c) => s + c.getRenders(), 0)
+console.log("Renders after add-to-cart (should be 0):", rendersOnCartChange)
+cards.forEach(c => c.resetCount())
+
+// ── Test 2: Search query changes — all cards re-render ──
+// Products data changes → new props → all re-render
+const filteredProducts = products.filter(p => p.name.includes("p") || p.name.includes("P"))
+filteredProducts.forEach((p, i) => {
+  if (i < cards.length) cards[i].render({ product: p, onAddToCart: stableRef })
+})
+const oldCards = products.filter(p => !filteredProducts.includes(p))
+// Cards for removed products get no render call (they disappear)
+console.log("Renders after search change:", cards.slice(0, filteredProducts.length).reduce((s,c)=>s+c.getRenders(),0))
+cards.forEach(c => c.resetCount())
+
+// ── Test 3: UNSTABLE callback — forces all cards to re-render ──
+products.forEach((p, i) => {
+  const newFn = () => {}   // new reference every "render"
+  cards[i].render({ product: p, onAddToCart: newFn })
+})
+const rendersWithUnstable = cards.reduce((s,c) => s + c.getRenders(), 0)
+console.log("Renders with UNSTABLE callback (should be", products.length,"):", rendersWithUnstable)
+console.log("\nConclusion: stable callbacks + React.memo = 0 unnecessary re-renders on cart change")</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ch6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTEGRATION -->
+<div class="section" id="integration">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Wire it all together — end-to-end user flows</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">integration</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">After completing the 6 challenges, verify these user flows work end-to-end in your Vite app:</p>
+
+  <div class="runner">
+    <div class="runner-head">
+      <span class="runner-title">Integration test — all user flows in one simulation</span>
+      <span class="runner-meta">runs all 6 challenges together</span>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+    </div>
+    <div class="runner-code">
+      <textarea id="int-code">// ── Full app integration simulation ──────────────────────
+// Combines auth + router + cart + filters into one flow test
+
+// ── Auth ──
+const auth = (() => {
+  let user = null
+  return {
+    login:  (email) => { user = { id:1, name:"Alice", email, role:"user" } },
+    logout: ()      => { user = null },
+    get:    ()      => ({ user, isAuthenticated: !!user })
+  }
+})()
+
+// ── Router ──
+const router = (() => {
+  let path = "/"
+  let history = ["/"]
+  return {
+    navigate: (to) => { history.push(to); path = to },
+    back:     ()   => { history.pop(); path = history[history.length-1] },
+    current:  ()   => path,
+    canAccess: (route, isAuth) => {
+      const protected_ = ["/cart", "/dashboard"]
+      if (protected_.some(p => route.startsWith(p)) && !isAuth) {
+        return { redirect: `/login?from=${encodeURIComponent(route)}` }
+      }
+      return { allow: true }
+    }
+  }
+})()
+
+// ── Cart ──
+const cart = (() => {
+  let items = []
+  const add    = (p) => { const e = items.find(i=>i.id===p.id); e ? e.qty++ : items.push({...p,qty:1}) }
+  const remove = (id)=> { items = items.filter(i=>i.id!==id) }
+  const clear  = ()  => { items = [] }
+  const stats  = ()  => ({
+    items, count: items.reduce((s,i)=>s+i.qty,0),
+    total: items.reduce((s,i)=>s+i.price*i.qty,0),
+    isEmpty: items.length===0
+  })
+  return { add, remove, clear, stats }
+})()
+
+// ── Products filter ──
+const PRODUCTS = [
+  { id:1, name:"MacBook Pro", category:"laptops", price:1999 },
+  { id:2, name:"iPhone 15",   category:"phones",  price:999  },
+  { id:3, name:"MacBook Air", category:"laptops", price:1299 },
+  { id:4, name:"Pixel 8",     category:"phones",  price:699  },
+]
+const filter = (category, q) =>
+  PRODUCTS.filter(p => (!category||category==="all"||p.category===category) &&
+                       (!q||p.name.toLowerCase().includes(q.toLowerCase())))
+
+console.log("=== Flow 1: Unauthenticated cart access ===")
+router.navigate("/cart")
+const access = router.canAccess(router.current(), auth.get().isAuthenticated)
+console.log("Access result:", JSON.stringify(access))  // redirect to login
+router.navigate(access.redirect)
+console.log("Redirected to:", router.current())
+
+console.log("\n=== Flow 2: Login + redirect back ===")
+auth.login("alice@test.com")
+console.log("Logged in:", auth.get().user.name)
+router.navigate("/cart")
+console.log("Now at:", router.current())
+console.log("Access:", JSON.stringify(router.canAccess(router.current(), auth.get().isAuthenticated)))
+
+console.log("\n=== Flow 3: Browse + filter products ===")
+router.navigate("/products")
+let shown = filter("all", "")
+console.log("All products:", shown.length)             // 4
+shown = filter("laptops", "")
+console.log("Laptops:", shown.map(p=>p.name))          // MacBook Pro, MacBook Air
+shown = filter("all", "mac")
+console.log("Search 'mac':", shown.map(p=>p.name))    // MacBook Pro, MacBook Air
+
+console.log("\n=== Flow 4: Add to cart + checkout ===")
+cart.add(PRODUCTS[0])   // MacBook Pro
+cart.add(PRODUCTS[1])   // iPhone 15
+cart.add(PRODUCTS[0])   // MacBook Pro ×2
+let s = cart.stats()
+console.log("Cart:", s.items.map(i=>`${i.name}×${i.qty}`))
+console.log("Total: $" + s.total)      // $1999×2 + $999 = $4997
+console.log("Count:", s.count)         // 3
+
+cart.remove(PRODUCTS[1].id)
+s = cart.stats()
+console.log("After remove iPhone:", s.total)  // $3998
+
+cart.clear()
+console.log("After clear, empty:", cart.stats().isEmpty)  // true
+
+console.log("\n=== Flow 5: Protected dashboard navigation ===")
+router.navigate("/dashboard")
+console.log("Dashboard access:", JSON.stringify(router.canAccess(router.current(), true)))
+router.navigate("/dashboard/orders")
+console.log("Orders access:", JSON.stringify(router.canAccess(router.current(), true)))
+router.back()
+console.log("Back to:", router.current())   // /dashboard
+
+console.log("\n=== Flow 6: Logout + re-protect ===")
+auth.logout()
+router.navigate("/cart")
+console.log("Cart after logout:", JSON.stringify(router.canAccess(router.current(), auth.get().isAuthenticated)))
+// redirect to /login
+
+console.log("\n✓ All integration flows pass!")</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="int-out">Click ▶ Run</div></div>
+  </div>
+</div>
+
+<!-- CHECKLIST -->
+<div class="section" id="checklist">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Week 2 self-assessment — be honest</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">self-assessment</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it right now without reference. Anything unchecked should be revisited before Week 3 — React Query builds on these foundations.</p>
+
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain JSX compilation and the virtual DOM / reconciliation model <span class="cl-tag" style="background:var(--react-dim);color:var(--react);">Day 8</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can lift state up and implement a generic <code>handleChange</code> for all input types <span class="cl-tag" style="background:var(--purple-dim);color:var(--purple);">Day 9</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement a <code>useReducer</code> with ADD, UPDATE, DELETE, and CLEAR actions <span class="cl-tag" style="background:var(--purple-dim);color:var(--purple);">Day 9</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement <code>useDebounce</code> and <code>usePrevious</code> from memory <span class="cl-tag" style="background:var(--amber-dim);color:var(--amber);">Day 10</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use <code>useMemo</code>/<code>useCallback</code> and can explain why they need <code>React.memo</code> <span class="cl-tag" style="background:var(--amber-dim);color:var(--amber);">Day 10</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can build a custom hook with <code>useState</code> + <code>useEffect</code> and export it cleanly <span class="cl-tag" style="background:var(--amber-dim);color:var(--amber);">Day 10</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can set up React Router v6 with nested routes, Outlet, and a 404 catch-all <span class="cl-tag" style="background:var(--teal-dim);color:var(--teal);">Day 11</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement a <code>RequireAuth</code> protected route that saves and restores the destination <span class="cl-tag" style="background:var(--teal-dim);color:var(--teal);">Day 11</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>useSearchParams</code> to make filters and sort bookmarkable in the URL <span class="cl-tag" style="background:var(--teal-dim);color:var(--teal);">Day 11</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can create a context with <code>createContext</code>, Provider, and a custom hook with an error guard <span class="cl-tag" style="background:var(--coral-dim);color:var(--coral);">Day 12</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the context re-render problem and name 3 solutions <span class="cl-tag" style="background:var(--coral-dim);color:var(--coral);">Day 12</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can set up Context + useReducer as a global store with split state/dispatch contexts <span class="cl-tag" style="background:var(--coral-dim);color:var(--coral);">Day 12</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed all 6 challenges today and my app has auth, routing, cart, and filters working <span class="cl-tag" style="background:var(--js-dim);color:var(--js);">Day 13</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My React Shop is deployed to Vercel with a live URL and pushed to GitHub <span class="cl-tag" style="background:var(--js-dim);color:var(--js);">Day 13</span></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the difference between Context (client state) and what React Query handles (server state) <span class="cl-tag" style="background:var(--green-dim);color:var(--green);">Week 3</span></div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(97,218,251,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--react);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Final recall — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. From memory, write the <strong>AuthContext</strong> — <code>createContext</code>, <code>AuthProvider</code> with login/logout, <code>useAuth()</code> with error guard<br>
+      2. Write the <strong>RequireAuth</strong> component — checks auth, saves destination, redirects; and the login redirect-back logic<br>
+      3. Write the <strong>CartContext</strong> — reducer with 4 action types, split state/dispatch contexts, <code>useCartState()</code> with derived stats<br>
+      4. Write the <strong>Products page</strong> — <code>useSearchParams</code> for filter/sort/query, <code>useDebounce</code> on search, <code>useMemo</code> on the filter pipeline
+    </div>
+  </div>
+</div>
+
+<!-- WEEK 3 PREVIEW -->
+<div class="section" id="week3">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Week 3 preview — data fetching &amp; server state</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">coming up</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Week 2 gave you the client-side foundation. Week 3 adds the most impactful skill gap: <strong>production-grade server state management</strong> with React Query — the library used in virtually every serious React codebase.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:24px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--react);margin-bottom:10px;">Day 14 — Monday</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">React Query fundamentals</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;"><code style="font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">useQuery</code>, <code style="font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--react);">useMutation</code>, cache invalidation. Replace your manual <code>useFetch</code> with a production-grade solution that handles caching, background updates, and retry logic automatically.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--purple);margin-bottom:10px;">Day 15 — Tuesday</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Advanced React Query</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">Pagination, infinite scroll, optimistic updates, prefetching, and the React Query DevTools. Build the Products page that fetches real paginated data.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--amber);margin-bottom:10px;">Day 16–17</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Forms with React Hook Form</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">Replace your manual form validation with React Hook Form + Zod. Uncontrolled inputs for performance + schema validation. Far less code, far better UX.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--coral);margin-bottom:10px;">Day 18–19</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">TypeScript + Tailwind</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">Add TypeScript to the React Shop project. Then swap the CSS for Tailwind utility classes. By Day 20 the app looks and works like a real production product.</div>
+    </div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(97,218,251,.15);border-radius:14px;padding:24px;text-align:center;">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace;">Week 2 complete</div>
+    <div style="font-size:24px;font-weight:800;margin-bottom:10px;">You know React. Really.</div>
+    <div style="font-size:14px;color:var(--muted);max-width:600px;margin:0 auto 24px;line-height:1.75;">Components, state, hooks, routing, context — the core of every React app. Most tutorials stop here. Week 3 takes you to where production apps live: server state, forms, types, and styling at scale.</div>
+    <button class="day-btn primary" onclick="navigateTo('day14_react_query.html',14)" style="font-size:14px;padding:12px 32px;border-radius:10px;margin:0 auto;">Start Week 3 — React Query →</button>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 2 complete</div>
+      <div class="footer-day-name">Day 13 — Week 2 Review Project</div>
+      <div class="footer-day-next">Next: <strong>Day 14 — React Query (Week 3 begins)</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 2 complete</span><span id="week-pct">0%</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" id="week-prog" style="width:0%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day12_context_global_state.html',12)">← Day 12</button>
+      <button class="footer-btn primary" onclick="navigateTo('day14_react_query.html',14)">Week 3: React Query →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN = [
+  {num:1, file:"day1_javascript_fundamentals.html"},
+  {num:2, file:"day2_javascript_arrays_objects.html"},
+  {num:3, file:"day3_functions_async_js.html"},
+  {num:4, file:"day4_dom_events_classes.html"},
+  {num:5, file:"day5_dom_events_classes.html"},
+  {num:6, file:"day6_es6_modules_iterators_generators.html"},
+  {num:7, file:"day7_week1_review_project.html"},
+  {num:8, file:"day8_react_essentials.html"},
+  {num:9, file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html",current:true},
+]
+const CURRENT   = 13
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+])
+
+function navigateTo(file,n){
+  if(AVAILABLE.has(file)) window.location.href=file
+  else showToast(`Day ${n} coming soon — keep building! ⚛️`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+  const wp=document.getElementById('week-prog'), wl=document.getElementById('week-pct')
+  if(wp) wp.style.width=p+'%'
+  if(wl) wl.textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

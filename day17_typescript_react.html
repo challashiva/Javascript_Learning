@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 17 — TypeScript with React</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --ts:#3178c6;--ts-dim:rgba(49,120,198,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
+  --react:#61dafb;--react-dim:rgba(97,218,251,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--ts);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--ts);border-bottom-color:var(--ts);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--ts);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--ts);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--ts-dim);color:var(--ts);border-color:rgba(49,120,198,.3);}
+.day-btn.primary:hover{background:rgba(49,120,198,.18);}
+
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ts);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--ts);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--ts);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--ts);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--ts-dim);color:var(--ts);border-color:rgba(49,120,198,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--ts);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--ts);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+.ty{color:#38bdf8;}.ge{color:#a5f3fc;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--ts);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--ts);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--ts-dim);color:var(--ts);border:1px solid rgba(49,120,198,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(49,120,198,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:200px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(49,120,198,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--ts);}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--ts-dim);color:var(--ts);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--ts);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--ts);border-color:var(--ts);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--ts);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--ts-dim);color:var(--ts);border-color:rgba(49,120,198,.3);}
+.footer-btn.primary:hover{background:rgba(49,120,198,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--ts);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 17 · TypeScript</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#why">Why TS</a>
+  <a href="#types">Core Types</a>
+  <a href="#components">Components</a>
+  <a href="#hooks">Hooks</a>
+  <a href="#advanced">Advanced Types</a>
+  <a href="#patterns">Patterns</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 3 · <span>Day 17 of 56</span> · TypeScript with React</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day16_react_hook_form.html',16)">← Day 16</button>
+      <button class="day-btn primary" onclick="navigateTo('day18_tailwind_css.html',18)">Day 18 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 3 · Day 17 · 8-week plan</div>
+  <h1><em>TypeScript</em><br>with React</h1>
+  <p class="hero-sub">TypeScript transforms React from a dynamic scripting language into a scalable, self-documenting system. Catch bugs before runtime, get autocomplete on every prop, and make refactoring safe across thousands of files.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(49,120,198,.3);color:var(--ts);">TS setup with Vite</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">props typing</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">useState &amp; useRef generics</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">event types</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">union &amp; intersection types</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">generics</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">utility types</span>
+    <span class="topic-pill" style="border-color:rgba(97,218,251,.3);color:var(--react);">discriminated unions</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">9</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--ts);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>Why TypeScript — the value proposition</li>
+        <li>Vite + React + TypeScript setup</li>
+        <li>Core types: primitives, arrays, objects</li>
+        <li>Interfaces vs type aliases</li>
+        <li>Typing component props — FC vs function</li>
+        <li>Children, className, style props</li>
+        <li>Optional props and default values</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>useState&lt;T&gt; and useRef&lt;T&gt; generics</li>
+        <li>Event types — all the ones you need</li>
+        <li>Union types and narrowing</li>
+        <li>Discriminated unions for component variants</li>
+        <li>Utility types: Partial, Required, Pick, Omit</li>
+        <li>Generics for reusable components</li>
+        <li>Type assertions and unknown vs any</li>
+        <li>Exercises 1–6</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Push code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 17 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Why TS</span>
+    <span class="tdot" onclick="markDone(this)">Core types</span>
+    <span class="tdot" onclick="markDone(this)">Props typing</span>
+    <span class="tdot" onclick="markDone(this)">Hooks generics</span>
+    <span class="tdot" onclick="markDone(this)">Event types</span>
+    <span class="tdot" onclick="markDone(this)">Union types</span>
+    <span class="tdot" onclick="markDone(this)">Utility types</span>
+    <span class="tdot" onclick="markDone(this)">Generics</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. WHY TYPESCRIPT -->
+<div class="section" id="why">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Why TypeScript — the value proposition for React developers</span>
+    <span class="sec-badge" style="background:var(--ts-dim);color:var(--ts);">motivation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">without TS</span>
+      <div class="cc-title">Bugs discovered at runtime, in production</div>
+      <div class="cc-body">Passing a string where a number is expected. Calling a method that doesn't exist. Accessing <code>.name</code> on <code>undefined</code>. Renaming a prop in one component but missing three others that use it. These bugs only surface when someone actually uses the feature — sometimes months later.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">with TS</span>
+      <div class="cc-title">Bugs caught at write-time, in your editor</div>
+      <div class="cc-body">TypeScript's language server runs in your IDE and highlights mistakes <strong>as you type</strong>. Rename a prop and TypeScript immediately shows every component that needs updating — red squiggles guide you. Pass the wrong type and you see the error before you even save the file.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--ts-dim);color:var(--ts);">living documentation</span>
+      <div class="cc-title">Props are self-documenting</div>
+      <div class="cc-body">A typed component's interface tells you everything about it — which props are required, their types, which are optional, what values are accepted. Hover over a component in your IDE and see the full API. No more opening source files to understand how to use a component.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">safe refactoring</span>
+      <div class="cc-title">Rename anything with confidence</div>
+      <div class="cc-body">Renaming a function, interface, or prop across a 50,000-line codebase is terrifying in JavaScript. In TypeScript it's a three-second IDE operation — every reference updates automatically, and the compiler catches any you missed. This is the feature that converts senior engineers.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + json</span><span class="cb-desc">Setting up Vite + React + TypeScript and understanding tsconfig.json</span></div>
+    <div class="cb-body"><pre><span class="cm"># Create a new Vite + React + TypeScript project</span>
+npm create vite@latest my-app -- --template react-ts
+<span class="cm"># File extensions: .tsx for components, .ts for pure logic</span>
+
+<span class="cm">// tsconfig.json — key options explained</span>
+{
+  <span class="str">"compilerOptions"</span>: {
+    <span class="str">"target"</span>:      <span class="str">"ES2020"</span>,      <span class="cm">// JS version to emit</span>
+    <span class="str">"lib"</span>:         [<span class="str">"ES2020"</span>, <span class="str">"DOM"</span>], <span class="cm">// available globals</span>
+    <span class="str">"jsx"</span>:         <span class="str">"react-jsx"</span>,   <span class="cm">// JSX transform (no import React needed)</span>
+    <span class="str">"module"</span>:      <span class="str">"ESNext"</span>,      <span class="cm">// module system</span>
+    <span class="str">"strict"</span>:      <span class="kw">true</span>,          <span class="cm">// enables all strict checks — always use this</span>
+    <span class="str">"noEmit"</span>:      <span class="kw">true</span>,          <span class="cm">// Vite handles transpilation; TS just type-checks</span>
+    <span class="str">"baseUrl"</span>:     <span class="str">"."</span>,           <span class="cm">// for absolute imports</span>
+    <span class="str">"paths"</span>: { <span class="str">"@/*"</span>: [<span class="str">"./src/*"</span>] }, <span class="cm">// path aliases</span>
+
+    <span class="cm">// Most important strict flags (enabled by "strict": true):</span>
+    <span class="cm">// "strictNullChecks": true    — null/undefined are not assignable to string, etc.</span>
+    <span class="cm">// "noImplicitAny": true        — must annotate function params</span>
+    <span class="cm">// "strictFunctionTypes": true  — prevents unsafe function type assignments</span>
+  }
+}</pre></div>
+  </div>
+</div>
+
+<!-- 02. CORE TYPES -->
+<div class="section" id="types">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Core TypeScript types — everything you use in React</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">fundamentals</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">Primitives, arrays, objects, unions, intersections, interfaces vs types</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Primitives ────────────────────────────────────────────</span>
+<span class="kw">let</span> <span class="var">name</span>:     <span class="ty">string</span>  = <span class="str">"Alice"</span>
+<span class="kw">let</span> <span class="var">age</span>:      <span class="ty">number</span>  = <span class="num">30</span>
+<span class="kw">let</span> <span class="var">active</span>:   <span class="ty">boolean</span> = <span class="kw">true</span>
+<span class="kw">let</span> <span class="var">nothing</span>:  <span class="ty">null</span>    = <span class="kw">null</span>
+<span class="kw">let</span> <span class="var">undef</span>:    <span class="ty">undefined</span> = <span class="kw">undefined</span>
+
+<span class="cm">// ── Arrays ────────────────────────────────────────────────</span>
+<span class="kw">const</span> <span class="var">names</span>:   <span class="ty">string</span>[]    = [<span class="str">"Alice"</span>, <span class="str">"Bob"</span>]
+<span class="kw">const</span> <span class="var">scores</span>:  <span class="ty">number</span>[]    = [<span class="num">95</span>, <span class="num">87</span>, <span class="num">100</span>]
+<span class="kw">const</span> <span class="var">matrix</span>:  <span class="ty">number</span>[][]  = [[<span class="num">1</span>,<span class="num">2</span>],[<span class="num">3</span>,<span class="num">4</span>]]
+<span class="kw">const</span> <span class="var">mixed</span>:   <span class="ty">Array</span>&lt;<span class="ty">string</span> | <span class="ty">number</span>&gt; = [<span class="str">"a"</span>, <span class="num">1</span>]  <span class="cm">// generic syntax</span>
+
+<span class="cm">// ── Objects: interface vs type ────────────────────────────</span>
+<span class="cm">// Interface — extendable, good for shapes (objects, classes)</span>
+<span class="kw">interface</span> <span class="ty">User</span> {
+  <span class="prop">id</span>:        <span class="ty">number</span>
+  <span class="prop">name</span>:      <span class="ty">string</span>
+  <span class="prop">email</span>:     <span class="ty">string</span>
+  <span class="prop">role</span>?:     <span class="str">"admin"</span> | <span class="str">"user"</span>   <span class="cm">// optional + literal union</span>
+  <span class="prop">createdAt</span>: <span class="ty">Date</span>
+}
+
+<span class="cm">// type alias — can represent ANY type (unions, primitives, tuples)</span>
+<span class="kw">type</span> <span class="ty">Status</span>   = <span class="str">"idle"</span> | <span class="str">"loading"</span> | <span class="str">"success"</span> | <span class="str">"error"</span>
+<span class="kw">type</span> <span class="ty">ID</span>       = <span class="ty">string</span> | <span class="ty">number</span>
+<span class="kw">type</span> <span class="ty">Point</span>    = [<span class="ty">number</span>, <span class="ty">number</span>]     <span class="cm">// tuple</span>
+<span class="kw">type</span> <span class="ty">Callback</span> = (<span class="var">err</span>: <span class="ty">Error</span> | <span class="ty">null</span>, <span class="var">data</span>: <span class="ty">unknown</span>) =&gt; <span class="ty">void</span>
+
+<span class="cm">// ── Union types — one of several types ───────────────────</span>
+<span class="kw">type</span> <span class="ty">Result</span>&lt;<span class="ge">T</span>&gt; =
+  | { <span class="prop">status</span>: <span class="str">"success"</span>; <span class="prop">data</span>: <span class="ge">T</span> }
+  | { <span class="prop">status</span>: <span class="str">"error"</span>;   <span class="prop">error</span>: <span class="ty">Error</span> }
+  | { <span class="prop">status</span>: <span class="str">"loading"</span> }
+
+<span class="cm">// ── Intersection types — both at once ────────────────────</span>
+<span class="kw">type</span> <span class="ty">AdminUser</span> = <span class="ty">User</span> & { <span class="prop">permissions</span>: <span class="ty">string</span>[] }
+
+<span class="cm">// ── Literal types ─────────────────────────────────────────</span>
+<span class="kw">type</span> <span class="ty">Direction</span>  = <span class="str">"north"</span> | <span class="str">"south"</span> | <span class="str">"east"</span> | <span class="str">"west"</span>
+<span class="kw">type</span> <span class="ty">HttpMethod</span> = <span class="str">"GET"</span> | <span class="str">"POST"</span> | <span class="str">"PUT"</span> | <span class="str">"PATCH"</span> | <span class="str">"DELETE"</span>
+<span class="kw">type</span> <span class="ty">YesNo</span>     = <span class="kw">true</span> | <span class="kw">false</span>   <span class="cm">// same as boolean, but explicit</span>
+
+<span class="cm">// ── unknown vs any — prefer unknown ──────────────────────</span>
+<span class="cm">// any:     bypasses ALL type checking — avoid</span>
+<span class="cm">// unknown: type-safe alternative — must narrow before use</span>
+<span class="kw">function</span> <span class="fn">processInput</span>(<span class="var">input</span>: <span class="ty">unknown</span>) {
+  <span class="kw">if</span> (<span class="kw">typeof</span> <span class="var">input</span> === <span class="str">"string"</span>) {
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">input</span>.<span class="fn">toUpperCase</span>())   <span class="cm">// TS knows it's a string here</span>
+  }
+  <span class="kw">if</span> (<span class="var">input</span> <span class="kw">instanceof</span> <span class="fn">Error</span>) {
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">input</span>.<span class="prop">message</span>)         <span class="cm">// TS knows it's an Error here</span>
+  }
+}
+
+<span class="cm">// ── Type narrowing — telling TS what type something is ───</span>
+<span class="kw">function</span> <span class="fn">formatId</span>(<span class="var">id</span>: <span class="ty">string</span> | <span class="ty">number</span>): <span class="ty">string</span> {
+  <span class="kw">if</span> (<span class="kw">typeof</span> <span class="var">id</span> === <span class="str">"number"</span>) <span class="kw">return</span> `#${<span class="var">id</span>.<span class="fn">toString</span>().<span class="fn">padStart</span>(<span class="num">6</span>, <span class="str">"0"</span>)}`
+  <span class="kw">return</span> <span class="var">id</span>                               <span class="cm">// TS knows it's a string here</span>
+}</pre></div>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--ts);"></span>interface vs type — when to use each</div>
+    <div class="mm-grid">
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--ts);">Use interface for…</div>
+        <div class="mm-value">Object shapes that might be extended. Component props. API response shapes. Anything that other code will <code>extend</code> or <code>implement</code>. React convention in most codebases.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--purple);">Use type alias for…</div>
+        <div class="mm-value">Union types (<code>"a" | "b"</code>). Intersection types. Tuple types. Function signatures. Anything that <em>isn't</em> an object shape. Required when the type can't be expressed as an interface.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--amber);">Key difference</div>
+        <div class="mm-value">Interfaces support <em>declaration merging</em> — two declarations with the same name merge together. Type aliases don't. This matters for augmenting third-party library types. In day-to-day React work, both are fine for object shapes.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--green);">Team convention</div>
+        <div class="mm-value">Pick one and be consistent. Most React+TS projects use <code>interface</code> for props and API types, <code>type</code> for unions and computed types. The React team's own code uses both. Don't mix within the same file inconsistently.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 03. TYPING COMPONENTS -->
+<div class="section" id="components">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Typing React components — props, children, events</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">components</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Typing props — interface, optional, defaults, children, className, style, event handlers</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="ty">ReactNode</span>, <span class="ty">CSSProperties</span>, <span class="ty">MouseEvent</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="cm">// ── Basic props interface ─────────────────────────────────</span>
+<span class="kw">interface</span> <span class="ty">ButtonProps</span> {
+  <span class="prop">label</span>:       <span class="ty">string</span>                            <span class="cm">// required</span>
+  <span class="prop">variant</span>?:    <span class="str">"primary"</span> | <span class="str">"secondary"</span> | <span class="str">"ghost"</span>  <span class="cm">// optional union</span>
+  <span class="prop">size</span>?:       <span class="str">"sm"</span> | <span class="str">"md"</span> | <span class="str">"lg"</span>
+  <span class="prop">disabled</span>?:   <span class="ty">boolean</span>
+  <span class="prop">loading</span>?:    <span class="ty">boolean</span>
+  <span class="prop">onClick</span>?:    (<span class="var">e</span>: <span class="ty">MouseEvent</span>&lt;<span class="ty">HTMLButtonElement</span>&gt;) =&gt; <span class="ty">void</span>
+  <span class="prop">className</span>?:  <span class="ty">string</span>
+  <span class="prop">style</span>?:      <span class="ty">CSSProperties</span>
+  <span class="prop">children</span>?:   <span class="ty">ReactNode</span>
+}
+
+<span class="cm">// Preferred: plain function with interface (NOT React.FC)</span>
+<span class="kw">function</span> <span class="fn">Button</span>({
+  <span class="var">label</span>,
+  <span class="var">variant</span>  = <span class="str">"primary"</span>,   <span class="cm">// default value</span>
+  <span class="var">size</span>     = <span class="str">"md"</span>,
+  <span class="var">disabled</span> = <span class="kw">false</span>,
+  <span class="var">loading</span>  = <span class="kw">false</span>,
+  <span class="var">onClick</span>,
+  <span class="var">className</span>,
+  <span class="var">children</span>,
+}: <span class="ty">ButtonProps</span>) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;button</span>
+      <span class="attr">className</span>={`btn btn--${<span class="var">variant</span>} btn--${<span class="var">size</span>} ${<span class="var">className</span> ?? <span class="str">""</span>}`}
+      <span class="attr">disabled</span>={<span class="var">disabled</span> || <span class="var">loading</span>}
+      <span class="attr">onClick</span>={<span class="var">onClick</span>}
+    <span class="tag">&gt;</span>
+      {<span class="var">loading</span> ? <span class="tag">&lt;Spinner</span> <span class="tag">/&gt;</span> : (<span class="var">children</span> ?? <span class="var">label</span>)}
+    <span class="tag">&lt;/button&gt;</span>
+  )
+}
+
+<span class="cm">// ── Extending HTML element props ──────────────────────────</span>
+<span class="cm">// Spread all native &lt;button&gt; props + your own overrides</span>
+<span class="kw">interface</span> <span class="ty">InputProps</span> <span class="kw">extends</span> <span class="ty">React.InputHTMLAttributes</span>&lt;<span class="ty">HTMLInputElement</span>&gt; {
+  <span class="prop">label</span>:    <span class="ty">string</span>
+  <span class="prop">error</span>?:   <span class="ty">string</span>
+  <span class="prop">hint</span>?:    <span class="ty">string</span>
+}
+
+<span class="kw">function</span> <span class="fn">Input</span>({ <span class="var">label</span>, <span class="var">error</span>, <span class="var">hint</span>, ...<span class="var">rest</span> }: <span class="ty">InputProps</span>) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;label&gt;</span>{<span class="var">label</span>}<span class="tag">&lt;/label&gt;</span>
+      <span class="tag">&lt;input</span> {...<span class="var">rest</span>} <span class="attr">aria-invalid</span>={!!<span class="var">error</span>} <span class="tag">/&gt;</span>  <span class="cm">{/* spreads all native props */}</span>
+      {<span class="var">error</span> &amp;&amp; <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"error"</span><span class="tag">&gt;</span>{<span class="var">error</span>}<span class="tag">&lt;/p&gt;</span>}
+      {<span class="var">hint</span>  &amp;&amp; <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"hint"</span><span class="tag">&gt;</span>{<span class="var">hint</span>}<span class="tag">&lt;/p&gt;</span>}
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+<span class="cm">// Now Input accepts type="email", placeholder, disabled, ref, etc. automatically</span>
+
+<span class="cm">// ── ReactNode vs ReactElement vs JSX.Element ──────────────</span>
+<span class="cm">// ReactNode:    most permissive — string, number, boolean, null, ReactElement, array</span>
+<span class="cm">// ReactElement: a React element (what JSX returns)</span>
+<span class="cm">// JSX.Element:  alias for ReactElement — same thing</span>
+<span class="cm">// Use ReactNode for children props (accepts text too)</span>
+<span class="cm">// Use ReactElement when you need to call React.cloneElement on it</span>
+<span class="kw">interface</span> <span class="ty">CardProps</span> {
+  <span class="prop">header</span>:   <span class="ty">ReactNode</span>       <span class="cm">// accepts strings, JSX, numbers</span>
+  <span class="prop">children</span>: <span class="ty">ReactNode</span>       <span class="cm">// same</span>
+  <span class="prop">footer</span>?:  <span class="ty">ReactNode</span>
+}</pre></div>
+  </div>
+</div>
+
+<!-- 04. HOOKS TYPING -->
+<div class="section" id="hooks">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Typing hooks — useState, useRef, useReducer, custom hooks</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">hooks</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">useState&lt;T&gt;, useRef&lt;T&gt;, useReducer, event types, typing custom hooks</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useState</span>, <span class="var">useRef</span>, <span class="var">useReducer</span>, <span class="var">useCallback</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="cm">// ── useState&lt;T&gt; — inferred vs explicit ───────────────────</span>
+<span class="kw">const</span> [<span class="var">count</span>, <span class="fn">setCount</span>] = <span class="fn">useState</span>(<span class="num">0</span>)           <span class="cm">// inferred: number</span>
+<span class="kw">const</span> [<span class="var">name</span>,  <span class="fn">setName</span>]  = <span class="fn">useState</span>(<span class="str">""</span>)          <span class="cm">// inferred: string</span>
+<span class="kw">const</span> [<span class="var">user</span>,  <span class="fn">setUser</span>]  = <span class="fn">useState</span>&lt;<span class="ty">User</span> | <span class="ty">null</span>&gt;(<span class="kw">null</span>)  <span class="cm">// explicit: null initially</span>
+<span class="kw">const</span> [<span class="var">items</span>, <span class="fn">setItems</span>] = <span class="fn">useState</span>&lt;<span class="ty">Product</span>[]&gt;([])       <span class="cm">// explicit: empty array</span>
+<span class="kw">const</span> [<span class="var">status</span>,<span class="fn">setStatus</span>]= <span class="fn">useState</span>&lt;<span class="ty">Status</span>&gt;(<span class="str">"idle"</span>)      <span class="cm">// explicit: union type</span>
+
+<span class="cm">// ── useRef&lt;T&gt; — DOM refs vs mutable values ────────────────</span>
+<span class="cm">// For DOM elements: initialise with null, type is HTMLElement variant</span>
+<span class="kw">const</span> <span class="var">inputRef</span>  = <span class="fn">useRef</span>&lt;<span class="ty">HTMLInputElement</span>&gt;(<span class="kw">null</span>)
+<span class="kw">const</span> <span class="var">divRef</span>    = <span class="fn">useRef</span>&lt;<span class="ty">HTMLDivElement</span>&gt;(<span class="kw">null</span>)
+<span class="kw">const</span> <span class="var">buttonRef</span> = <span class="fn">useRef</span>&lt;<span class="ty">HTMLButtonElement</span>&gt;(<span class="kw">null</span>)
+<span class="cm">// Access: inputRef.current?.focus()  — optional chain because .current can be null</span>
+
+<span class="cm">// For mutable values: initialise with a value, NOT null</span>
+<span class="kw">const</span> <span class="var">timerRef</span>   = <span class="fn">useRef</span>&lt;<span class="ty">ReturnType</span>&lt;<span class="kw">typeof</span> <span class="fn">setTimeout</span>&gt;&gt;(<span class="kw">undefined</span>)
+<span class="kw">const</span> <span class="var">countRef</span>   = <span class="fn">useRef</span>(<span class="num">0</span>)               <span class="cm">// inferred: MutableRefObject&lt;number&gt;</span>
+<span class="kw">const</span> <span class="var">prevValue</span>  = <span class="fn">useRef</span>&lt;<span class="ty">string</span>&gt;(<span class="kw">undefined</span>)
+
+<span class="cm">// ── Event types — the ones you need daily ─────────────────</span>
+<span class="kw">function</span> <span class="fn">FormExample</span>() {
+  <span class="cm">// Input change events</span>
+  <span class="kw">const</span> <span class="fn">handleChange</span> = (<span class="var">e</span>: <span class="ty">React.ChangeEvent</span>&lt;<span class="ty">HTMLInputElement</span>&gt;) =&gt; {
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span>)      <span class="cm">// string</span>
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">e</span>.<span class="prop">target</span>.<span class="prop">checked</span>)    <span class="cm">// boolean (checkbox)</span>
+  }
+
+  <span class="cm">// Form submit</span>
+  <span class="kw">const</span> <span class="fn">handleSubmit</span> = (<span class="var">e</span>: <span class="ty">React.FormEvent</span>&lt;<span class="ty">HTMLFormElement</span>&gt;) =&gt; {
+    <span class="var">e</span>.<span class="fn">preventDefault</span>()
+  }
+
+  <span class="cm">// Click events</span>
+  <span class="kw">const</span> <span class="fn">handleClick</span> = (<span class="var">e</span>: <span class="ty">React.MouseEvent</span>&lt;<span class="ty">HTMLButtonElement</span>&gt;) =&gt; {
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">e</span>.<span class="prop">clientX</span>, <span class="var">e</span>.<span class="prop">clientY</span>)
+  }
+
+  <span class="cm">// Keyboard events</span>
+  <span class="kw">const</span> <span class="fn">handleKeyDown</span> = (<span class="var">e</span>: <span class="ty">React.KeyboardEvent</span>&lt;<span class="ty">HTMLInputElement</span>&gt;) =&gt; {
+    <span class="kw">if</span> (<span class="var">e</span>.<span class="prop">key</span> === <span class="str">"Enter"</span>) { <span class="cm">/* submit */</span> }
+  }
+
+  <span class="cm">// Select change</span>
+  <span class="kw">const</span> <span class="fn">handleSelect</span> = (<span class="var">e</span>: <span class="ty">React.ChangeEvent</span>&lt;<span class="ty">HTMLSelectElement</span>&gt;) =&gt; {
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span>)
+  }
+
+  <span class="cm">// Drag events, Focus events, Pointer events</span>
+  <span class="cm">// Pattern: React.{EventType}Event&lt;HTML{ElementType}Element&gt;</span>
+
+  <span class="kw">return</span> <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="fn">handleSubmit</span>}<span class="tag">&gt;</span><span class="tag">&lt;input</span> <span class="attr">onChange</span>={<span class="fn">handleChange</span>} <span class="tag">/&gt;</span><span class="tag">&lt;/form&gt;</span>
+}
+
+<span class="cm">// ── useReducer typing ─────────────────────────────────────</span>
+<span class="kw">interface</span> <span class="ty">CartState</span>  { <span class="prop">items</span>: <span class="ty">CartItem</span>[]; <span class="prop">total</span>: <span class="ty">number</span> }
+<span class="kw">type</span>      <span class="ty">CartAction</span> =
+  | { <span class="prop">type</span>: <span class="str">"ADD"</span>;    <span class="prop">payload</span>: <span class="ty">CartItem</span> }
+  | { <span class="prop">type</span>: <span class="str">"REMOVE"</span>; <span class="prop">payload</span>: <span class="ty">number</span> }    <span class="cm">// id</span>
+  | { <span class="prop">type</span>: <span class="str">"CLEAR"</span> }
+
+<span class="kw">function</span> <span class="fn">cartReducer</span>(<span class="var">state</span>: <span class="ty">CartState</span>, <span class="var">action</span>: <span class="ty">CartAction</span>): <span class="ty">CartState</span> {
+  <span class="kw">switch</span> (<span class="var">action</span>.<span class="prop">type</span>) {
+    <span class="kw">case</span> <span class="str">"ADD"</span>:    <span class="kw">return</span> { ...<span class="var">state</span>, <span class="prop">items</span>: [...<span class="var">state</span>.<span class="prop">items</span>, <span class="var">action</span>.<span class="prop">payload</span>] }
+    <span class="kw">case</span> <span class="str">"REMOVE"</span>: <span class="kw">return</span> { ...<span class="var">state</span>, <span class="prop">items</span>: <span class="var">state</span>.<span class="prop">items</span>.<span class="fn">filter</span>(<span class="var">i</span> =&gt; <span class="var">i</span>.<span class="prop">id</span> !== <span class="var">action</span>.<span class="prop">payload</span>) }
+    <span class="kw">case</span> <span class="str">"CLEAR"</span>:   <span class="kw">return</span> { <span class="prop">items</span>: [], <span class="prop">total</span>: <span class="num">0</span> }
+    <span class="kw">default</span>:       <span class="kw">return</span> <span class="var">state</span>
+  }
+  <span class="cm">// TS knows action.payload is CartItem in "ADD", number in "REMOVE", absent in "CLEAR"</span>
+}
+
+<span class="cm">// ── Typing custom hooks ───────────────────────────────────</span>
+<span class="kw">function</span> <span class="fn">useLocalStorage</span>&lt;<span class="ge">T</span>&gt;(<span class="var">key</span>: <span class="ty">string</span>, <span class="var">initial</span>: <span class="ge">T</span>): [<span class="ge">T</span>, (<span class="var">val</span>: <span class="ge">T</span>) =&gt; <span class="ty">void</span>] {
+  <span class="kw">const</span> [<span class="var">stored</span>, <span class="fn">setStored</span>] = <span class="fn">useState</span>&lt;<span class="ge">T</span>&gt;(() =&gt; {
+    <span class="kw">try</span> { <span class="kw">const</span> <span class="var">s</span> = <span class="fn">localStorage</span>.<span class="fn">getItem</span>(<span class="var">key</span>); <span class="kw">return</span> <span class="var">s</span> ? <span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="var">s</span>) : <span class="var">initial</span> }
+    <span class="kw">catch</span> { <span class="kw">return</span> <span class="var">initial</span> }
+  })
+  <span class="kw">const</span> <span class="fn">set</span> = <span class="fn">useCallback</span>((<span class="var">val</span>: <span class="ge">T</span>) =&gt; {
+    <span class="fn">setStored</span>(<span class="var">val</span>); <span class="fn">localStorage</span>.<span class="fn">setItem</span>(<span class="var">key</span>, <span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="var">val</span>))
+  }, [<span class="var">key</span>])
+  <span class="kw">return</span> [<span class="var">stored</span>, <span class="fn">set</span>]
+}
+<span class="cm">// Usage — T inferred automatically:</span>
+<span class="kw">const</span> [<span class="var">theme</span>, <span class="fn">setTheme</span>] = <span class="fn">useLocalStorage</span>(<span class="str">"theme"</span>, <span class="str">"dark"</span>)  <span class="cm">// T = string</span>
+<span class="kw">const</span> [<span class="var">cart</span>,  <span class="fn">setCart</span>]  = <span class="fn">useLocalStorage</span>&lt;<span class="ty">CartItem</span>[]&gt;(<span class="str">"cart"</span>, [])  <span class="cm">// T = CartItem[]</span></pre></div>
+  </div>
+</div>
+
+<!-- 05. ADVANCED TYPES -->
+<div class="section" id="advanced">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Advanced types — generics, utility types, discriminated unions</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">advanced</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Generics, discriminated unions, Partial/Pick/Omit/Required, conditional types</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Generic components — reusable with any type ───────────</span>
+<span class="kw">interface</span> <span class="ty">ListProps</span>&lt;<span class="ge">T</span>&gt; {
+  <span class="prop">items</span>:       <span class="ge">T</span>[]
+  <span class="prop">renderItem</span>:  (<span class="var">item</span>: <span class="ge">T</span>, <span class="var">index</span>: <span class="ty">number</span>) =&gt; <span class="ty">ReactNode</span>
+  <span class="prop">keyExtractor</span>:(<span class="var">item</span>: <span class="ge">T</span>) =&gt; <span class="ty">string</span>
+  <span class="prop">emptyState</span>?: <span class="ty">ReactNode</span>
+}
+
+<span class="kw">function</span> <span class="fn">List</span>&lt;<span class="ge">T</span>&gt;({ <span class="var">items</span>, <span class="var">renderItem</span>, <span class="var">keyExtractor</span>, <span class="var">emptyState</span> }: <span class="ty">ListProps</span>&lt;<span class="ge">T</span>&gt;) {
+  <span class="kw">if</span> (<span class="var">items</span>.<span class="prop">length</span> === <span class="num">0</span>) <span class="kw">return</span> <span class="tag">&lt;&gt;</span>{<span class="var">emptyState</span>}<span class="tag">&lt;/&gt;</span>
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ul&gt;</span>
+      {<span class="var">items</span>.<span class="fn">map</span>((<span class="var">item</span>, <span class="var">i</span>) =&gt; (
+        <span class="tag">&lt;li</span> <span class="attr">key</span>={<span class="fn">keyExtractor</span>(<span class="var">item</span>)}<span class="tag">&gt;</span>{<span class="fn">renderItem</span>(<span class="var">item</span>, <span class="var">i</span>)}<span class="tag">&lt;/li&gt;</span>
+      ))}
+    <span class="tag">&lt;/ul&gt;</span>
+  )
+}
+<span class="cm">// TS infers T from the items prop:</span>
+<span class="tag">&lt;List</span>
+  <span class="attr">items</span>={<span class="var">users</span>}                    <span class="cm">{/* User[] → T inferred as User */}</span>
+  <span class="attr">renderItem</span>={(<span class="var">user</span>) =&gt; <span class="var">user</span>.<span class="prop">name</span>}  <span class="cm">{/* user is typed as User automatically */}</span>
+  <span class="attr">keyExtractor</span>={<span class="var">u</span> =&gt; <span class="var">u</span>.<span class="prop">id</span>.<span class="fn">toString</span>()}
+<span class="tag">/&gt;</span>
+
+<span class="cm">// ── Discriminated unions for component variants ───────────</span>
+<span class="cm">// Pattern: a "type" or "kind" field narrows what other props are available</span>
+<span class="kw">type</span> <span class="ty">AlertProps</span> =
+  | { <span class="prop">variant</span>: <span class="str">"success"</span>; <span class="prop">message</span>: <span class="ty">string</span> }
+  | { <span class="prop">variant</span>: <span class="str">"error"</span>;   <span class="prop">message</span>: <span class="ty">string</span>; <span class="prop">code</span>?: <span class="ty">string</span> }
+  | { <span class="prop">variant</span>: <span class="str">"warning"</span>; <span class="prop">message</span>: <span class="ty">string</span>; <span class="prop">action</span>?: () =&gt; <span class="ty">void</span> }
+  | { <span class="prop">variant</span>: <span class="str">"info"</span>;    <span class="prop">children</span>: <span class="ty">ReactNode</span> }   <span class="cm">// different shape!</span>
+
+<span class="kw">function</span> <span class="fn">Alert</span>(<span class="var">props</span>: <span class="ty">AlertProps</span>) {
+  <span class="kw">if</span> (<span class="var">props</span>.<span class="prop">variant</span> === <span class="str">"error"</span>) {
+    <span class="cm">// TS knows props.code is available here (string | undefined)</span>
+    <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>{<span class="var">props</span>.<span class="prop">message</span>} {<span class="var">props</span>.<span class="prop">code</span> &amp;&amp; `(${<span class="var">props</span>.<span class="prop">code</span>})`}<span class="tag">&lt;/div&gt;</span>
+  }
+  <span class="kw">if</span> (<span class="var">props</span>.<span class="prop">variant</span> === <span class="str">"info"</span>) {
+    <span class="cm">// TS knows props.children is ReactNode, props.message doesn't exist here</span>
+    <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>{<span class="var">props</span>.<span class="prop">children</span>}<span class="tag">&lt;/div&gt;</span>
+  }
+  <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>{<span class="var">props</span>.<span class="prop">message</span>}<span class="tag">&lt;/div&gt;</span>
+}
+
+<span class="cm">// ── Utility types — transform existing types ──────────────</span>
+<span class="kw">interface</span> <span class="ty">Product</span> { <span class="prop">id</span>: <span class="ty">number</span>; <span class="prop">name</span>: <span class="ty">string</span>; <span class="prop">price</span>: <span class="ty">number</span>; <span class="prop">stock</span>: <span class="ty">number</span> }
+
+<span class="kw">type</span> <span class="ty">ProductPreview</span>  = <span class="ty">Pick</span>&lt;<span class="ty">Product</span>, <span class="str">"id"</span> | <span class="str">"name"</span> | <span class="str">"price"</span>&gt;  <span class="cm">// subset of fields</span>
+<span class="kw">type</span> <span class="ty">ProductUpdate</span>   = <span class="ty">Partial</span>&lt;<span class="ty">Product</span>&gt;            <span class="cm">// all optional (for PATCH)</span>
+<span class="kw">type</span> <span class="ty">ProductCreate</span>   = <span class="ty">Omit</span>&lt;<span class="ty">Product</span>, <span class="str">"id"</span>&gt;         <span class="cm">// without id (server generates it)</span>
+<span class="kw">type</span> <span class="ty">RequiredProduct</span> = <span class="ty">Required</span>&lt;<span class="ty">Product</span>&gt;          <span class="cm">// all required (remove optionals)</span>
+<span class="kw">type</span> <span class="ty">ReadonlyProduct</span> = <span class="ty">Readonly</span>&lt;<span class="ty">Product</span>&gt;          <span class="cm">// all readonly (freeze)</span>
+
+<span class="cm">// Record — typed key-value maps</span>
+<span class="kw">type</span> <span class="ty">StatusMap</span>   = <span class="ty">Record</span>&lt;<span class="ty">Status</span>, <span class="ty">string</span>&gt;          <span class="cm">// { idle: string, loading: string, ... }</span>
+<span class="kw">type</span> <span class="ty">UserById</span>    = <span class="ty">Record</span>&lt;<span class="ty">number</span>, <span class="ty">User</span>&gt;             <span class="cm">// { 1: User, 2: User, ... }</span>
+
+<span class="cm">// ReturnType — extract a function's return type</span>
+<span class="kw">type</span> <span class="ty">FetchResult</span>  = <span class="ty">ReturnType</span>&lt;<span class="kw">typeof</span> <span class="fn">fetchUser</span>&gt;    <span class="cm">// Promise&lt;User&gt;</span>
+<span class="kw">type</span> <span class="ty">Awaited</span>     = <span class="ty">Awaited</span>&lt;<span class="ty">ReturnType</span>&lt;<span class="kw">typeof</span> <span class="fn">fetchUser</span>&gt;&gt;  <span class="cm">// User (unwrap promise)</span>
+
+<span class="cm">// Parameters — extract function param types</span>
+<span class="kw">type</span> <span class="ty">FetchParams</span> = <span class="ty">Parameters</span>&lt;<span class="kw">typeof</span> <span class="fn">fetchUser</span>&gt;[<span class="num">0</span>]   <span class="cm">// first param type</span>
+
+<span class="cm">// NonNullable — remove null and undefined</span>
+<span class="kw">type</span> <span class="ty">SafeUser</span> = <span class="ty">NonNullable</span>&lt;<span class="ty">User</span> | <span class="ty">null</span> | <span class="ty">undefined</span>&gt;  <span class="cm">// User</span></pre></div>
+  </div>
+</div>
+
+<!-- 06. PATTERNS -->
+<div class="section" id="patterns">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">TypeScript + React patterns — context, API types, guards</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">patterns</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">Typed context, API response types, type guards, as const, satisfies</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Typed Context — pattern for type-safe useContext ──────</span>
+<span class="kw">interface</span> <span class="ty">AuthContextValue</span> {
+  <span class="prop">user</span>:    <span class="ty">User</span> | <span class="ty">null</span>
+  <span class="prop">login</span>:   (<span class="var">email</span>: <span class="ty">string</span>, <span class="var">password</span>: <span class="ty">string</span>) =&gt; <span class="ty">Promise</span>&lt;<span class="ty">void</span>&gt;
+  <span class="prop">logout</span>:  () =&gt; <span class="ty">void</span>
+  <span class="prop">isAuth</span>:  <span class="ty">boolean</span>
+}
+
+<span class="kw">const</span> <span class="var">AuthContext</span> = <span class="fn">createContext</span>&lt;<span class="ty">AuthContextValue</span> | <span class="ty">null</span>&gt;(<span class="kw">null</span>)
+
+<span class="kw">export function</span> <span class="fn">useAuth</span>(): <span class="ty">AuthContextValue</span> {
+  <span class="kw">const</span> <span class="var">ctx</span> = <span class="fn">useContext</span>(<span class="var">AuthContext</span>)
+  <span class="kw">if</span> (!<span class="var">ctx</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"useAuth must be inside AuthProvider"</span>)
+  <span class="kw">return</span> <span class="var">ctx</span>
+}
+<span class="cm">// useAuth() always returns AuthContextValue — never null</span>
+<span class="cm">// TypeScript enforces this with the explicit return type annotation</span>
+
+<span class="cm">// ── API response types ────────────────────────────────────</span>
+<span class="kw">interface</span> <span class="ty">ApiResponse</span>&lt;<span class="ge">T</span>&gt; {
+  <span class="prop">data</span>:    <span class="ge">T</span>
+  <span class="prop">message</span>: <span class="ty">string</span>
+  <span class="prop">status</span>:  <span class="ty">number</span>
+}
+
+<span class="kw">interface</span> <span class="ty">PaginatedResponse</span>&lt;<span class="ge">T</span>&gt; {
+  <span class="prop">items</span>:      <span class="ge">T</span>[]
+  <span class="prop">total</span>:      <span class="ty">number</span>
+  <span class="prop">page</span>:       <span class="ty">number</span>
+  <span class="prop">totalPages</span>: <span class="ty">number</span>
+  <span class="prop">hasMore</span>:    <span class="ty">boolean</span>
+}
+
+<span class="kw">async function</span> <span class="fn">fetchUser</span>(<span class="var">id</span>: <span class="ty">number</span>): <span class="ty">Promise</span>&lt;<span class="ty">ApiResponse</span>&lt;<span class="ty">User</span>&gt;&gt; {
+  <span class="kw">const</span> <span class="var">res</span> = <span class="kw">await</span> <span class="fn">fetch</span>(`/api/users/${<span class="var">id</span>}`)
+  <span class="kw">return</span> <span class="var">res</span>.<span class="fn">json</span>() <span class="kw">as</span> <span class="ty">Promise</span>&lt;<span class="ty">ApiResponse</span>&lt;<span class="ty">User</span>&gt;&gt;
+}
+
+<span class="cm">// ── Type guards — narrow unknown to known ─────────────────</span>
+<span class="kw">function</span> <span class="fn">isUser</span>(<span class="var">value</span>: <span class="ty">unknown</span>): <span class="var">value</span> <span class="kw">is</span> <span class="ty">User</span> {
+  <span class="kw">return</span> (
+    <span class="kw">typeof</span> <span class="var">value</span> === <span class="str">"object"</span> &&
+    <span class="var">value</span> !== <span class="kw">null</span> &&
+    <span class="str">"id"</span>    <span class="kw">in</span> <span class="var">value</span> &&
+    <span class="str">"email"</span> <span class="kw">in</span> <span class="var">value</span>
+  )
+}
+
+<span class="kw">function</span> <span class="fn">processApiResponse</span>(<span class="var">data</span>: <span class="ty">unknown</span>) {
+  <span class="kw">if</span> (<span class="fn">isUser</span>(<span class="var">data</span>)) {
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">data</span>.<span class="prop">email</span>)   <span class="cm">// TS knows it's a User</span>
+  }
+}
+
+<span class="cm">// ── as const — infer literal types, prevent widening ──────</span>
+<span class="kw">const</span> <span class="var">ROUTES</span> = {
+  <span class="prop">home</span>:      <span class="str">"/"</span>,
+  <span class="prop">products</span>:  <span class="str">"/products"</span>,
+  <span class="prop">dashboard</span>: <span class="str">"/dashboard"</span>,
+} <span class="kw">as const</span>
+<span class="cm">// Without as const: ROUTES.home is type string</span>
+<span class="cm">// With as const:    ROUTES.home is type "/" (literal)</span>
+<span class="kw">type</span> <span class="ty">Route</span> = (<span class="kw">typeof</span> <span class="var">ROUTES</span>)[<span class="kw">keyof</span> <span class="kw">typeof</span> <span class="var">ROUTES</span>]  <span class="cm">// "/" | "/products" | "/dashboard"</span>
+
+<span class="cm">// ── satisfies operator (TS 4.9+) — validate without widening ─</span>
+<span class="kw">const</span> <span class="var">config</span> = {
+  <span class="prop">theme</span>: <span class="str">"dark"</span>,
+  <span class="prop">lang</span>:  <span class="str">"en"</span>,
+  <span class="prop">retry</span>: <span class="num">3</span>,
+} <span class="kw">satisfies</span> <span class="ty">Record</span>&lt;<span class="ty">string</span>, <span class="ty">string</span> | <span class="ty">number</span>&gt;
+<span class="cm">// config.theme is still "dark" (literal), not string</span>
+<span class="cm">// But TS also checks it matches the Record shape</span></pre></div>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">TypeScript utility types cheat sheet — used daily in React</div>
+    <table class="comp-table">
+      <tr><th>Utility type</th><th>What it produces</th><th>React use case</th></tr>
+      <tr><td><code>Partial&lt;T&gt;</code></td><td>All props optional</td><td>PATCH/update forms — only send changed fields</td></tr>
+      <tr><td><code>Required&lt;T&gt;</code></td><td>All props required</td><td>After validation — confirmed all values present</td></tr>
+      <tr><td><code>Pick&lt;T, K&gt;</code></td><td>Subset of props</td><td>List view needs fewer props than detail view</td></tr>
+      <tr><td><code>Omit&lt;T, K&gt;</code></td><td>Props minus K</td><td><code>Omit&lt;User, "password"&gt;</code> for client-safe user type</td></tr>
+      <tr><td><code>Record&lt;K, V&gt;</code></td><td>Object with typed keys</td><td>Keyed lookups, status maps, id → entity maps</td></tr>
+      <tr><td><code>ReturnType&lt;F&gt;</code></td><td>Function's return type</td><td>Type the result of a hook or fetcher</td></tr>
+      <tr><td><code>Awaited&lt;P&gt;</code></td><td>Unwrap a Promise</td><td><code>Awaited&lt;ReturnType&lt;typeof fetchUser&gt;&gt;</code> = User</td></tr>
+      <tr><td><code>NonNullable&lt;T&gt;</code></td><td>Remove null/undefined</td><td>After a null-check, assert value is defined</td></tr>
+      <tr><td><code>Parameters&lt;F&gt;</code></td><td>Function param types tuple</td><td>Reuse param types from existing functions</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — TypeScript logic you can run</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">These exercises simulate TypeScript's type system in plain JavaScript — you implement the runtime behaviour that TS types describe. This builds deep intuition for how TS generics, narrowing, and utility types actually work.</p>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Type narrowing — simulate TS narrowing at runtime</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>createTypedProcessor()</code> that simulates TypeScript's type narrowing — handling different runtime types correctly via type guards. Then implement a discriminated union processor that handles each variant differently based on a <code>type</code> field, just like TypeScript's exhaustive switch.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — type narrowing simulation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">// ── Part 1: Type guards (typeof, instanceof, "in") ────────
+function processValue(value) {
+  // YOUR CODE: implement type narrowing like TypeScript does
+  // string  → return "STRING: " + value.toUpperCase()
+  // number  → return "NUMBER: " + value.toFixed(2)
+  // boolean → return "BOOL: " + (value ? "yes" : "no")
+  // null    → return "NULL"
+  // Array   → return "ARRAY[" + value.length + "]: " + value.join(", ")
+  // object (not null, not array) → return "OBJ: " + Object.keys(value).join(", ")
+  // else    → return "UNKNOWN"
+}
+
+console.log(processValue("hello"))          // STRING: HELLO
+console.log(processValue(3.14159))          // NUMBER: 3.14
+console.log(processValue(true))            // BOOL: yes
+console.log(processValue(null))            // NULL
+console.log(processValue([1,2,3]))         // ARRAY[3]: 1, 2, 3
+console.log(processValue({a:1, b:2}))      // OBJ: a, b
+console.log(processValue(undefined))       // UNKNOWN
+
+// ── Part 2: Discriminated union processor ─────────────────
+// Simulates TS exhaustive switch on discriminated unions
+function processEvent(event) {
+  // YOUR CODE: handle each event type differently
+  // { type: "click",   x, y, target }    → return "Clicked ${target} at (${x},${y})"
+  // { type: "keydown", key, ctrlKey }    → return "Key: ${ctrlKey?"Ctrl+":""}${key}"
+  // { type: "submit",  formId, data }    → return "Submitted form #${formId} with ${Object.keys(data).length} fields"
+  // { type: "resize",  width, height }  → return "Resized to ${width}x${height}"
+  // else → throw new Error("Unknown event type: " + event.type)
+}
+
+console.log(processEvent({ type:"click",  x:100, y:200, target:"button#submit" }))
+// Clicked button#submit at (100,200)
+console.log(processEvent({ type:"keydown", key:"Enter", ctrlKey:true }))
+// Key: Ctrl+Enter
+console.log(processEvent({ type:"submit", formId:"login", data:{email:"a@b.com", password:"x"} }))
+// Submitted form #login with 2 fields
+console.log(processEvent({ type:"resize", width:1920, height:1080 }))
+// Resized to 1920x1080
+
+try { processEvent({ type:"unknown" }) }
+catch(e) { console.log("Unknown event error:", e.message) }  // Unknown event type: unknown</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">processValue</span>(<span class="var">value</span>) {
+  <span class="kw">if</span> (<span class="var">value</span> === <span class="kw">null</span>)                  <span class="kw">return</span> <span class="str">"NULL"</span>
+  <span class="kw">if</span> (<span class="kw">typeof</span> <span class="var">value</span> === <span class="str">"string"</span>)      <span class="kw">return</span> <span class="str">"STRING: "</span> + <span class="var">value</span>.<span class="fn">toUpperCase</span>()
+  <span class="kw">if</span> (<span class="kw">typeof</span> <span class="var">value</span> === <span class="str">"number"</span>)      <span class="kw">return</span> <span class="str">"NUMBER: "</span> + <span class="var">value</span>.<span class="fn">toFixed</span>(<span class="num">2</span>)
+  <span class="kw">if</span> (<span class="kw">typeof</span> <span class="var">value</span> === <span class="str">"boolean"</span>)     <span class="kw">return</span> <span class="str">"BOOL: "</span>   + (<span class="var">value</span> ? <span class="str">"yes"</span> : <span class="str">"no"</span>)
+  <span class="kw">if</span> (<span class="fn">Array</span>.<span class="fn">isArray</span>(<span class="var">value</span>))           <span class="kw">return</span> `ARRAY[${<span class="var">value</span>.<span class="prop">length</span>}]: ${<span class="var">value</span>.<span class="fn">join</span>(<span class="str">", "</span>)}`
+  <span class="kw">if</span> (<span class="kw">typeof</span> <span class="var">value</span> === <span class="str">"object"</span>)      <span class="kw">return</span> <span class="str">"OBJ: "</span>    + <span class="fn">Object</span>.<span class="fn">keys</span>(<span class="var">value</span>).<span class="fn">join</span>(<span class="str">", "</span>)
+  <span class="kw">return</span> <span class="str">"UNKNOWN"</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Simulate utility types — Partial, Pick, Omit, Required</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement JavaScript runtime equivalents of TypeScript's utility types. Each takes an object and a list of keys and produces a transformed result — mimicking what TypeScript does at the type level but actually enforcing it at runtime with validation.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — utility type runtime implementations</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">// Implement runtime versions of TypeScript utility types
+
+// Partial<T> — makes all fields optional (runtime: returns only provided fields)
+function partial(obj) {
+  // YOUR CODE: return a new object with only the defined (non-undefined) fields
+  // This simulates: when you do a PATCH, only send the fields that exist
+}
+
+// Pick<T, K> — keep only specified keys
+function pick(obj, keys) {
+  // YOUR CODE: return new object with only the listed keys from obj
+}
+
+// Omit<T, K> — remove specified keys
+function omit(obj, keys) {
+  // YOUR CODE: return new object with the listed keys removed
+}
+
+// Required<T> — ensure all specified keys exist (throw if any missing)
+function required(obj, keys) {
+  // YOUR CODE: check all keys are present and non-null/undefined
+  // throw Error("Missing required field: X") if any key is absent
+  // return obj if valid
+}
+
+// Test objects
+const user = { id: 1, name: "Alice", email: "alice@test.com", password: "secret", role: "admin", age: undefined }
+const update = { name: "Alice Updated", age: undefined, role: undefined }
+
+// Test partial — only defined fields
+const partialUpdate = partial(update)
+console.log("Partial:", JSON.stringify(partialUpdate))
+// {"name":"Alice Updated"} — undefined fields stripped
+
+// Test pick — subset of fields
+const publicUser = pick(user, ["id", "name", "email"])
+console.log("Pick:", JSON.stringify(publicUser))
+// {"id":1,"name":"Alice","email":"alice@test.com"}
+console.log("No password:", !("password" in publicUser))  // true
+
+// Test omit — remove sensitive fields
+const safeUser = omit(user, ["password", "age"])
+console.log("Omit:", JSON.stringify(safeUser))
+// {"id":1,"name":"Alice","email":"alice@test.com","role":"admin"}
+
+// Test required — validate all fields present
+const valid = required({ name: "Bob", email: "bob@test.com" }, ["name", "email"])
+console.log("Required valid:", valid.name)  // Bob
+
+try {
+  required({ name: "Bob" }, ["name", "email"])
+} catch(e) {
+  console.log("Required error:", e.message)  // "Missing required field: email"
+}
+
+// Combining — simulate a PATCH request pipeline
+function patchUser(existing, update) {
+  const safeUpdate = omit(partial(update), ["id", "createdAt"])  // strip immutable fields
+  return { ...existing, ...safeUpdate }
+}
+
+const patched = patchUser(
+  { id: 1, name: "Alice", email: "a@b.com", role: "user", createdAt: "2024-01-01" },
+  { name: "Alice Smith", id: 99, createdAt: "hacked", role: undefined }  // try to inject id
+)
+console.log("Patched:", JSON.stringify(patched))
+// id and createdAt unchanged, name updated, role unchanged (undefined stripped)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">const</span> <span class="fn">partial</span>  = (<span class="var">obj</span>) =>
+  <span class="fn">Object</span>.<span class="fn">fromEntries</span>(<span class="fn">Object</span>.<span class="fn">entries</span>(<span class="var">obj</span>).<span class="fn">filter</span>(([,<span class="var">v</span>]) => <span class="var">v</span> !== <span class="kw">undefined</span>))
+<span class="kw">const</span> <span class="fn">pick</span>     = (<span class="var">obj</span>, <span class="var">keys</span>) =>
+  <span class="fn">Object</span>.<span class="fn">fromEntries</span>(<span class="var">keys</span>.<span class="fn">filter</span>(<span class="var">k</span> => <span class="var">k</span> <span class="kw">in</span> <span class="var">obj</span>).<span class="fn">map</span>(<span class="var">k</span> => [<span class="var">k</span>, <span class="var">obj</span>[<span class="var">k</span>]]))
+<span class="kw">const</span> <span class="fn">omit</span>     = (<span class="var">obj</span>, <span class="var">keys</span>) =>
+  <span class="fn">Object</span>.<span class="fn">fromEntries</span>(<span class="fn">Object</span>.<span class="fn">entries</span>(<span class="var">obj</span>).<span class="fn">filter</span>(([<span class="var">k</span>]) => !<span class="var">keys</span>.<span class="fn">includes</span>(<span class="var">k</span>)))
+<span class="kw">const</span> <span class="fn">required</span> = (<span class="var">obj</span>, <span class="var">keys</span>) => {
+  <span class="var">keys</span>.<span class="fn">forEach</span>(<span class="var">k</span> => { <span class="kw">if</span> (<span class="var">obj</span>[<span class="var">k</span>] == <span class="kw">null</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(`Missing required field: ${<span class="var">k</span>}`) })
+  <span class="kw">return</span> <span class="var">obj</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Generic container — simulate TypeScript generics</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createTypedStore&lt;T&gt;(validator)</code> generic store that: only accepts values matching a validator, infers and enforces the correct type on get/set, and supports <code>update(fn)</code> with the current value. Demonstrate how generics make one implementation work for any type.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — generic typed store</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">// In TypeScript, this would be:
+// class TypedStore<T> { constructor(private validator: (v: unknown) => v is T) {} }
+// In JS, we simulate the generic behavior with runtime validation
+
+function createTypedStore(validator, initialValue) {
+  // validator: (value) => boolean  — simulates a type guard
+  if (initialValue !== undefined && !validator(initialValue)) {
+    throw new TypeError("Initial value failed type validation")
+  }
+
+  let value = initialValue
+
+  return {
+    get() {
+      return value
+    },
+    set(newValue) {
+      // YOUR CODE: validate newValue with validator, throw TypeError if invalid
+      // If valid, update value
+    },
+    update(fn) {
+      // YOUR CODE: call fn(current value), then set the result (with validation)
+    },
+    reset() {
+      value = initialValue
+    }
+  }
+}
+
+// Type validators (simulating TS type guards)
+const isString  = v => typeof v === "string"
+const isNumber  = v => typeof v === "number" && !isNaN(v)
+const isUser    = v => v && typeof v === "object" && "id" in v && "name" in v && "email" in v
+const isStrArr  = v => Array.isArray(v) && v.every(x => typeof x === "string")
+
+// Test string store
+const nameStore = createTypedStore(isString, "Alice")
+console.log("Initial:", nameStore.get())   // "Alice"
+nameStore.set("Bob")
+console.log("After set:", nameStore.get()) // "Bob"
+nameStore.update(name => name.toUpperCase())
+console.log("After update:", nameStore.get()) // "BOB"
+
+try { nameStore.set(42) }
+catch(e) { console.log("Type error:", e.message) }  // TypeError
+
+// Test user store
+const userStore = createTypedStore(isUser, { id:1, name:"Alice", email:"a@b.com" })
+userStore.update(u => ({ ...u, name: "Alice Smith" }))
+console.log("Updated user:", userStore.get().name)  // "Alice Smith"
+
+try { userStore.set({ id:2 })  }  // missing name and email
+catch(e) { console.log("Invalid user:", e.constructor.name) }  // TypeError
+
+// Test number store with operations
+const scoreStore = createTypedStore(isNumber, 0)
+scoreStore.update(s => s + 10)
+scoreStore.update(s => s + 5)
+console.log("Score:", scoreStore.get())  // 15
+scoreStore.reset()
+console.log("After reset:", scoreStore.get())  // 0
+
+// Generic factory — same pattern, different types
+const stores = {
+  tags:    createTypedStore(isStrArr, ["react", "typescript"]),
+  counter: createTypedStore(isNumber, 0),
+}
+stores.tags.update(t => [...t, "zod"])
+stores.counter.update(n => n + 1)
+console.log("Tags:", stores.tags.get())     // ["react","typescript","zod"]
+console.log("Counter:", stores.counter.get()) // 1</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="fn">set</span>(<span class="var">newValue</span>) {
+  <span class="kw">if</span> (!<span class="fn">validator</span>(<span class="var">newValue</span>)) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">TypeError</span>(<span class="str">"Value failed type validation"</span>)
+  <span class="var">value</span> = <span class="var">newValue</span>
+},
+<span class="fn">update</span>(<span class="var">fn</span>) {
+  <span class="kw">const</span> <span class="var">next</span> = <span class="fn">fn</span>(<span class="var">value</span>)
+  <span class="kw">if</span> (!<span class="fn">validator</span>(<span class="var">next</span>)) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">TypeError</span>(<span class="str">"Updated value failed type validation"</span>)
+  <span class="var">value</span> = <span class="var">next</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Discriminated union state machine — loading/success/error</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a typed async state machine using a discriminated union pattern — the runtime equivalent of TypeScript's <code>type AsyncState&lt;T&gt; = { status: "idle" } | { status: "loading" } | { status: "success", data: T } | { status: "error", error: Error }</code>. Each transition is type-safe and only valid transitions are allowed.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — async state machine</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">// Simulates TypeScript discriminated union:
+// type AsyncState<T> =
+//   | { status: "idle" }
+//   | { status: "loading" }
+//   | { status: "success"; data: T }
+//   | { status: "error"; error: Error; retryCount: number }
+
+function createAsyncState(fetcher) {
+  let state = { status: "idle" }
+  let subscribers = []
+  const notify = () => subscribers.forEach(fn => fn({ ...state }))
+
+  // Type-safe accessors — only return value if in correct state
+  const api = {
+    // Transitions — YOUR CODE
+    // start():   idle → loading  (throw if not idle)
+    // succeed(data): loading → success (throw if not loading)
+    // fail(error):   loading → error   (throw if not loading)
+    // retry():   error → loading  (throw if not error)
+    // reset():   any → idle
+
+    async execute() {
+      api.start()
+      try {
+        const data = await fetcher()
+        api.succeed(data)
+      } catch(e) {
+        api.fail(e instanceof Error ? e : new Error(String(e)))
+      }
+    },
+
+    // Typed data access — only available in success state
+    getData() {
+      if (state.status !== "success") throw new Error(`No data: state is ${state.status}`)
+      return state.data
+    },
+
+    getError() {
+      if (state.status !== "error") throw new Error(`No error: state is ${state.status}`)
+      return state.error
+    },
+
+    isIdle()    { return state.status === "idle"    },
+    isLoading() { return state.status === "loading" },
+    isSuccess() { return state.status === "success" },
+    isError()   { return state.status === "error"   },
+    getStatus() { return state.status },
+    subscribe:  fn => { subscribers.push(fn) },
+  }
+
+  api.start   = () => { if (state.status !== "idle"    && state.status !== "error") throw new Error(`Can't start from ${state.status}`); state = { status: "loading" }; notify() }
+  api.succeed = (data)  => { if (state.status !== "loading") throw new Error(`Can't succeed from ${state.status}`); state = { status: "success", data }; notify() }
+  api.fail    = (error) => { if (state.status !== "loading") throw new Error(`Can't fail from ${state.status}`); state = { status: "error", error, retryCount: (state.retryCount||0)+1 }; notify() }
+  api.retry   = () => { if (state.status !== "error") throw new Error(`Can't retry from ${state.status}`); state = { status: "idle" }; notify(); api.execute() }
+  api.reset   = () => { state = { status: "idle" }; notify() }
+
+  return api
+}
+
+// Test state machine
+async function runTests() {
+  const statusLog = []
+  let fetchCount  = 0
+
+  async function mockFetch() {
+    fetchCount++
+    await new Promise(r => setTimeout(r, 20))
+    if (fetchCount <= 1) throw new Error("Network error")
+    return { id: 1, name: "Alice" }
+  }
+
+  const asyncState = createAsyncState(mockFetch)
+  asyncState.subscribe(s => statusLog.push(s.status))
+
+  console.log("Initial:", asyncState.getStatus())  // idle
+
+  // Execute — first attempt fails
+  await asyncState.execute()
+  console.log("After fail:", asyncState.getStatus())  // error
+  console.log("Error msg:", asyncState.getError().message)  // "Network error"
+
+  // Try invalid transition
+  try { asyncState.succeed({ id:1 }) }
+  catch(e) { console.log("Invalid transition:", e.message) }  // Can't succeed from error
+
+  // Retry — second attempt succeeds
+  await asyncState.retry()
+  console.log("After retry:", asyncState.getStatus())  // success
+  console.log("Data:", asyncState.getData().name)       // Alice
+
+  // Try to get error when in success state
+  try { asyncState.getError() }
+  catch(e) { console.log("No error in success:", e.message.includes("No error")) }  // true
+
+  // Reset
+  asyncState.reset()
+  console.log("After reset:", asyncState.getStatus())  // idle
+
+  console.log("State transitions:", statusLog)
+  // ["loading","error","idle","loading","success","idle"]
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Generic List component — typed renderItem, keyExtractor</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Simulate a TypeScript generic <code>List&lt;T&gt;</code> component in plain JS. Implement type inference — the <code>renderItem</code> callback should "know" the type of each item based on the <code>items</code> array. Show that the same <code>List</code> factory works for users, products, and any arbitrary object.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — generic List component</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">// Simulate: function List<T>({ items, renderItem, keyExtractor, filter?, sort? })
+// In TypeScript: T is inferred from items[] — renderItem gets T automatically
+
+function createList(config) {
+  // config: { items, renderItem, keyExtractor, filter?, sort?, emptyState? }
+  // YOUR CODE:
+  // 1. Apply filter if provided: items = items.filter(config.filter)
+  // 2. Apply sort if provided: items = [...items].sort(config.sort)
+  // 3. Map items through renderItem with keyExtractor
+  // 4. If empty: return [config.emptyState ?? "No items"]
+  // Return array of { key, rendered } objects
+
+  let items = [...config.items]
+  if (config.filter) items = items.filter(config.filter)
+  if (config.sort)   items = items.sort(config.sort)
+  if (items.length === 0) return [{ key: "__empty__", rendered: config.emptyState ?? "No items" }]
+  return items.map((item, idx) => ({
+    key:      config.keyExtractor(item),
+    rendered: config.renderItem(item, idx),
+  }))
+}
+
+// Test with users
+const users = [
+  { id:1, name:"Alice",   role:"admin",  score:95 },
+  { id:2, name:"Bob",     role:"user",   score:72 },
+  { id:3, name:"Charlie", role:"user",   score:88 },
+  { id:4, name:"Diana",   role:"admin",  score:91 },
+]
+
+const userList = createList({
+  items:        users,
+  keyExtractor: u => String(u.id),
+  renderItem:   u => `[${u.role.toUpperCase()}] ${u.name} (${u.score})`,
+  filter:       u => u.score >= 80,    // only high scorers
+  sort:         (a, b) => b.score - a.score,  // highest first
+})
+console.log("User list:")
+userList.forEach(({key, rendered}) => console.log(`  ${key}: ${rendered}`))
+// 1: [ADMIN] Alice (95)
+// 4: [ADMIN] Diana (91)
+// 3: [USER] Charlie (88)
+
+// Test with products — SAME List, different type
+const products = [
+  { id:"p1", name:"Laptop",  price:999,  inStock:true  },
+  { id:"p2", name:"Mouse",   price:29,   inStock:false },
+  { id:"p3", name:"Monitor", price:399,  inStock:true  },
+]
+
+const productList = createList({
+  items:        products,
+  keyExtractor: p => p.id,
+  renderItem:   p => `${p.name} — $${p.price} ${p.inStock?"✓":"✗"}`,
+  filter:       p => p.inStock,   // only in-stock
+  sort:         (a, b) => a.price - b.price,  // cheapest first
+})
+console.log("\nProduct list:")
+productList.forEach(({key, rendered}) => console.log(`  ${key}: ${rendered}`))
+
+// Test empty state
+const emptyList = createList({
+  items:        [],
+  keyExtractor: x => x,
+  renderItem:   x => x,
+  emptyState:   "No products match your filters",
+})
+console.log("\nEmpty list:", emptyList[0].rendered)
+
+// Test: same list with different filter/sort without mutation
+const allUsers = createList({ items:users, keyExtractor: u=>String(u.id), renderItem: u=>u.name })
+console.log("\nAll users:", allUsers.map(u=>u.rendered).join(", "))
+console.log("Original array unchanged:", users.length === 4)  // true</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Type-safe API client — generics + runtime validation</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createApiClient(baseUrl)</code> with typed endpoints. Each endpoint specifies its request and response types. The client validates responses at runtime and provides full type inference on the response data. Simulate what a typed API client (like tRPC or Axios with generics) does.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — typed API client</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// Mock fetch for simulation
+const mockResponses = {
+  "/users":     [{ id:1, name:"Alice", email:"alice@test.com" }, { id:2, name:"Bob", email:"bob@test.com" }],
+  "/users/1":   { id:1, name:"Alice", email:"alice@test.com" },
+  "/users/999": null,
+  "/products":  [{ id:1, name:"Laptop", price:999 }],
+}
+async function mockFetch(url, method="GET", body=null) {
+  await new Promise(r => setTimeout(r, 10))
+  const key = url.replace(/^https?:\/\/[^\/]+/, "")
+  if (method === "POST" && key === "/users") return { id:99, ...body }
+  const data = mockResponses[key]
+  if (data === undefined) throw new Error(`404: ${key}`)
+  if (data === null) throw new Error(`404: Resource not found`)
+  return data
+}
+
+// Validators (simulating Zod schemas / TypeScript type guards)
+const validators = {
+  User:        v => v && typeof v.id === "number" && typeof v.name === "string",
+  UserArray:   v => Array.isArray(v) && v.every(u => typeof u.id === "number"),
+  Product:     v => v && typeof v.id === "number" && typeof v.price === "number",
+  ProductArray:v => Array.isArray(v),
+}
+
+function createApiClient(baseUrl) {
+  // endpoint defines: method, path builder, response validator
+  const endpoints = {
+    getUsers:    { method: "GET",  path: ()    => "/users",        validate: validators.UserArray   },
+    getUserById: { method: "GET",  path: (id)  => `/users/${id}`,  validate: validators.User        },
+    createUser:  { method: "POST", path: ()    => "/users",        validate: validators.User        },
+    getProducts: { method: "GET",  path: ()    => "/products",     validate: validators.ProductArray},
+  }
+
+  // Generic caller — validates response against endpoint schema
+  async function call(endpointName, pathArg, body) {
+    // YOUR CODE:
+    // 1. Get the endpoint config from endpoints
+    // 2. Build the full URL: baseUrl + endpoint.path(pathArg)
+    // 3. Call mockFetch with method and body
+    // 4. Validate the response with endpoint.validate
+    // 5. If invalid: throw new Error("Response validation failed for " + endpointName)
+    // 6. Return the validated data
+    const endpoint = endpoints[endpointName]
+    const url = baseUrl + endpoint.path(pathArg)
+    const data = await mockFetch(url, endpoint.method, body)
+    if (!endpoint.validate(data)) throw new Error(`Response validation failed for ${endpointName}`)
+    return data
+  }
+
+  return {
+    async getUsers()         { return call("getUsers") },
+    async getUserById(id)    { return call("getUserById", id) },
+    async createUser(data)   { return call("createUser", null, data) },
+    async getProducts()      { return call("getProducts") },
+  }
+}
+
+// Test the typed client
+async function runTests() {
+  const client = createApiClient("https://api.example.com")
+
+  // Get all users — returns UserArray type
+  const users = await client.getUsers()
+  console.log("Users:", users.map(u => u.name).join(", "))  // Alice, Bob
+  console.log("User type valid:", users.every(u => u.id && u.name))
+
+  // Get single user — returns User type
+  const user = await client.getUserById(1)
+  console.log("User:", user.name, user.email)  // Alice alice@test.com
+
+  // Create user — POST with body, returns User type
+  const newUser = await client.createUser({ name: "Charlie", email: "c@test.com" })
+  console.log("Created:", newUser.name, "with id", newUser.id)  // Charlie with id 99
+
+  // Not found — throws
+  try { await client.getUserById(999) }
+  catch(e) { console.log("Not found error:", e.message.includes("404"))  }  // true
+
+  // Products
+  const products = await client.getProducts()
+  console.log("Products:", products.map(p => p.name).join(", "))
+
+  console.log("\n✓ Type-safe API client working correctly!")
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">Why use TypeScript with React? What specific problems does it solve?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">TypeScript solves three concrete problems in React codebases. First, <strong>prop mismatches</strong> — passing a string where a number is expected, or forgetting a required prop — are caught at write-time in your editor instead of at runtime in the browser (or worse, in production).<br><br>Second, <strong>refactoring safety</strong>: renaming a prop in one component in plain JavaScript means manually searching every file that uses it. With TypeScript, rename it once and the compiler shows every reference that needs updating. For a large codebase this is the difference between confident refactoring and hours of searching.<br><br>Third, <strong>living documentation</strong>: a typed component's interface is always accurate — it can't drift from implementation. Hover over any component in VS Code and see exactly what props it accepts, their types, and which are optional. No need to read source code to understand how to use a component.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">How do you type component props? What's the difference between interface and type for props?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Define props as a named <code>interface</code> or <code>type</code> and annotate the component's parameter: <code>function Button({ label, onClick }: ButtonProps)</code>. For optional props, add <code>?</code>: <code>onClick?: () =&gt; void</code>. For default values, use JavaScript defaults in destructuring: <code>{ variant = "primary" }: ButtonProps</code>.<br><br>Both <code>interface</code> and <code>type</code> work for props. The practical differences: <code>interface</code> supports declaration merging (two declarations with the same name merge), while <code>type</code> supports union types directly (<code>type Props = A | B</code>). For simple object shapes either is fine — most React codebases use <code>interface</code> for props by convention.<br><br>One important pattern: <code>interface ButtonProps extends React.ButtonHTMLAttributes&lt;HTMLButtonElement&gt;</code> — this makes a wrapper component accept all native button props automatically, which you spread: <code>&lt;button {...rest} /&gt;</code>.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">When does useState need an explicit generic, and when can you rely on inference?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">TypeScript infers the type from the initial value. When the initial value fully represents the type, you don't need an explicit generic: <code>useState(0)</code> → <code>number</code>, <code>useState("")</code> → <code>string</code>, <code>useState(false)</code> → <code>boolean</code>.<br><br>Explicit generics are required when: the initial value is <code>null</code> or <code>undefined</code> (<code>useState&lt;User | null&gt;(null)</code>), the initial value is an empty array (<code>useState&lt;Product[]&gt;([])</code> — otherwise inferred as <code>never[]</code>), or the type is a union (<code>useState&lt;Status&gt;("idle")</code> — otherwise inferred as the literal <code>"idle"</code>).<br><br>Rule of thumb: if the initial value can hold all possible future values of the state, let TypeScript infer. If the initial value is a stand-in (null, empty array) for something richer, provide the generic explicitly.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">What are discriminated unions and why are they useful for React components?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">A discriminated union is a union type where each member has a shared field (the "discriminant") with a unique literal value, allowing TypeScript to narrow to the correct member based on that field's value.<br><br>For React components, they're used for props that have fundamentally different shapes depending on a variant. For example, a <code>Button</code> that can be a link or a button:<br><br><code>type ButtonProps = { as: "button"; onClick: () =&gt; void } | { as: "a"; href: string }</code><br><br>When <code>as === "button"</code>, TypeScript knows <code>onClick</code> exists. When <code>as === "a"</code>, TypeScript knows <code>href</code> exists and <code>onClick</code> doesn't. This prevents impossible combinations — you can't pass both <code>href</code> and <code>onClick</code> to the same render. Also great for async state: <code>{ status: "success"; data: T } | { status: "error"; error: Error }</code> — accessing <code>.data</code> is only allowed after narrowing to success.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">How do you type event handlers in React?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">The pattern is <code>React.{EventName}Event&lt;HTML{Element}Element&gt;</code>. The most common ones: <code>React.ChangeEvent&lt;HTMLInputElement&gt;</code> for onChange on text inputs (gives <code>e.target.value</code>), <code>React.FormEvent&lt;HTMLFormElement&gt;</code> for form onSubmit (call <code>e.preventDefault()</code>), <code>React.MouseEvent&lt;HTMLButtonElement&gt;</code> for click handlers, <code>React.KeyboardEvent&lt;HTMLInputElement&gt;</code> for key events.<br><br>For inline handlers, TypeScript infers the type automatically from context — you only need to annotate when extracting the handler into a separate function. A useful shorthand: <code>React.ChangeEventHandler&lt;HTMLInputElement&gt;</code> is equivalent to <code>(e: React.ChangeEvent&lt;HTMLInputElement&gt;) =&gt; void</code>.</div>
+    <div class="tip-box">If you can never remember the exact type: write the handler inline first, hover over the <code>e</code> parameter in VS Code to see the inferred type, then copy that type to the extracted function.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">What's the difference between any and unknown, and when do you use each?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>any</code> completely disables TypeScript's type checking for a value — you can do anything with it, and TypeScript won't complain. It's a full opt-out from the type system. Avoid it except when migrating JS to TS incrementally or working with genuinely untyped third-party APIs.<br><br><code>unknown</code> is the type-safe alternative. It represents "we don't know the type yet." Unlike <code>any</code>, TypeScript requires you to <strong>narrow</strong> an <code>unknown</code> value before you can use it: <code>if (typeof value === "string") { value.toUpperCase() }</code>. This forces you to handle the type uncertainty explicitly rather than ignoring it.<br><br>Use <code>unknown</code> for: API responses (before Zod parsing), catch block errors (<code>catch (e: unknown)</code>), or any value whose type is determined at runtime. Use <code>any</code> as a last resort when you truly can't type something and need to move forward.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">How do you write a generic component in TypeScript?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Add a type parameter to both the interface and the function: <code>interface ListProps&lt;T&gt; { items: T[]; renderItem: (item: T) =&gt; ReactNode }</code>, then <code>function List&lt;T&gt;({ items, renderItem }: ListProps&lt;T&gt;)</code>.<br><br>TypeScript infers <code>T</code> automatically from the <code>items</code> prop — so <code>&lt;List items={users} renderItem={u =&gt; u.name} /&gt;</code> means TypeScript knows <code>u</code> is a <code>User</code> inside <code>renderItem</code>, giving full autocomplete on the callback parameter.<br><br>You can constrain generics: <code>T extends { id: string | number }</code> ensures every item has an id. Or provide multiple type params: <code>function Select&lt;TValue, TOption extends { value: TValue; label: string }&gt;</code> for a typed Select component.<br><br>In <code>.tsx</code> files, the syntax <code>&lt;T&gt;</code> is ambiguous with JSX. Use <code>&lt;T,&gt;</code> (trailing comma) or <code>&lt;T extends unknown&gt;</code> to disambiguate.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">Which utility types do you use most often in React and why?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">The four I reach for constantly: <strong>Partial&lt;T&gt;</strong> for update/PATCH operations where only some fields are sent — form schemas for editing, API calls where you don't send every field. <strong>Omit&lt;T, K&gt;</strong> for stripping sensitive or auto-generated fields like <code>Omit&lt;User, "password" | "createdAt"&gt;</code>. <strong>Pick&lt;T, K&gt;</strong> for list views that only need a subset of fields — prevents over-fetching concern in types. <strong>ReturnType&lt;typeof fn&gt;</strong> combined with <code>Awaited</code> to derive types from fetcher functions without duplicating them.<br><br>Two less obvious ones: <strong>Record&lt;K, V&gt;</strong> for lookup maps and status-to-message mappings. <strong>NonNullable&lt;T&gt;</strong> after guard checks — <code>const users = data.filter((u): u is NonNullable&lt;typeof u&gt; =&gt; u != null)</code>.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">How do you type a Context with useContext and prevent the null check at every usage?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Create the context with <code>null</code> as the initial value: <code>createContext&lt;AuthContextValue | null&gt;(null)</code>. Then write a custom hook with an explicit return type annotation that throws if the context is null:<br><br><code>function useAuth(): AuthContextValue { const ctx = useContext(AuthContext); if (!ctx) throw new Error("useAuth must be inside AuthProvider"); return ctx }</code><br><br>The explicit <code>: AuthContextValue</code> return type tells TypeScript that the function always returns a non-null <code>AuthContextValue</code> — after the null check and throw, TypeScript is confident the returned value is not null. Every caller of <code>useAuth()</code> gets <code>AuthContextValue</code>, never <code>AuthContextValue | null</code>, so no optional chaining is needed in consuming components.<br><br>This is cleaner than using a non-null assertion (<code>useContext(AuthContext)!</code>) because the runtime error message is descriptive, and the pattern is enforced consistently.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">What is a type guard and how do you write a custom one?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">A type guard is a function that tells TypeScript "if this function returns true, then the parameter is of type X." The key syntax is the return type: <code>value is User</code> — called a "type predicate."<br><br><code>function isUser(value: unknown): value is User { return typeof value === "object" &amp;&amp; value !== null &amp;&amp; "id" in value &amp;&amp; "email" in value }</code><br><br>After calling <code>if (isUser(data))</code>, TypeScript narrows <code>data</code> from <code>unknown</code> to <code>User</code> inside the if block. Without the type predicate return type, the function would work at runtime but TypeScript would still think <code>data</code> is <code>unknown</code>.<br><br>Use type guards when: validating API responses that arrive as <code>unknown</code>, filtering arrays to remove nulls (<code>items.filter((x): x is NonNullable&lt;typeof x&gt; =&gt; x != null)</code>), or processing websocket messages that could be any event type. Pair with Zod's <code>safeParse</code> for the most robust approach — it's both a runtime validator and implicitly acts as a type guard.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the three concrete benefits of TypeScript in a React codebase</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use <code>interface</code> vs <code>type</code> and can explain declaration merging</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a complete typed component with required props, optional props, and default values</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know <code>ReactNode</code>, <code>ReactElement</code>, <code>CSSProperties</code> and when to use each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can extend HTML element props with <code>extends React.InputHTMLAttributes&lt;HTMLInputElement&gt;</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when <code>useState</code> needs an explicit generic vs when to let TS infer</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can correctly type all common event handlers: onChange, onSubmit, onClick, onKeyDown</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a discriminated union type and use it for component variants or async state</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>Partial</code>, <code>Pick</code>, <code>Omit</code>, <code>Record</code>, <code>ReturnType</code> in real-world scenarios</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a generic component <code>function List&lt;T&gt;</code> and explain how T is inferred from items</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a type guard with a type predicate (<code>value is User</code>) and explain what it does</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed exercises 2, 4, and 6 (utility types, async state machine, typed API client)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I converted the React Shop to TypeScript — all components, hooks, and contexts typed</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My code is committed and pushed to GitHub with zero TypeScript errors</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(49,120,198,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--ts);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Write a <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--ts);">Button</code> component interface — required label, optional variant union, optional onClick with correct event type, children, className<br>
+      2. Write the <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--ts);">AsyncState&lt;T&gt;</code> discriminated union type and a <code>useAsync</code> hook that uses it<br>
+      3. Write a generic <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--ts);">useLocalStorage&lt;T&gt;</code> hook — return type tuple, lazy initialiser<br>
+      4. Write a typed <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--ts);">AuthContext</code> — interface, createContext with null, custom hook with type predicate return
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 3 · Day 17</div>
+      <div class="footer-day-name">TypeScript with React</div>
+      <div class="footer-day-next">Next up: <strong>Day 18 — Tailwind CSS</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 3 progress</span><span>Day 4 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:57%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day16_react_hook_form.html',16)">← Day 16</button>
+      <button class="footer-btn primary" onclick="navigateTo('day18_tailwind_css.html',18)">Day 18 — Tailwind →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html",current:true},
+]
+const CURRENT=17
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep building! 🔷`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

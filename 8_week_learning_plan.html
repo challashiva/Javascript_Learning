@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8-Week JS · React · GenAI Master Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --hint: #44445a;
+    --js: #f7df1e;
+    --react: #61dafb;
+    --python: #3b82f6;
+    --genai: #a78bfa;
+    --build: #34d399;
+    --review: #fb923c;
+    --accent: #f7df1e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 80px 40px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero-tag::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  .hero h1 span.js { color: var(--js); }
+  .hero h1 span.react { color: var(--react); }
+  .hero h1 span.ai { color: var(--genai); }
+  .hero-sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+  .stats-row {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .stat { border-left: 2px solid var(--border2); padding-left: 16px; }
+  .stat-num { font-size: 28px; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  /* SCHEDULE GRID */
+  .time-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 40px 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .time-slot {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .time-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .time-info { }
+  .time-label { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: var(--text); }
+  .time-hours { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* LEGEND */
+  .legend {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 40px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .leg { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .ldot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* PHASE HEADER */
+  .phase-header {
+    max-width: 1100px;
+    margin: 48px auto 0;
+    padding: 0 40px 20px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .phase-num {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .phase-title { font-size: 22px; font-weight: 700; }
+  .phase-sub { font-size: 14px; color: var(--muted); margin-left: auto; font-family: 'DM Mono', monospace; }
+
+  /* WEEK */
+  .week-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .week {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 24px 0;
+  }
+  .week-header {
+    background: var(--surface);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .week-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+  .week-title { font-size: 17px; font-weight: 700; }
+  .week-goal { font-size: 13px; color: var(--muted); margin-top: 2px; width: 100%; }
+
+  /* SESSIONS */
+  .sessions { background: var(--surface2); }
+  .session {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    border-bottom: 1px solid var(--border);
+    min-height: 64px;
+  }
+  .session:last-child { border-bottom: none; }
+  .session-time {
+    padding: 16px 20px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+  }
+  .session-slot {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .session-body {
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+  }
+  .session-title { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .session-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .stag {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+  }
+
+  /* REVIEW BOX */
+  .review-box {
+    background: rgba(251, 146, 60, 0.06);
+    border-top: 1px solid rgba(251, 146, 60, 0.2);
+    padding: 16px 28px;
+  }
+  .review-label {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--review);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .review-items {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+  .review-items li { list-style: none; padding-left: 16px; position: relative; }
+  .review-items li::before { content: '→'; position: absolute; left: 0; color: var(--review); font-size: 11px; top: 2px; }
+
+  /* MILESTONE */
+  .milestone {
+    background: linear-gradient(135deg, rgba(247,223,30,0.06), rgba(97,218,251,0.04));
+    border: 1px solid rgba(247,223,30,0.2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 0 0 8px;
+  }
+  .milestone-label { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .milestone-items { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mitem { font-size: 12px; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; padding: 6px 12px; color: var(--text); }
+
+  /* FOOTER */
+  footer {
+    max-width: 1100px;
+    margin: 60px auto 0;
+    padding: 32px 40px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  footer p { font-size: 12px; color: var(--hint); font-family: 'DM Mono', monospace; }
+
+  @media (max-width: 700px) {
+    .hero { padding: 48px 20px 40px; }
+    .time-grid { grid-template-columns: 1fr; padding: 24px 20px; }
+    .legend { padding: 16px 20px; }
+    .phase-header { padding: 0 20px 16px; flex-wrap: wrap; }
+    .phase-sub { margin-left: 0; }
+    .week-wrapper { padding: 0 20px; }
+    .session { grid-template-columns: 120px 1fr; }
+    footer { padding: 24px 20px; }
+    .stats-row { gap: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">8-week master plan</div>
+  <h1><span class="js">JavaScript</span> +<br><span class="react">React</span> +<br><span class="ai">GenAI</span></h1>
+  <p class="hero-sub">Focused on the 20% that drives 80% of results. Built around your 6.5 hours daily — morning, evening, and night sessions.</p>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-num">8</div><div class="stat-label">weeks</div></div>
+    <div class="stat"><div class="stat-num">6.5h</div><div class="stat-label">daily</div></div>
+    <div class="stat"><div class="stat-num">~390h</div><div class="stat-label">total</div></div>
+    <div class="stat"><div class="stat-num">5+</div><div class="stat-label">projects shipped</div></div>
+  </div>
+</div>
+
+<!-- TIME SLOTS -->
+<div class="time-grid">
+  <div class="time-slot">
+    <div class="time-dot" style="background:#f7df1e;"></div>
+    <div class="time-info">
+      <div class="time-label">Morning · 10:00 – 12:30</div>
+      <div class="time-hours">2.5 hrs · Learning new concepts</div>
+    </div>
+  </div>
+  <div class="time-slot">
+    <div class="time-dot" style="background:#34d399;"></div>
+    <div class="time-info">
+      <div class="time-label">Evening · 15:00 – 19:00</div>
+      <div class="time-hours">4 hrs · Building projects</div>
+    </div>
+  </div>
+  <div class="time-slot">
+    <div class="time-dot" style="background:#fb923c;"></div>
+    <div class="time-info">
+      <div class="time-label">Night · 22:00 – 23:20</div>
+      <div class="time-hours">1.3 hrs · Review + recall</div>
+    </div>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <span class="leg"><span class="ldot" style="background:var(--js);"></span>JavaScript</span>
+  <span class="leg"><span class="ldot" style="background:var(--react);"></span>React</span>
+  <span class="leg"><span class="ldot" style="background:var(--python);"></span>Python</span>
+  <span class="leg"><span class="ldot" style="background:var(--genai);"></span>GenAI</span>
+  <span class="leg"><span class="ldot" style="background:var(--build);"></span>Build</span>
+  <span class="leg"><span class="ldot" style="background:var(--review);"></span>Review</span>
+</div>
+
+<!-- ══════════════════════════════ PHASE 1 ══════════════════════════════ -->
+<div class="phase-header">
+  <span class="phase-num">Phase 01</span>
+  <span class="phase-title">JavaScript Fundamentals</span>
+  <span class="phase-sub">Weeks 1 – 2</span>
+</div>
+
+<div class="week-wrapper">
+<div class="week">
+  <div class="week-header">
+    <span class="week-badge" style="background:rgba(247,223,30,0.12);color:var(--js);">Week 01</span>
+    <div>
+      <div class="week-title">JS Core — the 20% you'll use 80% of the time</div>
+      <div class="week-goal">Own variables, functions, arrays, objects, and closures before touching React.</div>
+    </div>
+  </div>
+  <div class="sessions">
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">javascript.info in sequence: types → functions → arrays (map/filter/reduce) → objects → ES6 (destructuring, spread, template literals, optional chaining)</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(247,223,30,0.3);color:var(--js);">javascript.info</span><span class="stag">learn</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>15:00–17:00</div></div>
+      <div class="session-body">
+        <div class="session-title">Exercism JS track — 2 challenges/day: bob, two-fer, resistor-color, matrix, clock + freeCodeCamp Basic JavaScript exercises</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(167,139,250,0.3);color:var(--genai);">Exercism</span><span class="stag" style="border-color:rgba(247,223,30,0.2);color:var(--js);">freeCodeCamp</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>17:00–19:00</div></div>
+      <div class="session-body">
+        <div class="session-title">JavaScript30 — 2 projects/day: Drum Kit, CSS Variables, Array Cardio #1 + #2, Fetch + Promises, Flex Panels</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">JavaScript30</span><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">build</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>22:00–23:20</div></div>
+      <div class="session-body">
+        <div class="session-title">Rewrite today's Exercism solution from scratch (no looking). Then read one MDN doc page for a concept you struggled with today.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(251,146,60,0.3);color:var(--review);">night review</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Saturday<br>all slots</div></div>
+      <div class="session-body">
+        <div class="session-title">Build from memory: vanilla JS to-do list with full CRUD. No tutorials — MDN reference only. Push to GitHub with a README.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">solo project</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Sunday<br>all slots</div></div>
+      <div class="session-body">
+        <div class="session-title">Weekly review hour — redo 3 Exercism challenges cold, rate each JS concept 1–5, reread anything rated 3 or below only</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(251,146,60,0.3);color:var(--review);">weekly review</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="review-box">
+    <div class="review-label">Sunday review checklist</div>
+    <ul class="review-items">
+      <li>Can I write map / filter / reduce without docs?</li>
+      <li>Can I destructure nested objects and arrays confidently?</li>
+      <li>Can I explain closures and scope out loud in plain English?</li>
+      <li>Is my to-do list pushed to GitHub with a clean commit history?</li>
+    </ul>
+  </div>
+</div>
+
+<div class="week">
+  <div class="week-header">
+    <span class="week-badge" style="background:rgba(247,223,30,0.12);color:var(--js);">Week 02</span>
+    <div>
+      <div class="week-title">Async JS + DOM mastery</div>
+      <div class="week-goal">Promises, async/await, fetch API — the bridge to React data fetching.</div>
+    </div>
+  </div>
+  <div class="sessions">
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">Promises → async/await → fetch + JSON → try/catch error handling → event loop mental model. Watch Jake Archibald's "In The Loop" talk (YouTube). Read javascript.info ch 11.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(247,223,30,0.3);color:var(--js);">javascript.info ch 11</span><span class="stag">learn</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>15:00–19:00</div></div>
+      <div class="session-body">
+        <div class="session-title">Build weather app: search city → fetch OpenWeather API (free tier) → display current conditions + 5-day forecast → loading + error states → deploy on Vercel</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">project 1 — weather app</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>22:00–23:20</div></div>
+      <div class="session-body">
+        <div class="session-title">Explain async/await to yourself out loud (rubber duck method). Write the fetch call from memory. Read one MDN page on something used that day.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(251,146,60,0.3);color:var(--review);">night review</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Saturday<br>all slots</div></div>
+      <div class="session-body">
+        <div class="session-title">Finish weather app — push to GitHub, deploy on Vercel, write README with screenshots, live URL, and tech stack listed.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">deploy milestone</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="review-box">
+    <div class="review-label">Sunday review checklist</div>
+    <ul class="review-items">
+      <li>Weather app live on Vercel with a public URL?</li>
+      <li>Can I explain the difference between .then() chains and async/await?</li>
+      <li>Can I write a fetch call with error handling from memory?</li>
+      <li>Do I understand why useEffect needs async defined inside it (not on the function itself)?</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════ PHASE 2 ══════════════════════════════ -->
+<div class="phase-header">
+  <span class="phase-num">Phase 02</span>
+  <span class="phase-title">React</span>
+  <span class="phase-sub">Weeks 3 – 5</span>
+</div>
+
+<div class="week-wrapper">
+<div class="week">
+  <div class="week-header">
+    <span class="week-badge" style="background:rgba(97,218,251,0.1);color:var(--react);">Week 03</span>
+    <div>
+      <div class="week-title">React essentials — components, state, effects</div>
+      <div class="week-goal">JSX, useState, useEffect cover 70% of all React code ever written.</div>
+    </div>
+  </div>
+  <div class="sessions">
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">react.dev official docs — Thinking in React, components + props, useState, useEffect (with deps array), lifting state up, controlled form inputs, lists + keys</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(97,218,251,0.3);color:var(--react);">react.dev</span><span class="stag">learn</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>15:00–19:00</div></div>
+      <div class="session-body">
+        <div class="session-title">Rebuild your weather app in React with Vite. Extend it: add Recharts forecast chart, skeleton loaders for loading states, responsive Tailwind layout, °F/°C toggle with useState</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(97,218,251,0.3);color:var(--react);">React rebuild</span><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">build</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>22:00–23:20</div></div>
+      <div class="session-body">
+        <div class="session-title">Draw the component tree of what you built today on paper. Identify where state lives, where it flows, and why. Spot any prop drilling to fix tomorrow.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(251,146,60,0.3);color:var(--review);">night review</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="review-box">
+    <div class="review-label">Sunday review checklist</div>
+    <ul class="review-items">
+      <li>Can I explain when and why to use useEffect (with its deps array)?</li>
+      <li>Can I lift state to a parent component without looking it up?</li>
+      <li>Is my React weather app deployed and visually better than the vanilla version?</li>
+    </ul>
+  </div>
+</div>
+
+<div class="week">
+  <div class="week-header">
+    <span class="week-badge" style="background:rgba(97,218,251,0.1);color:var(--react);">Week 04</span>
+    <div>
+      <div class="week-title">React routing, context + custom hooks</div>
+      <div class="week-goal">Multi-page apps, global state, reusable logic — every React job requires these three things.</div>
+    </div>
+  </div>
+  <div class="sessions">
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">React Router v6 (useNavigate, useParams, nested routes) → Context API for global state → useReducer for complex state → custom hooks: useFetch, useLocalStorage, useDebounce</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(97,218,251,0.3);color:var(--react);">react.dev</span><span class="stag" style="border-color:rgba(97,218,251,0.3);color:var(--react);">reactrouter.com</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>15:00–19:00</div></div>
+      <div class="session-body">
+        <div class="session-title">Build movie search app using TMDB API — search + browse, save favourites via Context API (persisted with localStorage), detail page per movie via routing, Tailwind styled, deployed on Vercel</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">project 2 — movie app</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>22:00–23:20</div></div>
+      <div class="session-body">
+        <div class="session-title">Write a custom hook from scratch with no reference — useFetch or useDebounce. Explain Context vs prop drilling to yourself out loud until it's natural.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(251,146,60,0.3);color:var(--review);">night review</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="review-box">
+    <div class="review-label">Sunday review checklist</div>
+    <ul class="review-items">
+      <li>Can I add a new page/route without looking up the docs?</li>
+      <li>Does my favourites feature survive a page refresh (localStorage)?</li>
+      <li>Can I explain useReducer vs useState and when to choose each?</li>
+      <li>Movie app live on Vercel with working search and favourites?</li>
+    </ul>
+  </div>
+</div>
+
+<div class="week">
+  <div class="week-header">
+    <span class="week-badge" style="background:rgba(97,218,251,0.1);color:var(--react);">Week 05</span>
+    <div>
+      <div class="week-title">React capstone — ship your flagship project</div>
+      <div class="week-goal">Personal finance tracker: CRUD, charts, filters, dark mode. Your best portfolio piece.</div>
+    </div>
+  </div>
+  <div class="sessions">
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Monday<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">Plan only — no coding. Wireframe every screen, design component tree, define data model (transactions, categories, dates), plan folder structure. Write it all down.</div>
+        <div class="session-tags"><span class="stag">planning</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Tue–Thu<br>all slots</div></div>
+      <div class="session-body">
+        <div class="session-title">Build: scaffold → add/edit/delete transactions (CRUD) → category filter + date range filter → Recharts pie chart (spending by category) + bar chart (monthly summary) → Tailwind polish → responsive + dark mode toggle</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">project 3 — finance tracker</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Friday<br>all slots</div></div>
+      <div class="session-body">
+        <div class="session-title">Deploy on Vercel. Write detailed README with architecture explanation. Record a 2-min Loom demo video. Post in Reactiflux Discord for community feedback.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">deploy + share</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Sunday<br>all slots</div></div>
+      <div class="session-body">
+        <div class="session-title">Month 1 mega-review — list every React concept, rate confidence 1–5, reread anything 3 or below. Apply to 3 junior React roles. Update GitHub and LinkedIn.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(251,146,60,0.3);color:var(--review);">month 1 mega-review</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="review-box">
+    <div class="review-label">End of month 1 — you should have</div>
+    <ul class="review-items">
+      <li>3 deployed projects with live Vercel URLs and clean READMEs</li>
+      <li>Active GitHub with daily commits across 5 weeks</li>
+      <li>Solid, job-ready grasp of JS + React fundamentals</li>
+      <li>Ready for the GenAI month</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════ PHASE 3 ══════════════════════════════ -->
+<div class="phase-header">
+  <span class="phase-num">Phase 03</span>
+  <span class="phase-title">Python for AI</span>
+  <span class="phase-sub">Week 6</span>
+</div>
+
+<div class="week-wrapper">
+<div class="week">
+  <div class="week-header">
+    <span class="week-badge" style="background:rgba(59,130,246,0.12);color:var(--python);">Week 06</span>
+    <div>
+      <div class="week-title">Python — only what GenAI development needs</div>
+      <div class="week-goal">You don't need all of Python. You need: types, functions, classes, pip, APIs, and JSON.</div>
+    </div>
+  </div>
+  <div class="sessions">
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">Python crash course (AI-focused track): variables + data types → functions + args/kwargs → lists + dicts → classes basics → pip + venv setup → requests library → JSON parsing + manipulation → environment variables (.env files)</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(59,130,246,0.3);color:var(--python);">python.org tutorial</span><span class="stag" style="border-color:rgba(59,130,246,0.3);color:var(--python);">freeCodeCamp Python</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>15:00–17:00</div></div>
+      <div class="session-body">
+        <div class="session-title">Exercism Python track — hello-world, two-fer, grains, hamming, raindrops. Then rewrite your JS weather app's data-fetching logic in Python to compare the two languages directly.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(167,139,250,0.3);color:var(--genai);">Exercism Python</span><span class="stag">practice</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>17:00–19:00</div></div>
+      <div class="session-body">
+        <div class="session-title">Build a Python CLI tool: fetch data from a public API, process the response with lists and dicts, output formatted results to terminal. Push to GitHub.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">project 4 — CLI tool</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>22:00–23:20</div></div>
+      <div class="session-body">
+        <div class="session-title">Compare Python vs JavaScript for the same task side by side. Write 5 Python functions from memory. Spot the syntax gotchas (indentation, colons, no braces).</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(251,146,60,0.3);color:var(--review);">night review</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="review-box">
+    <div class="review-label">Sunday review checklist</div>
+    <ul class="review-items">
+      <li>Can I write a Python class with methods and instantiate it?</li>
+      <li>Can I call an API with requests, parse JSON, and handle errors?</li>
+      <li>Can I set up a virtual environment and install packages correctly?</li>
+      <li>Is my CLI tool pushed to GitHub?</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════ PHASE 4 ══════════════════════════════ -->
+<div class="phase-header">
+  <span class="phase-num">Phase 04</span>
+  <span class="phase-title">GenAI APIs + Full-Stack AI App</span>
+  <span class="phase-sub">Weeks 7 – 8</span>
+</div>
+
+<div class="week-wrapper">
+<div class="week">
+  <div class="week-header">
+    <span class="week-badge" style="background:rgba(167,139,250,0.12);color:var(--genai);">Week 07</span>
+    <div>
+      <div class="week-title">GenAI APIs — Anthropic, prompting, LangChain, RAG basics</div>
+      <div class="week-goal">Prompting, tool use, streaming, RAG — the 20% that powers 80% of AI products.</div>
+    </div>
+  </div>
+  <div class="sessions">
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Monday<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">Anthropic API docs — messages API structure, system prompts, user/assistant roles, max_tokens, streaming responses. Build a Python terminal chatbot with multi-turn conversation memory.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(167,139,250,0.3);color:var(--genai);">docs.anthropic.com</span><span class="stag" style="border-color:rgba(167,139,250,0.3);color:var(--genai);">GenAI</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Tuesday<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">Prompt engineering fundamentals — system prompts, few-shot examples, chain-of-thought reasoning, structured JSON output, temperature control. Read Anthropic's full prompt engineering guide at docs.anthropic.com.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(167,139,250,0.3);color:var(--genai);">docs.anthropic.com/prompting</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Wednesday<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">LangChain basics — chains, prompt templates, memory buffer, document loaders, text splitters, FAISS vector store. Build a simple Q&amp;A bot over a PDF file (mini RAG pipeline).</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(167,139,250,0.3);color:var(--genai);">python.langchain.com</span><span class="stag" style="border-color:rgba(167,139,250,0.3);color:var(--genai);">RAG</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Thursday<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">Tool use / function calling — define tools, let the LLM decide when to call them, handle tool results. Build an AI assistant that can look up live weather and do calculations.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(167,139,250,0.3);color:var(--genai);">Anthropic tool use docs</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Friday<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">FastAPI basics — create endpoints, handle POST requests, CORS for React frontend, async handlers, return JSON. Build a minimal API that wraps the Anthropic messages endpoint.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(59,130,246,0.3);color:var(--python);">fastapi.tiangolo.com</span><span class="stag" style="border-color:rgba(59,130,246,0.3);color:var(--python);">Python</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>15:00–19:00</div></div>
+      <div class="session-body">
+        <div class="session-title">Build AI cover letter generator — React frontend (paste job description + resume bullet points) → FastAPI backend → Anthropic API → streamed response → Tailwind UI. Deploy frontend on Vercel, backend on Railway (free tier).</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">project 5 — AI app</span><span class="stag" style="border-color:rgba(167,139,250,0.3);color:var(--genai);">full-stack AI</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Mon–Fri<br>22:00–23:20</div></div>
+      <div class="session-body">
+        <div class="session-title">Write a new system prompt from scratch, test it, refine it until the output is reliable. Read one case study or paper from research.anthropic.com or ai.google.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(251,146,60,0.3);color:var(--review);">night review</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="review-box">
+    <div class="review-label">Sunday review checklist</div>
+    <ul class="review-items">
+      <li>Can I call the Anthropic API with streaming from Python from memory?</li>
+      <li>Can I write a system prompt that reliably enforces JSON output?</li>
+      <li>Can I explain what RAG is and why it's used, without jargon?</li>
+      <li>Is my cover letter app deployed and accessible at a public URL?</li>
+    </ul>
+  </div>
+</div>
+
+<div class="week">
+  <div class="week-header">
+    <span class="week-badge" style="background:rgba(167,139,250,0.12);color:var(--genai);">Week 08</span>
+    <div>
+      <div class="week-title">Flagship capstone — React + Python + GenAI in one app</div>
+      <div class="week-goal">This is the project that gets you hired. Build, deploy, and document it like a professional product.</div>
+    </div>
+  </div>
+  <div class="sessions">
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Monday<br>10:00–12:30</div></div>
+      <div class="session-body">
+        <div class="session-title">Choose one: (A) AI study assistant — upload notes, chat with them + quiz generator. (B) Job board with AI match scoring — paste your CV, get ranked job fit. (C) Finance tracker v2 — add AI spending insights + natural language queries. Plan: wireframe, API design, component tree.</div>
+        <div class="session-tags"><span class="stag">planning only</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Tue–Thu<br>all slots</div></div>
+      <div class="session-body">
+        <div class="session-title">Build: React frontend → FastAPI backend → Anthropic API with streaming → file upload if needed → full CRUD → deploy frontend on Vercel, backend on Railway. Commit after every meaningful feature.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">project 6 — flagship</span><span class="stag" style="border-color:rgba(167,139,250,0.3);color:var(--genai);">React + Python + AI</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Friday<br>all slots</div></div>
+      <div class="session-body">
+        <div class="session-title">Polish: solid error handling, rate limiting on the backend, loading states, mobile responsive layout. Record a 3-min Loom demo video. Write README with architecture diagram and setup guide.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(52,211,153,0.3);color:var(--build);">polish + deploy</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Saturday<br>all slots</div></div>
+      <div class="session-body">
+        <div class="session-title">Job prep: update LinkedIn with all 6 projects + a sharp bio. Write a 1-paragraph description for each project. Apply to 5 junior/associate roles. Send 5 LinkedIn connection messages to devs in roles you want.</div>
+        <div class="session-tags"><span class="stag">career sprint</span></div>
+      </div>
+    </div>
+    <div class="session">
+      <div class="session-time"><div class="session-slot">Sunday<br>all slots</div></div>
+      <div class="session-body">
+        <div class="session-title">2-month mega-review — rate every skill across JS, React, Python, and GenAI on a scale of 1–5. Revisit the 3 weakest areas for 30 minutes each. Then celebrate — you've done bootcamp-level work in 8 weeks.</div>
+        <div class="session-tags"><span class="stag" style="border-color:rgba(251,146,60,0.3);color:var(--review);">2-month mega-review</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="review-box">
+    <div class="review-label">End of 8 weeks — you should have</div>
+    <ul class="review-items">
+      <li>6 deployed projects including a flagship full-stack AI app</li>
+      <li>React + Python + GenAI all listed on your CV with evidence</li>
+      <li>Active GitHub with 8 weeks of consistent daily commits</li>
+      <li>Job applications submitted and LinkedIn updated</li>
+      <li>Skills that take most self-taught developers 6–12 months to accumulate</li>
+    </ul>
+  </div>
+</div>
+
+<!-- MILESTONE SUMMARY -->
+<div style="margin:32px 0 8px;">
+  <div class="milestone">
+    <div class="milestone-label">Key resources used throughout</div>
+    <div class="milestone-items">
+      <span class="mitem">javascript.info</span>
+      <span class="mitem">react.dev</span>
+      <span class="mitem">reactrouter.com</span>
+      <span class="mitem">JavaScript30</span>
+      <span class="mitem">Exercism JS + Python</span>
+      <span class="mitem">freeCodeCamp</span>
+      <span class="mitem">docs.anthropic.com</span>
+      <span class="mitem">python.langchain.com</span>
+      <span class="mitem">fastapi.tiangolo.com</span>
+      <span class="mitem">MDN Web Docs</span>
+      <span class="mitem">Recharts</span>
+      <span class="mitem">Vercel (deploy)</span>
+      <span class="mitem">Railway (backend)</span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  <p>8-week JS · React · GenAI master plan · 6.5h daily · ~390h total</p>
+  <p>built with Claude · claude.ai</p>
+</footer>
+
+</body>
+</html>

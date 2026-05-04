@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 3 — Functions, Closures & Async JS</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="assets/css/base.css" rel="stylesheet">
+
+<style>
+
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.94);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--js);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--js);border-bottom-color:var(--js);}
+
+.hero{padding:72px 48px 52px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--js);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--js);}
+.hero h1{font-size:clamp(38px,5.5vw,72px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--js);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin-bottom:36px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 26px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 48px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--js);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--js-dim);color:var(--js);border-color:rgba(247,223,30,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 60px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:28px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:24px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--js);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.rx{color:#fb923c;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin:14px 0;}
+.flow-step{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:12px;text-align:center;min-width:120px;}
+.flow-step-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:4px;}
+.flow-step-val{font-size:13px;font-weight:600;}
+.flow-arrow{color:var(--hint);font-size:18px;padding:0 6px;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--js-dim);color:var(--js);border:1px solid rgba(247,223,30,.25);border-radius:6px;cursor:pointer;transition:background .15s;}
+.run-btn:hover{background:rgba(247,223,30,.18);}
+.runner-code{padding:16px 18px;border-bottom:1px solid var(--border);}
+.runner-code textarea{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:14px 16px;resize:vertical;min-height:180px;outline:none;}
+.runner-code textarea:focus{border-color:rgba(247,223,30,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--js);}
+.ex-hint{font-size:12px;color:var(--muted);border-left:2px solid var(--border2);padding-left:12px;border-radius:0;margin-bottom:14px;line-height:1.7;}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--js);border-color:var(--js);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);}
+
+.divider{max-width:1120px;margin:0 auto 48px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);position:relative;}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+footer{max-width:1120px;margin:0 auto;padding:36px 48px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+footer p{font-size:12px;color:var(--hint);font-family:'JetBrains Mono',monospace;}
+.next-btn{font-size:13px;font-weight:600;padding:10px 20px;background:var(--js-dim);color:var(--js);border:1px solid rgba(247,223,30,.25);border-radius:8px;cursor:pointer;text-decoration:none;}
+.next-btn:hover{background:rgba(247,223,30,.17);}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,footer{padding-left:20px;padding-right:20px;}
+  .nav{padding:0 16px;}
+  .hero h1{font-size:36px;}
+  .schedule-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 03 · JS</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#scope">Scope</a>
+  <a href="#hoisting">Hoisting</a>
+  <a href="#closures">Closures</a>
+  <a href="#patterns">Patterns</a>
+  <a href="#promises">Promises</a>
+  <a href="#async">Async/Await</a>
+  <a href="#fetch">Fetch</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 1 · Day 3 · 8-week plan</div>
+  <h1>Functions, Closures<br>&amp; <em>Async JavaScript</em></h1>
+  <p class="hero-sub">The two most misunderstood areas of JavaScript — and the foundation of everything React does under the hood. Master these and complex bugs stop being mysterious.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">scope chain</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">hoisting</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">closures</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">higher-order functions</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">promises</span>
+    <span class="topic-pill" style="border-color:rgba(247,223,30,.3);color:var(--js);">async / await</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">fetch API</span>
+    <span class="topic-pill" style="border-color:rgba(244,114,182,.3);color:var(--pink);">event loop</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">7</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>Scope: global, function, block</li>
+        <li>Scope chain & lexical scope</li>
+        <li>Hoisting — var, let, functions</li>
+        <li>Closures — what, why, how</li>
+        <li>Higher-order functions & currying</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--green);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>The event loop — call stack + queue</li>
+        <li>Callbacks and callback hell</li>
+        <li>Promises — create, chain, handle errors</li>
+        <li>Promise.all, race, allSettled</li>
+        <li>async / await syntax</li>
+        <li>fetch API — real HTTP requests</li>
+        <li>Exercises 1–7 (all runnable)</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Push today's code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 3 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots">
+    <span class="tdot" onclick="markDone(this)">Scope</span>
+    <span class="tdot" onclick="markDone(this)">Hoisting</span>
+    <span class="tdot" onclick="markDone(this)">Closures</span>
+    <span class="tdot" onclick="markDone(this)">HOF patterns</span>
+    <span class="tdot" onclick="markDone(this)">Event loop</span>
+    <span class="tdot" onclick="markDone(this)">Promises</span>
+    <span class="tdot" onclick="markDone(this)">Async/Await</span>
+    <span class="tdot" onclick="markDone(this)">Fetch API</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- ═══ PART 1 DIVIDER ═══ -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Part 1 — Functions deep dive</span></div>
+
+<!-- ══ 01. SCOPE ══ -->
+<div class="section" id="scope">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Scope — where variables live and die</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">foundation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">global scope</span>
+      <div class="cc-title">Global scope</div>
+      <div class="cc-body">Variables declared outside any function or block. Accessible <strong>everywhere</strong> in your code. In browsers this is <code>window</code>; in Node.js it's <code>global</code>. Avoid polluting global scope — it creates naming conflicts and makes code hard to reason about. Every <code>var</code> at the top level becomes a property of <code>window</code>.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--blue-dim);color:var(--blue);">function scope</span>
+      <div class="cc-title">Function scope</div>
+      <div class="cc-body">Variables declared inside a function are <strong>only accessible within that function</strong> and its nested functions. Each function call creates a fresh scope. This is how you create privacy — variables declared inside can't be accessed from outside. <code>var</code> is function-scoped.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--teal-dim);color:var(--teal);">block scope</span>
+      <div class="cc-title">Block scope</div>
+      <div class="cc-body">Variables declared with <code>let</code> or <code>const</code> inside any <code>{}</code> block — <code>if</code>, <code>for</code>, <code>while</code>, or a plain block — are only accessible within that block. This is the behaviour you almost always want. Block scope was the main reason ES6 introduced <code>let</code> and <code>const</code>.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">lexical scope</span>
+      <div class="cc-title">Lexical scope &amp; scope chain</div>
+      <div class="cc-body">JS uses <strong>lexical scoping</strong> — a function's scope is determined by <em>where it is written</em> in the source code, not where it is called. When a variable is not found in the current scope, JS looks in the <strong>outer scope</strong>, then the next outer, all the way to global. This lookup chain is the <strong>scope chain</strong>.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Scope chain, variable shadowing, and the loop trap</span></div>
+    <div class="cb-body"><pre><span class="cm">// Global scope</span>
+<span class="kw">const</span> <span class="var">appName</span> = <span class="str">"MyApp"</span>  <span class="cm">// accessible everywhere</span>
+
+<span class="kw">function</span> <span class="fn">outer</span>() {
+  <span class="kw">const</span> <span class="var">x</span> = <span class="num">10</span>          <span class="cm">// function scope of outer()</span>
+
+  <span class="kw">function</span> <span class="fn">inner</span>() {
+    <span class="kw">const</span> <span class="var">y</span> = <span class="num">20</span>        <span class="cm">// function scope of inner()</span>
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">x</span>)      <span class="cm">// 10 — found in outer scope via scope chain</span>
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">appName</span>)<span class="cm">// "MyApp" — found in global scope</span>
+  }
+
+  <span class="fn">inner</span>()
+  <span class="cm">// console.log(y)     // ReferenceError — y not in outer's scope</span>
+}
+
+<span class="cm">// Variable shadowing — inner scope can reuse names</span>
+<span class="kw">const</span> <span class="var">color</span> = <span class="str">"blue"</span>
+<span class="kw">function</span> <span class="fn">paint</span>() {
+  <span class="kw">const</span> <span class="var">color</span> = <span class="str">"red"</span>   <span class="cm">// shadows outer 'color' — doesn't overwrite it</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">color</span>)   <span class="cm">// "red"</span>
+}
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">color</span>)     <span class="cm">// "blue" — outer is unchanged</span>
+
+<span class="cm">// The classic loop closure trap with var</span>
+<span class="kw">for</span> (<span class="kw">var</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> < <span class="num">3</span>; <span class="var">i</span>++) {
+  <span class="fn">setTimeout</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">i</span>), <span class="num">100</span>)
+}
+<span class="cm">// Prints: 3, 3, 3  — var leaks out of the loop, all callbacks share i=3</span>
+
+<span class="cm">// Fix 1: use let — block-scoped, each iteration gets its own i</span>
+<span class="kw">for</span> (<span class="kw">let</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> < <span class="num">3</span>; <span class="var">i</span>++) {
+  <span class="fn">setTimeout</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">i</span>), <span class="num">100</span>)
+}
+<span class="cm">// Prints: 0, 1, 2  — each callback closes over its own block-scoped i</span>
+
+<span class="cm">// Block scope example — let stays inside {}</span>
+{
+  <span class="kw">let</span> <span class="var">secret</span> = <span class="str">"hidden"</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">secret</span>)  <span class="cm">// "hidden"</span>
+}
+<span class="cm">// console.log(secret)  // ReferenceError</span></pre></div>
+  </div>
+</div>
+
+<!-- ══ 02. HOISTING ══ -->
+<div class="section" id="hoisting">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Hoisting — what moves, what doesn't</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">interview favourite</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--amber);"></span>Hoisting cheatsheet — all 4 cases</div>
+    <div class="mm-grid">
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--coral);">var declaration</div>
+        <div class="mm-value">Hoisted and initialised to <code>undefined</code>. Accessing before declaration gives <code>undefined</code>, not an error.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--amber);">let / const</div>
+        <div class="mm-value">Hoisted but NOT initialised. Accessing before declaration throws <code>ReferenceError</code>. This gap is the <strong>Temporal Dead Zone (TDZ)</strong>.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--green);">function declaration</div>
+        <div class="mm-value">Fully hoisted — both name AND body. You can call it before it appears in the file. The entire function moves to the top.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--purple);">function expression / arrow</div>
+        <div class="mm-value">The <em>variable</em> is hoisted (TDZ for let/const, <code>undefined</code> for var), but the function body is NOT. Calling it before declaration throws an error.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Hoisting behaviour — all 4 cases demonstrated</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Function declaration — fully hoisted ──────────────────</span>
+<span class="fn">sayHello</span>()                   <span class="cm">// "Hello!" — works before declaration</span>
+<span class="kw">function</span> <span class="fn">sayHello</span>() { <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Hello!"</span>) }
+
+<span class="cm">// ── var declaration — hoisted as undefined ────────────────</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">score</span>)           <span class="cm">// undefined (not an error — hoisted)</span>
+<span class="kw">var</span> <span class="var">score</span> = <span class="num">42</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">score</span>)           <span class="cm">// 42</span>
+
+<span class="cm">// What the engine sees after hoisting:</span>
+<span class="cm">// var score = undefined    ← declaration moved up</span>
+<span class="cm">// console.log(score)       ← undefined</span>
+<span class="cm">// score = 42               ← assignment stays in place</span>
+<span class="cm">// console.log(score)       ← 42</span>
+
+<span class="cm">// ── let/const — Temporal Dead Zone ───────────────────────</span>
+<span class="cm">// console.log(name)        // ReferenceError: Cannot access before init</span>
+<span class="kw">const</span> <span class="var">name</span> = <span class="str">"Alice"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">name</span>)           <span class="cm">// "Alice"</span>
+
+<span class="cm">// ── Function expression — variable hoisted, body is NOT ──</span>
+<span class="cm">// greet()                  // TypeError: greet is not a function</span>
+<span class="kw">var</span> <span class="var">greet</span> = <span class="kw">function</span>() { <span class="kw">return</span> <span class="str">"Hi"</span> }
+
+<span class="cm">// ── Arrow function — same as expression ──────────────────</span>
+<span class="cm">// add(1,2)                 // ReferenceError (const) or TypeError (var)</span>
+<span class="kw">const</span> <span class="var">add</span> = (<span class="var">a</span>, <span class="var">b</span>) => <span class="var">a</span> + <span class="var">b</span>
+
+<span class="cm">// ── Practical implication ─────────────────────────────────</span>
+<span class="cm">// This is why most codebases use function declarations for</span>
+<span class="cm">// utility functions (can be called from anywhere in the file)</span>
+<span class="cm">// and const arrow functions for component-specific handlers</span>
+<span class="cm">// (defined before use to make intent clear)</span></pre></div>
+  </div>
+</div>
+
+<!-- ══ 03. CLOSURES ══ -->
+<div class="section" id="closures">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Closures — the most powerful concept in JS</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">critical</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc" style="border-color:rgba(45,212,191,.2);">
+      <span class="cc-tag" style="background:var(--teal-dim);color:var(--teal);">definition</span>
+      <div class="cc-title">What is a closure?</div>
+      <div class="cc-body">A closure is a function that <strong>retains access to its outer (enclosing) scope's variables even after the outer function has returned</strong>. The inner function "closes over" those variables — they are kept alive in memory as long as the inner function exists. Every function in JS is technically a closure.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">why it matters</span>
+      <div class="cc-title">Where closures appear in practice</div>
+      <div class="cc-body"><strong>React hooks</strong> — every <code>useEffect</code>, event handler, and state updater is a closure over state and props. <strong>Data privacy</strong> — module pattern keeps data private. <strong>Memoisation</strong> — cache previous results. <strong>Debounce/throttle</strong> — hold a timer reference. <strong>Partial application &amp; currying</strong> — pre-fill function arguments.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">gotcha</span>
+      <div class="cc-title">Stale closures — the React bug</div>
+      <div class="cc-body">A closure can capture an <strong>outdated value</strong> if the variable it closed over changed since the closure was created. In React this causes "stale state" bugs where an event handler reads an old value. The fix is using the <strong>functional update form</strong>: <code>setState(prev => prev + 1)</code> instead of <code>setState(count + 1)</code>.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Closures — 6 real patterns used in production</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Pattern 1: Data privacy (module pattern) ──────────────</span>
+<span class="kw">function</span> <span class="fn">createBankAccount</span>(<span class="var">initialBalance</span>) {
+  <span class="kw">let</span> <span class="var">balance</span> = <span class="var">initialBalance</span>    <span class="cm">// private — not accessible from outside</span>
+
+  <span class="kw">return</span> {
+    <span class="fn">deposit</span>:  (<span class="var">amt</span>) => { <span class="var">balance</span> += <span class="var">amt</span>; <span class="kw">return</span> <span class="var">balance</span> },
+    <span class="fn">withdraw</span>: (<span class="var">amt</span>) => {
+      <span class="kw">if</span> (<span class="var">amt</span> > <span class="var">balance</span>) <span class="kw">return</span> <span class="str">"Insufficient funds"</span>
+      <span class="var">balance</span> -= <span class="var">amt</span>; <span class="kw">return</span> <span class="var">balance</span>
+    },
+    <span class="fn">getBalance</span>: () => <span class="var">balance</span>
+  }
+}
+<span class="kw">const</span> <span class="var">acct</span> = <span class="fn">createBankAccount</span>(<span class="num">1000</span>)
+<span class="var">acct</span>.<span class="fn">deposit</span>(<span class="num">500</span>)    <span class="cm">// 1500</span>
+<span class="var">acct</span>.<span class="fn">withdraw</span>(<span class="num">200</span>)   <span class="cm">// 1300</span>
+<span class="cm">// acct.balance       // undefined — balance is private!</span>
+
+<span class="cm">// ── Pattern 2: Memoisation — cache expensive results ──────</span>
+<span class="kw">function</span> <span class="fn">memoize</span>(<span class="var">fn</span>) {
+  <span class="kw">const</span> <span class="var">cache</span> = {}                  <span class="cm">// private to memoize, lives as long as memo does</span>
+  <span class="kw">return</span> (<span class="op">...</span><span class="var">args</span>) => {
+    <span class="kw">const</span> <span class="var">key</span> = <span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="var">args</span>)
+    <span class="kw">if</span> (<span class="var">cache</span>[<span class="var">key</span>] !== <span class="kw">undefined</span>) <span class="kw">return</span> <span class="var">cache</span>[<span class="var">key</span>]
+    <span class="var">cache</span>[<span class="var">key</span>] = <span class="fn">fn</span>(<span class="op">...</span><span class="var">args</span>)
+    <span class="kw">return</span> <span class="var">cache</span>[<span class="var">key</span>]
+  }
+}
+<span class="kw">const</span> <span class="var">slowDouble</span> = (<span class="var">n</span>) => { <span class="cm">/* imagine expensive work */</span> <span class="kw">return</span> <span class="var">n</span> * <span class="num">2</span> }
+<span class="kw">const</span> <span class="var">fastDouble</span> = <span class="fn">memoize</span>(<span class="var">slowDouble</span>)
+<span class="var">fastDouble</span>(<span class="num">21</span>)   <span class="cm">// computed</span>
+<span class="var">fastDouble</span>(<span class="num">21</span>)   <span class="cm">// returned from cache instantly</span>
+
+<span class="cm">// ── Pattern 3: Partial application — pre-fill arguments ───</span>
+<span class="kw">function</span> <span class="fn">multiply</span>(<span class="var">a</span>, <span class="var">b</span>) { <span class="kw">return</span> <span class="var">a</span> * <span class="var">b</span> }
+<span class="kw">function</span> <span class="fn">partial</span>(<span class="var">fn</span>, <span class="op">...</span><span class="var">presetArgs</span>) {
+  <span class="kw">return</span> (<span class="op">...</span><span class="var">laterArgs</span>) => <span class="fn">fn</span>(<span class="op">...</span><span class="var">presetArgs</span>, <span class="op">...</span><span class="var">laterArgs</span>)
+}
+<span class="kw">const</span> <span class="var">double</span>  = <span class="fn">partial</span>(<span class="var">multiply</span>, <span class="num">2</span>)
+<span class="kw">const</span> <span class="var">triple</span>  = <span class="fn">partial</span>(<span class="var">multiply</span>, <span class="num">3</span>)
+<span class="var">double</span>(<span class="num">5</span>)   <span class="cm">// 10</span>
+<span class="var">triple</span>(<span class="num">5</span>)   <span class="cm">// 15</span>
+
+<span class="cm">// ── Pattern 4: Debounce — delay until user stops typing ───</span>
+<span class="kw">function</span> <span class="fn">debounce</span>(<span class="var">fn</span>, <span class="var">delay</span>) {
+  <span class="kw">let</span> <span class="var">timer</span>                         <span class="cm">// closed over by the returned function</span>
+  <span class="kw">return</span> (<span class="op">...</span><span class="var">args</span>) => {
+    <span class="fn">clearTimeout</span>(<span class="var">timer</span>)
+    <span class="var">timer</span> = <span class="fn">setTimeout</span>(() => <span class="fn">fn</span>(<span class="op">...</span><span class="var">args</span>), <span class="var">delay</span>)
+  }
+}
+<span class="kw">const</span> <span class="var">search</span>         = (<span class="var">query</span>) => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Searching:"</span>, <span class="var">query</span>)
+<span class="kw">const</span> <span class="var">debouncedSearch</span> = <span class="fn">debounce</span>(<span class="var">search</span>, <span class="num">300</span>)
+<span class="cm">// Only fires 300ms after the last call — used in every search input</span>
+
+<span class="cm">// ── Pattern 5: Once — run a function only once ────────────</span>
+<span class="kw">function</span> <span class="fn">once</span>(<span class="var">fn</span>) {
+  <span class="kw">let</span> <span class="var">called</span> = <span class="kw">false</span>, <span class="var">result</span>
+  <span class="kw">return</span> (<span class="op">...</span><span class="var">args</span>) => {
+    <span class="kw">if</span> (<span class="var">called</span>) <span class="kw">return</span> <span class="var">result</span>
+    <span class="var">called</span> = <span class="kw">true</span>
+    <span class="var">result</span> = <span class="fn">fn</span>(<span class="op">...</span><span class="var">args</span>)
+    <span class="kw">return</span> <span class="var">result</span>
+  }
+}
+<span class="kw">const</span> <span class="var">initApp</span> = <span class="fn">once</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"App initialised"</span>))
+<span class="var">initApp</span>()  <span class="cm">// "App initialised"</span>
+<span class="var">initApp</span>()  <span class="cm">// nothing — already called</span></pre></div>
+  </div>
+</div>
+
+<!-- ══ 04. HIGHER-ORDER FUNCTIONS ══ -->
+<div class="section" id="patterns">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Higher-order functions &amp; currying</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">functional JS</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">HOFs, pure functions, currying — patterns used in React every day</span></div>
+    <div class="cb-body"><pre><span class="cm">// Higher-order function = takes a function as argument OR returns a function</span>
+<span class="cm">// map, filter, reduce are all HOFs. So is setTimeout.</span>
+
+<span class="cm">// ── Pure functions — no side effects, same input → same output ──</span>
+<span class="cm">// Pure (easy to test, predictable):</span>
+<span class="kw">const</span> <span class="fn">add</span>    = (<span class="var">a</span>, <span class="var">b</span>) => <span class="var">a</span> + <span class="var">b</span>
+<span class="kw">const</span> <span class="fn">double</span> = (<span class="var">arr</span>) => <span class="var">arr</span>.<span class="fn">map</span>(<span class="var">n</span> => <span class="var">n</span> * <span class="num">2</span>)  <span class="cm">// doesn't mutate arr</span>
+
+<span class="cm">// Impure (depends on or modifies external state):</span>
+<span class="kw">let</span> <span class="var">total</span> = <span class="num">0</span>
+<span class="kw">const</span> <span class="fn">addToTotal</span> = (<span class="var">n</span>) => { <span class="var">total</span> += <span class="var">n</span>; <span class="kw">return</span> <span class="var">total</span> }  <span class="cm">// side effect!</span>
+
+<span class="cm">// ── Composing functions ───────────────────────────────────</span>
+<span class="kw">const</span> <span class="fn">compose</span> = (<span class="op">...</span><span class="var">fns</span>) => (<span class="var">x</span>) => <span class="var">fns</span>.<span class="fn">reduceRight</span>((<span class="var">v</span>, <span class="var">f</span>) => <span class="fn">f</span>(<span class="var">v</span>), <span class="var">x</span>)
+<span class="kw">const</span> <span class="fn">pipe</span>    = (<span class="op">...</span><span class="var">fns</span>) => (<span class="var">x</span>) => <span class="var">fns</span>.<span class="fn">reduce</span>((<span class="var">v</span>, <span class="var">f</span>)      => <span class="fn">f</span>(<span class="var">v</span>), <span class="var">x</span>)
+
+<span class="kw">const</span> <span class="fn">trim</span>       = (<span class="var">s</span>) => <span class="var">s</span>.<span class="fn">trim</span>()
+<span class="kw">const</span> <span class="fn">toLowerCase</span> = (<span class="var">s</span>) => <span class="var">s</span>.<span class="fn">toLowerCase</span>()
+<span class="kw">const</span> <span class="fn">addPrefix</span>   = (<span class="var">s</span>) => <span class="str">"user_"</span> + <span class="var">s</span>
+
+<span class="kw">const</span> <span class="var">processUsername</span> = <span class="fn">pipe</span>(<span class="var">trim</span>, <span class="var">toLowerCase</span>, <span class="var">addPrefix</span>)
+<span class="var">processUsername</span>(<span class="str">"  Alice  "</span>)    <span class="cm">// "user_alice"</span>
+
+<span class="cm">// ── Currying — transform multi-arg fn into chain of single-arg fns ──</span>
+<span class="cm">// Regular function</span>
+<span class="kw">const</span> <span class="fn">regularAdd</span> = (<span class="var">a</span>, <span class="var">b</span>, <span class="var">c</span>) => <span class="var">a</span> + <span class="var">b</span> + <span class="var">c</span>
+<span class="var">regularAdd</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>)   <span class="cm">// 6</span>
+
+<span class="cm">// Curried version</span>
+<span class="kw">const</span> <span class="fn">curriedAdd</span> = (<span class="var">a</span>) => (<span class="var">b</span>) => (<span class="var">c</span>) => <span class="var">a</span> + <span class="var">b</span> + <span class="var">c</span>
+<span class="var">curriedAdd</span>(<span class="num">1</span>)(<span class="num">2</span>)(<span class="num">3</span>)  <span class="cm">// 6</span>
+
+<span class="cm">// Practical currying: create specialised functions</span>
+<span class="kw">const</span> <span class="fn">hasRole</span>  = (<span class="var">role</span>) => (<span class="var">user</span>) => <span class="var">user</span>.<span class="prop">role</span> === <span class="var">role</span>
+<span class="kw">const</span> <span class="var">isAdmin</span>  = <span class="fn">hasRole</span>(<span class="str">"admin"</span>)
+<span class="kw">const</span> <span class="var">isEditor</span> = <span class="fn">hasRole</span>(<span class="str">"editor"</span>)
+
+<span class="kw">const</span> <span class="var">users</span> = [
+  { <span class="prop">name</span>: <span class="str">"Alice"</span>, <span class="prop">role</span>: <span class="str">"admin"</span>  },
+  { <span class="prop">name</span>: <span class="str">"Bob"</span>,   <span class="prop">role</span>: <span class="str">"editor"</span> },
+  { <span class="prop">name</span>: <span class="str">"Carol"</span>, <span class="prop">role</span>: <span class="str">"admin"</span>  },
+]
+<span class="var">users</span>.<span class="fn">filter</span>(<span class="var">isAdmin</span>)   <span class="cm">// [Alice, Carol]</span>
+<span class="var">users</span>.<span class="fn">filter</span>(<span class="var">isEditor</span>)  <span class="cm">// [Bob]</span>
+
+<span class="cm">// React event handler pattern (currying in practice)</span>
+<span class="cm">// const handleChange = (field) => (event) => setForm(p => ({...p, [field]: event.target.value}))</span>
+<span class="cm">// &lt;input onChange={handleChange("email")} /&gt;</span></pre></div>
+  </div>
+</div>
+
+<!-- ═══ PART 2 DIVIDER ═══ -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Part 2 — Async JavaScript</span></div>
+
+<!-- ══ 05. EVENT LOOP ══ -->
+<div class="section" id="promises">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">The event loop — JS's secret to async</span>
+    <span class="sec-badge" style="background:var(--pink-dim);color:var(--pink);">mental model</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--blue-dim);color:var(--blue);">call stack</span>
+      <div class="cc-title">Call stack</div>
+      <div class="cc-body">A LIFO stack that tracks <strong>which function is currently running</strong>. When you call a function it gets pushed. When it returns it gets popped. JS is single-threaded — only one thing runs at a time. If the stack is busy, nothing else can run — this is why long operations block the UI.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">web APIs</span>
+      <div class="cc-title">Web APIs (browser / Node)</div>
+      <div class="cc-body">Async tasks like <code>setTimeout</code>, <code>fetch</code>, DOM events are <strong>handled outside the JS engine</strong> by the browser's Web APIs (or Node's libuv). JS hands off the task and continues. When the task completes, its callback is placed in a queue — not executed immediately.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--pink-dim);color:var(--pink);">event loop</span>
+      <div class="cc-title">Event loop &amp; task queues</div>
+      <div class="cc-body">The event loop constantly checks: <strong>is the call stack empty?</strong> If yes, it picks the next task from the queue and pushes it onto the stack. Microtasks (Promises) have a <strong>higher-priority queue</strong> — they always run before the next macro task (setTimeout, setInterval).</div>
+    </div>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--pink);"></span>Event loop execution order — know this for interviews</div>
+    <div class="mm-grid">
+      <div class="mm-item"><div class="mm-label">1st — synchronous code</div><div class="mm-value">All sync code runs first, top to bottom. The call stack must be empty before anything async runs.</div></div>
+      <div class="mm-item"><div class="mm-label">2nd — microtask queue</div><div class="mm-value">Promise callbacks (<code>.then</code>, <code>catch</code>, <code>finally</code>) and <code>queueMicrotask</code>. Drains completely before macrotasks.</div></div>
+      <div class="mm-item"><div class="mm-label">3rd — macrotask queue</div><div class="mm-value"><code>setTimeout</code>, <code>setInterval</code>, I/O callbacks. One runs per event loop tick.</div></div>
+      <div class="mm-item"><div class="mm-label">rule of thumb</div><div class="mm-value">Promises always resolve before <code>setTimeout(fn, 0)</code> even though both are "async".</div></div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Predict the output — classic event loop interview question</span></div>
+    <div class="cb-body"><pre><span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"1 — sync"</span>)
+
+<span class="fn">setTimeout</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"2 — setTimeout"</span>), <span class="num">0</span>)
+
+<span class="kw">new</span> <span class="fn">Promise</span>((<span class="var">resolve</span>) => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"3 — inside Promise constructor (sync!)"</span>)
+  <span class="fn">resolve</span>()
+}).<span class="fn">then</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"4 — .then (microtask)"</span>))
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"5 — sync"</span>)
+
+<span class="cm">// Output order:
+// 1 — sync                         ← sync
+// 3 — inside Promise constructor   ← sync (constructor runs immediately!)
+// 5 — sync                         ← sync
+// 4 — .then (microtask)            ← microtask queue (before setTimeout)
+// 2 — setTimeout                   ← macrotask queue (last)</span></pre></div>
+  </div>
+</div>
+
+<!-- ══ 06. PROMISES ══ -->
+<div class="section">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Promises — states, chaining &amp; combinators</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">core async</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--green);"></span>Promise states — a Promise is always in one of these three states</div>
+    <div class="mm-grid">
+      <div class="mm-item"><div class="mm-label" style="color:var(--amber);">pending</div><div class="mm-value">Initial state. The async operation has not completed yet.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--green);">fulfilled</div><div class="mm-value">Operation succeeded. <code>resolve(value)</code> was called. <code>.then()</code> handlers run.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--coral);">rejected</div><div class="mm-value">Operation failed. <code>reject(error)</code> was called. <code>.catch()</code> handlers run.</div></div>
+      <div class="mm-item"><div class="mm-label">settled</div><div class="mm-value">Fulfilled OR rejected. A settled Promise never changes state again.</div></div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Creating promises, chaining, error handling, combinators</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Creating a Promise ────────────────────────────────────</span>
+<span class="kw">const</span> <span class="fn">wait</span> = (<span class="var">ms</span>) => <span class="kw">new</span> <span class="fn">Promise</span>(<span class="var">resolve</span> => <span class="fn">setTimeout</span>(<span class="var">resolve</span>, <span class="var">ms</span>))
+
+<span class="kw">const</span> <span class="fn">fetchUser</span> = (<span class="var">id</span>) => <span class="kw">new</span> <span class="fn">Promise</span>((<span class="var">resolve</span>, <span class="var">reject</span>) => {
+  <span class="kw">if</span> (!<span class="var">id</span>) <span class="fn">reject</span>(<span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"ID required"</span>))
+  <span class="fn">setTimeout</span>(() => <span class="fn">resolve</span>({ <span class="prop">id</span>, <span class="prop">name</span>: <span class="str">"Alice"</span> }), <span class="num">100</span>)
+})
+
+<span class="cm">// ── Chaining — .then() returns a NEW promise ──────────────</span>
+<span class="fn">fetchUser</span>(<span class="num">1</span>)
+  .<span class="fn">then</span>(<span class="var">user</span> => {
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">user</span>.<span class="prop">name</span>)       <span class="cm">// "Alice"</span>
+    <span class="kw">return</span> <span class="var">user</span>.<span class="prop">id</span> * <span class="num">10</span>          <span class="cm">// pass a value to next .then</span>
+  })
+  .<span class="fn">then</span>(<span class="var">value</span> => <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">value</span>)) <span class="cm">// 10</span>
+  .<span class="fn">catch</span>(<span class="var">err</span> => <span class="fn">console</span>.<span class="fn">error</span>(<span class="var">err</span>))  <span class="cm">// catches any error in the chain</span>
+  .<span class="fn">finally</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"done"</span>)) <span class="cm">// always runs — good for cleanup</span>
+
+<span class="cm">// ── Promise combinators ───────────────────────────────────</span>
+<span class="kw">const</span> <span class="var">p1</span> = <span class="fn">fetchUser</span>(<span class="num">1</span>)
+<span class="kw">const</span> <span class="var">p2</span> = <span class="fn">fetchUser</span>(<span class="num">2</span>)
+<span class="kw">const</span> <span class="var">p3</span> = <span class="fn">fetchUser</span>(<span class="num">3</span>)
+
+<span class="cm">// Promise.all — run in parallel, wait for ALL, fail fast on any rejection</span>
+<span class="fn">Promise</span>.<span class="fn">all</span>([<span class="var">p1</span>, <span class="var">p2</span>, <span class="var">p3</span>])
+  .<span class="fn">then</span>(([<span class="var">u1</span>, <span class="var">u2</span>, <span class="var">u3</span>]) => <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">u1</span>, <span class="var">u2</span>, <span class="var">u3</span>))
+  .<span class="fn">catch</span>(<span class="var">err</span> => <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"One failed:"</span>, <span class="var">err</span>))
+
+<span class="cm">// Promise.allSettled — run all, collect ALL results (won't fail fast)</span>
+<span class="fn">Promise</span>.<span class="fn">allSettled</span>([<span class="var">p1</span>, <span class="var">p2</span>, <span class="var">p3</span>])
+  .<span class="fn">then</span>(<span class="var">results</span> => {
+    <span class="var">results</span>.<span class="fn">forEach</span>((<span class="var">r</span>) => {
+      <span class="kw">if</span> (<span class="var">r</span>.<span class="prop">status</span> === <span class="str">"fulfilled"</span>) <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"ok:"</span>,    <span class="var">r</span>.<span class="prop">value</span>)
+      <span class="kw">else</span>                             <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"error:"</span>, <span class="var">r</span>.<span class="prop">reason</span>)
+    })
+  })
+
+<span class="cm">// Promise.race — resolves/rejects with the FIRST settled promise</span>
+<span class="kw">const</span> <span class="var">timeout</span> = (<span class="var">ms</span>) => <span class="kw">new</span> <span class="fn">Promise</span>((_, <span class="var">reject</span>) =>
+  <span class="fn">setTimeout</span>(() => <span class="fn">reject</span>(<span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Timeout"</span>)), <span class="var">ms</span>)
+)
+<span class="cm">// Request with 5s timeout:</span>
+<span class="fn">Promise</span>.<span class="fn">race</span>([<span class="fn">fetchUser</span>(<span class="num">1</span>), <span class="fn">timeout</span>(<span class="num">5000</span>)])
+
+<span class="cm">// Promise.any — resolves with FIRST fulfilled (ignores rejections)</span>
+<span class="fn">Promise</span>.<span class="fn">any</span>([<span class="var">p1</span>, <span class="var">p2</span>, <span class="var">p3</span>])  <span class="cm">// resolves with first to succeed</span></pre></div>
+  </div>
+</div>
+
+<!-- ══ 07. ASYNC/AWAIT ══ -->
+<div class="section" id="async">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">async / await — promises with readable syntax</span>
+    <span class="sec-badge" style="background:var(--js-dim);color:var(--js);">modern standard</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">async/await patterns — everything from basics to parallel execution</span></div>
+    <div class="cb-body"><pre><span class="cm">// async function ALWAYS returns a Promise — even if you return a plain value</span>
+<span class="kw">async function</span> <span class="fn">getUser</span>(<span class="var">id</span>) {
+  <span class="kw">return</span> { <span class="prop">id</span>, <span class="prop">name</span>: <span class="str">"Alice"</span> }  <span class="cm">// automatically wrapped in Promise.resolve()</span>
+}
+<span class="fn">getUser</span>(<span class="num">1</span>) <span class="cm">// returns a Promise, not { id, name }</span>
+
+<span class="cm">// await pauses execution until the Promise resolves</span>
+<span class="kw">async function</span> <span class="fn">loadDashboard</span>() {
+  <span class="kw">const</span> <span class="var">user</span>  = <span class="kw">await</span> <span class="fn">fetchUser</span>(<span class="num">1</span>)        <span class="cm">// pauses here until resolved</span>
+  <span class="kw">const</span> <span class="var">posts</span> = <span class="kw">await</span> <span class="fn">fetchPosts</span>(<span class="var">user</span>.<span class="prop">id</span>) <span class="cm">// pauses again</span>
+  <span class="kw">return</span> { <span class="var">user</span>, <span class="var">posts</span> }
+}
+
+<span class="cm">// ── Error handling — try/catch (equivalent to .catch()) ───</span>
+<span class="kw">async function</span> <span class="fn">safeLoad</span>(<span class="var">id</span>) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> <span class="var">user</span>  = <span class="kw">await</span> <span class="fn">fetchUser</span>(<span class="var">id</span>)
+    <span class="kw">const</span> <span class="var">posts</span> = <span class="kw">await</span> <span class="fn">fetchPosts</span>(<span class="var">user</span>.<span class="prop">id</span>)
+    <span class="kw">return</span> { <span class="var">user</span>, <span class="var">posts</span> }
+  } <span class="kw">catch</span> (<span class="var">err</span>) {
+    <span class="fn">console</span>.<span class="fn">error</span>(<span class="str">"Load failed:"</span>, <span class="var">err</span>.<span class="prop">message</span>)
+    <span class="kw">return</span> <span class="kw">null</span>     <span class="cm">// return safe fallback</span>
+  } <span class="kw">finally</span> {
+    <span class="fn">setLoading</span>(<span class="kw">false</span>)  <span class="cm">// always runs — good for hiding spinners</span>
+  }
+}
+
+<span class="cm">// ── Parallel vs sequential — critical performance difference ──</span>
+
+<span class="cm">// Sequential (slow): each waits for the previous</span>
+<span class="kw">async function</span> <span class="fn">sequential</span>() {
+  <span class="kw">const</span> <span class="var">u1</span> = <span class="kw">await</span> <span class="fn">fetchUser</span>(<span class="num">1</span>)  <span class="cm">// 100ms</span>
+  <span class="kw">const</span> <span class="var">u2</span> = <span class="kw">await</span> <span class="fn">fetchUser</span>(<span class="num">2</span>)  <span class="cm">// 100ms</span>
+  <span class="kw">const</span> <span class="var">u3</span> = <span class="kw">await</span> <span class="fn">fetchUser</span>(<span class="num">3</span>)  <span class="cm">// 100ms → total: ~300ms</span>
+}
+
+<span class="cm">// Parallel (fast): all start simultaneously</span>
+<span class="kw">async function</span> <span class="fn">parallel</span>() {
+  <span class="kw">const</span> [<span class="var">u1</span>, <span class="var">u2</span>, <span class="var">u3</span>] = <span class="kw">await</span> <span class="fn">Promise</span>.<span class="fn">all</span>([
+    <span class="fn">fetchUser</span>(<span class="num">1</span>),
+    <span class="fn">fetchUser</span>(<span class="num">2</span>),
+    <span class="fn">fetchUser</span>(<span class="num">3</span>)
+  ])
+  <span class="cm">// All 3 run at once → total: ~100ms</span>
+}
+
+<span class="cm">// ── Async in loops ────────────────────────────────────────</span>
+<span class="cm">// for...of respects await (runs sequentially)</span>
+<span class="kw">async function</span> <span class="fn">processUsers</span>(<span class="var">ids</span>) {
+  <span class="kw">for</span> (<span class="kw">const</span> <span class="var">id</span> <span class="kw">of</span> <span class="var">ids</span>) {
+    <span class="kw">const</span> <span class="var">user</span> = <span class="kw">await</span> <span class="fn">fetchUser</span>(<span class="var">id</span>)  <span class="cm">// each waits before next</span>
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">user</span>)
+  }
+}
+
+<span class="cm">// forEach does NOT work with await — callbacks don't pause the loop!</span>
+<span class="cm">// ids.forEach(async (id) => {     // BUG: loop doesn't wait</span>
+<span class="cm">//   const user = await fetchUser(id)  // these run all at once</span>
+<span class="cm">// })</span>
+
+<span class="cm">// Parallel processing of an array:</span>
+<span class="kw">const</span> <span class="var">users</span> = <span class="kw">await</span> <span class="fn">Promise</span>.<span class="fn">all</span>(<span class="var">ids</span>.<span class="fn">map</span>(<span class="var">id</span> => <span class="fn">fetchUser</span>(<span class="var">id</span>)))</pre></div>
+  </div>
+</div>
+
+<!-- ══ 08. FETCH ══ -->
+<div class="section" id="fetch">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">fetch API — real HTTP requests in practice</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">real-world</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">javascript</span><span class="cb-desc">Complete fetch patterns — GET, POST, error handling, abort</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Basic GET request ─────────────────────────────────────</span>
+<span class="kw">async function</span> <span class="fn">getUsers</span>() {
+  <span class="kw">const</span> <span class="var">response</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"https://jsonplaceholder.typicode.com/users"</span>)
+
+  <span class="cm">// fetch only rejects on network error — NOT on 404, 500 etc!</span>
+  <span class="cm">// You MUST check response.ok manually</span>
+  <span class="kw">if</span> (!<span class="var">response</span>.<span class="prop">ok</span>) {
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(`HTTP <span class="rx">${</span><span class="var">response</span>.<span class="prop">status</span><span class="rx">}</span>: <span class="rx">${</span><span class="var">response</span>.<span class="prop">statusText</span><span class="rx">}</span>`)
+  }
+
+  <span class="kw">const</span> <span class="var">data</span> = <span class="kw">await</span> <span class="var">response</span>.<span class="fn">json</span>()   <span class="cm">// parse JSON body (also a Promise!)</span>
+  <span class="kw">return</span> <span class="var">data</span>
+}
+
+<span class="cm">// ── POST request ──────────────────────────────────────────</span>
+<span class="kw">async function</span> <span class="fn">createPost</span>(<span class="var">postData</span>) {
+  <span class="kw">const</span> <span class="var">response</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"https://jsonplaceholder.typicode.com/posts"</span>, {
+    <span class="prop">method</span>:  <span class="str">"POST"</span>,
+    <span class="prop">headers</span>: { <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span> },
+    <span class="prop">body</span>:    <span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="var">postData</span>)
+  })
+  <span class="kw">if</span> (!<span class="var">response</span>.<span class="prop">ok</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Failed to create post"</span>)
+  <span class="kw">return</span> <span class="var">response</span>.<span class="fn">json</span>()
+}
+
+<span class="cm">// ── Reusable fetch wrapper (what teams use in real apps) ──</span>
+<span class="kw">async function</span> <span class="fn">apiFetch</span>(<span class="var">endpoint</span>, <span class="var">options</span> = {}) {
+  <span class="kw">const</span> <span class="var">baseURL</span>  = <span class="str">"https://api.example.com"</span>
+  <span class="kw">const</span> <span class="var">token</span>    = <span class="fn">localStorage</span>.<span class="fn">getItem</span>(<span class="str">"token"</span>)
+
+  <span class="kw">const</span> <span class="var">response</span> = <span class="kw">await</span> <span class="fn">fetch</span>(`<span class="rx">${</span><span class="var">baseURL</span><span class="rx">}${</span><span class="var">endpoint</span><span class="rx">}</span>`, {
+    ...<span class="var">options</span>,
+    <span class="prop">headers</span>: {
+      <span class="str">"Content-Type"</span>:  <span class="str">"application/json"</span>,
+      <span class="str">"Authorization"</span>: `Bearer <span class="rx">${</span><span class="var">token</span><span class="rx">}</span>`,
+      ...<span class="var">options</span>.<span class="prop">headers</span>
+    }
+  })
+
+  <span class="kw">if</span> (<span class="var">response</span>.<span class="prop">status</span> === <span class="num">401</span>) { <span class="fn">redirectToLogin</span>(); <span class="kw">return</span> }
+  <span class="kw">if</span> (!<span class="var">response</span>.<span class="prop">ok</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="kw">await</span> <span class="var">response</span>.<span class="fn">text</span>())
+
+  <span class="kw">return</span> <span class="var">response</span>.<span class="fn">json</span>()
+}
+
+<span class="cm">// Usage:</span>
+<span class="cm">// const users = await apiFetch("/users")</span>
+<span class="cm">// const post  = await apiFetch("/posts", { method:"POST", body: JSON.stringify(data) })</span>
+
+<span class="cm">// ── AbortController — cancel in-flight requests ───────────</span>
+<span class="kw">async function</span> <span class="fn">fetchWithTimeout</span>(<span class="var">url</span>, <span class="var">timeoutMs</span> = <span class="num">5000</span>) {
+  <span class="kw">const</span> <span class="var">controller</span> = <span class="kw">new</span> <span class="fn">AbortController</span>()
+  <span class="kw">const</span> <span class="var">timer</span>      = <span class="fn">setTimeout</span>(() => <span class="var">controller</span>.<span class="fn">abort</span>(), <span class="var">timeoutMs</span>)
+
+  <span class="kw">try</span> {
+    <span class="kw">const</span> <span class="var">res</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="var">url</span>, { <span class="prop">signal</span>: <span class="var">controller</span>.<span class="prop">signal</span> })
+    <span class="fn">clearTimeout</span>(<span class="var">timer</span>)
+    <span class="kw">return</span> <span class="var">res</span>.<span class="fn">json</span>()
+  } <span class="kw">catch</span> (<span class="var">err</span>) {
+    <span class="kw">if</span> (<span class="var">err</span>.<span class="prop">name</span> === <span class="str">"AbortError"</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Request timed out"</span>)
+    <span class="kw">throw</span> <span class="var">err</span>
+  }
+}
+<span class="cm">// React useEffect cleanup uses this to cancel stale requests</span></pre></div>
+  </div>
+</div>
+
+<!-- ══ 09. EXERCISES ══ -->
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Coding exercises — all runnable in browser</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">7 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Scope prediction — what does this print?</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Before running, predict the exact output of this code. Write your prediction as comments, then run to verify. Understanding why each line prints what it does is the goal.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — predict then run</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">let x = "global"
+
+function outer() {
+  let x = "outer"
+
+  function inner() {
+    console.log(x)             // predict: ?
+  }
+
+  inner()
+  console.log(x)               // predict: ?
+}
+
+outer()
+console.log(x)                 // predict: ?
+
+// Part 2 — hoisting
+console.log(typeof hoisted)    // predict: ?
+console.log(typeof notHoisted) // predict: ?
+
+var hoisted = "I am var"
+let notHoisted = "I am let"
+
+// Part 3 — the loop trap
+const funcs = []
+for (var i = 0; i < 3; i++) {
+  funcs.push(() => i)
+}
+console.log(funcs[0](), funcs[1](), funcs[2]()) // predict: ?
+
+const funcs2 = []
+for (let j = 0; j < 3; j++) {
+  funcs2.push(() => j)
+}
+console.log(funcs2[0](), funcs2[1](), funcs2[2]()) // predict: ?</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run to verify your predictions</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal explanations</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="cm">// inner() sees x = "outer" via scope chain (lexical scope)
+// outer() sees its own x = "outer"
+// global sees x = "global" — outer's x was a shadow, not a replacement
+
+// typeof hoisted    → "undefined" (var is hoisted, initialised to undefined)
+// typeof notHoisted → "undefined" as well — let IS hoisted but TDZ means
+//                     typeof returns "undefined" rather than throwing (special case!)
+
+// funcs loop: var i leaks out — all closures share the SAME i = 3
+// Output: 3 3 3
+
+// funcs2 loop: let j creates a new binding each iteration
+// Output: 0 1 2</span></pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Build a configurable debounce function</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>debounce(fn, delay, immediate)</code>. When <code>immediate</code> is <code>true</code>, fire the function on the <strong>leading edge</strong> (first call), then suppress until the delay expires. When <code>false</code> (default), fire on the <strong>trailing edge</strong> (after delay). Use a closure to hold the timer.</div>
+      <div class="ex-hint">The timer variable must live in the closure so multiple calls can clear and reset it. For immediate mode: fire if no timer exists, then always set a timer to enable firing again.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — runnable</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">function debounce(fn, delay, immediate = false) {
+  let timer = null
+  // YOUR CODE HERE
+}
+
+// Test trailing edge (default)
+const trailingLog = debounce((msg) => console.log("Trailing:", msg), 50)
+trailingLog("a")
+trailingLog("b")
+trailingLog("c")  // only "c" should print after 50ms
+
+// Test leading edge
+const leadingLog = debounce((msg) => console.log("Leading:", msg), 50, true)
+leadingLog("x")  // fires immediately
+leadingLog("y")  // suppressed
+leadingLog("z")  // suppressed — only "x" fires
+
+// Wait for outputs
+setTimeout(() => console.log("--- done ---"), 200)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">debounce</span>(<span class="var">fn</span>, <span class="var">delay</span>, <span class="var">immediate</span> = <span class="kw">false</span>) {
+  <span class="kw">let</span> <span class="var">timer</span> = <span class="kw">null</span>
+
+  <span class="kw">return</span> (<span class="op">...</span><span class="var">args</span>) => {
+    <span class="kw">const</span> <span class="var">callNow</span> = <span class="var">immediate</span> && !<span class="var">timer</span>
+
+    <span class="fn">clearTimeout</span>(<span class="var">timer</span>)
+    <span class="var">timer</span> = <span class="fn">setTimeout</span>(() => {
+      <span class="var">timer</span> = <span class="kw">null</span>
+      <span class="kw">if</span> (!<span class="var">immediate</span>) <span class="fn">fn</span>(<span class="op">...</span><span class="var">args</span>)
+    }, <span class="var">delay</span>)
+
+    <span class="kw">if</span> (<span class="var">callNow</span>) <span class="fn">fn</span>(<span class="op">...</span><span class="var">args</span>)
+  }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Promise chain — convert callback hell to promise chain</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">The code below uses deeply nested callbacks (callback hell). Rewrite it using a clean <strong>Promise chain</strong> with <code>.then()</code>, then rewrite it again using <strong>async/await</strong>. All three versions should produce identical output.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — runnable</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">// Simulated async operations (return values via callbacks)
+const getUser    = (id, cb)     => setTimeout(() => cb(null, { id, name: "Alice", deptId: 10 }), 30)
+const getDept    = (deptId, cb) => setTimeout(() => cb(null, { id: deptId, name: "Engineering" }), 30)
+const getManager = (deptId, cb) => setTimeout(() => cb(null, { name: "Bob", dept: deptId }), 30)
+
+// ── VERSION 1: Callback hell (already written) ──
+getUser(1, (err, user) => {
+  if (err) return console.error(err)
+  getDept(user.deptId, (err, dept) => {
+    if (err) return console.error(err)
+    getManager(dept.id, (err, manager) => {
+      if (err) return console.error(err)
+      console.log(`V1: ${user.name} → ${dept.name} → Manager: ${manager.name}`)
+    })
+  })
+})
+
+// ── VERSION 2: Rewrite with Promise chain (.then) ──
+// Hint: wrap each callback function in a new Promise first
+function getUserP(id)      { return new Promise(/* YOUR CODE */) }
+function getDeptP(deptId)  { return new Promise(/* YOUR CODE */) }
+function getManagerP(id)   { return new Promise(/* YOUR CODE */) }
+
+// YOUR PROMISE CHAIN HERE
+
+// ── VERSION 3: Rewrite with async/await ──
+async function loadProfile(userId) {
+  // YOUR CODE HERE
+}
+loadProfile(1)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="cm">// Promisify helpers</span>
+<span class="kw">const</span> <span class="fn">getUserP</span>    = (<span class="var">id</span>)     => <span class="kw">new</span> <span class="fn">Promise</span>((<span class="var">res</span>, <span class="var">rej</span>) => <span class="fn">getUser</span>(<span class="var">id</span>, (<span class="var">e</span>, <span class="var">d</span>) => <span class="var">e</span> ? <span class="fn">rej</span>(<span class="var">e</span>) : <span class="fn">res</span>(<span class="var">d</span>)))
+<span class="kw">const</span> <span class="fn">getDeptP</span>    = (<span class="var">id</span>)     => <span class="kw">new</span> <span class="fn">Promise</span>((<span class="var">res</span>, <span class="var">rej</span>) => <span class="fn">getDept</span>(<span class="var">id</span>, (<span class="var">e</span>, <span class="var">d</span>) => <span class="var">e</span> ? <span class="fn">rej</span>(<span class="var">e</span>) : <span class="fn">res</span>(<span class="var">d</span>)))
+<span class="kw">const</span> <span class="fn">getManagerP</span> = (<span class="var">id</span>)     => <span class="kw">new</span> <span class="fn">Promise</span>((<span class="var">res</span>, <span class="var">rej</span>) => <span class="fn">getManager</span>(<span class="var">id</span>, (<span class="var">e</span>, <span class="var">d</span>) => <span class="var">e</span> ? <span class="fn">rej</span>(<span class="var">e</span>) : <span class="fn">res</span>(<span class="var">d</span>)))
+
+<span class="cm">// Version 2: promise chain</span>
+<span class="kw">let</span> <span class="var">_user</span>
+<span class="fn">getUserP</span>(<span class="num">1</span>)
+  .<span class="fn">then</span>(<span class="var">user</span>  => { <span class="var">_user</span> = <span class="var">user</span>; <span class="kw">return</span> <span class="fn">getDeptP</span>(<span class="var">user</span>.<span class="prop">deptId</span>) })
+  .<span class="fn">then</span>(<span class="var">dept</span>  => <span class="fn">Promise</span>.<span class="fn">all</span>([<span class="fn">Promise</span>.<span class="fn">resolve</span>(<span class="var">dept</span>), <span class="fn">getManagerP</span>(<span class="var">dept</span>.<span class="prop">id</span>)]))
+  .<span class="fn">then</span>(([<span class="var">dept</span>, <span class="var">mgr</span>]) => <span class="fn">console</span>.<span class="fn">log</span>(`V2: <span class="rx">${</span><span class="var">_user</span>.<span class="prop">name</span><span class="rx">}</span> → <span class="rx">${</span><span class="var">dept</span>.<span class="prop">name</span><span class="rx">}</span> → Manager: <span class="rx">${</span><span class="var">mgr</span>.<span class="prop">name</span><span class="rx">}</span>`))
+  .<span class="fn">catch</span>(<span class="fn">console</span>.<span class="prop">error</span>)
+
+<span class="cm">// Version 3: async/await (cleanest)</span>
+<span class="kw">async function</span> <span class="fn">loadProfile</span>(<span class="var">userId</span>) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> <span class="var">user</span>    = <span class="kw">await</span> <span class="fn">getUserP</span>(<span class="var">userId</span>)
+    <span class="kw">const</span> <span class="var">dept</span>    = <span class="kw">await</span> <span class="fn">getDeptP</span>(<span class="var">user</span>.<span class="prop">deptId</span>)
+    <span class="kw">const</span> <span class="var">manager</span> = <span class="kw">await</span> <span class="fn">getManagerP</span>(<span class="var">dept</span>.<span class="prop">id</span>)
+    <span class="fn">console</span>.<span class="fn">log</span>(`V3: <span class="rx">${</span><span class="var">user</span>.<span class="prop">name</span><span class="rx">}</span> → <span class="rx">${</span><span class="var">dept</span>.<span class="prop">name</span><span class="rx">}</span> → Manager: <span class="rx">${</span><span class="var">manager</span>.<span class="prop">name</span><span class="rx">}</span>`)
+  } <span class="kw">catch</span> (<span class="var">err</span>) { <span class="fn">console</span>.<span class="fn">error</span>(<span class="var">err</span>) }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Implement Promise.all from scratch</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>myPromiseAll(promises)</code> that behaves exactly like <code>Promise.all</code>: resolves with an array of all results when every promise resolves, and rejects immediately with the first error if any promise rejects.</div>
+      <div class="ex-hint">Create a new Promise. Keep a results array and a counter. When the counter equals promises.length, resolve with results. If any promise rejects, immediately reject the outer promise.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — runnable</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">function myPromiseAll(promises) {
+  // YOUR CODE HERE
+}
+
+// Test 1: all resolve
+const p1 = Promise.resolve(1)
+const p2 = new Promise(res => setTimeout(() => res(2), 50))
+const p3 = Promise.resolve(3)
+
+myPromiseAll([p1, p2, p3])
+  .then(results => console.log("All resolved:", results))   // [1, 2, 3]
+  .catch(err    => console.error("Error:", err.message))
+
+// Test 2: one rejects
+const p4 = Promise.resolve("a")
+const p5 = Promise.reject(new Error("p5 failed"))
+const p6 = Promise.resolve("c")
+
+myPromiseAll([p4, p5, p6])
+  .then(results => console.log("Should not reach here:", results))
+  .catch(err    => console.log("Caught rejection:", err.message)) // "p5 failed"
+
+// Test 3: empty array
+myPromiseAll([]).then(r => console.log("Empty:", r))  // []</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">myPromiseAll</span>(<span class="var">promises</span>) {
+  <span class="kw">return</span> <span class="kw">new</span> <span class="fn">Promise</span>((<span class="var">resolve</span>, <span class="var">reject</span>) => {
+    <span class="kw">if</span> (<span class="var">promises</span>.<span class="prop">length</span> === <span class="num">0</span>) <span class="kw">return</span> <span class="fn">resolve</span>([])
+
+    <span class="kw">const</span> <span class="var">results</span>  = <span class="kw">new</span> <span class="fn">Array</span>(<span class="var">promises</span>.<span class="prop">length</span>)
+    <span class="kw">let</span>   <span class="var">resolved</span> = <span class="num">0</span>
+
+    <span class="var">promises</span>.<span class="fn">forEach</span>((<span class="var">p</span>, <span class="var">i</span>) => {
+      <span class="fn">Promise</span>.<span class="fn">resolve</span>(<span class="var">p</span>)  <span class="cm">// handle non-promise values</span>
+        .<span class="fn">then</span>(<span class="var">val</span> => {
+          <span class="var">results</span>[<span class="var">i</span>] = <span class="var">val</span>
+          <span class="kw">if</span> (++<span class="var">resolved</span> === <span class="var">promises</span>.<span class="prop">length</span>) <span class="fn">resolve</span>(<span class="var">results</span>)
+        })
+        .<span class="fn">catch</span>(<span class="var">reject</span>)    <span class="cm">// first rejection rejects outer</span>
+    })
+  })
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Async retry with exponential backoff</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>retry(fn, maxAttempts, baseDelayMs)</code> — it calls <code>fn()</code>, and if it rejects, waits <code>baseDelay * 2^attempt</code> ms before retrying (exponential backoff). After <code>maxAttempts</code> failures, reject with the last error. Uses closures + async/await + promises.</div>
+      <div class="ex-hint">Use a <code>for</code> loop with async/await inside. The delay doubles each attempt: 100ms, 200ms, 400ms... Use a helper <code>sleep(ms)</code> function that returns a promise that resolves after the delay.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — runnable</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
+async function retry(fn, maxAttempts = 3, baseDelayMs = 100) {
+  // YOUR CODE HERE
+}
+
+// Test: fails twice then succeeds on 3rd try
+let callCount = 0
+const flakyApi = () => new Promise((resolve, reject) => {
+  callCount++
+  if (callCount < 3) {
+    console.log(`Attempt ${callCount}: failing...`)
+    reject(new Error(`Attempt ${callCount} failed`))
+  } else {
+    console.log(`Attempt ${callCount}: success!`)
+    resolve({ data: "got it!" })
+  }
+})
+
+retry(flakyApi, 5, 50)
+  .then(result => console.log("Final result:", result.data))
+  .catch(err   => console.log("All attempts failed:", err.message))
+
+// Test: always fails — should exhaust retries
+setTimeout(async () => {
+  callCount = 0
+  const alwaysFails = () => Promise.reject(new Error("always fails"))
+  try {
+    await retry(alwaysFails, 3, 50)
+  } catch(err) {
+    console.log("Exhausted retries:", err.message)
+  }
+}, 1000)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">async function</span> <span class="fn">retry</span>(<span class="var">fn</span>, <span class="var">maxAttempts</span> = <span class="num">3</span>, <span class="var">baseDelayMs</span> = <span class="num">100</span>) {
+  <span class="kw">let</span> <span class="var">lastError</span>
+
+  <span class="kw">for</span> (<span class="kw">let</span> <span class="var">attempt</span> = <span class="num">0</span>; <span class="var">attempt</span> < <span class="var">maxAttempts</span>; <span class="var">attempt</span>++) {
+    <span class="kw">try</span> {
+      <span class="kw">return</span> <span class="kw">await</span> <span class="fn">fn</span>()   <span class="cm">// success — return immediately</span>
+    } <span class="kw">catch</span> (<span class="var">err</span>) {
+      <span class="var">lastError</span> = <span class="var">err</span>
+      <span class="kw">if</span> (<span class="var">attempt</span> < <span class="var">maxAttempts</span> - <span class="num">1</span>) {
+        <span class="kw">const</span> <span class="var">delay</span> = <span class="var">baseDelayMs</span> * <span class="fn">Math</span>.<span class="fn">pow</span>(<span class="num">2</span>, <span class="var">attempt</span>)
+        <span class="fn">console</span>.<span class="fn">log</span>(`Retrying in <span class="rx">${</span><span class="var">delay</span><span class="rx">}</span>ms...`)
+        <span class="kw">await</span> <span class="fn">sleep</span>(<span class="var">delay</span>)
+      }
+    }
+  }
+
+  <span class="kw">throw</span> <span class="var">lastError</span>   <span class="cm">// all attempts exhausted</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">6</div>
+      <div class="ex-title">Real fetch — live data from a public API</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Fetch from the real JSONPlaceholder API. Write an async function that: (1) fetches a user by ID, (2) fetches all their posts in parallel, (3) returns a combined profile object. Handle all errors gracefully with try/catch. Use <code>Promise.all</code> for parallel fetching.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — live API</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">const BASE = "https://jsonplaceholder.typicode.com"
+
+async function getUserProfile(userId) {
+  // Step 1: fetch user data from ${BASE}/users/${userId}
+  // Step 2: fetch their posts from ${BASE}/posts?userId=${userId}
+  // Do both in parallel with Promise.all where possible
+  // Step 3: return { user, posts, postCount: posts.length }
+  // Step 4: handle errors — if user not found, throw descriptive error
+
+  // YOUR CODE HERE
+}
+
+// Run it
+getUserProfile(1)
+  .then(profile => {
+    console.log("User:", profile.user.name)
+    console.log("Email:", profile.user.email)
+    console.log("Post count:", profile.postCount)
+    console.log("First post:", profile.posts[0]?.title)
+  })
+  .catch(err => console.error("Failed:", err.message))
+
+// Test error handling
+getUserProfile(9999)
+  .catch(err => console.log("Error handled:", err.message))</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run (requires internet)</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">async function</span> <span class="fn">getUserProfile</span>(<span class="var">userId</span>) {
+  <span class="kw">try</span> {
+    <span class="cm">// Start both requests in parallel</span>
+    <span class="kw">const</span> [<span class="var">userRes</span>, <span class="var">postsRes</span>] = <span class="kw">await</span> <span class="fn">Promise</span>.<span class="fn">all</span>([
+      <span class="fn">fetch</span>(`<span class="rx">${</span><span class="var">BASE</span><span class="rx">}</span>/users/<span class="rx">${</span><span class="var">userId</span><span class="rx">}</span>`),
+      <span class="fn">fetch</span>(`<span class="rx">${</span><span class="var">BASE</span><span class="rx">}</span>/posts?userId=<span class="rx">${</span><span class="var">userId</span><span class="rx">}</span>`)
+    ])
+
+    <span class="kw">if</span> (!<span class="var">userRes</span>.<span class="prop">ok</span>)  <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(`User <span class="rx">${</span><span class="var">userId</span><span class="rx">}</span> not found`)
+    <span class="kw">if</span> (!<span class="var">postsRes</span>.<span class="prop">ok</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Failed to fetch posts"</span>)
+
+    <span class="kw">const</span> [<span class="var">user</span>, <span class="var">posts</span>] = <span class="kw">await</span> <span class="fn">Promise</span>.<span class="fn">all</span>([
+      <span class="var">userRes</span>.<span class="fn">json</span>(),
+      <span class="var">postsRes</span>.<span class="fn">json</span>()
+    ])
+
+    <span class="kw">return</span> { <span class="var">user</span>, <span class="var">posts</span>, <span class="prop">postCount</span>: <span class="var">posts</span>.<span class="prop">length</span> }
+  } <span class="kw">catch</span> (<span class="var">err</span>) {
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(`Profile load failed: <span class="rx">${</span><span class="var">err</span>.<span class="prop">message</span><span class="rx">}</span>`)
+  }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 7 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">7</div>
+      <div class="ex-title">Async queue — process items one at a time</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build an <code>AsyncQueue</code> class using closures and promises. It should have an <code>add(task)</code> method that queues async tasks and a <code>process()</code> method that runs them <strong>one at a time</strong> (not in parallel), logging start and finish of each. Uses closures, promises, async/await, and class syntax together.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 7 — advanced</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex7-code">class AsyncQueue {
+  constructor() {
+    this.queue = []
+  }
+
+  add(name, task) {
+    this.queue.push({ name, task })
+    return this  // allow chaining: queue.add(...).add(...)
+  }
+
+  async process() {
+    // Process tasks one at a time (sequential, not parallel)
+    // Log: "Starting: {name}" before each task
+    // Log: "Done: {name} → {result}" after each task
+    // Log: "All done!" when all complete
+    // Return array of all results
+
+    // YOUR CODE HERE
+  }
+}
+
+// Test
+const queue = new AsyncQueue()
+const sleep = ms => new Promise(r => setTimeout(r, ms))
+
+queue
+  .add("fetchUser",   async () => { await sleep(80); return "User: Alice"   })
+  .add("fetchOrders", async () => { await sleep(60); return "Orders: 5"     })
+  .add("sendEmail",   async () => { await sleep(40); return "Email: sent"   })
+  .add("updateCache", async () => { await sleep(20); return "Cache: updated"})
+
+queue.process().then(results => {
+  console.log("All results:", results)
+})</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex7-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">async</span> <span class="fn">process</span>() {
+  <span class="kw">const</span> <span class="var">results</span> = []
+
+  <span class="kw">for</span> (<span class="kw">const</span> { <span class="var">name</span>, <span class="var">task</span> } <span class="kw">of</span> <span class="kw">this</span>.<span class="prop">queue</span>) {
+    <span class="fn">console</span>.<span class="fn">log</span>(`Starting: <span class="rx">${</span><span class="var">name</span><span class="rx">}</span>`)
+    <span class="kw">const</span> <span class="var">result</span> = <span class="kw">await</span> <span class="fn">task</span>()         <span class="cm">// awaits each before starting next</span>
+    <span class="fn">console</span>.<span class="fn">log</span>(`Done: <span class="rx">${</span><span class="var">name</span><span class="rx">}</span> → <span class="rx">${</span><span class="var">result</span><span class="rx">}</span>`)
+    <span class="var">results</span>.<span class="fn">push</span>(<span class="var">result</span>)
+  }
+
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"All done!"</span>)
+  <span class="kw">return</span> <span class="var">results</span>
+}</pre></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 10. INTERVIEW ══ -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">10</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q1</span><span class="q-text">What is a closure? Can you give a real-world example from React or a production codebase?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">A closure is a function that retains access to its outer scope's variables even after the outer function has finished executing. Every function in JavaScript forms a closure over its surrounding scope.<br><br><strong>Real React example</strong>: every event handler is a closure. When you write <code>const handleClick = () => setCount(count + 1)</code>, the arrow function closes over <code>count</code> from the component's scope. If count changes and the component re-renders, a new closure is created capturing the new value.<br><br><strong>Production example</strong>: debounce — the returned function closes over <code>timer</code>, allowing each call to clear and reset the same timeout reference. Without a closure, <code>timer</code> would be a new variable each call and the debounce wouldn't work.</div>
+      <div class="tip-box">Depth signal: "Stale closures are one of the most common React bugs — an event handler closing over an old value of state. The fix is using setState's functional update form: <code>setState(prev => prev + 1)</code> instead of <code>setState(count + 1)</code>."</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q2</span><span class="q-text">Explain the JavaScript event loop. What is the difference between microtasks and macrotasks?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">JavaScript is single-threaded — it has one call stack and can only execute one thing at a time. The event loop enables async behaviour by offloading tasks to browser Web APIs (or Node's libuv) and scheduling their callbacks for later.<br><br><strong>Order of execution</strong>: synchronous code runs first and empties the call stack. Then the microtask queue drains completely (all <code>.then</code>, <code>.catch</code>, <code>await</code> continuations). Then one macrotask runs (<code>setTimeout</code>, <code>setInterval</code>, I/O). Then microtasks again. This repeats.<br><br><strong>Why it matters</strong>: <code>Promise.resolve().then(fn)</code> always runs before <code>setTimeout(fn, 0)</code> even though both are "async". This affects rendering — React batches state updates as microtasks, which is why multiple setState calls in one handler cause only one re-render.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q3</span><span class="q-text">What is hoisting? What's the Temporal Dead Zone?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">Hoisting is the JavaScript engine's behaviour of processing declarations before executing code. Variable and function declarations are "moved" to the top of their scope conceptually.<br><br><strong>var</strong>: declaration hoisted and initialised to <code>undefined</code>. Assignment stays in place. Accessing before declaration gives <code>undefined</code>.<br><br><strong>let/const</strong>: declaration is hoisted but NOT initialised. The period from the start of the scope to the declaration is called the <strong>Temporal Dead Zone (TDZ)</strong>. Accessing a variable in the TDZ throws a <code>ReferenceError</code>. This is intentional — it catches use-before-assignment bugs that <code>var</code> silently hid.<br><br><strong>Function declarations</strong>: fully hoisted — name and body. Can be called before declaration.</div>
+      <div class="tip-box">Interviewers love follow-ups: "Why does <code>typeof x</code> return <code>'undefined'</code> for a let variable in the TDZ instead of throwing?" — technically typeof is special-cased to not throw for undeclared variables, but let variables in TDZ DO throw even with typeof in some engines.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q4</span><span class="q-text">What is the difference between a Promise and async/await? When would you use one over the other?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text"><code>async/await</code> is syntactic sugar over Promises — it doesn't introduce new async capabilities, it makes Promise-based code look and read like synchronous code.<br><br><strong>Use Promise chains when</strong>: you need to run multiple things in parallel (<code>Promise.all</code>), use combinators like <code>race</code> or <code>allSettled</code>, or you're working with stream/pipeline patterns where chaining reads naturally.<br><br><strong>Use async/await when</strong>: you have sequential async operations that depend on each other, complex error handling with try/catch/finally, or anywhere the sequential, imperative style is clearer.<br><br><strong>In practice</strong>: most teams use async/await as the default for readability, and reach for Promise combinators when parallelism is needed. They mix freely — <code>await Promise.all([...])</code> is extremely common.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q5</span><span class="q-text">Why doesn't fetch throw on a 404 or 500 status? How do you handle HTTP errors properly?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text"><code>fetch</code> only rejects (throws) on <strong>network failures</strong> — no internet, DNS failure, CORS error. It considers any HTTP response, including 404 and 500, a successful network request and resolves the Promise.<br><br>To handle HTTP errors, you must <strong>check <code>response.ok</code></strong> (true for status 200–299) or check <code>response.status</code> directly, and manually throw an error:<br><br><code>if (!response.ok) throw new Error(`HTTP ${response.status}`)</code><br><br>This is a deliberate design decision — fetch is a low-level primitive. Higher-level libraries like axios throw on non-2xx by default, which is why many teams prefer them.</div>
+      <div class="warn-box">Common bug: writing <code>const data = await fetch(url).json()</code> — this doesn't work because <code>fetch</code> returns a Promise, not a Response. The correct pattern is always two awaits: one for the network response, one for parsing the body.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q6</span><span class="q-text">What is the difference between Promise.all, Promise.allSettled, Promise.race, and Promise.any?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text"><strong><code>Promise.all</code></strong>: waits for ALL to fulfill. Rejects immediately if any rejects (fail-fast). Returns array of results in original order. Use when you need all results and a single failure should abort.<br><br><strong><code>Promise.allSettled</code></strong>: waits for ALL to settle (fulfill or reject). Never rejects. Returns array of <code>{status, value|reason}</code>. Use when you want to process all results regardless of partial failures — loading multiple independent dashboard widgets.<br><br><strong><code>Promise.race</code></strong>: resolves or rejects with the FIRST settled promise. Use for timeout patterns — race a fetch against a timeout promise.<br><br><strong><code>Promise.any</code></strong>: resolves with the FIRST fulfilled promise. Only rejects if ALL reject. Use for redundant requests — try multiple servers, use whichever responds first.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q7</span><span class="q-text">What is lexical scope? How does it differ from dynamic scope?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">In <strong>lexical scope</strong> (static scope), a variable's scope is determined by where the function is <em>written</em> in the source code, at parse time. JavaScript uses lexical scope. A function can access variables from the scope where it was defined, regardless of where it is called from.<br><br>In <strong>dynamic scope</strong>, a function's scope is determined by where it is <em>called</em> at runtime. This would mean the same function produces different results depending on the call site's environment.<br><br><strong>Why it matters in JS</strong>: closures work because of lexical scope — the inner function always has access to the variables in the scope where it was written. Arrow functions also use lexical scope for <code>this</code> binding (inheriting <code>this</code> from where they're defined, not where they're called), which is why they're preferred in React event handlers.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q8</span><span class="q-text">What is a higher-order function? Give 3 examples from JavaScript and explain the pattern.</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">A higher-order function (HOF) is a function that either <strong>accepts a function as an argument</strong> or <strong>returns a function</strong> (or both).<br><br><strong>Example 1 — takes a function</strong>: <code>array.map(fn)</code>, <code>array.filter(fn)</code>, <code>setTimeout(fn, ms)</code>. The callback is the function argument.<br><br><strong>Example 2 — returns a function</strong>: <code>debounce(fn, delay)</code> returns a new function. <code>memoize(fn)</code> returns a cached version. React's <code>useMemo</code> and <code>useCallback</code> are HOF patterns.<br><br><strong>Example 3 — both</strong>: <code>compose</code> and <code>pipe</code> take functions as arguments and return a new composed function.<br><br>HOFs are fundamental to functional programming and enable reusable abstractions — instead of duplicating logic, you parameterise it with a function.</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q9</span><span class="q-text">How do you handle errors in async/await? What happens to unhandled promise rejections?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text">In async functions, wrap <code>await</code> calls in <code>try/catch</code> — any rejection becomes a caught exception. <code>finally</code> always runs regardless of outcome, making it ideal for cleanup (hiding loading spinners, closing connections).<br><br><strong>Unhandled rejections</strong>: in Node.js, unhandled rejections crash the process (with an UnhandledPromiseRejection warning). In browsers, they fire a <code>unhandledrejection</code> event. In both environments, they indicate a bug — a promise was rejected but no <code>.catch()</code> or <code>try/catch</code> handled it.<br><br><strong>Best practices</strong>: always attach error handling at the top-level caller. For fire-and-forget async operations, at minimum add <code>.catch(console.error)</code>. In React, use error boundaries for rendering errors and async error handling in useEffect cleanup.</div>
+      <div class="tip-box">Show depth: "Wrapping every await in its own try/catch is noisy. A pattern I use is a helper that returns <code>[error, result]</code>: <code>const [err, data] = await to(fetchUser(1))</code> — the 'to' pattern from the 'await-to-js' library."</div>
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge" style="background:var(--purple-dim);color:var(--purple);">Q10</span><span class="q-text">Why does forEach not work with await? How do you iterate asynchronously over an array?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a">
+      <div class="ans-label">model answer</div>
+      <div class="ans-text"><code>forEach</code> calls its callback synchronously and ignores the return value. When you use an <code>async</code> callback inside <code>forEach</code>, each call returns a Promise — but <code>forEach</code> discards it. The loop completes immediately without waiting for any of the promises to resolve.<br><br><strong>Solution 1 — sequential</strong>: use <code>for...of</code> with <code>await</code>. The <code>await</code> pauses the loop body each iteration.<br><br><strong>Solution 2 — parallel</strong>: use <code>await Promise.all(array.map(async item => ...))</code>. The <code>map</code> starts all promises simultaneously, and <code>Promise.all</code> awaits all of them.<br><br>Choose sequential when order matters or when requests depend on previous results. Choose parallel when requests are independent — it's dramatically faster.</div>
+      <div class="warn-box">Common follow-up: "What about for...in?" — use for...of for arrays, never for...in (it iterates over all enumerable properties including inherited ones, not just array elements).</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 11. REVIEW ══ -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">11</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check each item only if you can do it from memory, without reference. Unchecked items become tomorrow's 5-minute warm-ups.</p>
+
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain lexical scope and the scope chain with a concrete example</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the 3 different hoisting behaviours for <code>var</code>, <code>let/const</code>, and function declarations</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the loop var trap and why <code>let</code> fixes it</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement <code>memoize(fn)</code> using a closure from memory</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement <code>debounce(fn, delay)</code> using a closure from memory</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can predict the output of sync + Promise + setTimeout mixed code</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the 3 Promise states and what resolves/rejects each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the difference between Promise.all, allSettled, race, and any — and when to use each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know that <code>async</code> functions always return a Promise even for plain return values</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know why <code>fetch</code> doesn't throw on 404/500 and how to fix it</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write sequential vs parallel async patterns and explain the performance difference</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know why <code>forEach</code> breaks with async and how to fix it with <code>for...of</code> or <code>Promise.all</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed all 7 exercises — or at least attempted before looking at solutions</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">Today's exercise code is pushed to GitHub with descriptive commit messages</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--js);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall exercise — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2;">
+      1. Implement <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">memoize(fn)</code> and <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">debounce(fn, delay)</code> using closures<br>
+      2. Write a function that fetches a user then their posts in parallel, handles errors gracefully<br>
+      3. Rewrite this callback: <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">getData(id, (err, data) => cb(data))</code> as a Promise, then as async/await<br>
+      4. Implement <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--js);">retry(fn, n, delay)</code> with exponential backoff
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>day 03 of 56 · functions, closures, async/await, fetch · 8-week plan</p>
+  <a class="next-btn" href="day5_dom_events_classes.html">Day 4: DOM, Events & ES6 Classes →</a>
+</footer>
+
+<script>
+function runCode(btn) {
+  const wrap = btn.closest('.runner')
+  const ta   = wrap.querySelector('textarea')
+  const out  = wrap.querySelector('.output-box')
+  const logs = []
+  const orig = console.log
+  console.log = (...a) => logs.push(a.map(x => typeof x === 'object' ? JSON.stringify(x,null,2) : String(x)).join(' '))
+  out.classList.remove('err')
+  try {
+    new Function(ta.value)()
+    out.textContent = logs.length ? logs.join('\n') : '(no output — add console.log calls)'
+  } catch(e) {
+    out.classList.add('err')
+    out.textContent = '✗ ' + e.message
+  }
+  console.log = orig
+}
+
+function toggleSol(btn) {
+  const c = btn.nextElementSibling
+  const a = btn.querySelector('.arrow')
+  const o = c.classList.toggle('open')
+  a.style.transform = o ? 'rotate(90deg)' : ''
+  btn.style.color   = o ? 'var(--text)' : ''
+}
+
+function toggleQA(el) {
+  const a = el.nextElementSibling
+  const c = el.querySelector('.qa-chev')
+  const o = a.classList.toggle('open')
+  c.style.transform = o ? 'rotate(90deg)' : ''
+  el.style.background = o ? 'var(--surface3)' : ''
+}
+
+function toggleCheck(el) {
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+
+function markDone(el) {
+  el.classList.toggle('done')
+  updateProgress()
+}
+
+function updateProgress() {
+  const d = document.querySelectorAll('.tdot.done').length
+  const c = document.querySelectorAll('.cl-box.checked').length
+  const t = document.querySelectorAll('.tdot').length + document.querySelectorAll('.cl-box').length
+  const p = Math.round(((d + c) / t) * 100)
+  document.getElementById('prog-fill').style.width = p + '%'
+  document.getElementById('pct-label').textContent = p + '%'
+}
+
+const secs  = document.querySelectorAll('.section')
+const links = document.querySelectorAll('.nav a')
+window.addEventListener('scroll', () => {
+  let cur = ''
+  secs.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id })
+  links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur))
+})
+</script>
+</body>
+</html>

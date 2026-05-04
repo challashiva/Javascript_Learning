@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 16 — React Hook Form + Zod</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --rhf:#ec4899;--rhf-dim:rgba(236,72,153,0.09);
+  --zod:#3b82f6;--zod-dim:rgba(59,130,246,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --rq:#ff4154;--rq-dim:rgba(255,65,84,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--rhf);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--rhf);border-bottom-color:var(--rhf);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--rhf);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--rhf);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--rhf-dim);color:var(--rhf);border-color:rgba(236,72,153,.3);}
+.day-btn.primary:hover{background:rgba(236,72,153,.18);}
+
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--rhf);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--rhf);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--rhf);}
+.hero h1 em.zod{color:var(--zod);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--rhf);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--rhf-dim);color:var(--rhf);border-color:rgba(236,72,153,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rhf);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--rhf);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+.zc{color:#60a5fa;}
+
+.before-after{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;}
+.ba-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.ba-head{padding:8px 14px;font-size:11px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--border);}
+.ba-body{padding:14px 16px;overflow-x:auto;}
+.ba-body pre{font-size:12px;line-height:1.8;white-space:pre;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rhf);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rhf);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);position:relative;}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--rhf-dim);color:var(--rhf);border:1px solid rgba(236,72,153,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(236,72,153,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:200px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(236,72,153,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--rhf);}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--rhf-dim);color:var(--rhf);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rhf);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--rhf);border-color:var(--rhf);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rhf);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--rhf-dim);color:var(--rhf);border-color:rgba(236,72,153,.3);}
+.footer-btn.primary:hover{background:rgba(236,72,153,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--rhf);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid,.before-after{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 16 · RHF + Zod</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#why">Why RHF</a>
+  <a href="#basics">RHF Basics</a>
+  <a href="#zod">Zod Schemas</a>
+  <a href="#integration">RHF + Zod</a>
+  <a href="#advanced">Advanced</a>
+  <a href="#patterns">Patterns</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 3 · <span>Day 16 of 56</span> · React Hook Form + Zod</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day15_advanced_react_query.html',15)">← Day 15</button>
+      <button class="day-btn primary" onclick="navigateTo('day17_typescript_react.html',17)">Day 17 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 3 · Day 16 · 8-week plan</div>
+  <h1><em>React Hook Form</em><br>+ <em class="zod">Zod</em></h1>
+  <p class="hero-sub">The form stack that eliminated thousands of lines of validation boilerplate across the React ecosystem. Uncontrolled inputs for performance, schema-first validation for correctness — together they make forms that are both fast and bulletproof.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(236,72,153,.3);color:var(--rhf);">uncontrolled inputs</span>
+    <span class="topic-pill" style="border-color:rgba(59,130,246,.3);color:var(--zod);">Zod schema validation</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">useForm + register</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">handleSubmit</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">formState + errors</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">Controller + custom inputs</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">useFieldArray</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">zodResolver</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">9</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--rhf);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>Why RHF — uncontrolled vs controlled</li>
+        <li>useForm — register, handleSubmit, formState</li>
+        <li>Validation modes — onBlur, onChange, onSubmit</li>
+        <li>Zod — schemas, types, parse vs safeParse</li>
+        <li>All Zod validators — string, number, array, object</li>
+        <li>zodResolver — connecting Zod to RHF</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--zod);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>Controller — custom &amp; third-party inputs</li>
+        <li>watch — reactive field values</li>
+        <li>setValue, getValues, trigger</li>
+        <li>useFieldArray — dynamic lists</li>
+        <li>Multi-step forms with RHF</li>
+        <li>RHF + useMutation (server submission)</li>
+        <li>Exercises 1–6</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Push code to GitHub</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 16 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Why RHF</span>
+    <span class="tdot" onclick="markDone(this)">useForm basics</span>
+    <span class="tdot" onclick="markDone(this)">Zod schemas</span>
+    <span class="tdot" onclick="markDone(this)">zodResolver</span>
+    <span class="tdot" onclick="markDone(this)">Controller</span>
+    <span class="tdot" onclick="markDone(this)">watch / setValue</span>
+    <span class="tdot" onclick="markDone(this)">useFieldArray</span>
+    <span class="tdot" onclick="markDone(this)">Multi-step</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. WHY RHF -->
+<div class="section" id="why">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Why React Hook Form — the performance argument</span>
+    <span class="sec-badge" style="background:var(--rhf-dim);color:var(--rhf);">motivation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">controlled inputs (the old way)</span>
+      <div class="cc-title">Every keystroke re-renders the whole form</div>
+      <div class="cc-body">With <code>useState</code> controlled inputs, every character typed triggers a state update which re-renders the component. For a form with 20 fields, typing in one field re-renders all 20. As forms get complex — with nested components, validation, and conditional fields — this cascades into noticeable lag.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">uncontrolled inputs (RHF way)</span>
+      <div class="cc-title">DOM manages values, RHF reads on demand</div>
+      <div class="cc-body">RHF uses <strong>uncontrolled inputs</strong> — React doesn't manage the input's value, the DOM does. RHF registers inputs with a <code>ref</code> and reads values only when needed (on submit, on validation). Typing doesn't trigger any React re-renders. The form component only re-renders on submit or when errors change.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--zod-dim);color:var(--zod);">validation isolation</span>
+      <div class="cc-title">Schema validation as a first-class citizen</div>
+      <div class="cc-body">Manual validation in <code>useState</code> forms means writing <code>if (!email.includes("@"))</code> everywhere — mixed into component logic. Zod separates validation into a <strong>typed schema</strong> that lives outside the component. The same schema validates on the client, on the server, and in tests. One source of truth.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">developer experience</span>
+      <div class="cc-title">Dramatically less boilerplate</div>
+      <div class="cc-body">A full form with 6 fields, validation, error messages, and submit handling goes from ~100 lines of manual state management to ~30 lines with RHF + Zod. No separate touched/dirty state, no manual error object management, no onChange handlers for every field. It just works.</div>
+    </div>
+  </div>
+
+  <div class="before-after">
+    <div class="ba-card">
+      <div class="ba-head" style="background:var(--coral-dim);color:var(--coral);">❌ Before — manual useState form (60+ lines)</div>
+      <div class="ba-body"><pre style="font-size:11.5px;line-height:1.75;color:var(--muted);"><span class="kw">function</span> <span class="fn">LoginForm</span>() {
+  <span class="kw">const</span> [<span class="var">email</span>,    <span class="fn">setEmail</span>]    = <span class="fn">useState</span>(<span class="str">""</span>)
+  <span class="kw">const</span> [<span class="var">password</span>, <span class="fn">setPassword</span>] = <span class="fn">useState</span>(<span class="str">""</span>)
+  <span class="kw">const</span> [<span class="var">errors</span>,   <span class="fn">setErrors</span>]   = <span class="fn">useState</span>({})
+  <span class="kw">const</span> [<span class="var">touched</span>,  <span class="fn">setTouched</span>]  = <span class="fn">useState</span>({})
+  <span class="kw">const</span> [<span class="var">loading</span>,  <span class="fn">setLoading</span>]  = <span class="fn">useState</span>(<span class="kw">false</span>)
+
+  <span class="kw">const</span> <span class="fn">validate</span> = () =&gt; {
+    <span class="kw">const</span> <span class="var">errs</span> = {}
+    <span class="kw">if</span> (!<span class="var">email</span>) <span class="var">errs</span>.<span class="prop">email</span> = <span class="str">"Required"</span>
+    <span class="kw">else if</span> (!<span class="var">email</span>.<span class="fn">includes</span>(<span class="str">"@"</span>)) <span class="var">errs</span>.<span class="prop">email</span> = <span class="str">"Invalid email"</span>
+    <span class="kw">if</span> (!<span class="var">password</span>) <span class="var">errs</span>.<span class="prop">password</span> = <span class="str">"Required"</span>
+    <span class="kw">else if</span> (<span class="var">password</span>.<span class="prop">length</span> &lt; <span class="num">8</span>) <span class="var">errs</span>.<span class="prop">password</span> = <span class="str">"Min 8 chars"</span>
+    <span class="fn">setErrors</span>(<span class="var">errs</span>)
+    <span class="kw">return</span> <span class="fn">Object</span>.<span class="fn">keys</span>(<span class="var">errs</span>).<span class="prop">length</span> === <span class="num">0</span>
+  }
+  <span class="kw">const</span> <span class="fn">handleSubmit</span> = <span class="kw">async</span> (<span class="var">e</span>) =&gt; {
+    <span class="var">e</span>.<span class="fn">preventDefault</span>()
+    <span class="kw">if</span> (!<span class="fn">validate</span>()) <span class="kw">return</span>
+    <span class="fn">setLoading</span>(<span class="kw">true</span>)
+    <span class="kw">try</span> { <span class="kw">await</span> <span class="fn">login</span>({ <span class="var">email</span>, <span class="var">password</span> }) }
+    <span class="kw">finally</span> { <span class="fn">setLoading</span>(<span class="kw">false</span>) }
+  }
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="fn">handleSubmit</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">value</span>={<span class="var">email</span>}
+        <span class="attr">onChange</span>={<span class="var">e</span>=&gt;<span class="fn">setEmail</span>(<span class="var">e</span>.<span class="prop">target</span>.<span class="prop">value</span>)}
+        <span class="attr">onBlur</span>={()=&gt;<span class="fn">setTouched</span>(<span class="var">t</span>=&gt;({...<span class="var">t</span>,<span class="prop">email</span>:<span class="kw">true</span>}))} <span class="tag">/&gt;</span>
+      {<span class="var">touched</span>.<span class="prop">email</span> &amp;&amp; <span class="var">errors</span>.<span class="prop">email</span> &amp;&amp;
+        <span class="tag">&lt;span&gt;</span>{<span class="var">errors</span>.<span class="prop">email</span>}<span class="tag">&lt;/span&gt;</span>}
+      <span class="cm">{/* password field... same pattern again */}</span>
+      <span class="tag">&lt;button</span> <span class="attr">disabled</span>={<span class="var">loading</span>}<span class="tag">&gt;</span>Login<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</pre></div>
+    </div>
+    <div class="ba-card">
+      <div class="ba-head" style="background:var(--green-dim);color:var(--green);">✅ After — RHF + Zod (25 lines)</div>
+      <div class="ba-body"><pre style="font-size:11.5px;line-height:1.75;color:var(--muted);"><span class="kw">const</span> <span class="var">schema</span> = <span class="var">z</span>.<span class="fn">object</span>({
+  <span class="prop">email</span>:    <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">email</span>(<span class="str">"Invalid email"</span>),
+  <span class="prop">password</span>: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">8</span>, <span class="str">"Min 8 chars"</span>),
+})
+
+<span class="kw">function</span> <span class="fn">LoginForm</span>() {
+  <span class="kw">const</span> { <span class="fn">register</span>, <span class="fn">handleSubmit</span>,
+    <span class="prop">formState</span>: { <span class="var">errors</span>, <span class="var">isSubmitting</span> }
+  } = <span class="fn">useForm</span>({ <span class="prop">resolver</span>: <span class="fn">zodResolver</span>(<span class="var">schema</span>) })
+
+  <span class="kw">const</span> <span class="fn">onSubmit</span> = <span class="kw">async</span> (<span class="var">data</span>) =&gt; {
+    <span class="kw">await</span> <span class="fn">login</span>(<span class="var">data</span>)  <span class="cm">// data is validated &amp; typed</span>
+  }
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="fn">handleSubmit</span>(<span class="fn">onSubmit</span>)}<span class="tag">&gt;</span>
+      <span class="tag">&lt;input</span> {...<span class="fn">register</span>(<span class="str">"email"</span>)} <span class="tag">/&gt;</span>
+      {<span class="var">errors</span>.<span class="prop">email</span> &amp;&amp; <span class="tag">&lt;span&gt;</span>{<span class="var">errors</span>.<span class="prop">email</span>.<span class="prop">message</span>}<span class="tag">&lt;/span&gt;</span>}
+      <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="str">"password"</span> {...<span class="fn">register</span>(<span class="str">"password"</span>)} <span class="tag">/&gt;</span>
+      {<span class="var">errors</span>.<span class="prop">password</span> &amp;&amp; <span class="tag">&lt;span&gt;</span>{<span class="var">errors</span>.<span class="prop">password</span>.<span class="prop">message</span>}<span class="tag">&lt;/span&gt;</span>}
+      <span class="tag">&lt;button</span> <span class="attr">disabled</span>={<span class="var">isSubmitting</span>}<span class="tag">&gt;</span>Login<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</pre></div>
+    </div>
+  </div>
+</div>
+
+<!-- 02. RHF BASICS -->
+<div class="section" id="basics">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">useForm — register, handleSubmit &amp; formState</span>
+    <span class="sec-badge" style="background:var(--rhf-dim);color:var(--rhf);">core API</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--rhf);"></span>Everything useForm returns — what you use every day</div>
+    <div class="mm-grid">
+      <div class="mm-item"><div class="mm-label" style="color:var(--rhf);">register(name, options)</div><div class="mm-value">Registers an input. Returns <code>{ name, ref, onChange, onBlur }</code> — spread onto the input element. The <code>ref</code> connects RHF to the DOM element directly.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--green);">handleSubmit(onValid, onInvalid)</div><div class="mm-value">Wraps your submit handler. Runs validation first — only calls <code>onValid(data)</code> if the form passes. Prevents default. Catches async errors automatically.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--amber);">formState</div><div class="mm-value">An object with: <code>errors</code>, <code>isSubmitting</code>, <code>isValid</code>, <code>isDirty</code>, <code>dirtyFields</code>, <code>touchedFields</code>, <code>isSubmitSuccessful</code>. Subscribe only to what you destructure.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--blue);">watch(name?)</div><div class="mm-value">Returns live field values. Causes re-render on changes — use sparingly. <code>watch("email")</code> for one field, <code>watch()</code> for all values.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--purple);">setValue(name, value)</div><div class="mm-value">Programmatically set a field's value. Use <code>{ shouldValidate: true }</code> to trigger validation. <code>{ shouldDirty: true }</code> to mark as dirty.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--teal);">reset(values?)</div><div class="mm-value">Reset form to default values (or provided values). Use after successful submit to clear the form, or when editing — <code>reset(serverData)</code> pre-fills all fields.</div></div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">useForm — full registration form with all field types and formState</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useForm</span> } <span class="kw">from</span> <span class="str">"react-hook-form"</span>
+
+<span class="kw">function</span> <span class="fn">RegistrationForm</span>() {
+  <span class="kw">const</span> {
+    <span class="var">register</span>,
+    <span class="var">handleSubmit</span>,
+    <span class="var">watch</span>,
+    <span class="var">reset</span>,
+    <span class="var">formState</span>: { <span class="var">errors</span>, <span class="var">isSubmitting</span>, <span class="var">isDirty</span>, <span class="var">isValid</span> }
+  } = <span class="fn">useForm</span>({
+    <span class="prop">defaultValues</span>: { <span class="prop">name</span>: <span class="str">""</span>, <span class="prop">email</span>: <span class="str">""</span>, <span class="prop">password</span>: <span class="str">""</span>, <span class="prop">role</span>: <span class="str">"user"</span>, <span class="prop">agree</span>: <span class="kw">false</span> },
+    <span class="prop">mode</span>: <span class="str">"onBlur"</span>,    <span class="cm">// validate on blur (best UX for most forms)</span>
+    <span class="cm">// mode options: "onSubmit" (default), "onBlur", "onChange", "onTouched", "all"</span>
+  })
+
+  <span class="kw">const</span> <span class="var">password</span> = <span class="fn">watch</span>(<span class="str">"password"</span>)   <span class="cm">// live value for confirm-password comparison</span>
+
+  <span class="kw">const</span> <span class="fn">onSubmit</span> = <span class="kw">async</span> (<span class="var">data</span>) =&gt; {
+    <span class="cm">// data is fully validated — all fields present and typed correctly</span>
+    <span class="kw">await</span> <span class="fn">registerUser</span>(<span class="var">data</span>)
+    <span class="fn">reset</span>()   <span class="cm">// clear form after success</span>
+  }
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="fn">handleSubmit</span>(<span class="fn">onSubmit</span>)}<span class="tag">&gt;</span>
+
+      <span class="cm">{/* Text input */}</span>
+      <span class="tag">&lt;input</span>
+        {...<span class="fn">register</span>(<span class="str">"name"</span>, {
+          <span class="prop">required</span>: <span class="str">"Name is required"</span>,
+          <span class="prop">minLength</span>: { <span class="prop">value</span>: <span class="num">2</span>, <span class="prop">message</span>: <span class="str">"Min 2 characters"</span> },
+        })}
+        <span class="attr">placeholder</span>=<span class="str">"Full name"</span>
+      <span class="tag">/&gt;</span>
+      {<span class="var">errors</span>.<span class="prop">name</span> &amp;&amp; <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"error"</span><span class="tag">&gt;</span>{<span class="var">errors</span>.<span class="prop">name</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>}
+
+      <span class="cm">{/* Email with pattern */}</span>
+      <span class="tag">&lt;input</span>
+        <span class="attr">type</span>=<span class="str">"email"</span>
+        {...<span class="fn">register</span>(<span class="str">"email"</span>, {
+          <span class="prop">required</span>: <span class="str">"Email required"</span>,
+          <span class="prop">pattern</span>: { <span class="prop">value</span>: <span class="op">/^[^\s@]+@[^\s@]+\.[^\s@]+$/</span>, <span class="prop">message</span>: <span class="str">"Invalid email"</span> },
+        })}
+      <span class="tag">/&gt;</span>
+      {<span class="var">errors</span>.<span class="prop">email</span> &amp;&amp; <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"error"</span><span class="tag">&gt;</span>{<span class="var">errors</span>.<span class="prop">email</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>}
+
+      <span class="cm">{/* Password */}</span>
+      <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="str">"password"</span> {...<span class="fn">register</span>(<span class="str">"password"</span>, { <span class="prop">required</span>: <span class="kw">true</span>, <span class="prop">minLength</span>: <span class="num">8</span> })} <span class="tag">/&gt;</span>
+
+      <span class="cm">{/* Confirm password with cross-field validation */}</span>
+      <span class="tag">&lt;input</span>
+        <span class="attr">type</span>=<span class="str">"password"</span>
+        {...<span class="fn">register</span>(<span class="str">"confirmPassword"</span>, {
+          <span class="prop">validate</span>: (<span class="var">val</span>) =&gt; <span class="var">val</span> === <span class="var">password</span> || <span class="str">"Passwords don't match"</span>,
+        })}
+      <span class="tag">/&gt;</span>
+      {<span class="var">errors</span>.<span class="prop">confirmPassword</span> &amp;&amp; <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"error"</span><span class="tag">&gt;</span>{<span class="var">errors</span>.<span class="prop">confirmPassword</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>}
+
+      <span class="cm">{/* Select */}</span>
+      <span class="tag">&lt;select</span> {...<span class="fn">register</span>(<span class="str">"role"</span>)}<span class="tag">&gt;</span>
+        <span class="tag">&lt;option</span> <span class="attr">value</span>=<span class="str">"user"</span><span class="tag">&gt;</span>User<span class="tag">&lt;/option&gt;</span>
+        <span class="tag">&lt;option</span> <span class="attr">value</span>=<span class="str">"admin"</span><span class="tag">&gt;</span>Admin<span class="tag">&lt;/option&gt;</span>
+      <span class="tag">&lt;/select&gt;</span>
+
+      <span class="cm">{/* Checkbox */}</span>
+      <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="str">"checkbox"</span> {...<span class="fn">register</span>(<span class="str">"agree"</span>, { <span class="prop">required</span>: <span class="str">"You must agree"</span> })} <span class="tag">/&gt;</span>
+      {<span class="var">errors</span>.<span class="prop">agree</span> &amp;&amp; <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"error"</span><span class="tag">&gt;</span>{<span class="var">errors</span>.<span class="prop">agree</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>}
+
+      <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"submit"</span> <span class="attr">disabled</span>={<span class="var">isSubmitting</span>}<span class="tag">&gt;</span>
+        {<span class="var">isSubmitting</span> ? <span class="str">"Registering..."</span> : <span class="str">"Register"</span>}
+      <span class="tag">&lt;/button&gt;</span>
+
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 03. ZOD -->
+<div class="section" id="zod">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Zod — schema-first validation with TypeScript types</span>
+    <span class="sec-badge" style="background:var(--zod-dim);color:var(--zod);">zod</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--zod-dim);color:var(--zod);">what zod is</span>
+      <div class="cc-title">A TypeScript-first schema declaration library</div>
+      <div class="cc-body">You define a schema once using Zod's fluent API. Zod then provides: runtime validation, <strong>TypeScript types inferred automatically</strong> from the schema (<code>z.infer&lt;typeof schema&gt;</code>), and descriptive error messages. The schema is the single source of truth for both validation and types.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">parse vs safeParse</span>
+      <div class="cc-title">Throw vs return errors</div>
+      <div class="cc-body"><code>schema.parse(data)</code> throws a <code>ZodError</code> if validation fails — use in contexts where you want errors to propagate. <code>schema.safeParse(data)</code> returns <code>{ success: true, data }</code> or <code>{ success: false, error }</code> — use when you want to handle errors gracefully without try/catch.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">type inference</span>
+      <div class="cc-title">One schema, two benefits</div>
+      <div class="cc-body">With <code>type FormData = z.infer&lt;typeof schema&gt;</code>, your TypeScript types are always in sync with your validation. Add a field to the schema — the type updates automatically. Change a field to required — TypeScript will catch every place that doesn't provide it.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">js</span><span class="cb-desc">Zod — every validator you'll use daily, parse, safeParse, and type inference</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">z</span> } <span class="kw">from</span> <span class="str">"zod"</span>
+
+<span class="cm">// ── Primitives ────────────────────────────────────────────</span>
+<span class="var">z</span>.<span class="fn">string</span>()
+<span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">2</span>).<span class="fn">max</span>(<span class="num">50</span>)
+<span class="var">z</span>.<span class="fn">string</span>().<span class="fn">email</span>(<span class="str">"Invalid email"</span>)
+<span class="var">z</span>.<span class="fn">string</span>().<span class="fn">url</span>(<span class="str">"Must be a URL"</span>)
+<span class="var">z</span>.<span class="fn">string</span>().<span class="fn">regex</span>(<span class="op">/^\d{5}$/</span>, <span class="str">"Must be 5 digits"</span>)
+<span class="var">z</span>.<span class="fn">string</span>().<span class="fn">optional</span>()          <span class="cm">// string | undefined</span>
+<span class="var">z</span>.<span class="fn">string</span>().<span class="fn">nullable</span>()          <span class="cm">// string | null</span>
+<span class="var">z</span>.<span class="fn">string</span>().<span class="fn">default</span>(<span class="str">"guest"</span>)    <span class="cm">// fills missing values</span>
+
+<span class="var">z</span>.<span class="fn">number</span>().<span class="fn">min</span>(<span class="num">0</span>).<span class="fn">max</span>(<span class="num">100</span>)
+<span class="var">z</span>.<span class="fn">number</span>().<span class="fn">int</span>()               <span class="cm">// must be integer</span>
+<span class="var">z</span>.<span class="fn">number</span>().<span class="fn">positive</span>()
+<span class="var">z</span>.<span class="fn">number</span>().<span class="fn">nonnegative</span>()
+
+<span class="var">z</span>.<span class="fn">boolean</span>()
+<span class="var">z</span>.<span class="fn">date</span>()
+<span class="var">z</span>.<span class="fn">enum</span>([<span class="str">"admin"</span>, <span class="str">"user"</span>, <span class="str">"guest"</span>])
+<span class="var">z</span>.<span class="fn">literal</span>(<span class="str">"active"</span>)            <span class="cm">// exact value</span>
+
+<span class="cm">// ── Objects ───────────────────────────────────────────────</span>
+<span class="kw">const</span> <span class="var">userSchema</span> = <span class="var">z</span>.<span class="fn">object</span>({
+  <span class="prop">name</span>:    <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">2</span>),
+  <span class="prop">email</span>:   <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">email</span>(),
+  <span class="prop">age</span>:     <span class="var">z</span>.<span class="fn">number</span>().<span class="fn">min</span>(<span class="num">18</span>).<span class="fn">optional</span>(),
+  <span class="prop">role</span>:    <span class="var">z</span>.<span class="fn">enum</span>([<span class="str">"admin"</span>, <span class="str">"user"</span>]).<span class="fn">default</span>(<span class="str">"user"</span>),
+  <span class="prop">address</span>: <span class="var">z</span>.<span class="fn">object</span>({          <span class="cm">// nested objects work</span>
+    <span class="prop">street</span>: <span class="var">z</span>.<span class="fn">string</span>(),
+    <span class="prop">city</span>:   <span class="var">z</span>.<span class="fn">string</span>(),
+    <span class="prop">zip</span>:    <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">regex</span>(<span class="op">/^\d{5}$/</span>),
+  }).<span class="fn">optional</span>(),
+})
+
+<span class="cm">// ── Arrays ────────────────────────────────────────────────</span>
+<span class="var">z</span>.<span class="fn">array</span>(<span class="var">z</span>.<span class="fn">string</span>())             <span class="cm">// string[]</span>
+<span class="var">z</span>.<span class="fn">array</span>(<span class="var">z</span>.<span class="fn">string</span>()).<span class="fn">min</span>(<span class="num">1</span>, <span class="str">"At least one item"</span>)
+<span class="var">z</span>.<span class="fn">array</span>(<span class="var">z</span>.<span class="fn">string</span>()).<span class="fn">max</span>(<span class="num">10</span>)
+<span class="var">z</span>.<span class="fn">array</span>(<span class="var">z</span>.<span class="fn">string</span>()).<span class="fn">nonempty</span>()  <span class="cm">// shorthand for min(1)</span>
+
+<span class="cm">// ── Cross-field validation with refine ────────────────────</span>
+<span class="kw">const</span> <span class="var">signupSchema</span> = <span class="var">z</span>.<span class="fn">object</span>({
+  <span class="prop">password</span>:        <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">8</span>),
+  <span class="prop">confirmPassword</span>: <span class="var">z</span>.<span class="fn">string</span>(),
+}).<span class="fn">refine</span>(
+  (<span class="var">data</span>) =&gt; <span class="var">data</span>.<span class="prop">password</span> === <span class="var">data</span>.<span class="prop">confirmPassword</span>,
+  { <span class="prop">message</span>: <span class="str">"Passwords don't match"</span>, <span class="prop">path</span>: [<span class="str">"confirmPassword"</span>] }
+)
+
+<span class="cm">// ── Union and discriminated union ─────────────────────────</span>
+<span class="kw">const</span> <span class="var">paymentSchema</span> = <span class="var">z</span>.<span class="fn">discriminatedUnion</span>(<span class="str">"type"</span>, [
+  <span class="var">z</span>.<span class="fn">object</span>({ <span class="prop">type</span>: <span class="var">z</span>.<span class="fn">literal</span>(<span class="str">"card"</span>),   <span class="prop">cardNumber</span>: <span class="var">z</span>.<span class="fn">string</span>() }),
+  <span class="var">z</span>.<span class="fn">object</span>({ <span class="prop">type</span>: <span class="var">z</span>.<span class="fn">literal</span>(<span class="str">"paypal"</span>), <span class="prop">email</span>:      <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">email</span>() }),
+])
+
+<span class="cm">// ── parse vs safeParse ────────────────────────────────────</span>
+<span class="cm">// Parse — throws ZodError on failure</span>
+<span class="kw">const</span> <span class="var">user</span> = <span class="var">userSchema</span>.<span class="fn">parse</span>({ <span class="prop">name</span>: <span class="str">"Alice"</span>, <span class="prop">email</span>: <span class="str">"alice@test.com"</span> })
+
+<span class="cm">// SafeParse — returns result object</span>
+<span class="kw">const</span> <span class="var">result</span> = <span class="var">userSchema</span>.<span class="fn">safeParse</span>({ <span class="prop">name</span>: <span class="str">"A"</span>, <span class="prop">email</span>: <span class="str">"not-an-email"</span> })
+<span class="kw">if</span> (!<span class="var">result</span>.<span class="prop">success</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">result</span>.<span class="prop">error</span>.<span class="fn">flatten</span>().<span class="prop">fieldErrors</span>)
+  <span class="cm">// { name: ["String must contain at least 2 character(s)"], email: ["Invalid email"] }</span>
+}
+
+<span class="cm">// ── Type inference ────────────────────────────────────────</span>
+<span class="kw">type</span> <span class="var">User</span>     = <span class="var">z</span>.<span class="fn">infer</span>&lt;<span class="kw">typeof</span> <span class="var">userSchema</span>&gt;
+<span class="kw">type</span> <span class="var">Signup</span>   = <span class="var">z</span>.<span class="fn">infer</span>&lt;<span class="kw">typeof</span> <span class="var">signupSchema</span>&gt;
+<span class="kw">type</span> <span class="var">Payment</span>  = <span class="var">z</span>.<span class="fn">infer</span>&lt;<span class="kw">typeof</span> <span class="var">paymentSchema</span>&gt;
+<span class="cm">// Types are always in sync with schema — no duplication!</span></pre></div>
+  </div>
+</div>
+
+<!-- 04. RHF + ZOD INTEGRATION -->
+<div class="section" id="integration">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">zodResolver — connecting Zod to React Hook Form</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">integration</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + jsx</span><span class="cb-desc">Install resolvers, connect zodResolver, get typed form data automatically</span></div>
+    <div class="cb-body"><pre><span class="cm"># Install</span>
+npm install react-hook-form zod @hookform/resolvers
+
+<span class="cm">// ── schemas/auth.ts — define schema and type once ────────</span>
+<span class="kw">import</span> { <span class="var">z</span> } <span class="kw">from</span> <span class="str">"zod"</span>
+
+<span class="kw">export const</span> <span class="var">loginSchema</span> = <span class="var">z</span>.<span class="fn">object</span>({
+  <span class="prop">email</span>:    <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">email</span>(<span class="str">"Enter a valid email"</span>),
+  <span class="prop">password</span>: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">8</span>, <span class="str">"Password must be at least 8 characters"</span>),
+  <span class="prop">remember</span>: <span class="var">z</span>.<span class="fn">boolean</span>().<span class="fn">optional</span>().<span class="fn">default</span>(<span class="kw">false</span>),
+})
+
+<span class="kw">export type</span> <span class="var">LoginFormData</span> = <span class="var">z</span>.<span class="fn">infer</span>&lt;<span class="kw">typeof</span> <span class="var">loginSchema</span>&gt;
+<span class="cm">// { email: string; password: string; remember: boolean }</span>
+
+<span class="cm">// ── LoginForm.tsx ─────────────────────────────────────────</span>
+<span class="kw">import</span> { <span class="var">useForm</span> }        <span class="kw">from</span> <span class="str">"react-hook-form"</span>
+<span class="kw">import</span> { <span class="var">zodResolver</span> }   <span class="kw">from</span> <span class="str">"@hookform/resolvers/zod"</span>
+<span class="kw">import</span> { <span class="var">loginSchema</span>, <span class="kw">type</span> <span class="var">LoginFormData</span> } <span class="kw">from</span> <span class="str">"./schemas/auth"</span>
+<span class="kw">import</span> { <span class="var">useMutation</span> }   <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+
+<span class="kw">function</span> <span class="fn">LoginForm</span>() {
+  <span class="kw">const</span> {
+    <span class="var">register</span>,
+    <span class="var">handleSubmit</span>,
+    <span class="var">setError</span>,          <span class="cm">// set server-side errors onto fields</span>
+    <span class="var">formState</span>: { <span class="var">errors</span>, <span class="var">isSubmitting</span> }
+  } = <span class="fn">useForm</span>&lt;<span class="var">LoginFormData</span>&gt;({
+    <span class="prop">resolver</span>:      <span class="fn">zodResolver</span>(<span class="var">loginSchema</span>),
+    <span class="prop">defaultValues</span>: { <span class="prop">email</span>: <span class="str">""</span>, <span class="prop">password</span>: <span class="str">""</span>, <span class="prop">remember</span>: <span class="kw">false</span> },
+    <span class="prop">mode</span>:          <span class="str">"onBlur"</span>,
+  })
+
+  <span class="cm">// Pair with React Query mutation for server errors</span>
+  <span class="kw">const</span> <span class="var">loginMutation</span> = <span class="fn">useMutation</span>({
+    <span class="prop">mutationFn</span>: (<span class="var">data</span>: <span class="var">LoginFormData</span>) =&gt; <span class="fn">authAPI</span>.<span class="fn">login</span>(<span class="var">data</span>),
+    <span class="prop">onError</span>: (<span class="var">error</span>) =&gt; {
+      <span class="cm">// Map server errors back to form fields</span>
+      <span class="kw">if</span> (<span class="var">error</span>.<span class="prop">code</span> === <span class="str">"INVALID_CREDENTIALS"</span>) {
+        <span class="fn">setError</span>(<span class="str">"email"</span>, { <span class="prop">message</span>: <span class="str">"Invalid email or password"</span> })
+        <span class="fn">setError</span>(<span class="str">"password"</span>, { <span class="prop">message</span>: <span class="str">"Invalid email or password"</span> })
+      }
+      <span class="kw">if</span> (<span class="var">error</span>.<span class="prop">code</span> === <span class="str">"ACCOUNT_LOCKED"</span>) {
+        <span class="fn">setError</span>(<span class="str">"root"</span>, { <span class="prop">message</span>: <span class="str">"Account locked. Please contact support."</span> })
+      }
+    },
+  })
+
+  <span class="kw">const</span> <span class="fn">onSubmit</span> = (<span class="var">data</span>: <span class="var">LoginFormData</span>) =&gt; <span class="var">loginMutation</span>.<span class="fn">mutateAsync</span>(<span class="var">data</span>)
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="fn">handleSubmit</span>(<span class="fn">onSubmit</span>)}<span class="tag">&gt;</span>
+      {<span class="var">errors</span>.<span class="prop">root</span> &amp;&amp; <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"form-error"</span><span class="tag">&gt;</span>{<span class="var">errors</span>.<span class="prop">root</span>.<span class="prop">message</span>}<span class="tag">&lt;/div&gt;</span>}
+
+      <span class="tag">&lt;div&gt;</span>
+        <span class="tag">&lt;label&gt;</span>Email<span class="tag">&lt;/label&gt;</span>
+        <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="str">"email"</span> {...<span class="fn">register</span>(<span class="str">"email"</span>)} <span class="attr">aria-invalid</span>={!!<span class="var">errors</span>.<span class="prop">email</span>} <span class="tag">/&gt;</span>
+        {<span class="var">errors</span>.<span class="prop">email</span> &amp;&amp; <span class="tag">&lt;p</span> <span class="attr">role</span>=<span class="str">"alert"</span><span class="tag">&gt;</span>{<span class="var">errors</span>.<span class="prop">email</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>}
+      <span class="tag">&lt;/div&gt;</span>
+
+      <span class="tag">&lt;div&gt;</span>
+        <span class="tag">&lt;label&gt;</span>Password<span class="tag">&lt;/label&gt;</span>
+        <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="str">"password"</span> {...<span class="fn">register</span>(<span class="str">"password"</span>)} <span class="tag">/&gt;</span>
+        {<span class="var">errors</span>.<span class="prop">password</span> &amp;&amp; <span class="tag">&lt;p</span> <span class="attr">role</span>=<span class="str">"alert"</span><span class="tag">&gt;</span>{<span class="var">errors</span>.<span class="prop">password</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>}
+      <span class="tag">&lt;/div&gt;</span>
+
+      <span class="tag">&lt;label&gt;</span>
+        <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="str">"checkbox"</span> {...<span class="fn">register</span>(<span class="str">"remember"</span>)} <span class="tag">/&gt;</span> Remember me
+      <span class="tag">&lt;/label&gt;</span>
+
+      <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"submit"</span> <span class="attr">disabled</span>={<span class="var">isSubmitting</span> || <span class="var">loginMutation</span>.<span class="prop">isPending</span>}<span class="tag">&gt;</span>
+        {<span class="var">loginMutation</span>.<span class="prop">isPending</span> ? <span class="str">"Signing in..."</span> : <span class="str">"Sign in"</span>}
+      <span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 05. ADVANCED RHF -->
+<div class="section" id="advanced">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Controller, useFieldArray &amp; multi-step forms</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">advanced</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Controller for custom inputs, useFieldArray for dynamic lists, multi-step form pattern</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useForm</span>, <span class="var">Controller</span>, <span class="var">useFieldArray</span> } <span class="kw">from</span> <span class="str">"react-hook-form"</span>
+
+<span class="cm">// ── Controller — for inputs not compatible with register ──</span>
+<span class="cm">// Use when: a component doesn't expose an input element</span>
+<span class="cm">// (custom date picker, rating stars, rich text editor, etc.)</span>
+<span class="kw">function</span> <span class="fn">FormWithCustomInputs</span>() {
+  <span class="kw">const</span> { <span class="var">control</span>, <span class="var">handleSubmit</span> } = <span class="fn">useForm</span>({ <span class="prop">defaultValues</span>: { <span class="prop">rating</span>: <span class="num">0</span>, <span class="prop">date</span>: <span class="kw">null</span> } })
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="fn">handleSubmit</span>(<span class="var">console</span>.<span class="prop">log</span>)}<span class="tag">&gt;</span>
+
+      <span class="cm">{/* Controller wraps custom/third-party components */}</span>
+      <span class="tag">&lt;Controller</span>
+        <span class="attr">name</span>=<span class="str">"rating"</span>
+        <span class="attr">control</span>={<span class="var">control</span>}
+        <span class="attr">rules</span>={{ <span class="prop">min</span>: { <span class="prop">value</span>: <span class="num">1</span>, <span class="prop">message</span>: <span class="str">"Please rate"</span> } }}
+        <span class="attr">render</span>={({ <span class="prop">field</span>, <span class="prop">fieldState</span> }) =&gt; (
+          <span class="tag">&lt;div&gt;</span>
+            <span class="tag">&lt;StarRating</span>
+              <span class="attr">value</span>={<span class="var">field</span>.<span class="prop">value</span>}
+              <span class="attr">onChange</span>={<span class="var">field</span>.<span class="prop">onChange</span>}   <span class="cm">{/* field.onChange connects to RHF */}</span>
+              <span class="attr">onBlur</span>={<span class="var">field</span>.<span class="prop">onBlur</span>}
+            <span class="tag">/&gt;</span>
+            {<span class="var">fieldState</span>.<span class="prop">error</span> &amp;&amp; <span class="tag">&lt;p&gt;</span>{<span class="var">fieldState</span>.<span class="prop">error</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>}
+          <span class="tag">&lt;/div&gt;</span>
+        )}
+      <span class="tag">/&gt;</span>
+
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}
+
+<span class="cm">// ── useFieldArray — dynamic list of items ─────────────────</span>
+<span class="kw">const</span> <span class="var">teamSchema</span> = <span class="var">z</span>.<span class="fn">object</span>({
+  <span class="prop">teamName</span>: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">1</span>),
+  <span class="prop">members</span>:  <span class="var">z</span>.<span class="fn">array</span>(<span class="var">z</span>.<span class="fn">object</span>({
+    <span class="prop">name</span>:  <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">1</span>, <span class="str">"Name required"</span>),
+    <span class="prop">email</span>: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">email</span>(<span class="str">"Valid email required"</span>),
+    <span class="prop">role</span>:  <span class="var">z</span>.<span class="fn">enum</span>([<span class="str">"dev"</span>, <span class="str">"design"</span>, <span class="str">"pm"</span>]),
+  })).<span class="fn">min</span>(<span class="num">1</span>, <span class="str">"Add at least one member"</span>),
+})
+
+<span class="kw">function</span> <span class="fn">TeamForm</span>() {
+  <span class="kw">const</span> { <span class="var">register</span>, <span class="var">control</span>, <span class="var">handleSubmit</span>, <span class="var">formState</span>: { <span class="var">errors</span> } } =
+    <span class="fn">useForm</span>({ <span class="prop">resolver</span>: <span class="fn">zodResolver</span>(<span class="var">teamSchema</span>),
+              <span class="prop">defaultValues</span>: { <span class="prop">teamName</span>: <span class="str">""</span>, <span class="prop">members</span>: [{ <span class="prop">name</span>:<span class="str">""</span>, <span class="prop">email</span>:<span class="str">""</span>, <span class="prop">role</span>:<span class="str">"dev"</span> }] } })
+
+  <span class="kw">const</span> { <span class="var">fields</span>, <span class="var">append</span>, <span class="var">remove</span>, <span class="var">move</span> } = <span class="fn">useFieldArray</span>({
+    <span class="prop">control</span>, <span class="prop">name</span>: <span class="str">"members"</span>
+  })
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="fn">handleSubmit</span>(<span class="var">console</span>.<span class="prop">log</span>)}<span class="tag">&gt;</span>
+      <span class="tag">&lt;input</span> {...<span class="fn">register</span>(<span class="str">"teamName"</span>)} <span class="attr">placeholder</span>=<span class="str">"Team name"</span> <span class="tag">/&gt;</span>
+
+      {<span class="var">fields</span>.<span class="fn">map</span>((<span class="var">field</span>, <span class="var">index</span>) =&gt; (
+        <span class="tag">&lt;div</span> <span class="attr">key</span>={<span class="var">field</span>.<span class="prop">id</span>}<span class="tag">&gt;</span>   <span class="cm">{/* MUST use field.id not index as key */}</span>
+          <span class="tag">&lt;input</span>
+            {...<span class="fn">register</span>(`members.${<span class="var">index</span>}.name`)}  <span class="cm">{/* dot notation for nested */}</span>
+            <span class="attr">placeholder</span>=<span class="str">"Name"</span>
+          <span class="tag">/&gt;</span>
+          {<span class="var">errors</span>.<span class="prop">members</span>?.[<span class="var">index</span>]?.<span class="prop">name</span> &amp;&amp;
+            <span class="tag">&lt;p&gt;</span>{<span class="var">errors</span>.<span class="prop">members</span>[<span class="var">index</span>].<span class="prop">name</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>}
+          <span class="tag">&lt;input</span> {...<span class="fn">register</span>(`members.${<span class="var">index</span>}.email`)} <span class="attr">placeholder</span>=<span class="str">"Email"</span> <span class="tag">/&gt;</span>
+          <span class="tag">&lt;select</span> {...<span class="fn">register</span>(`members.${<span class="var">index</span>}.role`)}<span class="tag">&gt;</span>
+            <span class="tag">&lt;option</span> <span class="attr">value</span>=<span class="str">"dev"</span><span class="tag">&gt;</span>Dev<span class="tag">&lt;/option&gt;</span>
+            <span class="tag">&lt;option</span> <span class="attr">value</span>=<span class="str">"design"</span><span class="tag">&gt;</span>Design<span class="tag">&lt;/option&gt;</span>
+          <span class="tag">&lt;/select&gt;</span>
+          <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"button"</span> <span class="attr">onClick</span>={() =&gt; <span class="fn">remove</span>(<span class="var">index</span>)}<span class="tag">&gt;</span>Remove<span class="tag">&lt;/button&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+      ))}
+
+      <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"button"</span>
+        <span class="attr">onClick</span>={() =&gt; <span class="fn">append</span>({ <span class="prop">name</span>: <span class="str">""</span>, <span class="prop">email</span>: <span class="str">""</span>, <span class="prop">role</span>: <span class="str">"dev"</span> })}<span class="tag">&gt;</span>
+        + Add Member
+      <span class="tag">&lt;/button&gt;</span>
+      {<span class="var">errors</span>.<span class="prop">members</span>?.root &amp;&amp; <span class="tag">&lt;p&gt;</span>{<span class="var">errors</span>.<span class="prop">members</span>.<span class="prop">root</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>}
+
+      <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"submit"</span><span class="tag">&gt;</span>Create Team<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- 06. PATTERNS -->
+<div class="section" id="patterns">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Production patterns — multi-step, watch, setValue, server errors</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">patterns</span>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">RHF API quick-reference — everything you'll reach for in real forms</div>
+    <table class="comp-table">
+      <tr><th>API</th><th>What it does</th><th>When to use</th></tr>
+      <tr><td><code>register(name)</code></td><td>Registers a native HTML input</td><td>text, email, password, number, select, checkbox, radio, textarea</td></tr>
+      <tr><td><code>Controller</code></td><td>Wraps custom/third-party component</td><td>Date pickers, Select libraries, custom sliders, rich text</td></tr>
+      <tr><td><code>watch(name)</code></td><td>Returns live field value(s), causes re-render</td><td>Conditional fields, confirm-password comparison, dependent selects</td></tr>
+      <tr><td><code>setValue(name, val)</code></td><td>Sets a value programmatically</td><td>Pre-fill from API data, cascade field updates, "use my location"</td></tr>
+      <tr><td><code>getValues(name)</code></td><td>Reads value without subscribing (no re-render)</td><td>Inside event handlers where you need current value without watch</td></tr>
+      <tr><td><code>trigger(name)</code></td><td>Manually triggers validation</td><td>Validate a field on custom events, "next step" buttons in multi-step forms</td></tr>
+      <tr><td><code>setError(name, err)</code></td><td>Sets an error message on a field</td><td>Server-side validation errors returned from the API</td></tr>
+      <tr><td><code>clearErrors(name)</code></td><td>Clears error state</td><td>After server error is resolved, after user corrects async-validated field</td></tr>
+      <tr><td><code>reset(values)</code></td><td>Resets form to defaults or provided values</td><td>After successful submit, pre-fill edit forms from server data</td></tr>
+      <tr><td><code>useFieldArray</code></td><td>Manages dynamic arrays of fields</td><td>Variable-length lists: team members, line items, tags, addresses</td></tr>
+    </table>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Multi-step form — single useForm instance, trigger per-step validation</span></div>
+    <div class="cb-body"><pre><span class="kw">const</span> <span class="var">checkoutSchema</span> = <span class="var">z</span>.<span class="fn">object</span>({
+  <span class="cm">// Step 1 — Contact</span>
+  <span class="prop">firstName</span>: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">1</span>),
+  <span class="prop">lastName</span>:  <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">1</span>),
+  <span class="prop">email</span>:     <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">email</span>(),
+  <span class="cm">// Step 2 — Shipping</span>
+  <span class="prop">address</span>:   <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">5</span>),
+  <span class="prop">city</span>:      <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">1</span>),
+  <span class="prop">zip</span>:       <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">regex</span>(<span class="op">/^\d{5}$/</span>),
+  <span class="cm">// Step 3 — Payment</span>
+  <span class="prop">cardNumber</span>: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">regex</span>(<span class="op">/^\d{16}$/</span>),
+  <span class="prop">expiry</span>:     <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">regex</span>(<span class="op">/^\d{2}\/\d{2}$/</span>),
+})
+
+<span class="kw">const</span> <span class="var">STEP_FIELDS</span> = [
+  [<span class="str">"firstName"</span>, <span class="str">"lastName"</span>, <span class="str">"email"</span>],    <span class="cm">// step 1 fields</span>
+  [<span class="str">"address"</span>, <span class="str">"city"</span>, <span class="str">"zip"</span>],            <span class="cm">// step 2 fields</span>
+  [<span class="str">"cardNumber"</span>, <span class="str">"expiry"</span>],              <span class="cm">// step 3 fields</span>
+]
+
+<span class="kw">function</span> <span class="fn">CheckoutForm</span>() {
+  <span class="kw">const</span> [<span class="var">step</span>, <span class="fn">setStep</span>] = <span class="fn">useState</span>(<span class="num">0</span>)
+
+  <span class="kw">const</span> { <span class="var">register</span>, <span class="var">handleSubmit</span>, <span class="var">trigger</span>, <span class="var">formState</span>: { <span class="var">errors</span> } } =
+    <span class="fn">useForm</span>({ <span class="prop">resolver</span>: <span class="fn">zodResolver</span>(<span class="var">checkoutSchema</span>), <span class="prop">mode</span>: <span class="str">"onBlur"</span> })
+
+  <span class="kw">const</span> <span class="fn">nextStep</span> = <span class="kw">async</span> () =&gt; {
+    <span class="cm">// Validate ONLY this step's fields before advancing</span>
+    <span class="kw">const</span> <span class="var">valid</span> = <span class="kw">await</span> <span class="fn">trigger</span>(<span class="var">STEP_FIELDS</span>[<span class="var">step</span>])
+    <span class="kw">if</span> (<span class="var">valid</span>) <span class="fn">setStep</span>(<span class="var">s</span> =&gt; <span class="var">s</span> + <span class="num">1</span>)
+  }
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="fn">handleSubmit</span>(<span class="var">placeOrder</span>)}<span class="tag">&gt;</span>
+      <span class="cm">{/* Step indicator */}</span>
+      <span class="tag">&lt;StepIndicator</span> <span class="attr">current</span>={<span class="var">step</span>} <span class="attr">total</span>={<span class="num">3</span>} <span class="tag">/&gt;</span>
+
+      {<span class="var">step</span> === <span class="num">0</span> &amp;&amp; (
+        <span class="tag">&lt;div&gt;</span>
+          <span class="tag">&lt;input</span> {...<span class="fn">register</span>(<span class="str">"firstName"</span>)} <span class="attr">placeholder</span>=<span class="str">"First name"</span> <span class="tag">/&gt;</span>
+          <span class="tag">&lt;input</span> {...<span class="fn">register</span>(<span class="str">"email"</span>)} <span class="attr">placeholder</span>=<span class="str">"Email"</span> <span class="tag">/&gt;</span>
+          <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"button"</span> <span class="attr">onClick</span>={<span class="fn">nextStep</span>}<span class="tag">&gt;</span>Next: Shipping<span class="tag">&lt;/button&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+      )}
+      {<span class="var">step</span> === <span class="num">1</span> &amp;&amp; (
+        <span class="tag">&lt;div&gt;</span>
+          <span class="tag">&lt;input</span> {...<span class="fn">register</span>(<span class="str">"address"</span>)} <span class="attr">placeholder</span>=<span class="str">"Address"</span> <span class="tag">/&gt;</span>
+          <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"button"</span> <span class="attr">onClick</span>={() =&gt; <span class="fn">setStep</span>(<span class="num">0</span>)}<span class="tag">&gt;</span>Back<span class="tag">&lt;/button&gt;</span>
+          <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"button"</span> <span class="attr">onClick</span>={<span class="fn">nextStep</span>}<span class="tag">&gt;</span>Next: Payment<span class="tag">&lt;/button&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+      )}
+      {<span class="var">step</span> === <span class="num">2</span> &amp;&amp; (
+        <span class="tag">&lt;div&gt;</span>
+          <span class="tag">&lt;input</span> {...<span class="fn">register</span>(<span class="str">"cardNumber"</span>)} <span class="attr">placeholder</span>=<span class="str">"Card number"</span> <span class="tag">/&gt;</span>
+          <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="str">"submit"</span><span class="tag">&gt;</span>Place Order<span class="tag">&lt;/button&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+      )}
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — RHF &amp; Zod logic in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Build a Zod validator — schema, parse, safeParse</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a simplified <code>createSchema(rules)</code> that validates objects against a set of rules. Support: <code>required</code>, <code>minLength</code>, <code>maxLength</code>, <code>email</code>, <code>min</code> (number), <code>max</code> (number). Return errors in the same shape as Zod's <code>safeParse</code> result.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — schema validator</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">function createSchema(fieldRules) {
+  // fieldRules: { fieldName: { required, minLength, maxLength, email, min, max, custom } }
+
+  function validateField(name, value, rules) {
+    // YOUR CODE: check each rule, return first error message or null
+    // required:  value is empty/null/undefined
+    // minLength: value.length < rules.minLength.value
+    // maxLength: value.length > rules.maxLength.value
+    // email:     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+    // min:       Number(value) < rules.min.value
+    // max:       Number(value) > rules.max.value
+    // custom:    rules.validate(value) returns string (error) or true (ok)
+  }
+
+  function safeParse(data) {
+    const fieldErrors = {}
+    let hasErrors = false
+
+    for (const [name, rules] of Object.entries(fieldRules)) {
+      const error = validateField(name, data[name], rules)
+      if (error) { fieldErrors[name] = [error]; hasErrors = true }
+    }
+
+    if (hasErrors) return { success: false, error: { fieldErrors } }
+    return { success: true, data }
+  }
+
+  function parse(data) {
+    const result = safeParse(data)
+    if (!result.success) throw new Error(JSON.stringify(result.error.fieldErrors))
+    return result.data
+  }
+
+  return { safeParse, parse }
+}
+
+// Test schema definition
+const signupSchema = createSchema({
+  name:     { required: "Name is required", minLength: { value: 2, message: "Min 2 chars" }, maxLength: { value: 50, message: "Max 50 chars" } },
+  email:    { required: "Email required", email: "Invalid email" },
+  age:      { required: "Age required", min: { value: 18, message: "Must be 18+" }, max: { value: 120, message: "Invalid age" } },
+  password: { required: "Password required", minLength: { value: 8, message: "Min 8 chars" } },
+})
+
+// Test valid data
+const valid = signupSchema.safeParse({ name: "Alice Smith", email: "alice@test.com", age: 25, password: "secret123" })
+console.log("Valid:", valid.success)  // true
+
+// Test invalid data
+const invalid = signupSchema.safeParse({ name: "A", email: "not-email", age: 16, password: "short" })
+console.log("Invalid:", invalid.success)  // false
+console.log("Name error:", invalid.error.fieldErrors.name?.[0])     // "Min 2 chars"
+console.log("Email error:", invalid.error.fieldErrors.email?.[0])   // "Invalid email"
+console.log("Age error:", invalid.error.fieldErrors.age?.[0])       // "Must be 18+"
+console.log("Pass error:", invalid.error.fieldErrors.password?.[0]) // "Min 8 chars"
+
+// Test required
+const empty = signupSchema.safeParse({})
+console.log("Empty name:", empty.error.fieldErrors.name?.[0])       // "Name is required"
+
+// Test parse throws
+try { signupSchema.parse({ name: "A" }) }
+catch(e) { console.log("Parse threw:", e.message.includes("email")) }  // true</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">validateField</span>(<span class="var">name</span>, <span class="var">value</span>, <span class="var">rules</span>) {
+  <span class="kw">const</span> <span class="var">empty</span> = <span class="var">value</span> === <span class="kw">null</span> || <span class="var">value</span> === <span class="kw">undefined</span> || <span class="var">value</span> === <span class="str">""</span>
+  <span class="kw">if</span> (<span class="var">rules</span>.<span class="prop">required</span> && <span class="var">empty</span>)    <span class="kw">return</span> <span class="var">rules</span>.<span class="prop">required</span>
+  <span class="kw">if</span> (<span class="var">empty</span>) <span class="kw">return</span> <span class="kw">null</span>   <span class="cm">// optional field — skip other checks</span>
+  <span class="kw">const</span> <span class="var">s</span> = <span class="fn">String</span>(<span class="var">value</span>)
+  <span class="kw">if</span> (<span class="var">rules</span>.<span class="prop">minLength</span> && <span class="var">s</span>.<span class="prop">length</span> < <span class="var">rules</span>.<span class="prop">minLength</span>.<span class="prop">value</span>) <span class="kw">return</span> <span class="var">rules</span>.<span class="prop">minLength</span>.<span class="prop">message</span>
+  <span class="kw">if</span> (<span class="var">rules</span>.<span class="prop">maxLength</span> && <span class="var">s</span>.<span class="prop">length</span> > <span class="var">rules</span>.<span class="prop">maxLength</span>.<span class="prop">value</span>) <span class="kw">return</span> <span class="var">rules</span>.<span class="prop">maxLength</span>.<span class="prop">message</span>
+  <span class="kw">if</span> (<span class="var">rules</span>.<span class="prop">email</span> && !<span class="op">/^[^\s@]+@[^\s@]+\.[^\s@]+$/</span>.<span class="fn">test</span>(<span class="var">s</span>))    <span class="kw">return</span> <span class="var">rules</span>.<span class="prop">email</span>
+  <span class="kw">if</span> (<span class="var">rules</span>.<span class="prop">min</span>   && <span class="fn">Number</span>(<span class="var">value</span>) < <span class="var">rules</span>.<span class="prop">min</span>.<span class="prop">value</span>)             <span class="kw">return</span> <span class="var">rules</span>.<span class="prop">min</span>.<span class="prop">message</span>
+  <span class="kw">if</span> (<span class="var">rules</span>.<span class="prop">max</span>   && <span class="fn">Number</span>(<span class="var">value</span>) > <span class="var">rules</span>.<span class="prop">max</span>.<span class="prop">value</span>)             <span class="kw">return</span> <span class="var">rules</span>.<span class="prop">max</span>.<span class="prop">message</span>
+  <span class="kw">if</span> (<span class="var">rules</span>.<span class="prop">validate</span>) { <span class="kw">const</span> <span class="var">r</span> = <span class="var">rules</span>.<span class="fn">validate</span>(<span class="var">value</span>); <span class="kw">if</span> (<span class="kw">typeof</span> <span class="var">r</span> === <span class="str">"string"</span>) <span class="kw">return</span> <span class="var">r</span> }
+  <span class="kw">return</span> <span class="kw">null</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Simulate useForm — register, formState, handleSubmit</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement the core of <code>useForm(options)</code> — <code>register(name, rules)</code> that stores rules and returns a value/onChange pair, <code>handleSubmit(onValid)</code> that runs validation before calling the handler, and <code>formState</code> with <code>errors</code> and <code>isSubmitting</code>.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — simulate useForm</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">function createUseForm({ defaultValues = {}, validator = null } = {}) {
+  const values    = { ...defaultValues }
+  const rules     = {}
+  const errors    = {}
+  let   isSubmitting = false
+  let   subscribers  = []
+
+  const notify = () => subscribers.forEach(fn => fn(getState()))
+  const getState = () => ({ errors: { ...errors }, isSubmitting, values: { ...values } })
+
+  function register(name, fieldRules = {}) {
+    rules[name] = fieldRules
+    if (!(name in values)) values[name] = ""
+
+    return {
+      name,
+      value:    values[name],
+      onChange: (e) => {
+        values[name] = e.target ? e.target.value : e
+        delete errors[name]   // clear error on change
+        notify()
+      },
+      onBlur: () => {
+        // YOUR CODE: validate this single field on blur (if mode is onBlur)
+        // run the field's rules, set errors[name] if invalid, notify
+      }
+    }
+  }
+
+  function validateAll() {
+    // YOUR CODE: validate all registered fields
+    // For each field in rules, run validation
+    // Set errors for failing fields
+    // Return true if no errors
+    Object.keys(rules).forEach(name => {
+      const rule = rules[name]
+      const val  = values[name]
+      if (rule.required && !val) errors[name] = { message: typeof rule.required === "string" ? rule.required : `${name} is required` }
+      else if (rule.minLength && val && val.length < rule.minLength.value) errors[name] = { message: rule.minLength.message }
+      else if (rule.validate) {
+        const res = rule.validate(val)
+        if (typeof res === "string") errors[name] = { message: res }
+      } else delete errors[name]
+    })
+    return Object.keys(errors).length === 0
+  }
+
+  function handleSubmit(onValid) {
+    return async (e) => {
+      e?.preventDefault?.()
+      const valid = validateAll()
+      notify()
+      if (!valid) return
+      isSubmitting = true; notify()
+      try { await onValid({ ...values }) }
+      finally { isSubmitting = false; notify() }
+    }
+  }
+
+  function subscribe(fn) { subscribers.push(fn) }
+
+  return { register, handleSubmit, subscribe, getState }
+}
+
+// Test
+async function runTests() {
+  const form = createUseForm({
+    defaultValues: { email: "", password: "", age: "" }
+  })
+
+  const log = []
+  form.subscribe(s => log.push({ errors: Object.keys(s.errors), submitting: s.isSubmitting }))
+
+  const emailField    = form.register("email",    { required: "Email required" })
+  const passwordField = form.register("password", { required: true, minLength: { value: 8, message: "Min 8" } })
+  const ageField      = form.register("age",      { validate: v => Number(v) >= 18 || "Must be 18+" })
+
+  // Test: submit with empty form — should show errors
+  await form.handleSubmit(data => console.log("VALID:", data))()
+  const state1 = form.getState()
+  console.log("Email error:", state1.errors.email?.message)     // "Email required"
+  console.log("Pass error:",  state1.errors.password?.message)  // required message
+
+  // Test: fill in valid values
+  emailField.onChange({ target: { value: "alice@test.com" } })
+  passwordField.onChange({ target: { value: "securepassword" } })
+  ageField.onChange({ target: { value: "25" } })
+
+  let submittedData = null
+  await form.handleSubmit(data => { submittedData = data })()
+  console.log("Submitted email:", submittedData?.email)         // alice@test.com
+  console.log("No errors:", Object.keys(form.getState().errors).length === 0)  // true
+
+  // Test: age validation
+  ageField.onChange({ target: { value: "16" } })
+  await form.handleSubmit(() => {})()
+  console.log("Age error:", form.getState().errors.age?.message)  // "Must be 18+"
+
+  console.log("Total state updates:", log.length)
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Zod refine — cross-field validation</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createObjectSchema(fields)</code> that supports cross-field validation via a <code>refine(fn, errorConfig)</code> method on the resulting schema. The refine function receives the whole object and returns a boolean — if false, attach the error to the specified path. Test with confirm-password and date range validation.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — cross-field validation (refine)</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">function createObjectSchema(fieldValidators) {
+  let refinements = []  // [{ fn, message, path }]
+
+  function validateField(key, value, validator) {
+    if (!validator) return null
+    if (validator.required && (value === "" || value == null)) return validator.required
+    if (validator.minLength && String(value||"").length < validator.minLength.value) return validator.minLength.message
+    if (validator.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value||"")) return validator.email
+    return null
+  }
+
+  const schema = {
+    refine(fn, { message, path }) {
+      refinements.push({ fn, message, path })
+      return schema   // chainable
+    },
+
+    safeParse(data) {
+      const fieldErrors = {}
+      let hasErrors = false
+
+      // Field-level validation
+      for (const [key, validator] of Object.entries(fieldValidators)) {
+        const err = validateField(key, data[key], validator)
+        if (err) { fieldErrors[key] = [err]; hasErrors = true }
+      }
+
+      // YOUR CODE: run each refinement only if no field errors yet
+      // If refinement fn(data) returns false, add message to fieldErrors[path[0]]
+      // Multiple refinements can run on the same data
+
+      if (hasErrors) return { success: false, error: { fieldErrors } }
+      return { success: true, data }
+    }
+  }
+
+  return schema
+}
+
+// Test 1: confirm password
+const passwordSchema = createObjectSchema({
+  password:        { required: "Required", minLength: { value: 8, message: "Min 8" } },
+  confirmPassword: { required: "Required" },
+}).refine(
+  data => data.password === data.confirmPassword,
+  { message: "Passwords don't match", path: ["confirmPassword"] }
+)
+
+const r1 = passwordSchema.safeParse({ password: "secure123", confirmPassword: "secure123" })
+console.log("Matching passwords:", r1.success)  // true
+
+const r2 = passwordSchema.safeParse({ password: "secure123", confirmPassword: "other" })
+console.log("Mismatch error:", r2.error.fieldErrors.confirmPassword?.[0])  // "Passwords don't match"
+
+// Test 2: date range
+const dateSchema = createObjectSchema({
+  startDate: { required: "Start required" },
+  endDate:   { required: "End required" },
+}).refine(
+  data => new Date(data.endDate) > new Date(data.startDate),
+  { message: "End date must be after start date", path: ["endDate"] }
+).refine(
+  data => new Date(data.startDate) >= new Date(),
+  { message: "Start date must be in the future", path: ["startDate"] }
+)
+
+const r3 = dateSchema.safeParse({
+  startDate: "2030-01-01",
+  endDate:   "2030-01-10"
+})
+console.log("Valid date range:", r3.success)  // true
+
+const r4 = dateSchema.safeParse({
+  startDate: "2030-01-10",
+  endDate:   "2030-01-01"  // before start
+})
+console.log("Invalid range error:", r4.error.fieldErrors.endDate?.[0])  // "End date must be after..."
+
+// Test 3: field errors take priority, refinements skipped
+const r5 = passwordSchema.safeParse({ password: "abc", confirmPassword: "" })
+console.log("Field errors present, success:", r5.success)  // false
+console.log("Field error (not refine):", r5.error.fieldErrors.password?.[0])  // "Min 8"
+console.log("No refine error when field error:", !r5.error.fieldErrors.confirmPassword?.includes("don't match"))  // true</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="cm">// Add inside safeParse, after field validation:</span>
+<span class="kw">if</span> (!<span class="var">hasErrors</span>) {
+  <span class="kw">for</span> (<span class="kw">const</span> { <span class="var">fn</span>, <span class="var">message</span>, <span class="var">path</span> } <span class="kw">of</span> <span class="var">refinements</span>) {
+    <span class="kw">if</span> (!<span class="fn">fn</span>(<span class="var">data</span>)) {
+      <span class="kw">const</span> <span class="var">key</span> = <span class="var">path</span>[<span class="num">0</span>]
+      <span class="var">fieldErrors</span>[<span class="var">key</span>] = [<span class="var">message</span>]
+      <span class="var">hasErrors</span> = <span class="kw">true</span>
+    }
+  }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">useFieldArray — dynamic list manager</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>createFieldArray(defaultItem)</code> that manages a list of form items. Support <code>append</code>, <code>remove</code>, <code>move</code>, <code>update</code>, and <code>swap</code> operations. Each item gets a stable <code>id</code> (not based on index). Validate that each item in the array has a non-empty name.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — field array manager</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">let idCounter = 0
+function generateId() { return `field_${++idCounter}` }
+
+function createFieldArray(defaultItem = {}) {
+  let fields = []
+  let subscribers = []
+  const notify = () => subscribers.forEach(fn => fn([...fields]))
+
+  function append(item = {}) {
+    // YOUR CODE: add item with a stable id, notify
+  }
+
+  function remove(index) {
+    // YOUR CODE: remove by index, notify
+  }
+
+  function move(fromIndex, toIndex) {
+    // YOUR CODE: move item from one position to another, notify
+  }
+
+  function update(index, item) {
+    // YOUR CODE: replace item at index, preserving its id, notify
+  }
+
+  function swap(indexA, indexB) {
+    // YOUR CODE: swap two items, notify
+  }
+
+  function getFields() { return [...fields] }
+  function subscribe(fn) { subscribers.push(fn) }
+
+  return { append, remove, move, update, swap, getFields, subscribe }
+}
+
+// Test
+const fa = createFieldArray({ name: "", email: "" })
+const log = []
+fa.subscribe(f => log.push(f.map(i => i.name || "(empty)")))
+
+// Test append
+fa.append({ name: "Alice" })
+fa.append({ name: "Bob" })
+fa.append({ name: "Charlie" })
+console.log("After 3 appends:", fa.getFields().map(f => f.name))  // ["Alice","Bob","Charlie"]
+
+// Test stable IDs — not based on index
+const ids = fa.getFields().map(f => f.id)
+console.log("All unique IDs:", new Set(ids).size === 3)  // true
+console.log("IDs start with field_:", ids.every(id => id.startsWith("field_")))
+
+// Test remove
+fa.remove(1)  // remove Bob
+console.log("After remove Bob:", fa.getFields().map(f => f.name))  // ["Alice","Charlie"]
+console.log("Alice ID unchanged:", fa.getFields()[0].id === ids[0])  // true
+
+// Test move
+fa.append({ name: "Dave" })
+fa.move(2, 0)  // move Dave to front
+console.log("After move Dave to front:", fa.getFields().map(f => f.name))  // ["Dave","Alice","Charlie"]
+
+// Test swap
+fa.swap(0, 2)  // swap Dave and Charlie
+console.log("After swap 0,2:", fa.getFields().map(f => f.name))  // ["Charlie","Alice","Dave"]
+
+// Test update (preserve id)
+const charlieId = fa.getFields()[0].id
+fa.update(0, { name: "Charlotte" })
+console.log("After update:", fa.getFields()[0].name)    // Charlotte
+console.log("ID preserved:", fa.getFields()[0].id === charlieId)  // true
+
+console.log("Total change notifications:", log.length)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">append</span>(<span class="var">item</span> = {}) {
+  <span class="var">fields</span> = [...<span class="var">fields</span>, { ...<span class="var">defaultItem</span>, ...<span class="var">item</span>, <span class="prop">id</span>: <span class="fn">generateId</span>() }]
+  <span class="fn">notify</span>()
+}
+<span class="kw">function</span> <span class="fn">remove</span>(<span class="var">index</span>) {
+  <span class="var">fields</span> = <span class="var">fields</span>.<span class="fn">filter</span>((_, <span class="var">i</span>) => <span class="var">i</span> !== <span class="var">index</span>); <span class="fn">notify</span>()
+}
+<span class="kw">function</span> <span class="fn">move</span>(<span class="var">from</span>, <span class="var">to</span>) {
+  <span class="kw">const</span> <span class="var">next</span> = [...<span class="var">fields</span>]
+  <span class="kw">const</span> [<span class="var">item</span>] = <span class="var">next</span>.<span class="fn">splice</span>(<span class="var">from</span>, <span class="num">1</span>)
+  <span class="var">next</span>.<span class="fn">splice</span>(<span class="var">to</span>, <span class="num">0</span>, <span class="var">item</span>)
+  <span class="var">fields</span> = <span class="var">next</span>; <span class="fn">notify</span>()
+}
+<span class="kw">function</span> <span class="fn">update</span>(<span class="var">index</span>, <span class="var">item</span>) {
+  <span class="var">fields</span> = <span class="var">fields</span>.<span class="fn">map</span>((<span class="var">f</span>, <span class="var">i</span>) => <span class="var">i</span> === <span class="var">index</span> ? { ...<span class="var">item</span>, <span class="prop">id</span>: <span class="var">f</span>.<span class="prop">id</span> } : <span class="var">f</span>); <span class="fn">notify</span>()
+}
+<span class="kw">function</span> <span class="fn">swap</span>(<span class="var">a</span>, <span class="var">b</span>) {
+  <span class="kw">const</span> <span class="var">next</span> = [...<span class="var">fields</span>];
+  [<span class="var">next</span>[<span class="var">a</span>], <span class="var">next</span>[<span class="var">b</span>]] = [<span class="var">next</span>[<span class="var">b</span>], <span class="var">next</span>[<span class="var">a</span>]]
+  <span class="var">fields</span> = <span class="var">next</span>; <span class="fn">notify</span>()
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Multi-step form validation — trigger per step</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createMultiStepForm(steps, schema)</code> where each step has its own field list. Implement <code>nextStep()</code> that validates only the current step's fields before advancing. Show that step 1 errors don't appear when you're on step 2, and the final submit validates everything.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — multi-step form</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">function createMultiStepForm(steps, allValidators) {
+  // steps: [["field1","field2"], ["field3","field4"], ...]
+  let currentStep = 0
+  let values      = {}
+  let errors      = {}
+  let subscribers = []
+  const notify    = () => subscribers.forEach(fn => fn(getState()))
+
+  function validateFields(fieldNames) {
+    let stepValid = true
+    fieldNames.forEach(name => {
+      const validator = allValidators[name]
+      if (!validator) return
+      const val = values[name]
+      const empty = val === "" || val == null
+      if (validator.required && empty) { errors[name] = validator.required; stepValid = false }
+      else if (!empty && validator.minLength && String(val).length < validator.minLength.value) {
+        errors[name] = validator.minLength.message; stepValid = false
+      } else if (!empty && validator.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+        errors[name] = validator.email; stepValid = false
+      } else delete errors[name]
+    })
+    return stepValid
+  }
+
+  function setField(name, value) {
+    values[name] = value
+    delete errors[name]
+    notify()
+  }
+
+  async function nextStep() {
+    // YOUR CODE: validate only current step's fields
+    // If valid: increment step, return true
+    // If invalid: keep step, return false
+    // Either way notify
+  }
+
+  function prevStep() {
+    if (currentStep > 0) { currentStep--; notify() }
+  }
+
+  async function submit(onValid) {
+    // YOUR CODE: validate ALL fields across all steps
+    // If valid: call onValid(values), return true
+    // If invalid: return false
+  }
+
+  function getState() {
+    return { step: currentStep, values: {...values}, errors: {...errors},
+             isFirst: currentStep === 0, isLast: currentStep === steps.length - 1,
+             stepFields: steps[currentStep] }
+  }
+
+  function subscribe(fn) { subscribers.push(fn) }
+  return { setField, nextStep, prevStep, submit, subscribe, getState }
+}
+
+// Test
+async function runTests() {
+  const form = createMultiStepForm(
+    [["firstName","lastName","email"], ["address","city"], ["cardNumber"]],
+    {
+      firstName:  { required: "First name required" },
+      lastName:   { required: "Last name required" },
+      email:      { required: "Email required", email: "Invalid email" },
+      address:    { required: "Address required", minLength: { value:5, message:"Too short" } },
+      city:       { required: "City required" },
+      cardNumber: { required: "Card required" },
+    }
+  )
+
+  const log = []
+  form.subscribe(s => log.push(`step:${s.step} errors:${Object.keys(s.errors).join(",")}`))
+
+  console.log("Starting on step:", form.getState().step)   // 0
+
+  // Try to advance with empty fields
+  const advanced1 = await form.nextStep()
+  console.log("Advanced with empty?", advanced1)          // false
+  console.log("Errors:", Object.keys(form.getState().errors).join(","))  // firstName,lastName,email
+
+  // Fill step 1
+  form.setField("firstName", "Alice")
+  form.setField("lastName",  "Smith")
+  form.setField("email",     "alice@test.com")
+
+  const advanced2 = await form.nextStep()
+  console.log("Advanced after fill?", advanced2)          // true
+  console.log("Now on step:", form.getState().step)       // 1
+  console.log("No errors:", Object.keys(form.getState().errors).length === 0)
+
+  // Step 2 - try to advance empty
+  const advanced3 = await form.nextStep()
+  console.log("Blocked on step 2?", !advanced3)           // true
+  console.log("Step 2 errors:", Object.keys(form.getState().errors).join(","))  // address,city
+
+  form.setField("address", "123 Main Street")
+  form.setField("city",    "Springfield")
+  await form.nextStep()
+  console.log("On last step:", form.getState().isLast)    // true
+
+  // Submit without card number
+  let submitted = null
+  const ok1 = await form.submit(data => { submitted = data })
+  console.log("Submit without card?", ok1)                // false
+
+  form.setField("cardNumber", "4111111111111111")
+  const ok2 = await form.submit(data => { submitted = data })
+  console.log("Submit success?", ok2)                     // true
+  console.log("Submitted email:", submitted?.email)       // alice@test.com
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">async function</span> <span class="fn">nextStep</span>() {
+  <span class="kw">const</span> <span class="var">valid</span> = <span class="fn">validateFields</span>(<span class="var">steps</span>[<span class="var">currentStep</span>])
+  <span class="kw">if</span> (<span class="var">valid</span>) <span class="var">currentStep</span>++
+  <span class="fn">notify</span>()
+  <span class="kw">return</span> <span class="var">valid</span>
+}
+<span class="kw">async function</span> <span class="fn">submit</span>(<span class="var">onValid</span>) {
+  <span class="kw">const</span> <span class="var">allFields</span> = <span class="var">steps</span>.<span class="fn">flat</span>()
+  <span class="kw">const</span> <span class="var">valid</span>     = <span class="fn">validateFields</span>(<span class="var">allFields</span>)
+  <span class="fn">notify</span>()
+  <span class="kw">if</span> (<span class="var">valid</span>) <span class="kw">await</span> <span class="fn">onValid</span>({ ...<span class="var">values</span> })
+  <span class="kw">return</span> <span class="var">valid</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Full form pipeline — schema + RHF + mutation + server errors</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Wire together the complete form submission pipeline: Zod schema validates the data, <code>useForm</code> manages state, a mock API call runs on submit, and server-side errors (like "email already taken") are mapped back onto the correct field using <code>setError</code>. Show the full error propagation flow.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — full form pipeline</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// Mock API with realistic server error codes
+async function mockRegisterAPI(data) {
+  await new Promise(r => setTimeout(r, 30))
+  if (data.email === "taken@test.com") {
+    throw { code: "EMAIL_TAKEN", field: "email", message: "This email is already registered" }
+  }
+  if (data.password.includes("123")) {
+    throw { code: "WEAK_PASSWORD", field: "password", message: "Password too common" }
+  }
+  return { id: 99, name: data.name, email: data.email }
+}
+
+// Simulated schema validation (matching Zod's safeParse shape)
+function validateRegistration(data) {
+  const errors = {}
+  if (!data.name || data.name.length < 2) errors.name = "Name must be at least 2 characters"
+  if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errors.email = "Valid email required"
+  if (!data.password || data.password.length < 8) errors.password = "Password must be at least 8 characters"
+  if (data.password !== data.confirmPassword) errors.confirmPassword = "Passwords don't match"
+  return Object.keys(errors).length === 0 ? { success: true, data } : { success: false, errors }
+}
+
+// The full form submission pipeline
+async function submitRegistrationForm(formValues) {
+  const log = []
+
+  // Step 1: client-side schema validation
+  const validation = validateRegistration(formValues)
+  if (!validation.success) {
+    log.push("CLIENT_VALIDATION_FAILED")
+    return { success: false, errors: validation.errors, log }
+  }
+  log.push("CLIENT_VALIDATION_PASSED")
+
+  // Step 2: submit to server
+  try {
+    const result = await mockRegisterAPI(formValues)
+    log.push("SERVER_SUCCESS")
+    return { success: true, user: result, log }
+  } catch (serverError) {
+    log.push(`SERVER_ERROR: ${serverError.code}`)
+    // Step 3: map server errors to form fields
+    const fieldErrors = {}
+    if (serverError.field) {
+      fieldErrors[serverError.field] = serverError.message
+    } else {
+      fieldErrors.root = serverError.message || "Something went wrong"
+    }
+    return { success: false, errors: fieldErrors, log, serverError }
+  }
+}
+
+// Test the pipeline
+async function runTests() {
+  // Test 1: client validation failure
+  const r1 = await submitRegistrationForm({ name: "A", email: "bad", password: "short", confirmPassword: "short" })
+  console.log("Test 1 - client failure:")
+  console.log("  Success:", r1.success)             // false
+  console.log("  Name error:", r1.errors.name)      // "Name must be at least 2..."
+  console.log("  Log:", r1.log)                      // ["CLIENT_VALIDATION_FAILED"]
+
+  // Test 2: server error - email taken
+  const r2 = await submitRegistrationForm({ name: "Alice", email: "taken@test.com", password: "securepassword1", confirmPassword: "securepassword1" })
+  console.log("\nTest 2 - server email error:")
+  console.log("  Success:", r2.success)              // false
+  console.log("  Email error:", r2.errors.email)    // "This email is already registered"
+  console.log("  Log:", r2.log)                      // ["CLIENT_VALIDATION_PASSED","SERVER_ERROR: EMAIL_TAKEN"]
+
+  // Test 3: server error - weak password
+  const r3 = await submitRegistrationForm({ name: "Alice", email: "alice@test.com", password: "password123abc", confirmPassword: "password123abc" })
+  console.log("\nTest 3 - server password error:")
+  console.log("  Success:", r3.success)              // false
+  console.log("  Pass error:", r3.errors.password)  // "Password too common"
+
+  // Test 4: complete success
+  const r4 = await submitRegistrationForm({ name: "Alice", email: "alice@test.com", password: "securepassword!", confirmPassword: "securepassword!" })
+  console.log("\nTest 4 - success:")
+  console.log("  Success:", r4.success)              // true
+  console.log("  User:", r4.user.name)               // Alice
+  console.log("  Log:", r4.log)                      // ["CLIENT_VALIDATION_PASSED","SERVER_SUCCESS"]
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">Why does React Hook Form outperform controlled form implementations?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">RHF uses <strong>uncontrolled inputs</strong> — instead of storing input values in React state (which triggers a re-render on every keystroke), RHF attaches refs directly to DOM elements and reads values from the DOM only when needed. Typing in a field doesn't cause any React renders at all.<br><br>With controlled inputs and <code>useState</code>, a form with 20 fields re-renders the entire form component on every keystroke, every onChange. For complex forms with nested components, conditional fields, and expensive validation, this cascades into noticeable lag.<br><br>RHF components only re-render when: errors change, the form is submitted, or you explicitly use <code>watch()</code> (which opts a field back into controlled behaviour). This makes it vastly more performant for large or complex forms.</div>
+    <div class="tip-box">Depth signal: "I use the Chrome Performance tab with React DevTools' Profiler to measure render counts. In a 15-field form I benchmarked, switching from useState to RHF reduced renders per character typed from 15 to 0."</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">What does register() actually return and how does it connect to the input?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>register(name)</code> returns an object with four properties: <code>name</code> (the field name), <code>ref</code> (a callback ref that RHF uses to get the DOM element), <code>onChange</code> (runs validation and error updates), and <code>onBlur</code> (runs validation if mode includes blur).<br><br>When you spread it onto an input — <code>{...register("email")}</code> — React assigns all four as props. The <code>ref</code> callback fires when the element mounts, giving RHF a direct reference to the DOM node so it can read the value without React state.<br><br>For native HTML inputs (text, email, checkbox, select, textarea), spreading register is all you need. For custom components that don't expose a DOM input element, you need <code>Controller</code> instead, which uses React's controlled pattern just for that one component while keeping the rest of the form uncontrolled.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">What is Zod and why would you use it over writing validation manually?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Zod is a TypeScript-first schema validation library. You define a schema once and get three things automatically: <strong>runtime validation</strong> (actual data checking), <strong>TypeScript types</strong> inferred from the schema via <code>z.infer&lt;typeof schema&gt;</code>, and <strong>error messages</strong> attached to each rule.<br><br>Versus manual validation: manual validation is imperative code mixed into components — hard to reuse, hard to test in isolation, easy to get out of sync with TypeScript types. Zod schemas are declarative, composable, and testable. The same schema can validate on the client, on the server (in API route handlers), and in unit tests — one source of truth.<br><br>The TypeScript integration is the killer feature: add a field to the Zod schema and your TypeScript type updates automatically. Forget a required field in your submit handler and TypeScript catches it at compile time. You can't achieve this with manual validation.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">What is the difference between watch() and getValues()?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Both read form field values, but they behave differently regarding re-renders.<br><br><code>watch(name)</code> subscribes the component to changes in that field — every time the field value changes, the component re-renders with the new value. This is the "reactive" way to read a value when the UI needs to respond to it — like showing a password strength indicator, or conditionally rendering a field based on another field's value.<br><br><code>getValues(name)</code> reads the current value without subscribing — no re-render occurs. Use this inside event handlers, in <code>useEffect</code> dependencies where you only need the current snapshot, or when computing derived data outside the render cycle. For example, reading the current email value when a button is clicked to check its availability.</div>
+    <div class="warn-box">Common mistake: using <code>watch()</code> everywhere for performance concerns from the docs, then being confused why some fields don't update reactively. Rule: watch when the UI needs to react to a value change; getValues when you just need a snapshot at a specific moment.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">When would you use Controller instead of register?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>register</code> works with native HTML input elements — anything that natively exposes <code>ref</code>, <code>onChange</code>, <code>onBlur</code>, and <code>name</code>. Most HTML elements do: <code>input</code>, <code>select</code>, <code>textarea</code>, radio buttons, checkboxes.<br><br><code>Controller</code> is needed when working with components that: don't expose a native input element (custom date pickers, custom sliders, rich text editors), have a non-standard value change API (trigger <code>onChange</code> with the value directly, not an event), or come from a component library that manages its own state (React Select, Ant Design inputs, MUI).<br><br>Controller uses the controlled pattern (value prop + onChange) specifically for that wrapped component, while the rest of the form remains uncontrolled. The <code>field</code> object in the render prop provides <code>value</code>, <code>onChange</code>, <code>onBlur</code>, and <code>ref</code> — wire these to whatever props the component expects.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">How do you handle server-side validation errors in RHF?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">After the API call fails, map the server's error response onto specific form fields using <code>setError(fieldName, { message: "..." })</code>. This puts the error in <code>formState.errors</code> just like a client-side validation error — the same UI renders for both.<br><br>For errors attached to a specific field (like "email already taken"), use the field name: <code>setError("email", { message: "Email already registered" })</code>. For non-field-specific errors (like "account locked"), use <code>setError("root", { message: "..." })</code> and render <code>errors.root?.message</code> at the top of the form.<br><br>Pair this with <code>useMutation</code>'s <code>onError</code> callback: the mutation fails, the callback runs <code>setError</code>, and the form shows the server error inline without any extra state management. The error clears automatically when the user modifies the field (<code>onChange</code> in RHF deletes the field's error).</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">How does useFieldArray work and why must you use field.id as the key?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useFieldArray</code> manages a dynamic array of objects in the form — team members, line items, tags, addresses. It provides <code>fields</code> (the current array with stable IDs), <code>append</code> (add an item), <code>remove</code> (remove by index), <code>move</code>, <code>swap</code>, and <code>update</code>.<br><br>For input registration in the array: <code>register("members.0.name")</code> — dot notation addresses nested fields. Error access follows the same pattern: <code>errors.members?.[0]?.name?.message</code>.<br><br>The <code>field.id</code> requirement: <code>useFieldArray</code> generates a stable unique ID for each item that persists across reorders. If you use the array index as React's <code>key</code>, reordering causes React to think elements are the same and creates subtle bugs — inputs retain old values, animations break. Using <code>field.id</code> (not <code>field.id</code> from your data, but RHF's generated ID) correctly identifies each element across moves.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">How do you implement a multi-step form with RHF?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Use a <strong>single <code>useForm</code> instance</strong> for the entire form — all fields from all steps share the same form state. Track the current step with regular <code>useState</code>.<br><br>Each step renders only its own fields. When the user clicks "Next", call <code>trigger(currentStepFields)</code> — this validates only the specified fields and returns a boolean. If true, advance the step; if false, the errors appear for only that step's fields and navigation is blocked.<br><br>The final step's submit button uses <code>handleSubmit(onSubmit)</code> normally — Zod/resolver runs the full schema against all accumulated values. Because all fields are registered even when not visible (uncontrolled inputs persist in the DOM until unmounted), the values are available for final validation. If needed, use <code>shouldUnregister: false</code> in <code>useForm</code> to ensure unmounted fields' values are preserved.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">What is Zod's .refine() and when do you need it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>.refine(fn, options)</code> adds a custom validation rule that runs after all field-level validations pass. The function receives the entire object and returns a boolean. If false, the error is attached to the field specified by <code>path</code>.<br><br>You need it for <strong>cross-field validation</strong> — rules that depend on multiple fields' values. The most common cases: confirm-password must match password, end date must be after start date, at least one of several optional fields must be provided, a conditional field is required when another field has a specific value.<br><br>Field-level validators in Zod (<code>z.string().min(8)</code>) can only see their own value. <code>refine</code> on a <code>z.object()</code> sees all values simultaneously. The <code>path</code> option controls which field shows the error — without it, the error appears on the root object, which RHF can't display on a specific input.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">What does handleSubmit do, and what happens if the submitted function throws?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>handleSubmit(onValid, onInvalid?)</code> returns an event handler. When the form submits: it calls <code>event.preventDefault()</code>, runs the resolver (Zod or built-in rules) against all field values, and either calls <code>onValid(data)</code> with the validated data or calls <code>onInvalid(errors)</code> if validation fails.<br><br>During the <code>onValid</code> call, <code>formState.isSubmitting</code> is <code>true</code> — use this to disable the submit button and show a loading state. After <code>onValid</code> completes (or throws), <code>isSubmitting</code> returns to false.<br><br>If the async <code>onValid</code> function throws an error, RHF catches it and sets <code>isSubmitting</code> back to false — the form doesn't get stuck in a loading state. The thrown error is not automatically shown to the user — you need to handle it yourself (catch it and call <code>setError("root", { message })</code> or show a toast). This is why pairing with <code>useMutation</code>'s <code>onError</code> is the cleanest pattern.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain why RHF is faster than controlled forms and what "uncontrolled" means in this context</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement a form with <code>useForm</code>, <code>register</code>, <code>handleSubmit</code>, and display <code>errors</code> from <code>formState</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the validation modes: onSubmit, onBlur, onChange, onTouched — and when to use each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a Zod schema with <code>string()</code>, <code>email()</code>, <code>min()</code>, <code>enum()</code>, nested objects, and arrays</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can infer a TypeScript type from a Zod schema using <code>z.infer&lt;typeof schema&gt;</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can connect Zod to RHF with <code>zodResolver</code> and get typed, validated submit data</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use <code>Controller</code> instead of <code>register</code> — and can implement a custom input with it</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>useFieldArray</code> to build a dynamic list with append, remove, and the <code>field.id</code> key rule</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement a multi-step form using <code>trigger(fieldNames)</code> for per-step validation</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can handle server errors with <code>setError("fieldName", { message })</code> and <code>setError("root", ...)</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed exercises 2, 4, and 6 today (useForm sim, fieldArray, full pipeline)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I replaced the React Shop's manual login/register form with RHF + Zod today</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between <code>watch()</code> (subscribes, re-renders) and <code>getValues()</code> (snapshot, no render)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My code is committed and pushed to GitHub</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(236,72,153,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--rhf);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Write a complete <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rhf);">RegistrationForm</code> with Zod schema, <code>zodResolver</code>, all field types, and error display — from memory<br>
+      2. Write a Zod schema with a <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rhf);">.refine()</code> that validates confirm-password matches password<br>
+      3. Write a <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rhf);">useFieldArray</code> team member form with append, remove, and per-field validation<br>
+      4. Implement the <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rhf);">setError</code> server-error pattern — map API error codes to form fields in a <code>useMutation</code> onError callback
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 3 · Day 16</div>
+      <div class="footer-day-name">React Hook Form + Zod</div>
+      <div class="footer-day-next">Next up: <strong>Day 17 — TypeScript with React</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 3 progress</span><span>Day 3 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:43%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day15_advanced_react_query.html',15)">← Day 15</button>
+      <button class="footer-btn primary" onclick="navigateTo('day17_typescript_react.html',17)">Day 17 — TypeScript →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html",current:true},
+]
+const CURRENT=16
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep building! 💗`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

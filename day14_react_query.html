@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 14 — React Query Fundamentals</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --rq:#ff4154;--rq-dim:rgba(255,65,84,0.09);
+  --react:#61dafb;--react-dim:rgba(97,218,251,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+code,pre{font-family:'JetBrains Mono',monospace;}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--rq);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--rq);border-bottom-color:var(--rq);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--rq);font-weight:600;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--rq);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--rq-dim);color:var(--rq);border-color:rgba(255,65,84,.3);}
+.day-btn.primary:hover{background:rgba(255,65,84,.18);}
+
+.week-badge{display:inline-flex;align-items:center;gap:8px;background:var(--rq-dim);border:1px solid rgba(255,65,84,.2);border-radius:20px;padding:6px 16px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--rq);margin-bottom:20px;}
+
+.hero{padding:64px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--rq);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--rq);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--rq);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.schedule-strip{max-width:1120px;margin:0 auto;padding:0 48px 40px;}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stime-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sched-items{list-style:none;}
+.sched-items li{font-size:12px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:7px;}
+.sched-items li:last-child{border-bottom:none;}
+.sched-items li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--rq);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--rq-dim);color:var(--rq);border-color:rgba(255,65,84,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);}
+
+.bridge{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.bridge-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;gap:16px;}
+.bridge-col{flex:1;font-size:10px;padding:2px 6px;border-radius:4px;}
+.bridge-before{background:var(--coral-dim);color:var(--coral);}
+.bridge-after{background:var(--rq-dim);color:var(--rq);}
+.bridge-body{display:grid;grid-template-columns:1fr 1fr;}
+.bridge-pane{padding:16px 18px;overflow-x:auto;}
+.bridge-pane:first-child{border-right:1px solid var(--border);}
+.bridge-pane pre{font-size:12px;line-height:1.9;white-space:pre;color:var(--muted);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--rq);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);position:relative;}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;}
+.runner-meta{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--rq-dim);color:var(--rq);border:1px solid rgba(255,65,84,.25);border-radius:6px;cursor:pointer;transition:background .15s;}
+.run-btn:hover{background:rgba(255,65,84,.18);}
+.runner-code{padding:16px 18px;border-bottom:1px solid var(--border);}
+.runner-code textarea{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:14px 16px;resize:vertical;min-height:180px;outline:none;}
+.runner-code textarea:focus{border-color:rgba(255,65,84,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--rq);}
+.ex-hint{font-size:12px;color:var(--muted);border-left:2px solid var(--border2);padding-left:12px;margin-bottom:14px;line-height:1.7;}
+.sol-toggle{width:100%;text-align:left;padding:11px 16px;background:var(--surface3);border:none;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.sol-toggle:hover{color:var(--text);}
+.arrow{display:inline-block;transition:transform .2s;font-size:10px;}
+.sol-content{display:none;padding:0 20px 18px;}
+.sol-content.open{display:block;}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--rq-dim);color:var(--rq);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--rq);border-color:var(--rq);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;align-items:center;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--rq-dim);color:var(--rq);border-color:rgba(255,65,84,.3);}
+.footer-btn.primary:hover{background:rgba(255,65,84,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--rq);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.schedule-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .schedule-grid,.bridge-body{grid-template-columns:1fr;}
+  .bridge-pane:first-child{border-right:none;border-bottom:1px solid var(--border);}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 14 · RQ</div>
+  <a href="#schedule">Schedule</a>
+  <a href="#why">Why RQ</a>
+  <a href="#setup">Setup</a>
+  <a href="#usequery">useQuery</a>
+  <a href="#keys">Query Keys</a>
+  <a href="#mutation">useMutation</a>
+  <a href="#invalidation">Invalidation</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 3 · <span>Day 14 of 56</span> · React Query Fundamentals</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="day-dots" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day13_week2_review.html',13)">← Day 13</button>
+      <button class="day-btn primary" onclick="navigateTo('day15_react_query_advanced.html',15)">Day 15 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="week-badge">⚡ Week 3 begins · Server State</div>
+  <div class="hero-eyebrow">Week 3 · Day 14 · 8-week plan</div>
+  <h1>React Query<br><em>Fundamentals</em></h1>
+  <p class="hero-sub">The biggest quality-of-life upgrade in modern React. Stop writing loading booleans, error states, and cache logic by hand. React Query handles server state the way React handles UI state — automatically.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(255,65,84,.3);color:var(--rq);">server vs client state</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">QueryClient setup</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">useQuery hook</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">query keys</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">stale-while-revalidate</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">useMutation</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">cache invalidation</span>
+    <span class="topic-pill" style="border-color:rgba(244,114,182,.3);color:var(--pink);">optimistic updates</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">today's sessions</div></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-strip" id="schedule">
+  <div class="schedule-grid">
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--rq);"></span>Morning · 10:00–12:30</div>
+      <ul class="sched-items">
+        <li>Server state vs client state — the key distinction</li>
+        <li>What React Query gives you for free</li>
+        <li>Install + QueryClient + QueryClientProvider</li>
+        <li>useQuery — fetcher, key, return values</li>
+        <li>Loading, error, success states</li>
+        <li>stale-while-revalidate explained</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--purple);"></span>Evening · 15:00–19:00</div>
+      <ul class="sched-items">
+        <li>Query keys — arrays, structure, best practices</li>
+        <li>Dependent queries — fetch B when A succeeds</li>
+        <li>Parallel queries with useQueries</li>
+        <li>useMutation — create, update, delete</li>
+        <li>onSuccess, onError, onSettled callbacks</li>
+        <li>Cache invalidation with invalidateQueries</li>
+        <li>Optimistic updates — instant UI + rollback</li>
+        <li>Exercises 1–6</li>
+      </ul>
+    </div>
+    <div class="sched-card">
+      <div class="sched-time"><span class="stime-dot" style="background:var(--coral);"></span>Night · 22:00–23:20</div>
+      <ul class="sched-items">
+        <li>10 interview Q&As</li>
+        <li>Review checklist (14 items)</li>
+        <li>Recall exercise — blank file</li>
+        <li>Refactor Day 13 app to use React Query</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 14 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Server state concept</span>
+    <span class="tdot" onclick="markDone(this)">QueryClient setup</span>
+    <span class="tdot" onclick="markDone(this)">useQuery</span>
+    <span class="tdot" onclick="markDone(this)">Query keys</span>
+    <span class="tdot" onclick="markDone(this)">Stale/fresh/cache</span>
+    <span class="tdot" onclick="markDone(this)">useMutation</span>
+    <span class="tdot" onclick="markDone(this)">Invalidation</span>
+    <span class="tdot" onclick="markDone(this)">Optimistic updates</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- ══ 01. WHY REACT QUERY ══ -->
+<div class="section" id="why">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Server state vs client state — why they're different problems</span>
+    <span class="sec-badge" style="background:var(--rq-dim);color:var(--rq);">foundation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--blue-dim);color:var(--blue);">client state</span>
+      <div class="cc-title">Data you own and control</div>
+      <div class="cc-body">UI state — whether a modal is open, which tab is active, form inputs, dark mode. You <strong>own</strong> this data — it lives in memory, you create it, you mutate it, you delete it. <code>useState</code> and <code>useReducer</code> handle this perfectly. Nobody else can change it.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--rq-dim);color:var(--rq);">server state</span>
+      <div class="cc-title">Data that lives on a remote server</div>
+      <div class="cc-body">User profiles, product lists, orders — data that lives on a server you don't control. It can change at any time. It's <strong>asynchronous</strong> (requires network), potentially <strong>stale</strong> (your local copy may be outdated), and must be <strong>synchronised</strong> with the source of truth. <code>useState</code> alone is inadequate here.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">the manual pain</span>
+      <div class="cc-title">What you write without React Query</div>
+      <div class="cc-body">Loading boolean, error state, data state, AbortController cleanup, refetch on window focus, deduplication of simultaneous requests, cache with expiry, retry logic, background refresh, race condition protection — <strong>every single time</strong>, in every component that fetches data. React Query solves all of this with one hook call.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">what you get for free</span>
+      <div class="cc-title">React Query's automatic behaviours</div>
+      <div class="cc-body">Automatic caching by query key, <strong>background refetch</strong> when window regains focus, <strong>deduplication</strong> (two components fetching the same key → one request), <strong>stale-while-revalidate</strong> (show old data while fetching new), configurable <strong>retry</strong> on failure, request cancellation, and <strong>DevTools</strong> built-in.</div>
+    </div>
+  </div>
+
+  <!-- Before / After -->
+  <div class="bridge">
+    <div class="bridge-head">
+      <span class="bridge-col bridge-before">Week 2 — manual fetch</span>
+      <span class="bridge-col bridge-after">Week 3 — React Query</span>
+    </div>
+    <div class="bridge-body">
+      <div class="bridge-pane"><pre><span style="color:var(--hint);">// 18 lines for what RQ does in 3</span>
+<span style="color:#c084fc;">const</span> [<span style="color:#5eead4;">data</span>,    <span style="color:#93c5fd;">setData</span>]    = <span style="color:#93c5fd;">useState</span>(<span style="color:#c084fc;">null</span>)
+<span style="color:#c084fc;">const</span> [<span style="color:#5eead4;">loading</span>, <span style="color:#93c5fd;">setLoading</span>] = <span style="color:#93c5fd;">useState</span>(<span style="color:#c084fc;">true</span>)
+<span style="color:#c084fc;">const</span> [<span style="color:#5eead4;">error</span>,   <span style="color:#93c5fd;">setError</span>]   = <span style="color:#93c5fd;">useState</span>(<span style="color:#c084fc;">null</span>)
+
+<span style="color:#93c5fd;">useEffect</span>(() =&gt; {
+  <span style="color:#c084fc;">const</span> <span style="color:#5eead4;">ctrl</span> = <span style="color:#c084fc;">new</span> <span style="color:#93c5fd;">AbortController</span>()
+  <span style="color:#93c5fd;">setLoading</span>(<span style="color:#c084fc;">true</span>)
+  <span style="color:#93c5fd;">fetch</span>(<span style="color:#86efac;">`/api/users/${userId}`</span>, {
+    <span style="color:#fbbf24;">signal</span>: <span style="color:#5eead4;">ctrl</span>.<span style="color:#fbbf24;">signal</span>
+  })
+    .<span style="color:#93c5fd;">then</span>(<span style="color:#5eead4;">r</span> =&gt; <span style="color:#5eead4;">r</span>.<span style="color:#93c5fd;">json</span>())
+    .<span style="color:#93c5fd;">then</span>(<span style="color:#93c5fd;">setData</span>)
+    .<span style="color:#93c5fd;">catch</span>(<span style="color:#5eead4;">e</span> =&gt; {
+      <span style="color:#c084fc;">if</span>(<span style="color:#5eead4;">e</span>.<span style="color:#fbbf24;">name</span>!==<span style="color:#86efac;">"AbortError"</span>)
+        <span style="color:#93c5fd;">setError</span>(<span style="color:#5eead4;">e</span>.<span style="color:#fbbf24;">message</span>)
+    })
+    .<span style="color:#93c5fd;">finally</span>(() =&gt; <span style="color:#93c5fd;">setLoading</span>(<span style="color:#c084fc;">false</span>))
+  <span style="color:#c084fc;">return</span> () =&gt; <span style="color:#5eead4;">ctrl</span>.<span style="color:#93c5fd;">abort</span>()
+}, [<span style="color:#5eead4;">userId</span>])
+<span style="color:var(--hint);">// No caching, no retry, no dedup...</span></pre></div>
+      <div class="bridge-pane"><pre><span style="color:var(--hint);">// 3 lines — everything included</span>
+<span style="color:#c084fc;">const</span> {
+  <span style="color:#fbbf24;">data</span>,
+  <span style="color:#fbbf24;">isLoading</span>,
+  <span style="color:#fbbf24;">error</span>
+} = <span style="color:#93c5fd;">useQuery</span>({
+  <span style="color:#fbbf24;">queryKey</span>: [<span style="color:#86efac;">"user"</span>, <span style="color:#5eead4;">userId</span>],
+  <span style="color:#fbbf24;">queryFn</span>:  () =&gt;
+    <span style="color:#93c5fd;">fetch</span>(<span style="color:#86efac;">`/api/users/${userId}`</span>)
+      .<span style="color:#93c5fd;">then</span>(<span style="color:#5eead4;">r</span> =&gt; <span style="color:#5eead4;">r</span>.<span style="color:#93c5fd;">json</span>())
+})
+
+<span style="color:var(--hint);">// ✓ Cached by ["user", userId]
+// ✓ Retries 3× on failure
+// ✓ Refetches on window focus
+// ✓ Deduped if 2 components mount
+// ✓ Background refresh
+// ✓ Race condition safe</span></pre></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 02. SETUP ══ -->
+<div class="section" id="setup">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Setup — install, QueryClient, QueryClientProvider</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">getting started</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + jsx</span><span class="cb-desc">Install, configure QueryClient, wrap app, set up DevTools</span></div>
+    <div class="cb-body"><pre><span class="cm"># Install TanStack Query v5</span>
+npm install @tanstack/react-query
+npm install @tanstack/react-query-devtools   <span class="cm"># optional but invaluable</span>
+
+<span class="cm">// ── main.jsx — one QueryClient for the whole app ──────────</span>
+<span class="kw">import</span> { <span class="var">QueryClient</span>, <span class="var">QueryClientProvider</span> } <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+<span class="kw">import</span> { <span class="var">ReactQueryDevtools</span> }               <span class="kw">from</span> <span class="str">"@tanstack/react-query-devtools"</span>
+
+<span class="cm">// Create ONE instance outside of any component</span>
+<span class="kw">const</span> <span class="var">queryClient</span> = <span class="kw">new</span> <span class="fn">QueryClient</span>({
+  <span class="prop">defaultOptions</span>: {
+    <span class="prop">queries</span>: {
+      <span class="prop">staleTime</span>:        <span class="num">1000</span> * <span class="num">60</span> * <span class="num">5</span>,  <span class="cm">// data stays "fresh" for 5 min</span>
+      <span class="prop">gcTime</span>:           <span class="num">1000</span> * <span class="num">60</span> * <span class="num">10</span>, <span class="cm">// keep unused cache for 10 min</span>
+      <span class="prop">retry</span>:            <span class="num">3</span>,               <span class="cm">// retry failed requests 3 times</span>
+      <span class="prop">refetchOnWindowFocus</span>: <span class="kw">true</span>,        <span class="cm">// refetch when user returns to tab</span>
+    },
+  },
+})
+
+<span class="fn">createRoot</span>(<span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"root"</span>)).<span class="fn">render</span>(
+  <span class="tag">&lt;StrictMode&gt;</span>
+    <span class="tag">&lt;QueryClientProvider</span> <span class="attr">client</span>={<span class="var">queryClient</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;BrowserRouter&gt;</span>
+        <span class="tag">&lt;AuthProvider&gt;</span>
+          <span class="tag">&lt;App</span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/AuthProvider&gt;</span>
+      <span class="tag">&lt;/BrowserRouter&gt;</span>
+      <span class="tag">&lt;ReactQueryDevtools</span> <span class="attr">initialIsOpen</span>={<span class="kw">false</span>} <span class="tag">/&gt;</span>  <span class="cm">{/* floating panel — dev only */}</span>
+    <span class="tag">&lt;/QueryClientProvider&gt;</span>
+  <span class="tag">&lt;/StrictMode&gt;</span>
+)</pre></div>
+  </div>
+</div>
+
+<!-- ══ 03. useQuery ══ -->
+<div class="section" id="usequery">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">useQuery — the core hook in depth</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">daily use</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--rq);"></span>Query lifecycle — every state a query can be in</div>
+    <div class="mm-grid">
+      <div class="mm-item"><div class="mm-label" style="color:var(--purple);">pending</div><div class="mm-value">No data yet, actively fetching. <code>isLoading</code> is true. Show a skeleton or spinner.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--green);">success</div><div class="mm-value">Fetch succeeded, <code>data</code> is populated. <code>isSuccess</code> is true. Render your UI.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--coral);">error</div><div class="mm-value">Fetch failed (after retries). <code>error</code> is populated. <code>isError</code> is true. Show error state.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--amber);">stale</div><div class="mm-value">Data is older than <code>staleTime</code>. Still shows old data, but will refetch on next trigger.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--react);">fetching</div><div class="mm-value"><code>isFetching</code> — true during <em>any</em> fetch, including background refetches. Different from <code>isLoading</code>.</div></div>
+      <div class="mm-item"><div class="mm-label" style="color:var(--muted);">paused</div><div class="mm-value">Offline or network unavailable — query is waiting. <code>isPaused</code> is true.</div></div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">useQuery — all return values, enabled flag, select transform, placeholderData</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useQuery</span> } <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+
+<span class="cm">// ── Basic useQuery ─────────────────────────────────────────</span>
+<span class="kw">function</span> <span class="fn">UserProfile</span>({ <span class="var">userId</span> }) {
+  <span class="kw">const</span> {
+    <span class="prop">data</span>,           <span class="cm">// the resolved value from queryFn</span>
+    <span class="prop">isLoading</span>,      <span class="cm">// true on first fetch (no cached data)</span>
+    <span class="prop">isFetching</span>,     <span class="cm">// true on ANY fetch, including background</span>
+    <span class="prop">isError</span>,        <span class="cm">// true if last fetch failed</span>
+    <span class="prop">error</span>,          <span class="cm">// the thrown Error object</span>
+    <span class="prop">isSuccess</span>,      <span class="cm">// true if last fetch succeeded</span>
+    <span class="prop">isStale</span>,        <span class="cm">// true if data is older than staleTime</span>
+    <span class="prop">refetch</span>,        <span class="cm">// function to manually trigger a refetch</span>
+    <span class="prop">status</span>,         <span class="cm">// "pending" | "error" | "success"</span>
+    <span class="prop">fetchStatus</span>,    <span class="cm">// "fetching" | "paused" | "idle"</span>
+  } = <span class="fn">useQuery</span>({
+    <span class="prop">queryKey</span>: [<span class="str">"user"</span>, <span class="var">userId</span>],   <span class="cm">// unique cache key — array recommended</span>
+    <span class="prop">queryFn</span>: () =&gt; <span class="fn">fetch</span>(`/api/users/${<span class="var">userId</span>}`).<span class="fn">then</span>(<span class="var">r</span> =&gt; {
+      <span class="kw">if</span> (!<span class="var">r</span>.<span class="prop">ok</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(`HTTP ${<span class="var">r</span>.<span class="prop">status</span>}`)
+      <span class="kw">return</span> <span class="var">r</span>.<span class="fn">json</span>()
+    }),
+    <span class="prop">staleTime</span>: <span class="num">1000</span> * <span class="num">60</span> * <span class="num">5</span>,  <span class="cm">// 5 min override for this query</span>
+  })
+
+  <span class="kw">if</span> (<span class="var">isLoading</span>) <span class="kw">return</span> <span class="tag">&lt;Spinner</span> <span class="tag">/&gt;</span>
+  <span class="kw">if</span> (<span class="var">isError</span>)   <span class="kw">return</span> <span class="tag">&lt;p&gt;</span>Error: {<span class="var">error</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      {<span class="var">isFetching</span> &amp;&amp; <span class="tag">&lt;span&gt;</span>Refreshing...<span class="tag">&lt;/span&gt;</span>}  <span class="cm">{/* subtle refresh indicator */}</span>
+      <span class="tag">&lt;h1&gt;</span>{<span class="var">data</span>.<span class="prop">name</span>}<span class="tag">&lt;/h1&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="fn">refetch</span>()}<span class="tag">&gt;</span>Refresh<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── enabled — conditional queries ─────────────────────────</span>
+<span class="cm">// Only fetch when userId exists (don't run with undefined)</span>
+<span class="kw">const</span> { <span class="prop">data</span> } = <span class="fn">useQuery</span>({
+  <span class="prop">queryKey</span>: [<span class="str">"user"</span>, <span class="var">userId</span>],
+  <span class="prop">queryFn</span>:  () =&gt; <span class="fn">fetchUser</span>(<span class="var">userId</span>),
+  <span class="prop">enabled</span>:  !!<span class="var">userId</span>,          <span class="cm">// false = query is paused, no fetch</span>
+})
+
+<span class="cm">// ── Dependent query — fetch posts after user loads ────────</span>
+<span class="kw">const</span> { <span class="prop">data</span>: <span class="var">user</span> }  = <span class="fn">useQuery</span>({ <span class="prop">queryKey</span>: [<span class="str">"user"</span>, <span class="var">userId</span>], <span class="prop">queryFn</span>: ... })
+<span class="kw">const</span> { <span class="prop">data</span>: <span class="var">posts</span> } = <span class="fn">useQuery</span>({
+  <span class="prop">queryKey</span>: [<span class="str">"posts"</span>, <span class="var">user</span>?.<span class="prop">id</span>],
+  <span class="prop">queryFn</span>:  () =&gt; <span class="fn">fetchPostsByUser</span>(<span class="var">user</span>.<span class="prop">id</span>),
+  <span class="prop">enabled</span>:  !!<span class="var">user</span>,            <span class="cm">// won't run until user data exists</span>
+})
+
+<span class="cm">// ── select — transform / pick fields from cached data ─────</span>
+<span class="kw">const</span> { <span class="prop">data</span>: <span class="var">userName</span> } = <span class="fn">useQuery</span>({
+  <span class="prop">queryKey</span>: [<span class="str">"user"</span>, <span class="var">userId</span>],
+  <span class="prop">queryFn</span>:  <span class="fn">fetchUser</span>,
+  <span class="prop">select</span>:   (<span class="var">data</span>) =&gt; <span class="var">data</span>.<span class="prop">name</span>,  <span class="cm">// only re-renders if name changes</span>
+})
+
+<span class="cm">// ── placeholderData — show previous page while new loads ──</span>
+<span class="kw">const</span> { <span class="prop">data</span> } = <span class="fn">useQuery</span>({
+  <span class="prop">queryKey</span>: [<span class="str">"products"</span>, <span class="var">page</span>],
+  <span class="prop">queryFn</span>:  () =&gt; <span class="fn">fetchProducts</span>(<span class="var">page</span>),
+  <span class="prop">placeholderData</span>: <span class="fn">keepPreviousData</span>,  <span class="cm">// show page 1 while page 2 loads</span>
+})</pre></div>
+  </div>
+</div>
+
+<!-- ══ 04. QUERY KEYS ══ -->
+<div class="section" id="keys">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Query keys — the cache addressing system</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">critical</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">what they are</span>
+      <div class="cc-title">Unique addresses for cached data</div>
+      <div class="cc-body">Query keys are how React Query identifies, caches, and invalidates data. Two components using <code>["user", 42]</code> as their key share the same cache entry — only one network request fires. Change the key (e.g. to <code>["user", 43]</code>) and React Query fetches fresh data and stores it separately.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">structure</span>
+      <div class="cc-title">Arrays, not strings — hierarchical</div>
+      <div class="cc-body">Always use arrays. They support hierarchical invalidation — invalidating <code>["todos"]</code> also invalidates <code>["todos", 1]</code> and <code>["todos", { status: "done" }]</code>. React Query serialises arrays for comparison, so <code>["todos", { a:1, b:2 }]</code> equals <code>["todos", { b:2, a:1 }]</code> — order inside objects doesn't matter.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--teal-dim);color:var(--teal);">best practice</span>
+      <div class="cc-title">Put all keys in a factory object</div>
+      <div class="cc-body">Centralise key construction to avoid typos and inconsistencies. A <code>todoKeys</code> factory makes refactoring safe — if you change the key shape, you only update one place. It also makes code self-documenting and enables perfect invalidation patterns.</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Query key patterns — factory pattern, hierarchical invalidation</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Query key factory — the recommended pattern ────────────</span>
+<span class="kw">export const</span> <span class="var">todoKeys</span> = {
+  <span class="prop">all</span>:     ()              =&gt; [<span class="str">"todos"</span>]                          <span class="kw">as const</span>,
+  <span class="prop">lists</span>:   ()              =&gt; [...<span class="var">todoKeys</span>.<span class="fn">all</span>(), <span class="str">"list"</span>]         <span class="kw">as const</span>,
+  <span class="prop">list</span>:    (<span class="var">filters</span>)       =&gt; [...<span class="var">todoKeys</span>.<span class="fn">lists</span>(), { ...<span class="var">filters</span> }] <span class="kw">as const</span>,
+  <span class="prop">details</span>: ()              =&gt; [...<span class="var">todoKeys</span>.<span class="fn">all</span>(), <span class="str">"detail"</span>]       <span class="kw">as const</span>,
+  <span class="prop">detail</span>:  (<span class="var">id</span>: <span class="kw">number</span>)   =&gt; [...<span class="var">todoKeys</span>.<span class="fn">details</span>(), <span class="var">id</span>]          <span class="kw">as const</span>,
+}
+
+<span class="cm">// Usage — no string typos, fully typed</span>
+<span class="fn">useQuery</span>({ <span class="prop">queryKey</span>: <span class="var">todoKeys</span>.<span class="fn">list</span>({ <span class="prop">status</span>: <span class="str">"done"</span> }) })
+<span class="cm">// key: ["todos", "list", { status: "done" }]</span>
+
+<span class="fn">useQuery</span>({ <span class="prop">queryKey</span>: <span class="var">todoKeys</span>.<span class="fn">detail</span>(<span class="num">42</span>) })
+<span class="cm">// key: ["todos", "detail", 42]</span>
+
+<span class="cm">// ── Invalidation with hierarchy ────────────────────────────</span>
+<span class="kw">const</span> <span class="var">queryClient</span> = <span class="fn">useQueryClient</span>()
+
+<span class="cm">// Invalidate a specific todo</span>
+<span class="var">queryClient</span>.<span class="fn">invalidateQueries</span>({ <span class="prop">queryKey</span>: <span class="var">todoKeys</span>.<span class="fn">detail</span>(<span class="num">42</span>) })
+
+<span class="cm">// Invalidate ALL todo lists (any filters)</span>
+<span class="var">queryClient</span>.<span class="fn">invalidateQueries</span>({ <span class="prop">queryKey</span>: <span class="var">todoKeys</span>.<span class="fn">lists</span>() })
+
+<span class="cm">// Invalidate EVERYTHING todo-related</span>
+<span class="var">queryClient</span>.<span class="fn">invalidateQueries</span>({ <span class="prop">queryKey</span>: <span class="var">todoKeys</span>.<span class="fn">all</span>() })
+
+<span class="cm">// ── Stale time per-query ──────────────────────────────────</span>
+<span class="cm">// User profile: cache 5 min (changes rarely)</span>
+<span class="fn">useQuery</span>({ <span class="prop">queryKey</span>: [<span class="str">"user"</span>, <span class="var">id</span>], <span class="prop">queryFn</span>: <span class="var">fetchUser</span>, <span class="prop">staleTime</span>: <span class="num">5</span> * <span class="num">60_000</span> })
+
+<span class="cm">// Notifications: always stale (check every focus)</span>
+<span class="fn">useQuery</span>({ <span class="prop">queryKey</span>: [<span class="str">"notifications"</span>], <span class="prop">queryFn</span>: <span class="var">fetchNotifs</span>, <span class="prop">staleTime</span>: <span class="num">0</span> })
+
+<span class="cm">// Stock prices: never cache (always fresh)</span>
+<span class="fn">useQuery</span>({ <span class="prop">queryKey</span>: [<span class="str">"stock"</span>, <span class="var">ticker</span>], <span class="prop">queryFn</span>: <span class="var">fetchPrice</span>, <span class="prop">staleTime</span>: <span class="fn">Infinity</span> })</pre></div>
+  </div>
+</div>
+
+<!-- ══ 05. useMutation ══ -->
+<div class="section" id="mutation">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">useMutation — create, update, delete</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">writes</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">useMutation — lifecycle callbacks, error handling, mutation state</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="var">useMutation</span>, <span class="var">useQueryClient</span> } <span class="kw">from</span> <span class="str">"@tanstack/react-query"</span>
+
+<span class="kw">function</span> <span class="fn">NewTodoForm</span>() {
+  <span class="kw">const</span> <span class="var">queryClient</span> = <span class="fn">useQueryClient</span>()
+
+  <span class="kw">const</span> <span class="var">createTodo</span> = <span class="fn">useMutation</span>({
+    <span class="prop">mutationFn</span>: (<span class="var">newTodo</span>) =&gt;
+      <span class="fn">fetch</span>(<span class="str">"/api/todos"</span>, {
+        <span class="prop">method</span>:  <span class="str">"POST"</span>,
+        <span class="prop">headers</span>: { <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span> },
+        <span class="prop">body</span>:    <span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="var">newTodo</span>),
+      }).<span class="fn">then</span>(<span class="var">r</span> =&gt; <span class="var">r</span>.<span class="fn">json</span>()),
+
+    <span class="cm">// Runs immediately when mutate() is called (before async)</span>
+    <span class="prop">onMutate</span>: <span class="kw">async</span> (<span class="var">variables</span>) =&gt; {
+      <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Saving..."</span>)
+    },
+
+    <span class="cm">// Runs when mutation succeeds — invalidate to refetch</span>
+    <span class="prop">onSuccess</span>: (<span class="var">data</span>, <span class="var">variables</span>, <span class="var">context</span>) =&gt; {
+      <span class="var">queryClient</span>.<span class="fn">invalidateQueries</span>({ <span class="prop">queryKey</span>: [<span class="str">"todos"</span>] })
+      <span class="fn">toast</span>.<span class="fn">success</span>(<span class="str">"Todo created!"</span>)
+    },
+
+    <span class="cm">// Runs when mutation fails</span>
+    <span class="prop">onError</span>: (<span class="var">error</span>, <span class="var">variables</span>, <span class="var">context</span>) =&gt; {
+      <span class="fn">toast</span>.<span class="fn">error</span>(<span class="var">error</span>.<span class="prop">message</span>)
+    },
+
+    <span class="cm">// Runs after either success OR error</span>
+    <span class="prop">onSettled</span>: () =&gt; {
+      <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Done — success or fail"</span>)
+    },
+  })
+
+  <span class="kw">const</span> <span class="fn">handleSubmit</span> = (<span class="var">e</span>) =&gt; {
+    <span class="var">e</span>.<span class="fn">preventDefault</span>()
+    <span class="var">createTodo</span>.<span class="fn">mutate</span>({ <span class="prop">text</span>: <span class="str">"New todo"</span>, <span class="prop">done</span>: <span class="kw">false</span> })
+    <span class="cm">// Or: createTodo.mutateAsync(...) — returns a Promise</span>
+  }
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="var">handleSubmit</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;button</span>
+        <span class="attr">type</span>=<span class="str">"submit"</span>
+        <span class="attr">disabled</span>={<span class="var">createTodo</span>.<span class="prop">isPending</span>}   <span class="cm">{/* true while mutation is running */}</span>
+      <span class="tag">&gt;</span>
+        {<span class="var">createTodo</span>.<span class="prop">isPending</span> ? <span class="str">"Saving..."</span> : <span class="str">"Add Todo"</span>}
+      <span class="tag">&lt;/button&gt;</span>
+      {<span class="var">createTodo</span>.<span class="prop">isError</span> &amp;&amp; (
+        <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"error"</span><span class="tag">&gt;</span>{<span class="var">createTodo</span>.<span class="prop">error</span>.<span class="prop">message</span>}<span class="tag">&lt;/p&gt;</span>
+      )}
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</pre></div>
+  </div>
+</div>
+
+<!-- ══ 06. INVALIDATION + OPTIMISTIC ══ -->
+<div class="section" id="invalidation">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Cache invalidation &amp; optimistic updates</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">advanced patterns</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">jsx</span><span class="cb-desc">Invalidation strategies + optimistic update with rollback on error</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Invalidation — force a refetch after mutation ─────────</span>
+<span class="kw">const</span> <span class="var">queryClient</span> = <span class="fn">useQueryClient</span>()
+
+<span class="cm">// Exact key</span>
+<span class="var">queryClient</span>.<span class="fn">invalidateQueries</span>({ <span class="prop">queryKey</span>: [<span class="str">"todos"</span>, <span class="num">42</span>] })
+
+<span class="cm">// All "todos" queries (any key that starts with "todos")</span>
+<span class="var">queryClient</span>.<span class="fn">invalidateQueries</span>({ <span class="prop">queryKey</span>: [<span class="str">"todos"</span>] })
+
+<span class="cm">// Invalidate everything in the cache</span>
+<span class="var">queryClient</span>.<span class="fn">invalidateQueries</span>()
+
+<span class="cm">// ── Direct cache write — skip a refetch round trip ────────</span>
+<span class="cm">// After creating a todo, inject it directly instead of refetching the list</span>
+<span class="var">queryClient</span>.<span class="fn">setQueryData</span>([<span class="str">"todos"</span>], (<span class="var">old</span>) =&gt; [...(<span class="var">old</span> ?? []), <span class="var">newTodo</span>])
+
+<span class="cm">// ── Optimistic update — the full pattern ─────────────────</span>
+<span class="kw">const</span> <span class="var">toggleTodo</span> = <span class="fn">useMutation</span>({
+  <span class="prop">mutationFn</span>: ({ <span class="var">id</span>, <span class="var">done</span> }) =&gt;
+    <span class="fn">fetch</span>(`/api/todos/${<span class="var">id</span>}`, {
+      <span class="prop">method</span>: <span class="str">"PATCH"</span>,
+      <span class="prop">body</span>:   <span class="fn">JSON</span>.<span class="fn">stringify</span>({ <span class="var">done</span> }),
+    }),
+
+  <span class="cm">// ① Before the request: update cache optimistically</span>
+  <span class="prop">onMutate</span>: <span class="kw">async</span> ({ <span class="var">id</span>, <span class="var">done</span> }) =&gt; {
+    <span class="cm">// Cancel any in-flight refetches that could overwrite our optimistic update</span>
+    <span class="kw">await</span> <span class="var">queryClient</span>.<span class="fn">cancelQueries</span>({ <span class="prop">queryKey</span>: [<span class="str">"todos"</span>] })
+
+    <span class="cm">// Snapshot the previous value for rollback</span>
+    <span class="kw">const</span> <span class="var">previous</span> = <span class="var">queryClient</span>.<span class="fn">getQueryData</span>([<span class="str">"todos"</span>])
+
+    <span class="cm">// Apply optimistic update immediately</span>
+    <span class="var">queryClient</span>.<span class="fn">setQueryData</span>([<span class="str">"todos"</span>], (<span class="var">old</span>) =&gt;
+      (<span class="var">old</span> ?? []).<span class="fn">map</span>(<span class="var">t</span> =&gt; <span class="var">t</span>.<span class="prop">id</span> === <span class="var">id</span> ? { ...<span class="var">t</span>, <span class="var">done</span> } : <span class="var">t</span>)
+    )
+
+    <span class="cm">// Return context with snapshot — available in onError</span>
+    <span class="kw">return</span> { <span class="var">previous</span> }
+  },
+
+  <span class="cm">// ② On error: roll back to snapshot</span>
+  <span class="prop">onError</span>: (<span class="var">err</span>, <span class="var">variables</span>, <span class="var">context</span>) =&gt; {
+    <span class="kw">if</span> (<span class="var">context</span>?.<span class="prop">previous</span>) {
+      <span class="var">queryClient</span>.<span class="fn">setQueryData</span>([<span class="str">"todos"</span>], <span class="var">context</span>.<span class="prop">previous</span>)
+    }
+  },
+
+  <span class="cm">// ③ Always: sync server truth after mutation settles</span>
+  <span class="prop">onSettled</span>: () =&gt; {
+    <span class="var">queryClient</span>.<span class="fn">invalidateQueries</span>({ <span class="prop">queryKey</span>: [<span class="str">"todos"</span>] })
+  },
+})</pre></div>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">After mutation — choose the right update strategy</div>
+    <table class="comp-table">
+      <tr><th>Strategy</th><th>How</th><th>When to use</th></tr>
+      <tr><td>Invalidate + refetch</td><td><code>invalidateQueries</code> in <code>onSuccess</code></td><td>Default choice. Ensures server truth. Fine for most CRUD operations.</td></tr>
+      <tr><td>Direct cache write</td><td><code>setQueryData</code> in <code>onSuccess</code></td><td>When the API returns the new item and you want to skip a round-trip refetch.</td></tr>
+      <tr><td>Optimistic update</td><td><code>setQueryData</code> in <code>onMutate</code> + rollback in <code>onError</code></td><td>High-frequency interactions needing instant feedback — toggles, reorders, likes.</td></tr>
+      <tr><td>Do nothing</td><td>No cache update</td><td>When the mutated data isn't currently shown anywhere in the UI.</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises — React Query logic simulations</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — simulate React Query internals</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Build a query cache — store, read, invalidate</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement a <code>createQueryCache()</code> that stores fetched data by serialised key, tracks staleness with <code>staleTime</code>, and supports partial invalidation. This is the core data structure React Query is built on.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — query cache</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">function createQueryCache(defaultStaleTime = 5000) {
+  const store = new Map()   // key → { data, updatedAt, staleTime }
+
+  function serializeKey(key) {
+    return JSON.stringify(key, Object.keys(key instanceof Array ? {} : key).sort())
+  }
+
+  function set(key, data, staleTime = defaultStaleTime) {
+    // YOUR CODE: store { data, updatedAt: Date.now(), staleTime }
+  }
+
+  function get(key) {
+    // YOUR CODE: return entry or undefined
+  }
+
+  function isStale(key) {
+    // YOUR CODE: return true if no entry or age > staleTime
+  }
+
+  function invalidate(key) {
+    // YOUR CODE: if key is array prefix, invalidate ALL entries whose
+    // serialised key STARTS WITH the given key serialised
+    // e.g. invalidate(["todos"]) removes ["todos"], ["todos","list"], ["todos",42]
+  }
+
+  function getAll() {
+    return [...store.entries()].map(([k, v]) => ({ key: JSON.parse(k), ...v }))
+  }
+
+  return { set, get, isStale, invalidate, getAll }
+}
+
+// Test
+const cache = createQueryCache(1000)
+
+cache.set(["todos"],          [{ id:1, text:"A" }])
+cache.set(["todos", "list"],  [{ id:1, text:"A" }])
+cache.set(["todos", 42],      { id:42, text:"B" })
+cache.set(["users", 1],       { id:1, name:"Alice" })
+
+console.log("todos cached:", !!cache.get(["todos"]))           // true
+console.log("users cached:", !!cache.get(["users", 1]))        // true
+console.log("todos stale (fresh):", cache.isStale(["todos"]))  // false
+
+// Test invalidation — should remove all "todos" entries
+cache.invalidate(["todos"])
+console.log("todos after invalidate:", cache.get(["todos"]))          // undefined
+console.log("todos.list after invalidate:", cache.get(["todos","list"])) // undefined
+console.log("todos.42 after invalidate:", cache.get(["todos", 42]))   // undefined
+console.log("users still cached:", !!cache.get(["users", 1]))         // true
+
+// Test staleness
+const freshCache = createQueryCache(50)
+freshCache.set(["data"], "fresh")
+console.log("Immediately stale:", freshCache.isStale(["data"]))  // false
+await new Promise(r => setTimeout(r, 80))
+console.log("Stale after 80ms:", freshCache.isStale(["data"]))   // true</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">set</span>(<span class="var">key</span>, <span class="var">data</span>, <span class="var">staleTime</span> = <span class="var">defaultStaleTime</span>) {
+  <span class="var">store</span>.<span class="fn">set</span>(<span class="fn">serializeKey</span>(<span class="var">key</span>), { <span class="var">data</span>, <span class="prop">updatedAt</span>: <span class="fn">Date</span>.<span class="fn">now</span>(), <span class="var">staleTime</span> })
+}
+<span class="kw">function</span> <span class="fn">get</span>(<span class="var">key</span>) {
+  <span class="kw">return</span> <span class="var">store</span>.<span class="fn">get</span>(<span class="fn">serializeKey</span>(<span class="var">key</span>))
+}
+<span class="kw">function</span> <span class="fn">isStale</span>(<span class="var">key</span>) {
+  <span class="kw">const</span> <span class="var">entry</span> = <span class="fn">get</span>(<span class="var">key</span>)
+  <span class="kw">if</span> (!<span class="var">entry</span>) <span class="kw">return</span> <span class="kw">true</span>
+  <span class="kw">return</span> (<span class="fn">Date</span>.<span class="fn">now</span>() - <span class="var">entry</span>.<span class="prop">updatedAt</span>) > <span class="var">entry</span>.<span class="prop">staleTime</span>
+}
+<span class="kw">function</span> <span class="fn">invalidate</span>(<span class="var">key</span>) {
+  <span class="kw">const</span> <span class="var">prefix</span> = <span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="var">key</span>[<span class="num">0</span>])  <span class="cm">// first segment as identifier</span>
+  <span class="kw">for</span> (<span class="kw">const</span> <span class="var">k</span> <span class="kw">of</span> <span class="var">store</span>.<span class="fn">keys</span>()) {
+    <span class="kw">if</span> (<span class="var">k</span>.<span class="fn">includes</span>(<span class="var">prefix</span>)) <span class="var">store</span>.<span class="fn">delete</span>(<span class="var">k</span>)
+  }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Simulate useQuery — deduplication + stale-while-revalidate</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createQueryManager()</code> that implements the two most important React Query behaviours: <strong>request deduplication</strong> (two callers with the same key share one network request) and <strong>stale-while-revalidate</strong> (return cached data immediately, then refetch in background).</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — deduplication + stale-while-revalidate</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">function createQueryManager() {
+  const cache      = new Map()   // key → { data, updatedAt }
+  const inFlight   = new Map()   // key → Promise (for dedup)
+  const staleTime  = 500         // ms before data is stale
+
+  function serialize(key) { return JSON.stringify(key) }
+
+  async function query(key, fetcher) {
+    const k      = serialize(key)
+    const cached = cache.get(k)
+    const isStale = !cached || (Date.now() - cached.updatedAt) > staleTime
+
+    // YOUR CODE:
+    // If fresh cache exists → return it immediately (no fetch)
+    // If stale cache exists → return it immediately AND start background refetch
+    // If no cache + already in-flight → wait for existing promise (dedup!)
+    // If no cache + not in-flight → start new fetch, store promise, await it
+
+    // After fetch resolves: update cache, remove from inFlight
+
+    // Return data
+  }
+
+  return { query, getCache: () => cache }
+}
+
+// Test
+async function runTests() {
+  let fetchCount = 0
+  async function fakeFetch(url) {
+    fetchCount++
+    await new Promise(r => setTimeout(r, 40))
+    return { url, timestamp: Date.now(), fetchNum: fetchCount }
+  }
+
+  const qm = createQueryManager()
+
+  // Test 1: Basic fetch + cache
+  const r1 = await qm.query(["data"], () => fakeFetch("/api/data"))
+  console.log("First fetch:", r1.fetchNum)   // 1
+
+  // Test 2: Second call — should use cache (no new fetch)
+  const r2 = await qm.query(["data"], () => fakeFetch("/api/data"))
+  console.log("Second call (cached):", r2.fetchNum)  // 1 — same data, no fetch
+  console.log("Fetch count after 2 calls:", fetchCount)  // still 1
+
+  // Test 3: Deduplication — two simultaneous calls → one fetch
+  fetchCount = 0
+  const qm2 = createQueryManager()
+  const [p1, p2, p3] = await Promise.all([
+    qm2.query(["users"], () => fakeFetch("/api/users")),
+    qm2.query(["users"], () => fakeFetch("/api/users")),
+    qm2.query(["users"], () => fakeFetch("/api/users")),
+  ])
+  console.log("\nDedup test — 3 callers, fetches fired:", fetchCount)  // should be 1
+  console.log("All got same data:", p1.fetchNum === p2.fetchNum && p2.fetchNum === p3.fetchNum)
+
+  // Test 4: After staleTime — background refetch
+  await new Promise(r => setTimeout(r, 600))  // wait for data to go stale
+  fetchCount = 0
+  const stale = await qm.query(["data"], () => fakeFetch("/api/data"))
+  console.log("\nStale-while-revalidate:")
+  console.log("Got stale data immediately (fetchNum=1):", stale.fetchNum === 1)
+  await new Promise(r => setTimeout(r, 80))  // let background refetch complete
+  console.log("Background refetch fired:", fetchCount === 1)  // 1 background fetch
+}
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">async function</span> <span class="fn">query</span>(<span class="var">key</span>, <span class="var">fetcher</span>) {
+  <span class="kw">const</span> <span class="var">k</span>      = <span class="fn">serialize</span>(<span class="var">key</span>)
+  <span class="kw">const</span> <span class="var">cached</span> = <span class="var">cache</span>.<span class="fn">get</span>(<span class="var">k</span>)
+  <span class="kw">const</span> <span class="var">stale</span>  = !<span class="var">cached</span> || (<span class="fn">Date</span>.<span class="fn">now</span>() - <span class="var">cached</span>.<span class="prop">updatedAt</span>) > <span class="var">staleTime</span>
+
+  <span class="kw">if</span> (<span class="var">cached</span> && !<span class="var">stale</span>) <span class="kw">return</span> <span class="var">cached</span>.<span class="prop">data</span>  <span class="cm">// fresh — return immediately</span>
+
+  <span class="kw">if</span> (<span class="var">cached</span> && <span class="var">stale</span>) {
+    <span class="cm">// Stale-while-revalidate: return old, background-refetch</span>
+    <span class="kw">if</span> (!<span class="var">inFlight</span>.<span class="fn">has</span>(<span class="var">k</span>)) {
+      <span class="kw">const</span> <span class="var">p</span> = <span class="fn">fetcher</span>().<span class="fn">then</span>(<span class="var">d</span> => { <span class="var">cache</span>.<span class="fn">set</span>(<span class="var">k</span>,{<span class="prop">data</span>:<span class="var">d</span>,<span class="prop">updatedAt</span>:<span class="fn">Date</span>.<span class="fn">now</span>()}); <span class="var">inFlight</span>.<span class="fn">delete</span>(<span class="var">k</span>) })
+      <span class="var">inFlight</span>.<span class="fn">set</span>(<span class="var">k</span>, <span class="var">p</span>)
+    }
+    <span class="kw">return</span> <span class="var">cached</span>.<span class="prop">data</span>
+  }
+
+  <span class="cm">// No cache — deduplicate in-flight</span>
+  <span class="kw">if</span> (<span class="var">inFlight</span>.<span class="fn">has</span>(<span class="var">k</span>)) <span class="kw">return</span> <span class="var">inFlight</span>.<span class="fn">get</span>(<span class="var">k</span>)
+
+  <span class="kw">const</span> <span class="var">promise</span> = <span class="fn">fetcher</span>().<span class="fn">then</span>(<span class="var">data</span> => {
+    <span class="var">cache</span>.<span class="fn">set</span>(<span class="var">k</span>, { <span class="var">data</span>, <span class="prop">updatedAt</span>: <span class="fn">Date</span>.<span class="fn">now</span>() })
+    <span class="var">inFlight</span>.<span class="fn">delete</span>(<span class="var">k</span>)
+    <span class="kw">return</span> <span class="var">data</span>
+  })
+  <span class="var">inFlight</span>.<span class="fn">set</span>(<span class="var">k</span>, <span class="var">promise</span>)
+  <span class="kw">return</span> <span class="var">promise</span>
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Simulate useMutation — lifecycle callbacks + retry</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>createMutation({ mutationFn, onMutate, onSuccess, onError, onSettled, retry })</code>. It returns <code>{ mutate, state }</code>. The <code>mutate(variables)</code> function runs through all lifecycle callbacks in the right order, and retries on failure up to <code>retry</code> times with exponential backoff.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — useMutation simulator</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">function createMutation({ mutationFn, onMutate, onSuccess, onError, onSettled, retry = 3 }) {
+  let state = { isPending: false, isSuccess: false, isError: false, data: null, error: null }
+  let subscribers = []
+  const notify = () => subscribers.forEach(fn => fn({ ...state }))
+
+  async function mutate(variables) {
+    state = { isPending: true, isSuccess: false, isError: false, data: null, error: null }
+    notify()
+
+    // YOUR CODE:
+    // 1. Call onMutate(variables), capture context
+    // 2. Attempt mutationFn(variables) with retry logic:
+    //    - On failure, wait 2^attempt * 100ms, retry up to `retry` times
+    //    - After max retries, throw final error
+    // 3. On success: update state, call onSuccess(data, variables, context)
+    // 4. On error: update state, call onError(error, variables, context)
+    // 5. Always: call onSettled(data, error, variables, context), set isPending=false
+  }
+
+  function subscribe(fn) { subscribers.push(fn) }
+
+  return { mutate, subscribe, getState: () => ({ ...state }) }
+}
+
+// Test
+async function runTests() {
+  const log = []
+
+  // Test 1: successful mutation
+  let attempts = 0
+  const m = createMutation({
+    mutationFn: async (vars) => {
+      attempts++
+      if (attempts < 2) throw new Error("Transient error")
+      return { id: 1, ...vars }
+    },
+    onMutate:   (v) => { log.push(`onMutate: ${v.text}`); return { rollback: true } },
+    onSuccess:  (d, v, ctx) => log.push(`onSuccess: ${d.id}, ctx.rollback=${ctx.rollback}`),
+    onError:    (e, v, ctx) => log.push(`onError: ${e.message}`),
+    onSettled:  ()  => log.push("onSettled"),
+    retry: 3,
+  })
+  m.subscribe(s => log.push(`state: pending=${s.isPending} success=${s.isSuccess}`))
+
+  await m.mutate({ text: "New todo" })
+
+  console.log("Lifecycle log:")
+  log.forEach(l => console.log(" ", l))
+  console.log("Attempts (should be 2 with retry):", attempts)
+  console.log("Final state:", JSON.stringify(m.getState()))
+
+  // Test 2: permanent failure
+  const log2 = []
+  const m2 = createMutation({
+    mutationFn: async () => { throw new Error("Server error") },
+    onError:    (e) => log2.push(`error: ${e.message}`),
+    onSettled:  ()  => log2.push("settled"),
+    retry: 2,
+  })
+  await m2.mutate({})
+  console.log("\nPermanent failure log:", log2)
+  console.log("isError:", m2.getState().isError)    // true
+  console.log("isPending:", m2.getState().isPending) // false
+}
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">async function</span> <span class="fn">mutate</span>(<span class="var">variables</span>) {
+  <span class="var">state</span> = { <span class="prop">isPending</span>:<span class="kw">true</span>, <span class="prop">isSuccess</span>:<span class="kw">false</span>, <span class="prop">isError</span>:<span class="kw">false</span>, <span class="prop">data</span>:<span class="kw">null</span>, <span class="prop">error</span>:<span class="kw">null</span> }; <span class="fn">notify</span>()
+  <span class="kw">const</span> <span class="var">context</span> = <span class="kw">await</span> <span class="var">onMutate</span>?.(<span class="var">variables</span>)
+
+  <span class="kw">let</span> <span class="var">lastError</span>
+  <span class="kw">for</span> (<span class="kw">let</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> <= <span class="var">retry</span>; <span class="var">i</span>++) {
+    <span class="kw">try</span> {
+      <span class="kw">if</span> (<span class="var">i</span> > <span class="num">0</span>) <span class="kw">await</span> <span class="kw">new</span> <span class="fn">Promise</span>(<span class="var">r</span> => <span class="fn">setTimeout</span>(<span class="var">r</span>, <span class="num">2</span>**<span class="var">i</span>*<span class="num">100</span>))
+      <span class="kw">const</span> <span class="var">data</span> = <span class="kw">await</span> <span class="fn">mutationFn</span>(<span class="var">variables</span>)
+      <span class="var">state</span> = { <span class="prop">isPending</span>:<span class="kw">false</span>, <span class="prop">isSuccess</span>:<span class="kw">true</span>, <span class="prop">isError</span>:<span class="kw">false</span>, <span class="var">data</span>, <span class="prop">error</span>:<span class="kw">null</span> }; <span class="fn">notify</span>()
+      <span class="kw">await</span> <span class="var">onSuccess</span>?.(<span class="var">data</span>, <span class="var">variables</span>, <span class="var">context</span>)
+      <span class="kw">await</span> <span class="var">onSettled</span>?.(<span class="var">data</span>, <span class="kw">null</span>, <span class="var">variables</span>, <span class="var">context</span>)
+      <span class="kw">return</span>
+    } <span class="kw">catch</span> (<span class="var">e</span>) { <span class="var">lastError</span> = <span class="var">e</span> }
+  }
+  <span class="var">state</span> = { <span class="prop">isPending</span>:<span class="kw">false</span>, <span class="prop">isSuccess</span>:<span class="kw">false</span>, <span class="prop">isError</span>:<span class="kw">true</span>, <span class="prop">data</span>:<span class="kw">null</span>, <span class="prop">error</span>:<span class="var">lastError</span> }; <span class="fn">notify</span>()
+  <span class="kw">await</span> <span class="var">onError</span>?.(<span class="var">lastError</span>, <span class="var">variables</span>, <span class="var">context</span>)
+  <span class="kw">await</span> <span class="var">onSettled</span>?.(<span class="kw">null</span>, <span class="var">lastError</span>, <span class="var">variables</span>, <span class="var">context</span>)
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Optimistic update pattern — apply, succeed, or roll back</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement the full optimistic update flow for a todo toggle. The UI updates instantly, and either commits (server success) or rolls back (server failure). Show the three state transitions: snapshot → apply → commit/rollback.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — optimistic update</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">// Simplified cache with optimistic update support
+function createOptimisticCache() {
+  let todos = [
+    { id:1, text:"Buy milk",    done:false },
+    { id:2, text:"Walk dog",    done:false },
+    { id:3, text:"Read a book", done:true  },
+  ]
+
+  function getAll()       { return [...todos] }
+  function setAll(items)  { todos = items }
+
+  // Optimistic toggle — YOUR CODE:
+  // Returns a rollback function. Applies toggle immediately.
+  function optimisticToggle(id) {
+    // YOUR CODE:
+    // 1. Snapshot current state
+    // 2. Apply toggle immediately (mutate todos)
+    // 3. Return { snapshot, rollback: fn } where rollback restores snapshot
+  }
+
+  return { getAll, setAll, optimisticToggle }
+}
+
+async function mockToggleAPI(id, fail = false) {
+  await new Promise(r => setTimeout(r, 50))
+  if (fail) throw new Error("Server error")
+  return { id, toggled: true }
+}
+
+// Test
+async function runTests() {
+  const cache = createOptimisticCache()
+
+  console.log("=== Optimistic update — SUCCESS ===")
+  const before = cache.getAll().find(t => t.id === 1).done
+  console.log("Before:", before)   // false
+
+  const { rollback } = cache.optimisticToggle(1)
+  console.log("After optimistic:", cache.getAll().find(t => t.id === 1).done)  // true — instant!
+
+  try {
+    await mockToggleAPI(1, false)   // success
+    console.log("Server confirmed — keep optimistic:", cache.getAll().find(t=>t.id===1).done)  // true
+  } catch(e) {
+    rollback()
+  }
+
+  console.log("\n=== Optimistic update — ROLLBACK ===")
+  const before2 = cache.getAll().find(t => t.id === 2).done
+  console.log("Before:", before2)   // false
+
+  const { rollback: rollback2 } = cache.optimisticToggle(2)
+  console.log("After optimistic:", cache.getAll().find(t => t.id === 2).done)  // true — instant!
+
+  try {
+    await mockToggleAPI(2, true)   // fail!
+    console.log("Should not reach here")
+  } catch(e) {
+    rollback2()
+    console.log("Rolled back to:", cache.getAll().find(t => t.id === 2).done)  // false — restored!
+  }
+
+  console.log("\nFinal state:", cache.getAll().map(t => `${t.text}:${t.done}`))
+  // todo1 done=true, todo2 done=false (rolled back), todo3 done=true
+}
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+    <button class="sol-toggle" onclick="toggleSol(this)"><span class="arrow">▶</span> reveal solution</button>
+    <div class="sol-content">
+      <div class="cb" style="margin-top:14px;"><div class="cb-body"><pre><span class="kw">function</span> <span class="fn">optimisticToggle</span>(<span class="var">id</span>) {
+  <span class="kw">const</span> <span class="var">snapshot</span> = [...<span class="var">todos</span>]                          <span class="cm">// save current state</span>
+  <span class="var">todos</span> = <span class="var">todos</span>.<span class="fn">map</span>(<span class="var">t</span> => <span class="var">t</span>.<span class="prop">id</span> === <span class="var">id</span> ? {...<span class="var">t</span>, <span class="prop">done</span>:!<span class="var">t</span>.<span class="prop">done</span>} : <span class="var">t</span>)  <span class="cm">// apply</span>
+  <span class="kw">return</span> {
+    <span class="var">snapshot</span>,
+    <span class="fn">rollback</span>: () => { <span class="var">todos</span> = <span class="var">snapshot</span> }               <span class="cm">// restore on error</span>
+  }
+}</pre></div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Refactor useFetch to useQuery — compare patterns</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Show the concrete migration from the manual <code>useFetch</code> pattern (Week 2) to <code>useQuery</code> (Week 3). Implement both approaches for the same feature — user profile + their posts — and count the lines saved and features gained. This is what you'll do tonight with the Day 13 app.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — useFetch vs useQuery comparison</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">// Simulate both patterns, count requests and features
+
+let requestLog = []
+async function mockAPI(url) {
+  requestLog.push(url)
+  await new Promise(r => setTimeout(r, 20))
+  if (url.includes("bad")) throw new Error("404 Not Found")
+  if (url.includes("/users/")) return { id: 1, name: "Alice", email: "alice@test.com" }
+  if (url.includes("/posts/")) return [{ id:1, title:"Post A" }, { id:2, title:"Post B" }]
+  return null
+}
+
+// ── WEEK 2: Manual useFetch equivalent ────────────────────
+async function manualFetchUser(userId) {
+  // Needs: useState×3, useEffect, AbortController, error handling
+  // No caching, no retry, no dedup, no background refetch
+  let data = null, loading = true, error = null
+  try {
+    data = await mockAPI(`/api/users/${userId}`)
+  } catch(e) { error = e.message }
+  finally    { loading = false }
+  return { data, loading, error }
+}
+
+// ── WEEK 3: useQuery equivalent ────────────────────────────
+const queryCache = new Map()
+async function simulatedUseQuery(key, fetcher, options = {}) {
+  const k     = JSON.stringify(key)
+  const retry = options.retry ?? 3
+
+  if (queryCache.has(k)) return { data: queryCache.get(k), isLoading: false, isError: false, error: null }
+
+  let lastErr
+  for (let i = 0; i <= retry; i++) {
+    try {
+      if (i > 0) await new Promise(r => setTimeout(r, 2**i * 10))
+      const data = await fetcher()
+      queryCache.set(k, data)
+      return { data, isLoading: false, isError: false, error: null }
+    } catch(e) { lastErr = e }
+  }
+  return { data: null, isLoading: false, isError: true, error: lastErr }
+}
+
+// Test 1: Basic fetch comparison
+requestLog = []
+const manual = await manualFetchUser(1)
+console.log("Manual result:", manual.data?.name, "| Error:", manual.error)
+console.log("Manual requests:", requestLog.length)
+
+requestLog = []
+const rq = await simulatedUseQuery(["user", 1], () => mockAPI("/api/users/1"))
+console.log("\nRQ result:", rq.data?.name, "| isError:", rq.isError)
+
+// Test 2: Caching — second call should NOT hit network
+const rq2 = await simulatedUseQuery(["user", 1], () => mockAPI("/api/users/1"))
+console.log("Second call requests (should be 0):", requestLog.length)  // 0 — cached!
+
+// Test 3: Retry on failure
+requestLog = []
+let badAttempts = 0
+const rqBad = await simulatedUseQuery(
+  ["bad-user"],
+  async () => { badAttempts++; return mockAPI("/api/bad") },
+  { retry: 2 }
+)
+console.log("\nRetry test — attempts:", badAttempts)  // 3 (initial + 2 retries)
+console.log("isError:", rqBad.isError, "| error:", rqBad.error?.message)
+
+// Feature comparison
+console.log("\n=== Feature comparison ===")
+const features = [
+  ["Auto caching",          false, true ],
+  ["Request dedup",         false, true ],
+  ["Background refetch",    false, true ],
+  ["Automatic retry",       false, true ],
+  ["Window focus refetch",  false, true ],
+  ["AbortController",       true,  true ],
+  ["Loading state",         true,  true ],
+  ["Error state",           true,  true ],
+]
+features.forEach(([f, manual, rq]) =>
+  console.log(`${f}: Manual=${manual?"✓":"✗"} | React Query=${rq?"✓":"✗"}`)
+)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Build a mini React Query — full integration</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Combine the cache (Ex 1), query manager (Ex 2), and mutation (Ex 3) into a single <code>createMiniReactQuery()</code>. It should expose <code>useQuery(key, fetcher, opts)</code> and <code>useMutation(opts)</code>, share one cache, and ensure mutations can invalidate cached queries after success.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — mini React Query</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">function createMiniReactQuery() {
+  // Shared cache
+  const cache     = new Map()  // key → { data, updatedAt }
+  const inFlight  = new Map()  // key → Promise
+  const staleTime = 500
+
+  function serialize(key) { return JSON.stringify(key) }
+
+  async function useQuery(key, fetcher, opts = {}) {
+    const k      = serialize(key)
+    const cached = cache.get(k)
+    const stale  = !cached || (Date.now() - cached.updatedAt) > (opts.staleTime ?? staleTime)
+
+    if (cached && !stale) return { data: cached.data, isLoading: false, isError: false }
+    if (inFlight.has(k))  return inFlight.get(k).then(data => ({ data, isLoading: false, isError: false }))
+
+    const p = fetcher()
+      .then(data => { cache.set(k, { data, updatedAt: Date.now() }); inFlight.delete(k); return data })
+      .catch(e  => { inFlight.delete(k); throw e })
+    inFlight.set(k, p)
+
+    try {
+      const data = await p
+      return { data, isLoading: false, isError: false, error: null }
+    } catch(e) {
+      return { data: null, isLoading: false, isError: true, error: e }
+    }
+  }
+
+  function invalidateQueries(key) {
+    const prefix = serialize([key[0]])
+    for (const k of cache.keys()) {
+      if (k.includes(JSON.stringify(key[0]))) cache.delete(k)
+    }
+  }
+
+  function useMutation({ mutationFn, onSuccess, onError, onSettled, retry = 3 }) {
+    let state = { isPending: false, isSuccess: false, isError: false }
+
+    async function mutate(variables) {
+      state = { isPending: true, isSuccess: false, isError: false }
+      let lastErr
+      for (let i = 0; i <= retry; i++) {
+        try {
+          if (i > 0) await new Promise(r => setTimeout(r, 2**i * 50))
+          const data = await mutationFn(variables)
+          state = { isPending: false, isSuccess: true, isError: false, data }
+          await onSuccess?.(data, variables)
+          await onSettled?.(data, null)
+          return data
+        } catch(e) { lastErr = e }
+      }
+      state = { isPending: false, isSuccess: false, isError: true, error: lastErr }
+      await onError?.(lastErr, variables)
+      await onSettled?.(null, lastErr)
+      throw lastErr
+    }
+
+    return { mutate, getState: () => ({ ...state }) }
+  }
+
+  return { useQuery, useMutation, invalidateQueries, getCache: () => cache }
+}
+
+// Full integration test
+async function runIntegration() {
+  const rq = createMiniReactQuery()
+  let apiCalls = 0
+
+  const fakeTodos = [
+    { id:1, text:"Buy milk", done:false },
+    { id:2, text:"Walk dog", done:false },
+  ]
+
+  async function fetchTodos() {
+    apiCalls++
+    await new Promise(r => setTimeout(r, 20))
+    return [...fakeTodos]
+  }
+
+  async function createTodo(text) {
+    await new Promise(r => setTimeout(r, 20))
+    const newTodo = { id: fakeTodos.length + 1, text, done: false }
+    fakeTodos.push(newTodo)
+    return newTodo
+  }
+
+  // Query todos
+  const r1 = await rq.useQuery(["todos"], fetchTodos)
+  console.log("Todos:", r1.data.map(t=>t.text))  // Buy milk, Walk dog
+  console.log("API calls:", apiCalls)              // 1
+
+  // Query again — cached
+  await rq.useQuery(["todos"], fetchTodos)
+  console.log("API calls after 2nd query (cached):", apiCalls)  // still 1
+
+  // Mutation + invalidation
+  const addTodo = rq.useMutation({
+    mutationFn: createTodo,
+    onSuccess: async () => {
+      rq.invalidateQueries(["todos"])  // clear cache
+      console.log("Cache cleared after mutation")
+    }
+  })
+
+  await addTodo.mutate("Read a book")
+  console.log("Mutation success:", addTodo.getState().isSuccess)  // true
+
+  // Re-query — cache was invalidated, so refetches
+  const r2 = await rq.useQuery(["todos"], fetchTodos)
+  console.log("API calls after mutation+invalidate:", apiCalls)   // 2 (refetched)
+  console.log("Updated todos:", r2.data.map(t=>t.text))
+  // Buy milk, Walk dog, Read a book
+}
+
+runIntegration()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">What is the difference between server state and client state?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><strong>Client state</strong> is data your application owns and controls — UI toggles, form inputs, dark mode, modal visibility. It lives in memory, only your app changes it, and it's synchronous. <code>useState</code> and <code>useReducer</code> are the right tools.<br><br><strong>Server state</strong> is data that lives on a remote server — user profiles, products, orders. You don't own it — anyone with API access can change it. It's asynchronous (network required), potentially stale (your copy may be outdated), and needs synchronisation with the real source of truth.<br><br>The mistake is treating server state like client state — using <code>useState</code> with manual fetch logic. This leads to writing the same boilerplate (loading, error, abort, retry, cache) in every component. React Query is specifically designed for server state management.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">What does React Query give you that useEffect + fetch doesn't?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">React Query provides several behaviours you'd have to build manually: <strong>automatic caching</strong> keyed by query key — the same data isn't refetched if it's still fresh. <strong>Request deduplication</strong> — if two components mount simultaneously and request the same data, one network request fires and both get the result. <strong>Background refetch</strong> on window focus — stale data is silently refreshed when the user returns to the tab. <strong>Automatic retry</strong> on network failures. <strong>Stale-while-revalidate</strong> — show cached data immediately while refetching, preventing loading spinners on revisits. <strong>Race condition protection</strong> built in. Plus DevTools for inspecting the cache state.</div>
+    <div class="tip-box">Strong answer: quantify it — "In our app, switching from manual fetch to React Query removed about 30 lines of boilerplate per data-fetching component and fixed three bugs: a race condition on fast navigation, duplicate requests on re-mount, and stale data after mutations."</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">What are query keys and why should they be arrays?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Query keys are the unique identifiers for each cached entry. React Query serialises them to match cached data to query calls, decide when to refetch (key changed = new data needed), and target invalidation.<br><br>Arrays are recommended over strings because they support <strong>hierarchical invalidation</strong>. Invalidating <code>["todos"]</code> automatically invalidates <code>["todos", "list"]</code>, <code>["todos", 42]</code>, and any other key starting with <code>"todos"</code>. With plain strings you'd need to manually enumerate every variant.<br><br>React Query also does <strong>deep comparison</strong> of array elements — object order doesn't matter within a key element, so <code>["todos", { status:"done", page:1 }]</code> equals <code>["todos", { page:1, status:"done" }]</code>. The best practice is a key factory object that constructs keys consistently to avoid typos.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">What is stale-while-revalidate and why does it matter for UX?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Stale-while-revalidate means: show the cached (possibly outdated) data immediately, while simultaneously fetching a fresh version in the background. When the fresh data arrives, the UI updates — often with no visible loading state at all.<br><br>The UX impact is significant: users see content instantly on revisit instead of a loading spinner. The trade-off is that they might see momentarily stale data — but for most data (user profiles, product lists), a brief period of stale data is far better than a loading state on every navigation.<br><br>React Query implements this via <code>staleTime</code> — data younger than <code>staleTime</code> is "fresh" (no refetch). Data older is "stale" (refetch in background but still return immediately). Setting <code>staleTime: Infinity</code> disables background refetch entirely; <code>staleTime: 0</code> means always refetch but still show old data while doing so.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">What is the difference between isLoading and isFetching?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>isLoading</code> (also called <code>isPending</code> in v5) is true only on the <strong>first fetch</strong> — when there's no cached data yet and the query is in flight. It represents the "blank state" — show a skeleton or spinner here.<br><br><code>isFetching</code> is true during <strong>any</strong> network request, including background refetches of stale data when there's already cached data to display. Use this for subtle "refreshing" indicators — a small spinner in a corner, a faded overlay — that don't disrupt the existing content.<br><br>Pattern: use <code>isLoading</code> for the initial empty skeleton, use <code>isFetching && !isLoading</code> for the background refresh indicator. Treating them the same causes the dreaded "skeleton flash" where a fully-loaded list briefly disappears while silently refreshing.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">When would you use useMutation vs just calling fetch directly?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>useMutation</code> adds several things on top of a plain fetch call: it manages <strong>mutation state</strong> (<code>isPending</code>, <code>isSuccess</code>, <code>isError</code>, <code>data</code>, <code>error</code>) so you don't need separate state variables. It provides <strong>lifecycle callbacks</strong> (<code>onMutate</code>, <code>onSuccess</code>, <code>onError</code>, <code>onSettled</code>) in the right order. And critically, it integrates with the <strong>query cache</strong> — in <code>onSuccess</code> you call <code>invalidateQueries</code> to trigger refetches of affected queries.<br><br>Call fetch directly when the mutation doesn't affect any cached query data and you don't need loading/error state in the UI. <code>useMutation</code> is worth it whenever you need to update the cache, show a loading indicator, handle errors consistently, or implement optimistic updates.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">How do you handle dependent queries — fetching B only after A succeeds?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Use the <code>enabled</code> option: pass a boolean that's false until the dependency is available. React Query will not fire the query until <code>enabled</code> becomes true.<br><br><code>const { data: user } = useQuery({ queryKey: ["user", id], queryFn: fetchUser })</code><br><code>const { data: posts } = useQuery({ queryKey: ["posts", user?.id], queryFn: () => fetchPosts(user.id), enabled: !!user })</code><br><br>When <code>user</code> is undefined (first fetch still in progress), <code>enabled: !!user</code> is false — the posts query waits. Once user data arrives, <code>enabled</code> becomes true and the posts query fires automatically. The query key includes <code>user?.id</code> — when it changes (different user), posts automatically refetch for the new user.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">What is an optimistic update and when should you use one?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">An optimistic update immediately applies a change to the local cache before the server confirms it — making the UI feel instant. If the server succeeds, the optimistic state is confirmed. If it fails, the previous state is restored (rolled back) from a snapshot taken before the update.<br><br>The React Query pattern: in <code>onMutate</code>, cancel in-flight queries, save a snapshot with <code>getQueryData</code>, apply the change with <code>setQueryData</code>, and return the snapshot as context. In <code>onError</code>, call <code>setQueryData</code> with the snapshot. In <code>onSettled</code>, invalidate to sync with server truth.<br><br>Use optimistic updates for <strong>high-frequency, reversible actions</strong> — checkbox toggles, like buttons, reordering. Don't use them for destructive or irreversible actions (deleting an account, processing a payment) where a brief loading state is worth the certainty.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">What is gcTime (formerly cacheTime) and how does it differ from staleTime?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>staleTime</code> controls when data is considered outdated and should be refetched. Data younger than <code>staleTime</code> is "fresh" — no refetch. Older is "stale" — will be refetched on next mount/focus but still returned immediately.<br><br><code>gcTime</code> (garbage collection time) controls how long <strong>unused</strong> cache entries are kept in memory before being deleted entirely. When the last component subscribed to a query unmounts, a countdown starts. If no component resubscribes within <code>gcTime</code> (default: 5 minutes), the entry is removed from the cache.<br><br>Practical difference: <code>staleTime: 60000</code> means a user navigating back within 1 minute sees instantly-rendered stale data that quietly refetches. <code>gcTime: 0</code> would throw away the cache the moment they leave — they'd see a loading state on return. Usually <code>gcTime > staleTime</code> is the right configuration.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">How does React Query compare to Redux for data fetching?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">They solve different problems. Redux is a general-purpose client state manager — it's good for complex UI state, undo/redo, and state that needs to be shared globally across many components. It has no concept of "staleness", caching with expiry, or background refresh.<br><br>React Query is specifically designed for <strong>server state</strong> — async data that lives on a remote server. It handles caching, background updates, deduplication, and synchronisation automatically. It's not a replacement for Redux for client state; it's a replacement for the Redux patterns people used to fetch server data (Redux Thunk, Redux Saga, RTK Query).<br><br>The modern recommendation: use React Query for all server state (API calls), and local state/context for client state (UI, auth). This removes 80% of the Redux boilerplate that previously existed just to manage remote data.</div>
+    <div class="tip-box">Mark Erikson (Redux maintainer) himself recommends using React Query or RTK Query for server state and using Redux only for genuinely complex client state. RTK Query is Redux Toolkit's built-in answer to React Query if you're already using Redux.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Night review · 22:00–23:20</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">review</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can explain or implement without reference. Tonight: refactor your Day 13 app to use React Query.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain server state vs client state and give 3 examples of each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can set up <code>QueryClient</code> and <code>QueryClientProvider</code> in <code>main.jsx</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can call <code>useQuery</code> with a key and fetcher, and handle all three states (loading, error, success)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between <code>isLoading</code> and <code>isFetching</code> — and when to use each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain stale-while-revalidate and what <code>staleTime</code> controls</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use a query key factory and explain hierarchical invalidation</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a <code>useMutation</code> with <code>onSuccess</code> → <code>invalidateQueries</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the optimistic update pattern: snapshot → apply → commit/rollback</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement a dependent query using the <code>enabled</code> option</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use invalidation vs direct cache write vs optimistic update</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed exercises 1, 2, and 6 today (cache, dedup/stale, full integration)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I replaced at least one <code>useFetch</code> from Day 13 with <code>useQuery</code> in my Vite app</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I installed React Query DevTools and can inspect cache entries in the browser</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My code is committed and pushed to GitHub</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(255,65,84,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--rq);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank Vite file, no reference</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Set up <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);">QueryClient</code> + <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);">QueryClientProvider</code> with <code>staleTime: 5 * 60_000</code><br>
+      2. Write a <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);">useProducts(filters)</code> hook using <code>useQuery</code> — key includes filters object, show loading/error/data<br>
+      3. Write a <code style="font-family:monospace;font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--rq);">useCreateTodo</code> mutation hook that invalidates <code>["todos"]</code> on success<br>
+      4. Write the optimistic toggle pattern for a todo — snapshot, apply, commit/rollback
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 3 · Day 14</div>
+      <div class="footer-day-name">React Query Fundamentals</div>
+      <div class="footer-day-next">Next up: <strong>Day 15 — Advanced React Query: Pagination, Infinite Scroll &amp; Mutations</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 3 progress</span><span>Day 1 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:14%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day13_week2_review.html',13)">← Day 13</button>
+      <button class="footer-btn primary" onclick="navigateTo('day15_react_query_advanced.html',15)">Day 15 — Advanced RQ →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN = [
+  {num:1,  file:"day1_javascript_fundamentals.html"},
+  {num:2,  file:"day2_javascript_arrays_objects.html"},
+  {num:3,  file:"day3_functions_async_js.html"},
+  {num:4,  file:"day4_dom_events_classes.html"},
+  {num:5,  file:"day5_dom_events_classes.html"},
+  {num:6,  file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,  file:"day7_week1_review_project.html"},
+  {num:8,  file:"day8_react_essentials.html"},
+  {num:9,  file:"day9_react_state_events.html"},
+  {num:10, file:"day10_react_hooks.html"},
+  {num:11, file:"day11_react_router.html"},
+  {num:12, file:"day12_context_global_state.html"},
+  {num:13, file:"day13_week2_review.html"},
+  {num:14, file:"day14_react_query.html", current:true},
+]
+const CURRENT   = 14
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html",
+])
+
+function navigateTo(file,n){
+  if(AVAILABLE.has(file)) window.location.href=file
+  else showToast(`Day ${n} coming soon — keep going! ⚡`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleSol(btn){
+  const c=btn.nextElementSibling,a=btn.querySelector('.arrow'),open=c.classList.toggle('open')
+  a.style.transform=open?'rotate(90deg)':'';btn.style.color=open?'var(--text)':''
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur='';secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>
