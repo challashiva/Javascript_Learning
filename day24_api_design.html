@@ -5,24 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Day 24 — API Design &amp; REST</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link defer href="assets/css/components.css"  rel="stylesheet">
+<link defer href="assets/css/base.css" rel="stylesheet">
 <style>
-:root{
-  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
-  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
-  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
-  --api:#f97316;--api-dim:rgba(249,115,22,0.09);
-  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
-  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
-  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
-  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
-  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
-  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
-  --emerald:#10b981;--emerald-dim:rgba(16,185,129,0.09);
-  --indigo:#6366f1;--indigo-dim:rgba(99,102,241,0.09);
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
-code,pre{font-family:'JetBrains Mono',monospace;}
 
 .nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
 .nav-brand{font-size:13px;font-weight:700;color:var(--api);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}

@@ -5,24 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Day 9 — React State, Events & Controlled Inputs</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link defer href="assets/css/components.css" rel="stylesheet">
+<link defer href="assets/css/base.css" rel="stylesheet">
 <style>
-:root{
-  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
-  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
-  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
-  --react:#61dafb;--react-dim:rgba(97,218,251,0.09);
-  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
-  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
-  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
-  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
-  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
-  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
-  --pink:#f472b6;--pink-dim:rgba(244,114,182,0.09);
-  --js:#f7df1e;--js-dim:rgba(247,223,30,0.09);
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
-code,pre{font-family:'JetBrains Mono',monospace;}
 
 .nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
 .nav-brand{font-size:13px;font-weight:700;color:var(--react);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
@@ -1558,13 +1543,15 @@ const DAY_PLAN = [
   {num:7,file:"day7_week1_review_project.html",             label:"Week 1 Review",     week:1},
   {num:8,file:"day8_react_essentials.html",                 label:"React Essentials",  week:2},
   {num:9,file:"day9_react_state_events.html",               label:"State & Events",    week:2,current:true},
+  {num:10,file:"day10_react_hooks.html",                     label:"React Hooks",       week:2},
+
 ]
 const CURRENT  = 9
 const AVAILABLE = new Set([
   "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
   "day3_functions_async_js.html","day5_dom_events_classes.html",
   "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
-  "day8_react_essentials.html","day9_react_state_events.html",
+  "day8_react_essentials.html","day9_react_state_events.html","day10_react_hooks.html"
 ])
 
 function navigateTo(file,dayNum){

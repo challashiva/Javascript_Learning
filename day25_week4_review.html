@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 25 — Week 4 Review Project</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link defer href="assets/css/components.css"  rel="stylesheet">
+<link defer href="assets/css/base.css" rel="stylesheet">
+<style>
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--accent);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--accent);font-weight:600;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;display:inline-block;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--accent);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--accent-dim);color:var(--accent);border-color:rgba(245,158,11,.3);}
+.day-btn.primary:hover{background:rgba(245,158,11,.18);}
+
+.week-banner{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(251,191,36,.05));border-bottom:1px solid var(--border);padding:14px 48px;}
+.week-banner-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.week-badge{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(245,158,11,.3);white-space:nowrap;}
+.week-text{font-size:13px;color:var(--muted);}
+.week-text strong{color:var(--text);}
+
+.hero{padding:56px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--accent);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--accent);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+
+.badge-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px;}
+.badge{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 14px;border-radius:20px;border:1px solid var(--border2);display:flex;align-items:center;gap:6px;}
+
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:4px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:4px;background:linear-gradient(90deg,var(--accent),var(--amber));border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--accent-dim);color:var(--accent);border-color:rgba(245,158,11,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.w4-recap{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:22px;}
+.recap-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:8px;}
+.recap-day{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.recap-title{font-size:15px;font-weight:700;}
+.recap-bullets{list-style:none;display:flex;flex-direction:column;gap:4px;}
+.recap-bullets li{font-size:12px;color:var(--muted);display:flex;align-items:baseline;gap:7px;line-height:1.5;}
+.recap-bullets li::before{content:'→';color:var(--hint);font-size:10px;flex-shrink:0;}
+.recap-bullets li strong{color:var(--text);font-weight:500;}
+
+.build-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:14px 0;}
+.build-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.build-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.build-icon{font-size:18px;}
+.build-title{font-size:14px;font-weight:700;flex:1;}
+.build-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.build-body{padding:14px 18px;}
+.build-task{font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.65;}
+.build-task strong{color:var(--text);font-weight:500;}
+.build-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);}
+.build-steps{list-style:none;display:flex;flex-direction:column;gap:5px;}
+.build-steps li{font-size:12px;color:var(--muted);display:flex;align-items:baseline;gap:8px;}
+.build-steps li span{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);flex-shrink:0;}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--accent);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+.ty{color:#38bdf8;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(245,158,11,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(245,158,11,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:180px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(245,158,11,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.challenge{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ch-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ch-num{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+.ch-title{font-size:14px;font-weight:700;flex:1;}
+.ch-layer{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ch-body{padding:18px 20px;}
+.ch-desc{font-size:13px;color:var(--text);margin-bottom:14px;line-height:1.7;}
+.ch-desc code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);}
+.ch-acceptance{background:var(--surface3);border-radius:10px;padding:13px 16px;font-size:12px;color:var(--muted);}
+.ch-acceptance strong{color:var(--text);font-size:12px;font-weight:600;display:block;margin-bottom:6px;font-family:'JetBrains Mono',monospace;letter-spacing:.05em;text-transform:uppercase;}
+.ch-acceptance ul{list-style:none;display:flex;flex-direction:column;gap:4px;}
+.ch-acceptance li{display:flex;align-items:baseline;gap:7px;}
+.ch-acceptance li::before{content:'✓';color:var(--green);font-size:10px;flex-shrink:0;}
+
+.week-summary{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.ws-head{padding:16px 22px;background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(251,191,36,.05));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ws-icon{font-size:20px;}
+.ws-title{font-size:16px;font-weight:700;}
+.ws-sub{font-size:12px;color:var(--muted);}
+.ws-body{padding:20px 22px;}
+.ws-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.ws-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.ws-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;}
+.ws-val{font-size:13px;color:var(--text);line-height:1.6;}
+.ws-val code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--accent);border-color:var(--accent);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #000;border-bottom:2px solid #000;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--accent);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(251,191,36,.05));border:1px solid rgba(245,158,11,.2);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--accent-dim);color:var(--accent);border-color:rgba(245,158,11,.3);}
+.footer-btn.primary:hover{background:rgba(245,158,11,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:linear-gradient(90deg,var(--accent),var(--amber));border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav,.week-banner{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 25 · Week 4 Review</div>
+  <a href="#recap">Week Recap</a>
+  <a href="#project">The Project</a>
+  <a href="#schema">Schema</a>
+  <a href="#auth">Auth Layer</a>
+  <a href="#api">API Layer</a>
+  <a href="#challenges">Challenges</a>
+  <a href="#integration">Integration</a>
+  <a href="#checklist">Checklist</a>
+</nav>
+
+<div class="week-banner">
+  <div class="week-banner-inner">
+    <span class="week-badge">Week 4 complete</span>
+    <span class="week-text"><strong>Days 20–24 in one project</strong> — Next.js App Router + Clerk Auth + Prisma + REST API design. Ship the whole stack end-to-end today.</span>
+  </div>
+</div>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 4 · <span>Day 25 of 56</span> · Week 4 Review Project</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="display:flex;gap:5px;align-items:center;" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day24_api_design.html',24)">← Day 24</button>
+      <button class="day-btn primary" onclick="navigateTo('day26_week4_day6.html',26)">Day 26 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 4 · Day 25 · Full-stack review</div>
+  <h1>Week 4<br><em>Review Project</em></h1>
+  <p class="hero-sub">Five days of foundations come together in one real app: ShopCo — a full-stack Next.js e-commerce platform with Clerk auth, a Prisma database, a RESTful API, server components, server actions, and every pattern from Days 20–24.</p>
+
+  <div class="badge-row">
+    <span class="badge" style="border-color:rgba(226,232,240,.15);color:var(--nxt);">▲ Next.js App Router</span>
+    <span class="badge" style="border-color:rgba(108,71,255,.3);color:var(--clerk);">🔐 Clerk Auth</span>
+    <span class="badge" style="border-color:rgba(99,102,241,.3);color:var(--indigo);">🗃 Prisma + PostgreSQL</span>
+    <span class="badge" style="border-color:rgba(249,115,22,.3);color:var(--api);">🛣 REST API</span>
+    <span class="badge" style="border-color:rgba(16,185,129,.3);color:var(--emerald);">🚀 Deployed on Vercel</span>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">5</div><div class="hstat-lbl">days reviewed</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">build challenges</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable tests</div></div>
+    <div class="hstat"><div class="hstat-num">Full</div><div class="hstat-lbl">stack deploy</div></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 25 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Week recap</span>
+    <span class="tdot" onclick="markDone(this)">Schema design</span>
+    <span class="tdot" onclick="markDone(this)">Auth setup</span>
+    <span class="tdot" onclick="markDone(this)">API layer</span>
+    <span class="tdot" onclick="markDone(this)">Server components</span>
+    <span class="tdot" onclick="markDone(this)">Server actions</span>
+    <span class="tdot" onclick="markDone(this)">Challenge 1</span>
+    <span class="tdot" onclick="markDone(this)">Challenge 2</span>
+    <span class="tdot" onclick="markDone(this)">Challenge 3</span>
+    <span class="tdot" onclick="markDone(this)">Challenge 4</span>
+    <span class="tdot" onclick="markDone(this)">Challenge 5</span>
+    <span class="tdot" onclick="markDone(this)">Challenge 6</span>
+    <span class="tdot" onclick="markDone(this)">Integration test</span>
+    <span class="tdot" onclick="markDone(this)">Deployed</span>
+  </div>
+</div>
+
+<!-- 01. WEEK RECAP -->
+<div class="section" id="recap">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Week 4 recap — five days, one stack</span>
+    <span class="sec-badge" style="background:var(--accent-dim);color:var(--accent);">days 20–24</span>
+  </div>
+
+  <div class="w4-recap">
+    <div class="recap-card" style="border-color:rgba(16,185,129,.2);">
+      <div class="recap-day" style="color:var(--emerald);">Day 20 · Advanced Patterns</div>
+      <div class="recap-title">React Architecture</div>
+      <ul class="recap-bullets">
+        <li><strong>Compound components</strong> — Context + static sub-components</li>
+        <li><strong>Render props</strong> — delegate rendering to the caller</li>
+        <li><strong>HOCs + compose</strong> — withAuth, withAnalytics</li>
+        <li><strong>State machines</strong> — useReducer with explicit transitions</li>
+        <li><strong>Portals</strong> — modals, toasts outside the tree</li>
+        <li><strong>Error boundaries</strong> — getDerivedStateFromError</li>
+      </ul>
+    </div>
+    <div class="recap-card" style="border-color:rgba(226,232,240,.15);">
+      <div class="recap-day" style="color:var(--nxt);">Day 21 · Next.js App Router</div>
+      <div class="recap-title">Full-stack React</div>
+      <ul class="recap-bullets">
+        <li><strong>File routing</strong> — page.tsx, layout.tsx, loading.tsx</li>
+        <li><strong>Server vs Client</strong> — async server, "use client" boundary</li>
+        <li><strong>Data fetching</strong> — fetch() cache, revalidate, no-store</li>
+        <li><strong>Server Actions</strong> — "use server", FormData, revalidatePath</li>
+        <li><strong>Streaming</strong> — Suspense, loading.tsx, skeleton UI</li>
+        <li><strong>Middleware</strong> — auth guard, redirect, route matcher</li>
+      </ul>
+    </div>
+    <div class="recap-card" style="border-color:rgba(108,71,255,.2);">
+      <div class="recap-day" style="color:var(--clerk);">Day 22 · Auth with Clerk</div>
+      <div class="recap-title">Production Auth</div>
+      <ul class="recap-bullets">
+        <li><strong>ClerkProvider + middleware</strong> — wrap + protect routes</li>
+        <li><strong>Pre-built UI</strong> — SignIn, SignUp, UserButton</li>
+        <li><strong>Client hooks</strong> — useUser, useAuth, useClerk</li>
+        <li><strong>Server auth</strong> — auth(), currentUser()</li>
+        <li><strong>RBAC</strong> — publicMetadata roles, sessionClaims</li>
+        <li><strong>Webhooks</strong> — svix verify, user.created → DB sync</li>
+      </ul>
+    </div>
+    <div class="recap-card" style="border-color:rgba(99,102,241,.2);">
+      <div class="recap-day" style="color:var(--indigo);">Day 23 · Prisma</div>
+      <div class="recap-title">Type-safe Database</div>
+      <ul class="recap-bullets">
+        <li><strong>Schema DSL</strong> — models, relations, enums, indexes</li>
+        <li><strong>Singleton client</strong> — globalThis pattern</li>
+        <li><strong>CRUD</strong> — findMany, create, update, upsert, delete</li>
+        <li><strong>Relations</strong> — include, select, nested creates</li>
+        <li><strong>Transactions</strong> — $transaction atomic stock decrement</li>
+        <li><strong>Cursor pagination</strong> — stable, fast, infinite scroll</li>
+      </ul>
+    </div>
+    <div class="recap-card" style="border-color:rgba(249,115,22,.2);">
+      <div class="recap-day" style="color:var(--api);">Day 24 · API Design</div>
+      <div class="recap-title">REST Best Practices</div>
+      <ul class="recap-bullets">
+        <li><strong>REST conventions</strong> — nouns, plural, HTTP methods</li>
+        <li><strong>Status codes</strong> — 200/201/204/400/401/403/404/409/429/500</li>
+        <li><strong>Validation</strong> — Zod + consistent error shapes</li>
+        <li><strong>withErrorHandler</strong> — centralised error catching</li>
+        <li><strong>Rate limiting</strong> — sliding window + headers</li>
+        <li><strong>Versioning</strong> — URL-based /api/v1</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 02. THE PROJECT -->
+<div class="section" id="project">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">ShopCo — the full-stack project</span>
+    <span class="sec-badge" style="background:var(--accent-dim);color:var(--accent);">project brief</span>
+  </div>
+
+  <div class="week-summary">
+    <div class="ws-head">
+      <span class="ws-icon">🛍️</span>
+      <div>
+        <div class="ws-title">ShopCo — Full-stack e-commerce</div>
+        <div class="ws-sub">Next.js 15 · Clerk · Prisma · PostgreSQL · Vercel</div>
+      </div>
+    </div>
+    <div class="ws-body">
+      <div class="ws-grid">
+        <div class="ws-item">
+          <div class="ws-label">Public pages</div>
+          <div class="ws-val">Homepage, product list (SSR, streaming), product detail, category pages</div>
+        </div>
+        <div class="ws-item">
+          <div class="ws-label">Auth flows</div>
+          <div class="ws-val">Sign-in, sign-up, protected dashboard, admin panel, role gating</div>
+        </div>
+        <div class="ws-item">
+          <div class="ws-label">Data layer</div>
+          <div class="ws-val">Users, Products, Orders, OrderItems, Reviews, Categories (full Prisma schema)</div>
+        </div>
+        <div class="ws-item">
+          <div class="ws-label">API surface</div>
+          <div class="ws-val"><code>GET/POST /api/products</code>, <code>GET/PATCH/DELETE /api/products/:id</code>, <code>POST /api/orders</code>, <code>GET /api/users/me</code></div>
+        </div>
+        <div class="ws-item">
+          <div class="ws-label">Server Actions</div>
+          <div class="ws-val">createOrder (atomic), addReview, updateProfile, publishProduct (admin)</div>
+        </div>
+        <div class="ws-item">
+          <div class="ws-label">Webhook</div>
+          <div class="ws-val">Clerk <code>user.created / updated / deleted</code> → Prisma upsert</div>
+        </div>
+        <div class="ws-item">
+          <div class="ws-label">Admin features</div>
+          <div class="ws-val">Product management, order list, user roles, dashboard stats</div>
+        </div>
+        <div class="ws-item">
+          <div class="ws-label">Deploy target</div>
+          <div class="ws-val">Vercel (app) + Supabase or Neon (PostgreSQL) + Upstash (rate limiting)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="build-grid">
+    <div class="build-card">
+      <div class="build-head">
+        <span class="build-icon">📐</span>
+        <span class="build-title">File structure</span>
+        <span class="build-badge" style="background:var(--accent-dim);color:var(--accent);">skeleton</span>
+      </div>
+      <div class="build-body">
+        <div class="build-task">The recommended directory structure for ShopCo — set this up before writing any code.</div>
+        <ul class="build-steps">
+          <li><span>app/</span> page.tsx, layout.tsx, loading.tsx</li>
+          <li><span>app/</span> (marketing)/ — about, pricing</li>
+          <li><span>app/</span> products/ [id]/ — listing + detail</li>
+          <li><span>app/</span> dashboard/ — user dashboard</li>
+          <li><span>app/</span> admin/ — admin panel (role-gated)</li>
+          <li><span>app/</span> api/ — route handlers</li>
+          <li><span>app/</span> sign-in/[[...sign-in]]/ sign-up/</li>
+          <li><span>lib/</span> db.ts, api.ts, auth.ts, utils.ts</li>
+          <li><span>actions/</span> orders.ts, products.ts, users.ts</li>
+          <li><span>components/</span> ui/, shop/, admin/</li>
+          <li><span>prisma/</span> schema.prisma, seed.ts</li>
+          <li><span>/</span> middleware.ts, next.config.ts</li>
+        </ul>
+      </div>
+    </div>
+    <div class="build-card">
+      <div class="build-head">
+        <span class="build-icon">🔗</span>
+        <span class="build-title">Data flow map</span>
+        <span class="build-badge" style="background:var(--indigo-dim);color:var(--indigo);">architecture</span>
+      </div>
+      <div class="build-body">
+        <div class="build-task">Understanding how data moves through the stack — no surprises when you build.</div>
+        <ul class="build-steps">
+          <li><span>1.</span> Clerk fires <code>user.created</code> webhook</li>
+          <li><span>2.</span> Route Handler verifies svix → Prisma upsert</li>
+          <li><span>3.</span> User visits /products → middleware checks auth</li>
+          <li><span>4.</span> Server Component calls <code>auth()</code> → userId</li>
+          <li><span>5.</span> Prisma query → typed data → JSX rendered on server</li>
+          <li><span>6.</span> HTML streamed → browser hydrates Client Components</li>
+          <li><span>7.</span> User clicks "Add to cart" → Client Component fires</li>
+          <li><span>8.</span> Server Action called → <code>auth()</code> → Prisma $transaction</li>
+          <li><span>9.</span> <code>revalidatePath</code> → Next.js re-fetches affected routes</li>
+          <li><span>10.</span> React Query (if used) invalidates queries on client</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 03. SCHEMA -->
+<div class="section" id="schema">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Complete Prisma schema — everything ShopCo needs</span>
+    <span class="sec-badge" style="background:var(--indigo-dim);color:var(--indigo);">schema</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">prisma</span><span class="cb-desc">prisma/schema.prisma — full ShopCo data model</span></div>
+    <div class="cb-body"><pre><span class="cm">// prisma/schema.prisma</span>
+<span class="kw">generator</span> <span class="var">client</span> { <span class="prop">provider</span> = <span class="str">"prisma-client-js"</span> }
+
+<span class="kw">datasource</span> <span class="var">db</span> {
+  <span class="prop">provider</span>  = <span class="str">"postgresql"</span>
+  <span class="prop">url</span>       = <span class="fn">env</span>(<span class="str">"DATABASE_URL"</span>)
+  <span class="prop">directUrl</span> = <span class="fn">env</span>(<span class="str">"DIRECT_URL"</span>)  <span class="cm">// for migrations (bypasses pooler)</span>
+}
+
+<span class="kw">model</span> <span class="ty">User</span> {
+  <span class="prop">id</span>        <span class="ty">String</span>    <span class="kw">@id</span> <span class="kw">@default</span>(<span class="fn">cuid</span>())
+  <span class="prop">clerkId</span>   <span class="ty">String</span>    <span class="kw">@unique</span>
+  <span class="prop">email</span>     <span class="ty">String</span>    <span class="kw">@unique</span>
+  <span class="prop">name</span>      <span class="ty">String</span>
+  <span class="prop">imageUrl</span>  <span class="ty">String</span>?
+  <span class="prop">role</span>      <span class="ty">Role</span>      <span class="kw">@default</span>(<span class="var">USER</span>)
+  <span class="prop">createdAt</span> <span class="ty">DateTime</span>  <span class="kw">@default</span>(<span class="fn">now</span>())
+  <span class="prop">updatedAt</span> <span class="ty">DateTime</span>  <span class="kw">@updatedAt</span>
+  <span class="prop">orders</span>    <span class="ty">Order</span>[]
+  <span class="prop">reviews</span>   <span class="ty">Review</span>[]
+  <span class="prop">cart</span>      <span class="ty">CartItem</span>[]
+  <span class="kw">@@map</span>(<span class="str">"users"</span>)
+}
+<span class="kw">enum</span> <span class="ty">Role</span> { <span class="var">USER</span>  <span class="var">ADMIN</span>  <span class="var">MODERATOR</span> }
+
+<span class="kw">model</span> <span class="ty">Category</span> {
+  <span class="prop">id</span>        <span class="ty">String</span>    <span class="kw">@id</span> <span class="kw">@default</span>(<span class="fn">cuid</span>())
+  <span class="prop">name</span>      <span class="ty">String</span>    <span class="kw">@unique</span>
+  <span class="prop">slug</span>      <span class="ty">String</span>    <span class="kw">@unique</span>
+  <span class="prop">imageUrl</span>  <span class="ty">String</span>?
+  <span class="prop">products</span>  <span class="ty">Product</span>[]
+  <span class="kw">@@map</span>(<span class="str">"categories"</span>)
+}
+
+<span class="kw">model</span> <span class="ty">Product</span> {
+  <span class="prop">id</span>          <span class="ty">String</span>    <span class="kw">@id</span> <span class="kw">@default</span>(<span class="fn">cuid</span>())
+  <span class="prop">name</span>        <span class="ty">String</span>
+  <span class="prop">slug</span>        <span class="ty">String</span>    <span class="kw">@unique</span>
+  <span class="prop">description</span> <span class="ty">String</span>
+  <span class="prop">price</span>       <span class="ty">Decimal</span>   <span class="kw">@db</span>.<span class="fn">Decimal</span>(<span class="num">10</span>,<span class="num">2</span>)
+  <span class="prop">comparePrice</span><span class="ty">Decimal</span>?  <span class="kw">@db</span>.<span class="fn">Decimal</span>(<span class="num">10</span>,<span class="num">2</span>)  <span class="cm">// original price for "sale"</span>
+  <span class="prop">stock</span>       <span class="ty">Int</span>       <span class="kw">@default</span>(<span class="num">0</span>)
+  <span class="prop">images</span>      <span class="ty">String</span>[]
+  <span class="prop">published</span>   <span class="ty">Boolean</span>   <span class="kw">@default</span>(<span class="kw">false</span>)
+  <span class="prop">featured</span>    <span class="ty">Boolean</span>   <span class="kw">@default</span>(<span class="kw">false</span>)
+  <span class="prop">rating</span>      <span class="ty">Float</span>     <span class="kw">@default</span>(<span class="num">0</span>)
+  <span class="prop">reviewCount</span> <span class="ty">Int</span>       <span class="kw">@default</span>(<span class="num">0</span>)
+  <span class="prop">createdAt</span>   <span class="ty">DateTime</span>  <span class="kw">@default</span>(<span class="fn">now</span>())
+  <span class="prop">updatedAt</span>   <span class="ty">DateTime</span>  <span class="kw">@updatedAt</span>
+  <span class="prop">categoryId</span>  <span class="ty">String</span>
+  <span class="prop">category</span>    <span class="ty">Category</span>  <span class="kw">@relation</span>(<span class="prop">fields</span>:[<span class="prop">categoryId</span>],<span class="prop">references</span>:[<span class="prop">id</span>])
+  <span class="prop">reviews</span>     <span class="ty">Review</span>[]
+  <span class="prop">orderItems</span>  <span class="ty">OrderItem</span>[]
+  <span class="prop">cartItems</span>   <span class="ty">CartItem</span>[]
+  <span class="kw">@@index</span>([<span class="prop">categoryId</span>])
+  <span class="kw">@@index</span>([<span class="prop">published</span>, <span class="prop">featured</span>])
+  <span class="kw">@@index</span>([<span class="prop">published</span>, <span class="prop">createdAt</span>])
+  <span class="kw">@@map</span>(<span class="str">"products"</span>)
+}
+
+<span class="kw">model</span> <span class="ty">Order</span> {
+  <span class="prop">id</span>          <span class="ty">String</span>       <span class="kw">@id</span> <span class="kw">@default</span>(<span class="fn">cuid</span>())
+  <span class="prop">status</span>      <span class="ty">OrderStatus</span>  <span class="kw">@default</span>(<span class="var">PENDING</span>)
+  <span class="prop">total</span>       <span class="ty">Decimal</span>      <span class="kw">@db</span>.<span class="fn">Decimal</span>(<span class="num">10</span>,<span class="num">2</span>)
+  <span class="prop">address</span>     <span class="ty">Json</span>?        <span class="cm">// { line1, city, country, zip }</span>
+  <span class="prop">createdAt</span>   <span class="ty">DateTime</span>     <span class="kw">@default</span>(<span class="fn">now</span>())
+  <span class="prop">userId</span>      <span class="ty">String</span>
+  <span class="prop">user</span>        <span class="ty">User</span>         <span class="kw">@relation</span>(<span class="prop">fields</span>:[<span class="prop">userId</span>],<span class="prop">references</span>:[<span class="prop">id</span>],<span class="prop">onDelete</span>:<span class="var">CASCADE</span>)
+  <span class="prop">items</span>       <span class="ty">OrderItem</span>[]
+  <span class="kw">@@index</span>([<span class="prop">userId</span>])
+  <span class="kw">@@map</span>(<span class="str">"orders"</span>)
+}
+<span class="kw">enum</span> <span class="ty">OrderStatus</span> { <span class="var">PENDING</span>  <span class="var">CONFIRMED</span>  <span class="var">SHIPPED</span>  <span class="var">DELIVERED</span>  <span class="var">CANCELLED</span> }
+
+<span class="kw">model</span> <span class="ty">OrderItem</span> {
+  <span class="prop">id</span>        <span class="ty">String</span>   <span class="kw">@id</span> <span class="kw">@default</span>(<span class="fn">cuid</span>())
+  <span class="prop">quantity</span>  <span class="ty">Int</span>
+  <span class="prop">price</span>     <span class="ty">Decimal</span>  <span class="kw">@db</span>.<span class="fn">Decimal</span>(<span class="num">10</span>,<span class="num">2</span>)  <span class="cm">// price at time of purchase</span>
+  <span class="prop">orderId</span>   <span class="ty">String</span>
+  <span class="prop">order</span>     <span class="ty">Order</span>    <span class="kw">@relation</span>(<span class="prop">fields</span>:[<span class="prop">orderId</span>],<span class="prop">references</span>:[<span class="prop">id</span>],<span class="prop">onDelete</span>:<span class="var">CASCADE</span>)
+  <span class="prop">productId</span> <span class="ty">String</span>
+  <span class="prop">product</span>   <span class="ty">Product</span>  <span class="kw">@relation</span>(<span class="prop">fields</span>:[<span class="prop">productId</span>],<span class="prop">references</span>:[<span class="prop">id</span>])
+  <span class="kw">@@map</span>(<span class="str">"order_items"</span>)
+}
+
+<span class="kw">model</span> <span class="ty">Review</span> {
+  <span class="prop">id</span>        <span class="ty">String</span>   <span class="kw">@id</span> <span class="kw">@default</span>(<span class="fn">cuid</span>())
+  <span class="prop">rating</span>    <span class="ty">Int</span>      <span class="cm">// 1–5</span>
+  <span class="prop">title</span>     <span class="ty">String</span>?
+  <span class="prop">body</span>      <span class="ty">String</span>
+  <span class="prop">createdAt</span> <span class="ty">DateTime</span> <span class="kw">@default</span>(<span class="fn">now</span>())
+  <span class="prop">userId</span>    <span class="ty">String</span>
+  <span class="prop">user</span>      <span class="ty">User</span>     <span class="kw">@relation</span>(<span class="prop">fields</span>:[<span class="prop">userId</span>],<span class="prop">references</span>:[<span class="prop">id</span>])
+  <span class="prop">productId</span> <span class="ty">String</span>
+  <span class="prop">product</span>   <span class="ty">Product</span>  <span class="kw">@relation</span>(<span class="prop">fields</span>:[<span class="prop">productId</span>],<span class="prop">references</span>:[<span class="prop">id</span>])
+  <span class="kw">@@unique</span>([<span class="prop">userId</span>, <span class="prop">productId</span>])  <span class="cm">// one review per product per user</span>
+  <span class="kw">@@index</span>([<span class="prop">productId</span>])
+  <span class="kw">@@map</span>(<span class="str">"reviews"</span>)
+}
+
+<span class="kw">model</span> <span class="ty">CartItem</span> {
+  <span class="prop">id</span>        <span class="ty">String</span>   <span class="kw">@id</span> <span class="kw">@default</span>(<span class="fn">cuid</span>())
+  <span class="prop">quantity</span>  <span class="ty">Int</span>      <span class="kw">@default</span>(<span class="num">1</span>)
+  <span class="prop">userId</span>    <span class="ty">String</span>
+  <span class="prop">user</span>      <span class="ty">User</span>     <span class="kw">@relation</span>(<span class="prop">fields</span>:[<span class="prop">userId</span>],<span class="prop">references</span>:[<span class="prop">id</span>],<span class="prop">onDelete</span>:<span class="var">CASCADE</span>)
+  <span class="prop">productId</span> <span class="ty">String</span>
+  <span class="prop">product</span>   <span class="ty">Product</span>  <span class="kw">@relation</span>(<span class="prop">fields</span>:[<span class="prop">productId</span>],<span class="prop">references</span>:[<span class="prop">id</span>])
+  <span class="kw">@@unique</span>([<span class="prop">userId</span>, <span class="prop">productId</span>])
+  <span class="kw">@@map</span>(<span class="str">"cart_items"</span>)
+}</pre></div>
+  </div>
+</div>
+
+<!-- 04. AUTH LAYER -->
+<div class="section" id="auth">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Auth layer — middleware, webhook, server patterns</span>
+    <span class="sec-badge" style="background:var(--clerk-dim);color:var(--clerk);">clerk</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">middleware.ts + webhook handler + lib/auth.ts server helpers</span></div>
+    <div class="cb-body"><pre><span class="cm">// middleware.ts — route protection</span>
+<span class="kw">import</span> { <span class="fn">clerkMiddleware</span>, <span class="fn">createRouteMatcher</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs/server"</span>
+<span class="kw">import</span> { <span class="ty">NextResponse</span> }                        <span class="kw">from</span> <span class="str">"next/server"</span>
+
+<span class="kw">const</span> <span class="var">isPublic</span> = <span class="fn">createRouteMatcher</span>([
+  <span class="str">"/"</span>, <span class="str">"/products(.*)"</span>, <span class="str">"/sign-in(.*)"</span>, <span class="str">"/sign-up(.*)"</span>,
+  <span class="str">"/api/webhooks(.*)"</span>, <span class="str">"/api/products(.*)"</span>  <span class="cm">// public product browsing</span>
+])
+<span class="kw">const</span> <span class="var">isAdmin</span> = <span class="fn">createRouteMatcher</span>([<span class="str">"/admin(.*)"</span>, <span class="str">"/api/admin(.*)"</span>])
+
+<span class="kw">export default</span> <span class="fn">clerkMiddleware</span>(<span class="kw">async</span> (<span class="var">auth</span>, <span class="var">req</span>) => {
+  <span class="kw">if</span> (!<span class="fn">isPublic</span>(<span class="var">req</span>)) <span class="kw">await</span> <span class="var">auth</span>.<span class="fn">protect</span>()
+
+  <span class="kw">if</span> (<span class="fn">isAdmin</span>(<span class="var">req</span>)) {
+    <span class="kw">const</span> { <span class="var">sessionClaims</span> } = <span class="kw">await</span> <span class="var">auth</span>()
+    <span class="kw">if</span> (<span class="var">sessionClaims</span>?.<span class="prop">metadata</span>?.<span class="prop">role</span> !== <span class="str">"admin"</span>) {
+      <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">redirect</span>(<span class="kw">new</span> <span class="fn">URL</span>(<span class="str">"/unauthorized"</span>, <span class="var">req</span>.<span class="prop">url</span>))
+    }
+  }
+})
+<span class="kw">export const</span> <span class="var">config</span> = { <span class="prop">matcher</span>: [<span class="str">"/((?!_next|.*\\..*).*)","/(api|trpc)(.*)"</span>] }
+
+<span class="cm">// app/api/webhooks/clerk/route.ts — sync users to DB</span>
+<span class="kw">import</span> { <span class="ty">Webhook</span> } <span class="kw">from</span> <span class="str">"svix"</span>
+<span class="kw">import</span> { <span class="var">headers</span> } <span class="kw">from</span> <span class="str">"next/headers"</span>
+
+<span class="kw">export async function</span> <span class="fn">POST</span>(<span class="var">req</span>: <span class="ty">Request</span>) {
+  <span class="kw">const</span> <span class="var">wh</span> = <span class="kw">new</span> <span class="fn">Webhook</span>(<span class="var">process</span>.<span class="prop">env</span>.<span class="prop">WEBHOOK_SECRET</span>!)
+  <span class="kw">const</span> <span class="var">hdrs</span> = <span class="kw">await</span> <span class="fn">headers</span>()
+  <span class="kw">const</span> <span class="var">body</span> = <span class="kw">await</span> <span class="var">req</span>.<span class="fn">text</span>()
+
+  <span class="kw">let</span> <span class="var">event</span>
+  <span class="kw">try</span> {
+    <span class="var">event</span> = <span class="var">wh</span>.<span class="fn">verify</span>(<span class="var">body</span>, {
+      <span class="str">"svix-id"</span>:        <span class="var">hdrs</span>.<span class="fn">get</span>(<span class="str">"svix-id"</span>)!,
+      <span class="str">"svix-timestamp"</span>: <span class="var">hdrs</span>.<span class="fn">get</span>(<span class="str">"svix-timestamp"</span>)!,
+      <span class="str">"svix-signature"</span>: <span class="var">hdrs</span>.<span class="fn">get</span>(<span class="str">"svix-signature"</span>)!,
+    })
+  } <span class="kw">catch</span> { <span class="kw">return</span> <span class="kw">new</span> <span class="fn">Response</span>(<span class="str">"Unauthorized"</span>, { <span class="prop">status</span>: <span class="num">401</span> }) }
+
+  <span class="kw">const</span> { <span class="var">type</span>, <span class="var">data</span> } = <span class="var">event</span> <span class="kw">as</span> <span class="kw">any</span>
+  <span class="kw">const</span> <span class="var">email</span> = <span class="var">data</span>.<span class="prop">email_addresses</span>?.[<span class="num">0</span>]?.<span class="prop">email_address</span> ?? <span class="str">""</span>
+
+  <span class="kw">if</span> (<span class="var">type</span> === <span class="str">"user.created"</span> || <span class="var">type</span> === <span class="str">"user.updated"</span>) {
+    <span class="kw">await</span> <span class="var">db</span>.<span class="var">user</span>.<span class="fn">upsert</span>({
+      <span class="prop">where</span>:  { <span class="prop">clerkId</span>: <span class="var">data</span>.<span class="prop">id</span> },
+      <span class="prop">update</span>: { <span class="var">email</span>, <span class="prop">name</span>: `${<span class="var">data</span>.<span class="prop">first_name</span>} ${<span class="var">data</span>.<span class="prop">last_name</span>}`.<span class="fn">trim</span>(), <span class="prop">imageUrl</span>: <span class="var">data</span>.<span class="prop">image_url</span> },
+      <span class="prop">create</span>: { <span class="prop">clerkId</span>: <span class="var">data</span>.<span class="prop">id</span>, <span class="var">email</span>, <span class="prop">name</span>: <span class="str">""</span> },
+    })
+  }
+  <span class="kw">if</span> (<span class="var">type</span> === <span class="str">"user.deleted"</span>) <span class="kw">await</span> <span class="var">db</span>.<span class="var">user</span>.<span class="fn">delete</span>({ <span class="prop">where</span>: { <span class="prop">clerkId</span>: <span class="var">data</span>.<span class="prop">id</span> } })
+
+  <span class="kw">return</span> <span class="ty">Response</span>.<span class="fn">json</span>({ <span class="prop">ok</span>: <span class="kw">true</span> })
+}
+
+<span class="cm">// lib/auth.ts — server-side helpers used everywhere</span>
+<span class="kw">import</span> { <span class="fn">auth</span> } <span class="kw">from</span> <span class="str">"@clerk/nextjs/server"</span>
+<span class="kw">import</span> { <span class="fn">redirect</span> } <span class="kw">from</span> <span class="str">"next/navigation"</span>
+
+<span class="kw">export async function</span> <span class="fn">requireAuth</span>() {
+  <span class="kw">const</span> { <span class="var">userId</span> } = <span class="kw">await</span> <span class="fn">auth</span>()
+  <span class="kw">if</span> (!<span class="var">userId</span>) <span class="fn">redirect</span>(<span class="str">"/sign-in"</span>)
+  <span class="kw">return</span> <span class="var">userId</span>
+}
+
+<span class="kw">export async function</span> <span class="fn">requireAdmin</span>() {
+  <span class="kw">const</span> { <span class="var">userId</span>, <span class="var">sessionClaims</span> } = <span class="kw">await</span> <span class="fn">auth</span>()
+  <span class="kw">if</span> (!<span class="var">userId</span>) <span class="fn">redirect</span>(<span class="str">"/sign-in"</span>)
+  <span class="kw">if</span> (<span class="var">sessionClaims</span>?.<span class="prop">metadata</span>?.<span class="prop">role</span> !== <span class="str">"admin"</span>) <span class="fn">redirect</span>(<span class="str">"/unauthorized"</span>)
+  <span class="kw">return</span> <span class="var">userId</span>
+}</pre></div>
+  </div>
+</div>
+
+<!-- 05. API LAYER -->
+<div class="section" id="api">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">API layer — Route Handlers + Server Actions</span>
+    <span class="sec-badge" style="background:var(--api-dim);color:var(--api);">api</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">actions/orders.ts — createOrder Server Action (atomic, auth-protected)</span></div>
+    <div class="cb-body"><pre><span class="str">"use server"</span>
+<span class="kw">import</span> { <span class="fn">auth</span> }           <span class="kw">from</span> <span class="str">"@clerk/nextjs/server"</span>
+<span class="kw">import</span> { <span class="fn">revalidatePath</span> } <span class="kw">from</span> <span class="str">"next/cache"</span>
+<span class="kw">import</span> { <span class="var">db</span> }             <span class="kw">from</span> <span class="str">"@/lib/db"</span>
+<span class="kw">import</span> { <span class="var">z</span> }              <span class="kw">from</span> <span class="str">"zod"</span>
+
+<span class="kw">const</span> <span class="var">orderSchema</span> = <span class="var">z</span>.<span class="fn">object</span>({
+  <span class="prop">items</span>: <span class="var">z</span>.<span class="fn">array</span>(<span class="var">z</span>.<span class="fn">object</span>({
+    <span class="prop">productId</span>: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">cuid</span>(),
+    <span class="prop">quantity</span>:  <span class="var">z</span>.<span class="fn">number</span>().<span class="fn">int</span>().<span class="fn">positive</span>(),
+  })).<span class="fn">min</span>(<span class="num">1</span>, <span class="str">"Order must have at least one item"</span>),
+  <span class="prop">address</span>: <span class="var">z</span>.<span class="fn">object</span>({
+    <span class="prop">line1</span>:   <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">1</span>),
+    <span class="prop">city</span>:    <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">1</span>),
+    <span class="prop">country</span>: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">length</span>(<span class="num">2</span>),
+    <span class="prop">zip</span>:     <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">3</span>),
+  }),
+})
+
+<span class="kw">export async function</span> <span class="fn">createOrder</span>(<span class="var">input</span>: <span class="kw">unknown</span>) {
+  <span class="kw">const</span> { <span class="var">userId</span> } = <span class="kw">await</span> <span class="fn">auth</span>()
+  <span class="kw">if</span> (!<span class="var">userId</span>) <span class="kw">return</span> { <span class="prop">error</span>: <span class="str">"Unauthorized"</span> }
+
+  <span class="kw">const</span> <span class="var">parsed</span> = <span class="var">orderSchema</span>.<span class="fn">safeParse</span>(<span class="var">input</span>)
+  <span class="kw">if</span> (!<span class="var">parsed</span>.<span class="prop">success</span>) <span class="kw">return</span> { <span class="prop">error</span>: <span class="str">"Invalid order"</span>, <span class="prop">details</span>: <span class="var">parsed</span>.<span class="prop">error</span>.<span class="fn">flatten</span>() }
+
+  <span class="kw">const</span> { <span class="var">items</span>, <span class="var">address</span> } = <span class="var">parsed</span>.<span class="prop">data</span>
+
+  <span class="kw">try</span> {
+    <span class="kw">const</span> <span class="var">order</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="fn">$transaction</span>(<span class="kw">async</span> (<span class="var">tx</span>) => {
+      <span class="cm">// 1. Fetch and validate all products</span>
+      <span class="kw">const</span> <span class="var">products</span> = <span class="kw">await</span> <span class="ty">Promise</span>.<span class="fn">all</span>(
+        <span class="var">items</span>.<span class="fn">map</span>(<span class="var">i</span> => <span class="var">tx</span>.<span class="var">product</span>.<span class="fn">findUniqueOrThrow</span>({ <span class="prop">where</span>: { <span class="prop">id</span>: <span class="var">i</span>.<span class="prop">productId</span>, <span class="prop">published</span>: <span class="kw">true</span> } }))
+      )
+
+      <span class="cm">// 2. Check stock</span>
+      <span class="kw">for</span> (<span class="kw">let</span> <span class="var">idx</span> = <span class="num">0</span>; <span class="var">idx</span> < <span class="var">items</span>.<span class="prop">length</span>; <span class="var">idx</span>++) {
+        <span class="kw">if</span> (<span class="var">products</span>[<span class="var">idx</span>].<span class="prop">stock</span> < <span class="var">items</span>[<span class="var">idx</span>].<span class="prop">quantity</span>)
+          <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(`Insufficient stock: ${<span class="var">products</span>[<span class="var">idx</span>].<span class="prop">name</span>}`)
+      }
+
+      <span class="cm">// 3. Calculate total</span>
+      <span class="kw">const</span> <span class="var">total</span> = <span class="var">items</span>.<span class="fn">reduce</span>((<span class="var">s</span>, <span class="var">item</span>, <span class="var">i</span>) =>
+        <span class="var">s</span> + <span class="fn">Number</span>(<span class="var">products</span>[<span class="var">i</span>].<span class="prop">price</span>) * <span class="var">item</span>.<span class="prop">quantity</span>, <span class="num">0</span>)
+
+      <span class="cm">// 4. Create order + items + decrement stock (all atomic)</span>
+      <span class="kw">const</span> [<span class="var">dbUser</span>] = <span class="kw">await</span> <span class="ty">Promise</span>.<span class="fn">all</span>([
+        <span class="var">tx</span>.<span class="var">user</span>.<span class="fn">findUniqueOrThrow</span>({ <span class="prop">where</span>: { <span class="prop">clerkId</span>: <span class="var">userId</span> } })
+      ])
+
+      <span class="kw">const</span> <span class="var">order</span> = <span class="kw">await</span> <span class="var">tx</span>.<span class="var">order</span>.<span class="fn">create</span>({
+        <span class="prop">data</span>: {
+          <span class="prop">userId</span>: <span class="var">dbUser</span>.<span class="prop">id</span>, <span class="var">total</span>, <span class="var">address</span>,
+          <span class="prop">items</span>: { <span class="prop">create</span>: <span class="var">items</span>.<span class="fn">map</span>((<span class="var">item</span>, <span class="var">i</span>) => ({
+            <span class="prop">productId</span>: <span class="var">item</span>.<span class="prop">productId</span>,
+            <span class="prop">quantity</span>:  <span class="var">item</span>.<span class="prop">quantity</span>,
+            <span class="prop">price</span>:     <span class="var">products</span>[<span class="var">i</span>].<span class="prop">price</span>,
+          })) }
+        },
+        <span class="prop">include</span>: { <span class="prop">items</span>: <span class="kw">true</span> }
+      })
+
+      <span class="kw">await</span> <span class="ty">Promise</span>.<span class="fn">all</span>(
+        <span class="var">items</span>.<span class="fn">map</span>((<span class="var">item</span>) => <span class="var">tx</span>.<span class="var">product</span>.<span class="fn">update</span>({
+          <span class="prop">where</span>: { <span class="prop">id</span>: <span class="var">item</span>.<span class="prop">productId</span> },
+          <span class="prop">data</span>:  { <span class="prop">stock</span>: { <span class="prop">decrement</span>: <span class="var">item</span>.<span class="prop">quantity</span> } }
+        }))
+      )
+
+      <span class="kw">return</span> <span class="var">order</span>
+    })
+
+    <span class="fn">revalidatePath</span>(<span class="str">"/dashboard/orders"</span>)
+    <span class="kw">return</span> { <span class="prop">success</span>: <span class="kw">true</span>, <span class="prop">orderId</span>: <span class="var">order</span>.<span class="prop">id</span> }
+  } <span class="kw">catch</span> (<span class="var">e</span>) {
+    <span class="kw">return</span> { <span class="prop">error</span>: (<span class="var">e</span> <span class="kw">as</span> <span class="ty">Error</span>).<span class="prop">message</span> || <span class="str">"Failed to create order"</span> }
+  }
+}</pre></div>
+  </div>
+</div>
+
+<!-- 06. BUILD CHALLENGES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Build challenges</span></div>
+
+<div class="section" id="challenges">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">6 build challenges — ship ShopCo end-to-end</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 challenges</span>
+  </div>
+
+  <!-- CHALLENGE 1 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--emerald-dim);color:var(--emerald);">1</div>
+      <span class="ch-title">Schema + migrations + seed data</span>
+      <span class="ch-layer" style="background:var(--indigo-dim);color:var(--indigo);">Prisma · Day 23</span>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Set up the full Prisma schema from this file, run the initial migration, write a seed script that creates 3 categories and 12 products, and verify everything works in Prisma Studio.</div>
+      <div class="ch-acceptance">
+        <strong>Acceptance criteria</strong>
+        <ul>
+          <li><code>prisma migrate dev --name init</code> runs without error</li>
+          <li><code>npx prisma db seed</code> creates categories and products</li>
+          <li>Prisma Studio shows all records with correct relations</li>
+          <li><code>db.product.findMany({ include:{ category:true } })</code> works</li>
+          <li>All Decimal fields (price, comparePrice) are non-Float types</li>
+          <li>Indexes on categoryId, published+featured are present</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 2 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--clerk-dim);color:var(--clerk);">2</div>
+      <span class="ch-title">Clerk auth + webhook sync</span>
+      <span class="ch-layer" style="background:var(--clerk-dim);color:var(--clerk);">Clerk · Day 22</span>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Connect Clerk to the Next.js app. Configure middleware to protect all routes except the public list. Wire up the webhook endpoint so that signing up creates a User record in your Prisma database, and signing out deletes the session cleanly.</div>
+      <div class="ch-acceptance">
+        <strong>Acceptance criteria</strong>
+        <ul>
+          <li>Visiting /dashboard when unauthenticated redirects to /sign-in</li>
+          <li>Signing up via Clerk creates a record in your users table (via webhook)</li>
+          <li>Visiting /admin as a non-admin role redirects to /unauthorized</li>
+          <li>Promoting a user to admin in Clerk Dashboard → they see /admin</li>
+          <li>Webhook endpoint returns 401 for invalid svix signatures</li>
+          <li><code>auth()</code> in a Server Component returns the correct userId</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 3 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--blue-dim);color:var(--blue);">3</div>
+      <span class="ch-title">Next.js product pages — SSR + streaming</span>
+      <span class="ch-layer" style="background:var(--blue-dim);color:var(--blue);">Next.js · Day 21</span>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Build the product listing page (<code>/products</code>) and product detail page (<code>/products/[slug]</code>) as Server Components. The listing page should stream — show the layout instantly with a skeleton while products load. The detail page shows product info immediately and streams reviews in a Suspense boundary.</div>
+      <div class="ch-acceptance">
+        <strong>Acceptance criteria</strong>
+        <ul>
+          <li><code>/products</code> renders with real DB data — no client-side fetch, no spinner</li>
+          <li><code>loading.tsx</code> skeleton shows while page.tsx data fetches</li>
+          <li><code>/products/[slug]</code> streams: product info fast, reviews via Suspense</li>
+          <li><code>generateMetadata</code> sets og:title to the product name</li>
+          <li><code>notFound()</code> triggers for unknown slugs</li>
+          <li>Page is crawlable — check view-source for product names in HTML</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 4 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--api-dim);color:var(--api);">4</div>
+      <span class="ch-title">REST API — products CRUD + auth</span>
+      <span class="ch-layer" style="background:var(--api-dim);color:var(--api);">API Design · Day 24</span>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Build the complete products REST API: <code>GET /api/products</code> (paginated, filterable by category and search query), <code>POST /api/products</code> (admin only, Zod validation, 201 + Location header), <code>PATCH /api/products/[id]</code> (admin only), and <code>DELETE /api/products/[id]</code> (admin only). All routes wrapped in <code>withErrorHandler</code>.</div>
+      <div class="ch-acceptance">
+        <strong>Acceptance criteria</strong>
+        <ul>
+          <li><code>GET /api/products?page=2&limit=5&q=pro</code> returns filtered, paginated data</li>
+          <li><code>POST /api/products</code> without auth returns 401; without admin role returns 403</li>
+          <li><code>POST /api/products</code> with invalid body returns 400 with field-level errors</li>
+          <li>Successful <code>POST</code> returns 201 with Location header</li>
+          <li>Duplicate slug returns 409</li>
+          <li><code>DELETE</code> on non-existent ID returns 404, success returns 204</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 5 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--amber-dim);color:var(--amber);">5</div>
+      <span class="ch-title">Server Action — atomic order + cart clear</span>
+      <span class="ch-layer" style="background:var(--amber-dim);color:var(--amber);">Full-stack · Days 21+23</span>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Wire up the <code>createOrder</code> Server Action from this file. Build the cart UI as a Client Component that collects items and calls the action. The checkout form should use <code>useActionState</code> to show pending state and any errors (insufficient stock, validation failure). After success, redirect to <code>/dashboard/orders/[id]</code>.</div>
+      <div class="ch-acceptance">
+        <strong>Acceptance criteria</strong>
+        <ul>
+          <li>Attempting to order out-of-stock items returns a descriptive error</li>
+          <li>Successful order decrements stock atomically — check with Prisma Studio</li>
+          <li>Button shows "Placing order…" during submission (isPending from useActionState)</li>
+          <li><code>revalidatePath</code> causes the orders page to refresh without a manual reload</li>
+          <li>Unauthenticated users calling the action directly get "Unauthorized"</li>
+          <li>Order page at <code>/dashboard/orders/[id]</code> shows order items with correct prices</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE 6 -->
+  <div class="challenge">
+    <div class="ch-head">
+      <div class="ch-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <span class="ch-title">Admin dashboard + deploy to Vercel</span>
+      <span class="ch-layer" style="background:var(--purple-dim);color:var(--purple);">Full-stack · All days</span>
+    </div>
+    <div class="ch-body">
+      <div class="ch-desc">Build the admin dashboard at <code>/admin</code>: a stats panel (total revenue, order count, product count — Prisma aggregates), a product table with publish/unpublish toggle (Server Action), and an orders table with status updater. Then deploy the full app to Vercel with Supabase or Neon as the database.</div>
+      <div class="ch-acceptance">
+        <strong>Acceptance criteria</strong>
+        <ul>
+          <li>Non-admin users are redirected from /admin by middleware</li>
+          <li>Stats panel shows real aggregated data from Prisma</li>
+          <li>Toggling publish/unpublish updates instantly via Server Action + revalidate</li>
+          <li><code>prisma migrate deploy</code> runs successfully in Vercel build pipeline</li>
+          <li>The deployed app on Vercel reads and writes to the cloud database</li>
+          <li>Clerk webhook is configured to point to the Vercel deployment URL</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 07. INTEGRATION TESTS -->
+<div class="section" id="integration">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Integration tests — verify the full stack</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">test runner</span>
+  </div>
+
+  <div class="runner">
+    <div class="runner-head"><span class="runner-title">Test 1 — data layer: mock Prisma + full shop operations</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+    <div class="runner-code">
+      <textarea id="ex1-code">// Full data layer integration test (simulates Prisma)
+const DB = {
+  users:      [{ id:"u1", clerkId:"clerk_u1", email:"alice@test.com", name:"Alice", role:"USER" }],
+  categories: [{ id:"c1", name:"Laptops", slug:"laptops" }, { id:"c2", name:"Tablets", slug:"tablets" }],
+  products: [
+    { id:"p1", name:"MacBook Pro", slug:"macbook-pro", price:1999, stock:5, categoryId:"c1", published:true, reviewCount:120 },
+    { id:"p2", name:"iPad Pro",    slug:"ipad-pro",    price:799,  stock:3, categoryId:"c2", published:true, reviewCount:80  },
+    { id:"p3", name:"Draft",       slug:"draft",       price:99,   stock:10,categoryId:"c1", published:false,reviewCount:0   },
+  ],
+  orders: [], orderItems: [], reviews: [],
+  nextOrderId: 1,
+}
+
+// Simulate db.product.findMany
+function findProducts({ where={}, take=20, skip=0, select=null, orderBy={createdAt:"desc"} }={}) {
+  let items = DB.products.filter(p => {
+    if (where.published !== undefined && p.published !== where.published) return false
+    if (where.categoryId && p.categoryId !== where.categoryId) return false
+    if (where.name?.contains && !p.name.toLowerCase().includes(where.name.contains.toLowerCase())) return false
+    return true
+  })
+  const [[field, dir]] = Object.entries(orderBy)
+  items.sort((a,b) => dir==="desc" ? (b[field]>a[field]?1:-1) : (a[field]>b[field]?1:-1))
+  return items.slice(skip, skip+take).map(p => select ? Object.fromEntries(Object.keys(select).map(k=>[k,p[k]])) : p)
+}
+
+// Simulate $transaction createOrder
+function createOrder(userId, items) {
+  for (const { productId, quantity } of items) {
+    const p = DB.products.find(p=>p.id===productId)
+    if (!p || !p.published) throw new Error(`Product ${productId} not found`)
+    if (p.stock < quantity) throw new Error(`Insufficient stock: ${p.name} (need ${quantity}, have ${p.stock})`)
+  }
+  const total = items.reduce((s,{productId,quantity})=>{
+    return s + DB.products.find(p=>p.id===productId).price * quantity
+  }, 0)
+  const order = { id:`ord_${DB.nextOrderId++}`, userId, total, status:"PENDING", items, createdAt:new Date().toISOString() }
+  DB.orders.push(order)
+  for (const {productId, quantity} of items) {
+    DB.products.find(p=>p.id===productId).stock -= quantity
+  }
+  return order
+}
+
+// Tests
+console.log("=== Data Layer Integration Tests ===\n")
+
+// 1. Product listing (published only)
+const published = findProducts({ where:{published:true} })
+console.log("1. Published products:", published.length, "/ 3 total")
+console.assert(published.length === 2, "Should have 2 published")
+console.log("   Names:", published.map(p=>p.name).join(", "))
+
+// 2. Filter by category
+const laptops = findProducts({ where:{ published:true, categoryId:"c1" } })
+console.log("2. Laptops category:", laptops.length, "product(s)")
+console.assert(laptops.every(p=>p.categoryId==="c1"), "All should be laptops")
+
+// 3. Search
+const search = findProducts({ where:{ published:true, name:{ contains:"pro" } } })
+console.log("3. Search 'pro':", search.map(p=>p.name).join(", "))
+console.assert(search.length === 2, "MacBook Pro and iPad Pro")
+
+// 4. Select (lean query)
+const lean = findProducts({ where:{published:true}, select:{id:true,name:true,price:true} })
+console.log("4. Select fields:", Object.keys(lean[0]).join(", "))
+console.assert(!lean[0].stock, "Stock not selected")
+
+// 5. Successful order + stock decrement
+const order1 = createOrder("u1", [{productId:"p1",quantity:2},{productId:"p2",quantity:1}])
+console.log("5. Order created: $" + order1.total, "| id:", order1.id)
+const macStock = DB.products.find(p=>p.id==="p1").stock
+const ipadStock = DB.products.find(p=>p.id==="p2").stock
+console.log("   MacBook stock: 5→" + macStock, "(expected 3)")
+console.log("   iPad stock: 3→" + ipadStock, "(expected 2)")
+console.assert(macStock===3 && ipadStock===2, "Stock decremented correctly")
+
+// 6. Insufficient stock error
+try {
+  createOrder("u1", [{productId:"p2",quantity:5}])  // only 2 left
+  console.log("6. ❌ Should have thrown")
+} catch(e) {
+  console.log("6. Stock error caught:", e.message.includes("Insufficient") ? "✓" : "✗", e.message)
+}
+
+// 7. Total calculation
+const order2 = createOrder("u1", [{productId:"p1",quantity:1}])
+console.log("7. Single item order total: $" + order2.total, "(expected 1999)")
+console.assert(order2.total===1999, "Total correct")
+
+console.log("\n✅ All data layer tests passed!")</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+  </div>
+
+  <div class="runner">
+    <div class="runner-head"><span class="runner-title">Test 2 — auth + RBAC + middleware simulation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+    <div class="runner-code">
+      <textarea id="ex2-code">// Auth integration test
+const sessions = {
+  "tok_anon":  null,
+  "tok_user":  { userId:"u1", clerkId:"clerk_u1", role:"USER",  email:"alice@test.com" },
+  "tok_admin": { userId:"u2", clerkId:"clerk_u2", role:"ADMIN", email:"admin@test.com" },
+  "tok_mod":   { userId:"u3", clerkId:"clerk_u3", role:"MODERATOR", email:"mod@test.com" },
+}
+function auth(token) { return sessions[token] || null }
+
+// Middleware simulation
+const PUBLIC  = ["/", "/products", "/products/", "/sign-in", "/sign-up", "/api/webhooks", "/api/products"]
+const ADMIN   = ["/admin", "/api/admin"]
+const isMatch = (path, patterns) => patterns.some(p => path === p || path.startsWith(p + "/") || path.startsWith(p + "?"))
+
+function middleware(pathname, token) {
+  const session = auth(token)
+  if (isMatch(pathname, PUBLIC))  return { allowed:true, reason:"public" }
+  if (!session)                   return { allowed:false, redirect:"/sign-in?cb="+pathname, reason:"unauthenticated" }
+  if (isMatch(pathname, ADMIN) && session.role !== "ADMIN") return { allowed:false, redirect:"/unauthorized", reason:"not admin" }
+  return { allowed:true, userId:session.userId, reason:"authenticated" }
+}
+
+// RBAC
+const permissions = {
+  USER:       ["read:products","create:orders","create:reviews","read:own:orders"],
+  ADMIN:      ["manage:*"],
+  MODERATOR:  ["read:products","delete:reviews","read:users"],
+}
+function can(role, action) {
+  const perms = permissions[role] || []
+  return perms.includes(action) || perms.includes("manage:*")
+}
+
+// Webhook processor simulation
+let dbUsers = []
+function processWebhook(event) {
+  const { type, data } = event
+  if (type === "user.created" || type === "user.updated") {
+    const idx = dbUsers.findIndex(u => u.clerkId === data.id)
+    const user = { clerkId:data.id, email:data.email, name:data.name, role:"USER" }
+    if (idx >= 0) dbUsers[idx] = { ...dbUsers[idx], ...user }
+    else dbUsers.push(user)
+  }
+  if (type === "user.deleted") dbUsers = dbUsers.filter(u => u.clerkId !== data.id)
+  return { ok:true }
+}
+
+console.log("=== Auth Integration Tests ===\n")
+
+// 1. Middleware — route access
+const routes = [
+  ["/",                  "tok_anon",  true,  "public root"],
+  ["/products/macbook",  "tok_anon",  true,  "public product"],
+  ["/dashboard",         "tok_anon",  false, "protected dashboard"],
+  ["/dashboard",         "tok_user",  true,  "authenticated dashboard"],
+  ["/admin",             "tok_user",  false, "non-admin admin route"],
+  ["/admin",             "tok_admin", true,  "admin admin route"],
+  ["/admin/products",    "tok_mod",   false, "moderator cannot access admin"],
+  ["/api/products",      "tok_anon",  true,  "public API"],
+  ["/api/orders",        "tok_anon",  false, "protected API"],
+]
+console.log("1. Middleware tests:")
+let allPass = true
+routes.forEach(([path, token, expected, desc]) => {
+  const result = middleware(path, token)
+  const ok = result.allowed === expected
+  if (!ok) allPass = false
+  console.log(`   ${ok?"✓":"✗"} ${desc}: ${result.allowed?"allowed":"blocked"} (${result.reason})`)
+})
+
+// 2. RBAC permissions
+console.log("\n2. RBAC tests:")
+const permTests = [
+  ["USER",  "read:products",  true,  "user can read products"],
+  ["USER",  "delete:reviews", false, "user cannot delete others' reviews"],
+  ["ADMIN", "delete:reviews", true,  "admin can delete reviews (manage:*)"],
+  ["ADMIN", "manage:users",   true,  "admin can manage users"],
+  ["MODERATOR","delete:reviews",true,"moderator can delete reviews"],
+  ["MODERATOR","manage:products",false,"moderator cannot manage products"],
+]
+permTests.forEach(([role, action, expected, desc]) => {
+  const ok = can(role, action) === expected
+  if (!ok) allPass = false
+  console.log(`   ${ok?"✓":"✗"} ${desc}`)
+})
+
+// 3. Webhook user sync
+console.log("\n3. Webhook sync tests:")
+processWebhook({ type:"user.created", data:{ id:"clerk_new", email:"new@test.com", name:"New User" }})
+console.log("   user.created:", dbUsers.find(u=>u.clerkId==="clerk_new")?.email === "new@test.com" ? "✓" : "✗")
+
+processWebhook({ type:"user.updated", data:{ id:"clerk_new", email:"updated@test.com", name:"Updated Name" }})
+console.log("   user.updated:", dbUsers.find(u=>u.clerkId==="clerk_new")?.email === "updated@test.com" ? "✓" : "✗")
+
+processWebhook({ type:"user.deleted", data:{ id:"clerk_new" }})
+console.log("   user.deleted:", !dbUsers.find(u=>u.clerkId==="clerk_new") ? "✓" : "✗")
+console.log("   Idempotent delete:", !dbUsers.find(u=>u.clerkId==="clerk_new") ? "✓ no error" : "✗")
+
+console.log("\n" + (allPass ? "✅ All auth tests passed!" : "❌ Some tests failed — check above"))</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+  </div>
+
+  <div class="runner">
+    <div class="runner-head"><span class="runner-title">Test 3 — API layer: validation + status codes + error shapes</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+    <div class="runner-code">
+      <textarea id="ex3-code">// API layer integration test
+function response(status, body, headers={}) {
+  return { status, body, headers:{"Content-Type":"application/json",...headers}, ok: status < 400 }
+}
+
+// Simulated API helpers
+function apiSuccess(data, meta=null, status=200) {
+  return response(status, { data, ...(meta&&{meta}) })
+}
+function apiError(status, message, details=null) {
+  return response(status, { error:message, ...(details&&{details}) })
+}
+
+// Simulated products DB
+const products = [
+  { id:"p1", name:"MacBook Pro", slug:"macbook-pro", price:1999, published:true, categoryId:"c1" },
+  { id:"p2", name:"iPad Pro",    slug:"ipad-pro",    price:799,  published:true, categoryId:"c2" },
+]
+
+// Simulated route handlers
+function GET_products(query={}, session=null) {
+  const page  = Math.max(1, parseInt(query.page  || "1"))
+  const limit = Math.min(100, Math.max(1, parseInt(query.limit || "20")))
+  if (isNaN(page) || isNaN(limit)) return apiError(400, "Invalid query params")
+
+  let items = products.filter(p => p.published)
+  if (query.q) items = items.filter(p=>p.name.toLowerCase().includes(query.q.toLowerCase()))
+  if (query.categoryId) items = items.filter(p=>p.categoryId===query.categoryId)
+
+  const total = items.length
+  const paged = items.slice((page-1)*limit, page*limit).map(({id,name,price})=>({id,name,price}))
+  return apiSuccess(paged, { page, limit, total, totalPages:Math.ceil(total/limit) })
+}
+
+function POST_products(body={}, session=null) {
+  if (!session) return apiError(401, "Unauthorized")
+  if (session.role !== "ADMIN") return apiError(403, "Forbidden")
+
+  const errors = {}
+  if (!body.name || String(body.name).length < 2) errors.name = ["Min 2 chars"]
+  if (!body.price || Number(body.price) <= 0) errors.price = ["Must be positive"]
+  if (!body.categoryId) errors.categoryId = ["Required"]
+  if (Object.keys(errors).length) return apiError(400, "Validation failed", { fieldErrors:errors })
+
+  const slug = body.name.toLowerCase().replace(/\s+/g,"-")
+  if (products.find(p=>p.slug===slug)) return apiError(409, "Product already exists")
+
+  const product = { id:`p${Date.now()}`, ...body, slug, published:false }
+  products.push(product)
+  return response(201, { data:product }, { Location:`/api/products/${product.id}` })
+}
+
+function DELETE_products_id(id, session=null) {
+  if (!session) return apiError(401, "Unauthorized")
+  if (session.role !== "ADMIN") return apiError(403, "Forbidden")
+  const idx = products.findIndex(p=>p.id===id)
+  if (idx===-1) return apiError(404, "Product not found")
+  products.splice(idx,1)
+  return response(204, null)
+}
+
+// Run all tests
+console.log("=== API Layer Integration Tests ===\n")
+let passed=0, total=0
+
+function test(name, fn) {
+  total++
+  try {
+    const ok = fn()
+    if (ok) { passed++; console.log("✓ " + name) }
+    else console.log("✗ " + name)
+  } catch(e) { console.log("✗ " + name + " [threw: " + e.message + "]") }
+}
+
+// GET tests
+const anonSession = null
+const userSession = { userId:"u1", role:"USER" }
+const adminSession = { userId:"u2", role:"ADMIN" }
+
+test("GET /products returns 200 + data", () => GET_products().status === 200)
+test("GET /products data is array", () => Array.isArray(GET_products().body.data))
+test("GET /products has meta.total", () => GET_products().body.meta?.total === 2)
+test("GET /products?q=mac returns 1 item", () => GET_products({q:"mac"}).body.data.length === 1)
+test("GET /products?categoryId=c2 filters", () => {
+  const r = GET_products({categoryId:"c2"})
+  return r.body.data.every(p=>p.name==="iPad Pro")
+})
+test("GET /products pagination meta correct", () => {
+  const r = GET_products({page:"1",limit:"1"})
+  return r.body.meta.totalPages === 2 && r.body.meta.hasNext === undefined || r.body.meta.total === 2
+})
+
+// POST tests
+test("POST /products anon → 401", () => POST_products({}, null).status === 401)
+test("POST /products user → 403", () => POST_products({name:"X"},userSession).status === 403)
+test("POST /products bad body → 400", () => POST_products({name:"X",price:-1},adminSession).status === 400)
+test("POST /products bad body has fieldErrors", () => {
+  const r = POST_products({name:"X"},adminSession)
+  return !!r.body.details?.fieldErrors
+})
+test("POST /products valid → 201", () => POST_products({name:"AirPods Pro",price:249,categoryId:"c3"},adminSession).status === 201)
+test("POST /products valid has Location header", () => {
+  const r = POST_products({name:"Mac Studio",price:1999,categoryId:"c1"},adminSession)
+  return !!r.headers?.Location
+})
+test("POST /products duplicate → 409", () => {
+  const r = POST_products({name:"MacBook Pro",price:1999,categoryId:"c1"},adminSession)
+  return r.status === 409
+})
+
+// DELETE tests
+test("DELETE anon → 401", () => DELETE_products_id("p1", null).status === 401)
+test("DELETE user → 403", () => DELETE_products_id("p1", userSession).status === 403)
+test("DELETE not found → 404", () => DELETE_products_id("p99", adminSession).status === 404)
+test("DELETE valid → 204", () => DELETE_products_id("p2", adminSession).status === 204)
+test("DELETE no body on 204", () => DELETE_products_id("p1", adminSession).body === null)
+
+console.log(`\n${passed}/${total} tests passed ${passed===total?"✅":"❌"}`)</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+  </div>
+
+  <div class="runner">
+    <div class="runner-head"><span class="runner-title">Test 4 — rate limiter + error handler + response shapes</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+    <div class="runner-code">
+      <textarea id="ex4-code">// Rate limiter + error handler tests
+function createRateLimiter(limit, windowMs) {
+  const store = new Map(); let now = Date.now()
+  return {
+    check(id) {
+      const windowStart = now - windowMs
+      const ts = (store.get(id) || []).filter(t => t > windowStart)
+      store.set(id, ts)
+      const allowed = ts.length < limit
+      if (allowed) { ts.push(now); store.set(id, ts) }
+      const reset = ts.length > 0 ? Math.ceil((ts[0]+windowMs)/1000) : Math.ceil((now+windowMs)/1000)
+      return { allowed, limit, remaining: allowed ? limit-ts.length : 0, reset,
+               headers: { "X-RateLimit-Limit":String(limit), "X-RateLimit-Remaining":String(allowed?limit-ts.length:0),
+                          "X-RateLimit-Reset":String(reset), ...(allowed?{}:{"Retry-After":String(Math.ceil((ts[0]+windowMs-now)/1000))}) } }
+    },
+    advance(ms) { now += ms },
+    reset(id) { store.delete(id) }
+  }
+}
+
+function withErrorHandler(handler) {
+  return async (req) => {
+    try { return await handler(req) }
+    catch(e) {
+      if (e.type === "ZodError") return { status:400, body:{ error:"Validation failed", details:e.details } }
+      if (e.type === "PrismaP2002") return { status:409, body:{ error:"Resource already exists" } }
+      if (e.type === "PrismaP2025") return { status:404, body:{ error:"Resource not found" } }
+      console.error("Unhandled:", e.message)
+      return { status:500, body:{ error:"Internal server error" } }
+    }
+  }
+}
+
+console.log("=== Infrastructure Tests ===\n")
+let passed=0, total=0
+function test(name, fn) {
+  total++
+  try { const ok=fn(); if(ok){passed++;console.log("✓ "+name)}else console.log("✗ "+name) }
+  catch(e) { console.log("✗ "+name+" [threw]") }
+}
+
+// Rate limiter tests
+const rl = createRateLimiter(3, 60_000)
+test("First 3 requests allowed", () => [1,2,3].every(() => rl.check("ip1").allowed))
+test("4th request blocked", () => !rl.check("ip1").allowed)
+test("Blocked response has Retry-After", () => !!rl.check("ip1").headers["Retry-After"])
+test("Blocked response has remaining=0", () => rl.check("ip1").remaining === 0)
+test("Different IPs independent", () => rl.check("ip2").allowed)
+rl.advance(61_000)
+test("After window: requests allowed again", () => rl.check("ip1").allowed)
+
+// X-RateLimit headers present on successful request
+const rl2 = createRateLimiter(10, 60_000)
+const r = rl2.check("test")
+test("X-RateLimit-Limit header present", () => !!r.headers["X-RateLimit-Limit"])
+test("X-RateLimit-Remaining header present", () => !!r.headers["X-RateLimit-Remaining"])
+test("X-RateLimit-Reset header present", () => !!r.headers["X-RateLimit-Reset"])
+
+// Error handler tests
+async function runAsyncTests() {
+  const zodHandler = withErrorHandler(async () => { throw { type:"ZodError", details:{ fieldErrors:{name:["Required"]} } } })
+  const zodResult = await zodHandler({})
+  test("Zod → 400", () => zodResult.status === 400)
+  test("Zod body has fieldErrors", () => !!zodResult.body.details?.fieldErrors)
+
+  const prismaUniqueHandler = withErrorHandler(async () => { throw { type:"PrismaP2002" } })
+  const p2002 = await prismaUniqueHandler({})
+  test("Prisma P2002 → 409", () => p2002.status === 409)
+
+  const prismaNotFoundHandler = withErrorHandler(async () => { throw { type:"PrismaP2025" } })
+  const p2025 = await prismaNotFoundHandler({})
+  test("Prisma P2025 → 404", () => p2025.status === 404)
+
+  const unknownHandler = withErrorHandler(async () => { throw new Error("Something broke") })
+  const unknown = await unknownHandler({})
+  test("Unknown error → 500", () => unknown.status === 500)
+  test("500 body is generic (no stack trace)", () => unknown.body.error === "Internal server error")
+
+  const successHandler = withErrorHandler(async () => ({ status:200, body:{ data:[] } }))
+  const success = await successHandler({})
+  test("Success passes through", () => success.status === 200)
+
+  console.log(`\n${passed}/${total} tests passed ${passed===total?"✅":"❌"}`)
+}
+
+runAsyncTests()</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+  </div>
+
+  <div class="runner">
+    <div class="runner-head"><span class="runner-title">Test 5 — Week 4 patterns quiz: match pattern to scenario</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+    <div class="runner-code">
+      <textarea id="ex5-code">// Week 4 Pattern Quiz — answer which tool/pattern is correct for each scenario
+const scenarios = [
+  {
+    scenario: "You need an interactive shopping cart button that updates quantity on click",
+    answer: "Client Component with useState",
+    check: (a) => a.includes("Client") && (a.includes("useState") || a.includes("hook")),
+    hint: "Needs interactivity → 'use client' + hooks"
+  },
+  {
+    scenario: "You need to display the product list on /products with real DB data, SEO-friendly",
+    answer: "Server Component with async Prisma query",
+    check: (a) => (a.includes("Server") || a.includes("server")) && (a.includes("Prisma") || a.includes("async") || a.includes("DB")),
+    hint: "Server Component = async, no JS bundle, crawlable HTML"
+  },
+  {
+    scenario: "User submits a checkout form — you need to validate input, create order, decrement stock",
+    answer: "Server Action with $transaction",
+    check: (a) => (a.includes("Server Action") || a.includes("action")) && (a.includes("transaction") || a.includes("$transaction")),
+    hint: "Mutation from UI + atomicity → Server Action + $transaction"
+  },
+  {
+    scenario: "You need to protect /dashboard so only authenticated users can access it",
+    answer: "clerkMiddleware with createRouteMatcher",
+    check: (a) => (a.includes("middleware") || a.includes("Middleware")) && (a.includes("Clerk") || a.includes("clerk") || a.includes("matcher")),
+    hint: "Route-level protection before any server code runs → middleware"
+  },
+  {
+    scenario: "A user signs up on Clerk — you need to create a User record in your Prisma database",
+    answer: "Clerk webhook handler with svix verification + Prisma upsert",
+    check: (a) => (a.includes("webhook") || a.includes("Webhook")) && (a.includes("svix") || a.includes("verify")) && (a.includes("upsert") || a.includes("Prisma")),
+    hint: "External event → webhook, always verify svix, upsert for idempotency"
+  },
+  {
+    scenario: "A third-party mobile app needs to list your products — paginated and filterable",
+    answer: "Route Handler (route.ts) GET with Zod query validation + apiSuccess",
+    check: (a) => (a.includes("Route Handler") || a.includes("route.ts") || a.includes("GET")) && (a.includes("Zod") || a.includes("validation")),
+    hint: "External consumers need a real HTTP API endpoint"
+  },
+  {
+    scenario: "You want the product reviews section to load lazily while the main product info shows instantly",
+    answer: "Suspense boundary wrapping an async Reviews Server Component",
+    check: (a) => a.includes("Suspense") && (a.includes("Server") || a.includes("async") || a.includes("streaming")),
+    hint: "Streaming sections independently → Suspense + async Server Component"
+  },
+  {
+    scenario: "You need to decrement stock and create an order — if either fails, both should roll back",
+    answer: "Prisma $transaction (interactive, with async callback)",
+    check: (a) => a.includes("$transaction") || (a.includes("transaction") && (a.includes("atomic") || a.includes("rollback"))),
+    hint: "Atomic multi-step operation → $transaction"
+  },
+]
+
+console.log("=== Week 4 Pattern Quiz ===")
+console.log("(Checking your instincts on which tool fits each scenario)\n")
+
+let score = 0
+scenarios.forEach((s, i) => {
+  // Auto-evaluate using check function
+  const correct = s.check(s.answer)  // All model answers pass their own check
+  if (correct) score++
+  console.log(`Q${i+1}: ${s.scenario.slice(0,60)}...`)
+  console.log(`     Answer: ${s.answer}`)
+  console.log(`     ${s.hint}\n`)
+})
+
+console.log("=== Pattern → Tool Quick Reference ===")
+const quickRef = [
+  ["Interactivity (hooks, events)", "'use client' Client Component"],
+  ["Initial data (SEO, no spinner)", "async Server Component + Prisma"],
+  ["Form mutation (create/update)", "Server Action (+ useActionState)"],
+  ["Route protection",              "clerkMiddleware + createRouteMatcher"],
+  ["External API consumers",        "Route Handler (route.ts)"],
+  ["Atomic multi-step DB writes",   "db.$transaction(async tx => {...})"],
+  ["Sync auth users → DB",          "Clerk webhook + svix + Prisma upsert"],
+  ["Stream slow sections",          "<Suspense fallback={<Skeleton/>}>"],
+  ["Revalidate after mutation",     "revalidatePath() or revalidateTag()"],
+  ["Role-based access",             "sessionClaims.metadata.role"],
+]
+quickRef.forEach(([trigger, tool]) =>
+  console.log(`  ${trigger.padEnd(38)} → ${tool}`)
+)</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+  </div>
+
+  <div class="runner">
+    <div class="runner-head"><span class="runner-title">Test 6 — full stack simulation: request → auth → DB → response</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+    <div class="runner-code">
+      <textarea id="ex6-code">// Complete request lifecycle simulation for ShopCo
+
+// ── Infrastructure ────────────────────────────────────────
+const sessions = {
+  "Bearer tok_user":  { userId:"u_alice", clerkId:"clerk_alice", role:"USER" },
+  "Bearer tok_admin": { userId:"u_admin", clerkId:"clerk_admin", role:"ADMIN" },
+}
+const DB = {
+  users:    [{ id:"u_alice",  clerkId:"clerk_alice", role:"USER" },
+             { id:"u_admin",  clerkId:"clerk_admin", role:"ADMIN" }],
+  products: [
+    { id:"p1", name:"MacBook Pro", slug:"macbook-pro", price:1999, stock:3, published:true, categoryId:"c1" },
+    { id:"p2", name:"iPad Pro",    slug:"ipad-pro",    price:799,  stock:1, published:true, categoryId:"c2" },
+  ],
+  orders: [],
+}
+
+function getSession(authHeader) { return sessions[authHeader] || null }
+function apiErr(status, msg, details=null) { return { status, body:{error:msg,...(details&&{details})} } }
+function apiOk(data, meta=null, status=200) { return { status, body:{data,...(meta&&{meta})} } }
+
+// ── Route handlers ────────────────────────────────────────
+function handleGetProducts(req) {
+  const q       = req.query?.q
+  const page    = parseInt(req.query?.page || "1")
+  const limit   = parseInt(req.query?.limit || "10")
+  let items     = DB.products.filter(p => p.published)
+  if (q) items  = items.filter(p => p.name.toLowerCase().includes(q.toLowerCase()))
+  const total   = items.length
+  const paged   = items.slice((page-1)*limit, page*limit).map(({id,name,price})=>({id,name,price}))
+  return apiOk(paged, {page,limit,total,totalPages:Math.ceil(total/limit)})
+}
+
+function handleCreateOrder(req) {
+  const session = getSession(req.headers?.Authorization)
+  if (!session) return apiErr(401, "Unauthorized")
+
+  const { items } = req.body || {}
+  if (!items?.length) return apiErr(400, "Validation failed", { fieldErrors:{ items:["Required"] } })
+
+  // Stock check + atomic create
+  for (const { productId, quantity } of items) {
+    const p = DB.products.find(p=>p.id===productId)
+    if (!p || !p.published) return apiErr(404, `Product ${productId} not found`)
+    if (p.stock < quantity) return apiErr(400, `Insufficient stock: ${p.name}`)
+  }
+
+  const total = items.reduce((s, {productId, quantity}) =>
+    s + DB.products.find(p=>p.id===productId).price * quantity, 0)
+
+  const order = { id:`ord_${Date.now()}`, userId:session.userId, total, status:"PENDING", items, createdAt: new Date().toISOString() }
+  DB.orders.push(order)
+  for (const { productId, quantity } of items) {
+    DB.products.find(p=>p.id===productId).stock -= quantity
+  }
+
+  return { status:201, body:{ data:order }, headers:{ Location:`/api/orders/${order.id}` } }
+}
+
+function handleAdminPublish(req, productId) {
+  const session = getSession(req.headers?.Authorization)
+  if (!session) return apiErr(401, "Unauthorized")
+  if (session.role !== "ADMIN") return apiErr(403, "Forbidden")
+  const product = DB.products.find(p=>p.id===productId)
+  if (!product) return apiErr(404, "Product not found")
+  product.published = !product.published
+  return apiOk(product)
+}
+
+// ── End-to-end test scenarios ─────────────────────────────
+console.log("=== End-to-End ShopCo Tests ===\n")
+let pass=0, fail=0
+function check(name, got, expected) {
+  const ok = got === expected
+  ok ? pass++ : fail++
+  console.log(`${ok?"✓":"✗"} ${name}: ${got} ${ok?"":"(expected "+expected+")"}`)
+}
+
+// 1. Public product listing
+const list = handleGetProducts({ query:{} })
+check("GET /products → 200",                    list.status, 200)
+check("GET /products returns items array",       Array.isArray(list.body.data), true)
+check("GET /products meta.total",                list.body.meta.total, 2)
+
+// 2. Search
+const searched = handleGetProducts({ query:{q:"mac"} })
+check("GET /products?q=mac → 1 result",         searched.body.data.length, 1)
+check("Search result is MacBook",                searched.body.data[0].name, "MacBook Pro")
+
+// 3. Unauthenticated order
+const unauth = handleCreateOrder({ body:{ items:[{productId:"p1",quantity:1}] }, headers:{} })
+check("POST /api/orders anon → 401",            unauth.status, 401)
+
+// 4. Valid order
+const order = handleCreateOrder({
+  body:{ items:[{productId:"p1",quantity:2},{productId:"p2",quantity:1}] },
+  headers:{ Authorization:"Bearer tok_user" }
+})
+check("POST /api/orders → 201",                 order.status, 201)
+check("Order has Location header",               !!order.headers?.Location, true)
+check("Order total correct (1999*2+799)",        order.body.data.total, 4797)
+check("MacBook stock decremented 3→1",           DB.products.find(p=>p.id==="p1").stock, 1)
+check("iPad stock decremented 1→0",              DB.products.find(p=>p.id==="p2").stock, 0)
+
+// 5. Insufficient stock
+const overOrder = handleCreateOrder({
+  body:{ items:[{productId:"p1",quantity:5}] },
+  headers:{ Authorization:"Bearer tok_user" }
+})
+check("Insufficient stock → 400",               overOrder.status, 400)
+check("Stock not changed after failure",         DB.products.find(p=>p.id==="p1").stock, 1)
+
+// 6. Admin actions
+const forbidden = handleAdminPublish({ headers:{ Authorization:"Bearer tok_user" } }, "p1")
+check("User cannot publish → 403",              forbidden.status, 403)
+const published = handleAdminPublish({ headers:{ Authorization:"Bearer tok_admin" } }, "p1")
+check("Admin can publish → 200",                published.status, 200)
+
+// 7. Order state
+check("Orders in DB",                           DB.orders.length, 1)
+check("Order status PENDING",                   DB.orders[0].status, "PENDING")
+
+console.log(`\n${pass} passed, ${fail} failed ${fail===0?"✅ All passed!":"❌"}`)
+console.log("\nFinal DB state:")
+console.log("  Products:", DB.products.map(p=>`${p.name}(stock:${p.stock},published:${p.published})`).join(" | "))
+console.log("  Orders:", DB.orders.length)</textarea>
+    </div>
+    <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+  </div>
+</div>
+
+<!-- 08. CHECKLIST -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Final review</span></div>
+
+<div class="section" id="checklist">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Week 4 completion checklist</span>
+    <span class="sec-badge" style="background:var(--accent-dim);color:var(--accent);">20 items</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only items you can demonstrate or explain without looking at your notes. These are your Week 4 skills.</p>
+  <div class="checklist">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--emerald);letter-spacing:.06em;padding:8px 0 4px;text-transform:uppercase;">Day 21 — Next.js App Router</div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the Server Component / Client Component boundary and when to use each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can build a dynamic <code>[slug]/page.tsx</code> route that fetches from DB, handles notFound(), and generates metadata</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a Server Action — "use server", validate with Zod, mutate DB, revalidatePath</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement Suspense streaming — fast section renders first, slow section streams in</div></div>
+
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--clerk);letter-spacing:.06em;padding:14px 0 4px;text-transform:uppercase;">Day 22 — Clerk Auth</div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can set up <code>clerkMiddleware</code> with a public routes allowlist and admin route guard</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use <code>auth()</code> vs <code>currentUser()</code> and why</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write the full Clerk webhook handler — svix verification + Prisma upsert</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement RBAC using <code>sessionClaims.metadata.role</code></div></div>
+
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--indigo);letter-spacing:.06em;padding:14px 0 4px;text-transform:uppercase;">Day 23 — Prisma</div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a complete Prisma schema with 1:N and N:M relations, enums, and indexes</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know <code>include</code> vs <code>select</code> and can use <code>_count</code> without fetching all records</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement <code>$transaction</code> for atomic stock check + order creation</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand cursor pagination and can explain why it's better than offset</div></div>
+
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--api);letter-spacing:.06em;padding:14px 0 4px;text-transform:uppercase;">Day 24 — API Design</div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can design a RESTful API surface — correct URLs, methods, and status codes</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know all key status codes and can name a real scenario for each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a Route Handler with auth check, Zod validation, and consistent error shape</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use Server Actions vs Route Handlers</div></div>
+
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--accent);letter-spacing:.06em;padding:14px 0 4px;text-transform:uppercase;">ShopCo project</div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">All 6 build challenges are complete and working locally</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">ShopCo is deployed to Vercel and reads/writes from the cloud database</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">Clerk webhook is configured on the Vercel URL — signing up creates a DB record</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">All integration tests (Tests 1–6 above) pass when run</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:22px 24px;margin-top:18px;">
+    <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;">🏆 Week 4 complete — what you can now build</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      You can now build a <strong style="color:var(--text)">complete production-grade full-stack app</strong> from scratch:<br>
+      → <strong style="color:var(--text)">Authentication</strong> (Clerk) that syncs to your own database (Prisma + webhooks)<br>
+      → <strong style="color:var(--text)">Server-rendered pages</strong> (Next.js) that are SEO-friendly and instant on first load<br>
+      → <strong style="color:var(--text)">Type-safe database</strong> (Prisma) with atomic transactions and cursor pagination<br>
+      → <strong style="color:var(--text)">REST API endpoints</strong> with auth, validation, consistent errors, rate limiting<br>
+      → <strong style="color:var(--text)">Deployed</strong> on Vercel with a real PostgreSQL database<br><br>
+      Week 5 starts with <strong style="color:var(--text)">performance, testing, and GenAI integration</strong>.
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 4 · Day 25</div>
+      <div class="footer-day-name">Week 4 Review — ShopCo 🏆</div>
+      <div class="footer-day-next">Next up: <strong>Week 5 begins — Performance + Testing + GenAI</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 4 complete</span><span>Day 5 / 5</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:100%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day24_api_design.html',24)">← Day 24</button>
+      <button class="footer-btn primary" onclick="navigateTo('day26_week5_start.html',26)">Week 5 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design.html"},
+  {num:25,file:"day25_week4_review.html",current:true},
+]
+const CURRENT=25
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+  "day18_tailwind_css.html","day19_week3_review.html",
+  "day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html",
+  "day24_api_design.html","day25_week4_review.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — Week 5 incoming! 🚀`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>
