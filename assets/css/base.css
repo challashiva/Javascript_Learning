@@ -42,7 +42,8 @@
   --indigo:#6366f1;--indigo-dim:rgba(99,102,241,0.09);
   --api:#f97316;--api-dim:rgba(249,115,22,0.09);
   --clerk:#6c47ff;--clerk-dim:rgba(108,71,255,0.09);
-
+  --ai:#8b5cf6;--ai-dim:rgba(139,92,246,0.09);
+  --pw:#45ba4b;--pw-dim:rgba(69,186,75,0.09);
 }
 
 * {

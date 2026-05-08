@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 26 — Performance Optimization</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link defer href="assets/css/components.css"  rel="stylesheet">
+<link defer href="assets/css/base.css" rel="stylesheet">
+<style>
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--perf);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--perf);border-bottom-color:var(--perf);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--perf);font-weight:600;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;display:inline-block;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--perf);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--perf-dim);color:var(--perf);border-color:rgba(6,182,212,.3);}
+.day-btn.primary:hover{background:rgba(6,182,212,.18);}
+
+.week-banner{background:linear-gradient(135deg,rgba(6,182,212,.1),rgba(139,92,246,.06));border-bottom:1px solid var(--border);padding:14px 48px;}
+.week-banner-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.week-badge{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--perf-dim);color:var(--perf);border:1px solid rgba(6,182,212,.3);white-space:nowrap;}
+.week-text{font-size:13px;color:var(--muted);}
+.week-text strong{color:var(--text);}
+
+.hero{padding:56px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--perf);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--perf);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--perf);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.w5-preview{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.w5-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.w5-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.w5-day{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:4px;}
+.w5-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+.w5-sub{font-size:11px;color:var(--muted);}
+
+.topics-strip{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;}
+.topic-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.topic-sub{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--perf);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--perf-dim);color:var(--perf);border-color:rgba(6,182,212,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--perf);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--perf);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+.ty{color:#38bdf8;}
+
+.before-after{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;}
+.ba-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.ba-head{padding:8px 14px;font-size:11px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--border);}
+.ba-body{padding:14px 16px;overflow-x:auto;}
+.ba-body pre{font-size:12px;line-height:1.8;white-space:pre;color:var(--muted);}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--perf);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--perf);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--perf-dim);color:var(--perf);border:1px solid rgba(6,182,212,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(6,182,212,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:180px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(6,182,212,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--perf);}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--perf-dim);color:var(--perf);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--perf);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--perf);border-color:var(--perf);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--perf);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--perf-dim);color:var(--perf);border-color:rgba(6,182,212,.3);}
+.footer-btn.primary:hover{background:rgba(6,182,212,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--perf);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.topics-strip,.w5-preview,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav,.week-banner{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+  .before-after{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 26 · Performance</div>
+  <a href="#week5">Week 5 Plan</a>
+  <a href="#core-web">Core Web Vitals</a>
+  <a href="#images">Images</a>
+  <a href="#bundles">Bundle Size</a>
+  <a href="#caching">Caching</a>
+  <a href="#rendering">Rendering</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="week-banner">
+  <div class="week-banner-inner">
+    <span class="week-badge">Week 5 begins</span>
+    <span class="week-text"><strong>Performance · Testing · GenAI APIs</strong> — Days 26–32. You can build it. Now make it fast, reliable, and intelligent.</span>
+  </div>
+</div>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 5 · <span>Day 26 of 56</span> · Performance Optimization</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="display:flex;gap:5px;align-items:center;" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day25_week4_review.html',25)">← Day 25</button>
+      <button class="day-btn primary" onclick="navigateTo('day27_testing.html',27)">Day 27 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 5 · Day 26 · Ship fast</div>
+  <h1><em>Performance</em><br>Optimization</h1>
+  <p class="hero-sub">A slow app is a broken app. Core Web Vitals, image optimization, code splitting, bundle analysis, caching strategies, and React-specific optimizations — the techniques that take a functional app to a production-grade one.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(6,182,212,.3);color:var(--perf);">Core Web Vitals</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">next/image optimization</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">bundle analysis</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">code splitting + lazy</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">Next.js caching layers</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">React.memo + useMemo</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">Lighthouse audits</span>
+    <span class="topic-pill" style="border-color:rgba(16,185,129,.3);color:var(--emerald);">database query perf</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">focus time</div></div>
+  </div>
+</div>
+
+<!-- WEEK 5 PREVIEW -->
+<div class="w5-preview">
+  <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:12px;letter-spacing:.08em;text-transform:uppercase;">Week 5 — Days 26–32</div>
+  <div class="w5-grid">
+    <div class="w5-card" style="border-color:rgba(6,182,212,.25);">
+      <div class="w5-day" style="color:var(--perf);">Day 26 — today</div>
+      <div class="w5-title" style="color:var(--perf);">Performance</div>
+      <div class="w5-sub">Core Web Vitals, images, bundles, caching</div>
+    </div>
+    <div class="w5-card">
+      <div class="w5-day">Day 27</div>
+      <div class="w5-title">Testing</div>
+      <div class="w5-sub">Vitest, React Testing Library, Playwright E2E</div>
+    </div>
+    <div class="w5-card">
+      <div class="w5-day">Day 28</div>
+      <div class="w5-title">Error Monitoring</div>
+      <div class="w5-sub">Sentry, error boundaries, logging</div>
+    </div>
+    <div class="w5-card" style="border-color:rgba(139,92,246,.25);">
+      <div class="w5-day" style="color:var(--ai);">Day 29</div>
+      <div class="w5-title" style="color:var(--ai);">GenAI — Vercel AI SDK</div>
+      <div class="w5-sub">Streaming chat, useChat, generateText</div>
+    </div>
+    <div class="w5-card" style="border-color:rgba(139,92,246,.25);">
+      <div class="w5-day" style="color:var(--ai);">Day 30</div>
+      <div class="w5-title" style="color:var(--ai);">RAG + Embeddings</div>
+      <div class="w5-sub">pgvector, similarity search, AI docs</div>
+    </div>
+    <div class="w5-card" style="border-color:rgba(139,92,246,.25);">
+      <div class="w5-day" style="color:var(--ai);">Day 31</div>
+      <div class="w5-title" style="color:var(--ai);">AI Agents + Tools</div>
+      <div class="w5-sub">Tool calling, multi-step agents, structured output</div>
+    </div>
+    <div class="w5-card">
+      <div class="w5-day">Day 32</div>
+      <div class="w5-title">Week 5 Review</div>
+      <div class="w5-sub">ShopCo + AI features + E2E tests</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOPICS -->
+<div class="topics-strip">
+  <div class="topics-grid">
+    <div class="topic-card"><span class="topic-icon">📊</span><div><div class="topic-name">Core Web Vitals</div><div class="topic-sub">LCP, INP, CLS — what Google measures</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🖼️</span><div><div class="topic-name">next/image</div><div class="topic-sub">WebP, sizes, priority, blur</div></div></div>
+    <div class="topic-card"><span class="topic-icon">📦</span><div><div class="topic-name">Bundle Analysis</div><div class="topic-sub">@next/bundle-analyzer, tree shaking</div></div></div>
+    <div class="topic-card"><span class="topic-icon">✂️</span><div><div class="topic-name">Code Splitting</div><div class="topic-sub">dynamic import, lazy, Suspense</div></div></div>
+    <div class="topic-card"><span class="topic-icon">💾</span><div><div class="topic-name">Next.js Caching</div><div class="topic-sub">4 layers — Request, Data, Full, Router</div></div></div>
+    <div class="topic-card"><span class="topic-icon">⚛️</span><div><div class="topic-name">React Optimizations</div><div class="topic-sub">memo, useMemo, useCallback, profiler</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🗄️</span><div><div class="topic-name">DB Query Performance</div><div class="topic-sub">indexes, N+1, select vs include</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🔍</span><div><div class="topic-name">Lighthouse</div><div class="topic-sub">audit, budget, CI integration</div></div></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 26 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Core Web Vitals</span>
+    <span class="tdot" onclick="markDone(this)">Images</span>
+    <span class="tdot" onclick="markDone(this)">Bundle analysis</span>
+    <span class="tdot" onclick="markDone(this)">Code splitting</span>
+    <span class="tdot" onclick="markDone(this)">Caching</span>
+    <span class="tdot" onclick="markDone(this)">React optims</span>
+    <span class="tdot" onclick="markDone(this)">DB perf</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. CORE WEB VITALS -->
+<div class="section" id="core-web">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Core Web Vitals — what Google actually measures</span>
+    <span class="sec-badge" style="background:var(--perf-dim);color:var(--perf);">metrics</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">LCP — Largest Contentful Paint</span>
+      <div class="cc-title">Time until the biggest visible element loads</div>
+      <div class="cc-body">The time from navigation start until the largest visible element (hero image, h1, product photo) is fully rendered. <strong>Good: &lt; 2.5s. Poor: &gt; 4s.</strong> Fix: server-render above-the-fold content, <code>priority</code> on hero images, eliminate render-blocking resources, use CDN. Your LCP element is almost always an image — optimise that image first.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">INP — Interaction to Next Paint</span>
+      <div class="cc-title">Responsiveness to user interactions</div>
+      <div class="cc-body">Replaced FID in 2024. Measures the worst interaction delay: tap, click, keyboard input. <strong>Good: &lt; 200ms. Poor: &gt; 500ms.</strong> Fix: break up long JavaScript tasks, defer non-critical work with <code>setTimeout</code>/<code>requestIdleCallback</code>, avoid heavy synchronous computation on the main thread, use web workers for CPU-intensive work.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">CLS — Cumulative Layout Shift</span>
+      <div class="cc-title">Unexpected content movement</div>
+      <div class="cc-body">Sum of all unexpected layout shifts during page load. Text jumping when fonts load, images resizing when they load, ads pushing content down. <strong>Good: &lt; 0.1. Poor: &gt; 0.25.</strong> Fix: always set <code>width</code> and <code>height</code> on images, use <code>font-display: optional</code> or preload fonts, reserve space for dynamic content.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">TTFB — Time to First Byte</span>
+      <div class="cc-title">Server response speed</div>
+      <div class="cc-body">How long until the first byte of the server response arrives. Not a Core Web Vital but influences everything downstream. <strong>Good: &lt; 800ms.</strong> Fix: Vercel Edge Network puts your server close to users, Next.js caching avoids repeated DB queries, CDN for static assets, connection pooling (Day 23) for DB access.</div>
+    </div>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">Core Web Vitals quick reference — thresholds and top fixes</div>
+    <table class="comp-table">
+      <tr><th>Metric</th><th>Good</th><th>Needs Work</th><th>Poor</th><th>Top 3 fixes</th></tr>
+      <tr><td><code>LCP</code></td><td style="color:var(--green);">&lt; 2.5s</td><td style="color:var(--amber);">2.5–4s</td><td style="color:var(--coral);">&gt; 4s</td><td>Priority image · SSR content · CDN</td></tr>
+      <tr><td><code>INP</code></td><td style="color:var(--green);">&lt; 200ms</td><td style="color:var(--amber);">200–500ms</td><td style="color:var(--coral);">&gt; 500ms</td><td>Break up JS tasks · defer work · web workers</td></tr>
+      <tr><td><code>CLS</code></td><td style="color:var(--green);">&lt; 0.1</td><td style="color:var(--amber);">0.1–0.25</td><td style="color:var(--coral);">&gt; 0.25</td><td>Image dimensions · font-display · reserve space</td></tr>
+      <tr><td><code>TTFB</code></td><td style="color:var(--green);">&lt; 800ms</td><td style="color:var(--amber);">800ms–1.8s</td><td style="color:var(--coral);">&gt; 1.8s</td><td>Next.js cache · Edge runtime · connection pool</td></tr>
+      <tr><td><code>FCP</code></td><td style="color:var(--green);">&lt; 1.8s</td><td style="color:var(--amber);">1.8–3s</td><td style="color:var(--coral);">&gt; 3s</td><td>Preload fonts · remove render blockers · SSR</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 02. IMAGES -->
+<div class="section" id="images">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Image optimization — next/image and the full picture</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">images</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">next/image — every prop that matters, common mistakes</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> <span class="ty">Image</span> <span class="kw">from</span> <span class="str">"next/image"</span>
+
+<span class="cm">// ── Product hero image — above fold, load instantly ───────</span>
+<span class="tag">&lt;Image</span>
+  <span class="attr">src</span>={<span class="var">product</span>.<span class="prop">images</span>[<span class="num">0</span>]}
+  <span class="attr">alt</span>={<span class="var">product</span>.<span class="prop">name</span>}
+  <span class="attr">width</span>={<span class="num">800</span>}
+  <span class="attr">height</span>={<span class="num">600</span>}
+  <span class="attr">priority</span>           <span class="cm">// ← preload this image (use for LCP element only)</span>
+  <span class="attr">quality</span>={<span class="num">85</span>}        <span class="cm">// ← default 75, 85 is good balance for product photos</span>
+  <span class="attr">placeholder</span>=<span class="str">"blur"</span>  <span class="cm">// ← show blurred version while loading (needs blurDataURL)</span>
+  <span class="attr">blurDataURL</span>={<span class="var">product</span>.<span class="prop">blurHash</span>}
+  <span class="attr">className</span>=<span class="str">"object-cover rounded-xl"</span>
+<span class="tag">/&gt;</span>
+
+<span class="cm">// ── Product grid — below fold, lazy loaded ────────────────</span>
+<span class="tag">&lt;Image</span>
+  <span class="attr">src</span>={<span class="var">product</span>.<span class="prop">images</span>[<span class="num">0</span>]}
+  <span class="attr">alt</span>={<span class="var">product</span>.<span class="prop">name</span>}
+  <span class="attr">fill</span>               <span class="cm">// ← fills parent container (parent must be relative + sized)</span>
+  <span class="attr">sizes</span>=<span class="str">"(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"</span>
+  <span class="cm">// ↑ tells browser which size to download based on viewport</span>
+  <span class="cm">//   without sizes=, Next.js defaults to 100vw — downloads 3x too large!</span>
+  <span class="attr">className</span>=<span class="str">"object-cover"</span>
+<span class="tag">/&gt;</span>
+
+<span class="cm">// ── User avatar — small, cacheable ───────────────────────</span>
+<span class="tag">&lt;Image</span>
+  <span class="attr">src</span>={<span class="var">user</span>.<span class="prop">imageUrl</span>}
+  <span class="attr">alt</span>={<span class="var">user</span>.<span class="prop">name</span>}
+  <span class="attr">width</span>={<span class="num">40</span>}
+  <span class="attr">height</span>={<span class="num">40</span>}
+  <span class="attr">className</span>=<span class="str">"rounded-full"</span>
+<span class="tag">/&gt;</span>
+
+<span class="cm">// ── next.config.ts — allow external image domains ─────────</span>
+<span class="kw">const</span> <span class="var">nextConfig</span> = {
+  <span class="prop">images</span>: {
+    <span class="prop">remotePatterns</span>: [
+      { <span class="prop">protocol</span>: <span class="str">"https"</span>, <span class="prop">hostname</span>: <span class="str">"images.unsplash.com"</span> },
+      { <span class="prop">protocol</span>: <span class="str">"https"</span>, <span class="prop">hostname</span>: <span class="str">"*.supabase.co"</span> },
+    ],
+    <span class="prop">formats</span>: [<span class="str">"image/avif"</span>, <span class="str">"image/webp"</span>],  <span class="cm">// prefer AVIF (30% smaller than WebP)</span>
+    <span class="prop">deviceSizes</span>: [<span class="num">640</span>, <span class="num">750</span>, <span class="num">828</span>, <span class="num">1080</span>, <span class="num">1200</span>, <span class="num">1920</span>],
+    <span class="prop">minimumCacheTTL</span>: <span class="num">60</span> * <span class="num">60</span> * <span class="num">24</span> * <span class="num">30</span>,  <span class="cm">// 30 days</span>
+  },
+}
+
+<span class="cm">// ── What next/image does automatically ────────────────────</span>
+<span class="cm">// ✓ Converts to WebP/AVIF (30-50% smaller than JPEG)</span>
+<span class="cm">// ✓ Resizes to the size actually displayed (not 2000px for a 200px thumbnail)</span>
+<span class="cm">// ✓ Lazy loads images below the fold (loading="lazy" attribute)</span>
+<span class="cm">// ✓ Prevents CLS by reserving space via aspect ratio from width+height props</span>
+<span class="cm">// ✓ Serves from Vercel's CDN with long cache headers</span>
+<span class="cm">// ✓ Adds srcset for responsive images across device sizes</span>
+
+<span class="cm">// ── Common mistakes ───────────────────────────────────────</span>
+<span class="cm">// ❌ No width+height with fill → use parent relative container</span>
+<span class="cm">// ❌ No sizes prop with fill → downloads full-width image for thumbnails</span>
+<span class="cm">// ❌ priority on all images → defeats lazy loading, slows initial load</span>
+<span class="cm">// ❌ Using &lt;img&gt; instead of &lt;Image&gt; → no optimisation, CLS, wrong format</span></pre></div>
+  </div>
+</div>
+
+<!-- 03. BUNDLE SIZE + CODE SPLITTING -->
+<div class="section" id="bundles">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Bundle size &amp; code splitting — ship less JavaScript</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">bundles</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + tsx</span><span class="cb-desc">Bundle analyzer setup, dynamic imports, lazy loading heavy components</span></div>
+    <div class="cb-body"><pre><span class="cm"># Install bundle analyzer</span>
+npm install @next/bundle-analyzer
+<span class="cm"># Analyse: ANALYZE=true npm run build</span>
+<span class="cm"># Opens treemap showing every module's size</span>
+
+<span class="cm">// next.config.ts</span>
+<span class="kw">const</span> <span class="fn">withBundleAnalyzer</span> = <span class="fn">require</span>(<span class="str">"@next/bundle-analyzer"</span>)({ <span class="prop">enabled</span>: <span class="var">process</span>.<span class="prop">env</span>.<span class="prop">ANALYZE</span> === <span class="str">"true"</span> })
+<span class="kw">module</span>.<span class="prop">exports</span> = <span class="fn">withBundleAnalyzer</span>({ <span class="cm">/* nextConfig */</span> })
+
+<span class="cm">// ── Dynamic imports — load on demand ─────────────────────</span>
+<span class="kw">import</span> <span class="var">dynamic</span> <span class="kw">from</span> <span class="str">"next/dynamic"</span>
+
+<span class="cm">// Heavy chart library — only loaded when user sees the dashboard</span>
+<span class="kw">const</span> <span class="var">SalesChart</span> = <span class="fn">dynamic</span>(() => <span class="kw">import</span>(<span class="str">"./SalesChart"</span>), {
+  <span class="prop">loading</span>: () => <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"h-64 bg-gray-100 animate-pulse rounded-xl"</span> <span class="tag">/&gt;</span>,
+  <span class="prop">ssr</span>: <span class="kw">false</span>,  <span class="cm">// chart uses browser APIs — skip SSR entirely</span>
+})
+
+<span class="cm">// Modal — only downloaded when user opens it</span>
+<span class="kw">const</span> <span class="var">ProductModal</span> = <span class="fn">dynamic</span>(() => <span class="kw">import</span>(<span class="str">"./ProductModal"</span>))
+<span class="kw">function</span> <span class="fn">ProductCard</span>({ <span class="var">product</span> }) {
+  <span class="kw">const</span> [<span class="var">open</span>, <span class="fn">setOpen</span>] = <span class="fn">useState</span>(<span class="kw">false</span>)
+  <span class="kw">return</span> (
+    <span class="tag">&lt;&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">setOpen</span>(<span class="kw">true</span>)}<span class="tag">&gt;</span>Quick view<span class="tag">&lt;/button&gt;</span>
+      {<span class="var">open</span> &amp;&amp; <span class="tag">&lt;ProductModal</span> <span class="attr">product</span>={<span class="var">product</span>} <span class="attr">onClose</span>={() => <span class="fn">setOpen</span>(<span class="kw">false</span>)} <span class="tag">/&gt;</span>}
+    <span class="tag">&lt;/&gt;</span>
+  )
+}
+
+<span class="cm">// ── Tree shaking — import only what you use ───────────────</span>
+<span class="cm">// Bad: imports entire lodash (600KB)</span>
+<span class="kw">import</span> _ <span class="kw">from</span> <span class="str">"lodash"</span>
+<span class="kw">const</span> <span class="var">sorted</span> = _.<span class="fn">sortBy</span>(<span class="var">arr</span>)
+
+<span class="cm">// Good: imports only sortBy (2KB)</span>
+<span class="kw">import</span> { <span class="fn">sortBy</span> } <span class="kw">from</span> <span class="str">"lodash-es"</span>  <span class="cm">// or: import sortBy from "lodash/sortBy"</span>
+<span class="kw">const</span> <span class="var">sorted</span> = <span class="fn">sortBy</span>(<span class="var">arr</span>)
+
+<span class="cm">// Better: native (zero bundle cost)</span>
+<span class="kw">const</span> <span class="var">sorted</span> = [...<span class="var">arr</span>].<span class="fn">sort</span>((<span class="var">a</span>, <span class="var">b</span>) => <span class="var">a</span>.<span class="prop">name</span> &gt; <span class="var">b</span>.<span class="prop">name</span> ? <span class="num">1</span> : -<span class="num">1</span>)
+
+<span class="cm">// ── Common large imports to avoid ────────────────────────</span>
+<span class="cm">// moment.js (300KB) → use date-fns or dayjs (4KB)</span>
+<span class="cm">// lodash (600KB)    → use lodash-es with tree shaking</span>
+<span class="cm">// faker (2MB)       → only in test files, never in app</span>
+<span class="cm">// xlsx (700KB)      → dynamic import, only when downloading</span>
+<span class="cm">// recharts (300KB)  → dynamic import, only on dashboard</span>
+
+<span class="cm">// ── Check: how big is my app? ─────────────────────────────</span>
+<span class="cm">// 1. npm run build → see page sizes in output</span>
+<span class="cm">// 2. ANALYZE=true npm run build → visual treemap</span>
+<span class="cm">// 3. Lighthouse DevTools → JavaScript execution time</span>
+<span class="cm">// Target: first-load JS &lt; 100KB, page JS &lt; 50KB each</span></pre></div>
+  </div>
+</div>
+
+<!-- 04. CACHING -->
+<div class="section" id="caching">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Next.js caching — four layers, one mental model</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">caching</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--teal);"></span>Next.js 15 caching layers — innermost to outermost</div>
+    <div class="mm-grid">
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--perf);">1. Request Memoization</div>
+        <div class="mm-value">Deduplicates identical <code>fetch()</code> calls within a single render pass. If page.tsx and generateMetadata() both call <code>getProduct(id)</code>, the DB is hit once. Lasts for the duration of one request. Automatic — no config needed.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--green);">2. Data Cache</div>
+        <div class="mm-value">Persists fetch results across requests on the server. Controlled by <code>cache: "force-cache"</code> (default, permanent), <code>{ next: { revalidate: 60 } }</code> (TTL), or <code>cache: "no-store"</code> (no caching). Invalidated by <code>revalidatePath()</code> or <code>revalidateTag()</code>.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--amber);">3. Full Route Cache</div>
+        <div class="mm-value">Caches the entire rendered HTML + RSC payload of a route at build time (static routes) or after first render (ISR routes). For dynamic routes (using cookies, headers, or <code>no-store</code>), this layer is skipped. Reduces server work for popular pages to near-zero.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--coral);">4. Router Cache</div>
+        <div class="mm-value">In-browser cache of visited RSC payloads. When you navigate back to a page, Next.js serves the cached payload instead of re-fetching. Lasts for 5 minutes (static) or 30 seconds (dynamic). Call <code>router.refresh()</code> to invalidate. Not configurable.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">Caching strategies for different data types — ISR, on-demand, no-cache</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Static pages (cache forever, revalidate on change) ────</span>
+<span class="cm">// app/products/page.tsx — revalidate every hour, or on mutation</span>
+<span class="kw">export const</span> <span class="var">revalidate</span> = <span class="num">3600</span>  <span class="cm">// ISR: rebuild page every hour</span>
+
+<span class="cm">// ── Per-fetch caching control ─────────────────────────────</span>
+<span class="cm">// Cache product catalog for 1 hour (changes slowly)</span>
+<span class="kw">const</span> <span class="var">products</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"/api/products"</span>, {
+  <span class="prop">next</span>: { <span class="prop">revalidate</span>: <span class="num">3600</span>, <span class="prop">tags</span>: [<span class="str">"products"</span>] }
+})
+
+<span class="cm">// Never cache user cart (personal, changes frequently)</span>
+<span class="kw">const</span> <span class="var">cart</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"/api/cart"</span>, { <span class="prop">cache</span>: <span class="str">"no-store"</span> })
+
+<span class="cm">// ── unstable_cache — cache Prisma queries ─────────────────</span>
+<span class="kw">import</span> { <span class="var">unstable_cache</span> } <span class="kw">from</span> <span class="str">"next/cache"</span>
+<span class="kw">import</span> { <span class="fn">cache</span> } <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="cm">// Cache expensive DB query for 5 minutes, tag for invalidation</span>
+<span class="kw">export const</span> <span class="fn">getFeaturedProducts</span> = <span class="fn">unstable_cache</span>(
+  <span class="kw">async</span> () => <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({ <span class="prop">where</span>: { <span class="prop">featured</span>: <span class="kw">true</span>, <span class="prop">published</span>: <span class="kw">true</span> } }),
+  [<span class="str">"featured-products"</span>],
+  { <span class="prop">revalidate</span>: <span class="num">300</span>, <span class="prop">tags</span>: [<span class="str">"products"</span>] }
+)
+
+<span class="cm">// Deduplicate within one request (not persisted)</span>
+<span class="kw">export const</span> <span class="fn">getProduct</span> = <span class="fn">cache</span>(<span class="kw">async</span> (<span class="var">id</span>: <span class="kw">string</span>) =>
+  <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findUnique</span>({ <span class="prop">where</span>: { <span class="var">id</span> } })
+)
+
+<span class="cm">// ── On-demand revalidation — trigger from Server Actions ──</span>
+<span class="str">"use server"</span>
+<span class="kw">import</span> { <span class="fn">revalidatePath</span>, <span class="fn">revalidateTag</span> } <span class="kw">from</span> <span class="str">"next/cache"</span>
+
+<span class="kw">export async function</span> <span class="fn">updateProduct</span>(<span class="var">id</span>: <span class="kw">string</span>, <span class="var">data</span>: <span class="kw">object</span>) {
+  <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">update</span>({ <span class="prop">where</span>: { <span class="var">id</span> }, <span class="prop">data</span> })
+  <span class="fn">revalidateTag</span>(<span class="str">"products"</span>)          <span class="cm">// invalidate all fetches tagged "products"</span>
+  <span class="fn">revalidatePath</span>(`/products/${<span class="var">id</span>}`)   <span class="cm">// specific page</span>
+  <span class="fn">revalidatePath</span>(<span class="str">"/products"</span>, <span class="str">"layout"</span>) <span class="cm">// page + all children</span>
+}
+
+<span class="cm">// ── Dynamic routes — opt out of caching ──────────────────</span>
+<span class="cm">// These make the route dynamic (no Full Route Cache):</span>
+<span class="kw">export const</span> <span class="var">dynamic</span> = <span class="str">"force-dynamic"</span>  <span class="cm">// always re-render</span>
+<span class="cm">// or use: cookies(), headers(), searchParams — these auto-opt out</span></pre></div>
+  </div>
+</div>
+
+<!-- 05. REACT OPTIMIZATIONS -->
+<div class="section" id="rendering">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">React optimizations — memo, useMemo, profiler</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">react</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">React.memo, useMemo, useCallback — when they help and when they hurt</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── React.memo — prevent re-render when props unchanged ───</span>
+<span class="cm">// Use when: component renders often, props rarely change, render is expensive</span>
+<span class="cm">// DON'T use when: component renders rarely, or props change every render anyway</span>
+
+<span class="kw">const</span> <span class="var">ProductCard</span> = <span class="fn">React</span>.<span class="fn">memo</span>(<span class="kw">function</span> <span class="fn">ProductCard</span>({ <span class="var">product</span>, <span class="var">onAddToCart</span> }: <span class="ty">Props</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"ProductCard render"</span>)  <span class="cm">// only runs when product or onAddToCart changes</span>
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"product-card"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;h3&gt;</span>{<span class="var">product</span>.<span class="prop">name</span>}<span class="tag">&lt;/h3&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">onAddToCart</span>(<span class="var">product</span>.<span class="prop">id</span>)}<span class="tag">&gt;</span>Add to cart<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+})
+
+<span class="cm">// ── useCallback — stable function reference for memoized children ──</span>
+<span class="cm">// Problem: without useCallback, onAddToCart is a new function every render</span>
+<span class="cm">// → ProductCard.memo sees new prop → re-renders anyway</span>
+<span class="kw">function</span> <span class="fn">ProductList</span>({ <span class="var">products</span> }: { <span class="prop">products</span>: <span class="ty">Product</span>[] }) {
+  <span class="kw">const</span> { <span class="fn">addItem</span> } = <span class="fn">useCart</span>()
+
+  <span class="cm">// ✅ Stable reference — only changes if addItem changes</span>
+  <span class="kw">const</span> <span class="fn">handleAddToCart</span> = <span class="fn">useCallback</span>((<span class="var">productId</span>: <span class="kw">string</span>) => {
+    <span class="fn">addItem</span>(<span class="var">productId</span>)
+  }, [<span class="fn">addItem</span>])
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"grid grid-cols-3 gap-4"</span><span class="tag">&gt;</span>
+      {<span class="var">products</span>.<span class="fn">map</span>(<span class="var">product</span> =&gt; (
+        <span class="tag">&lt;ProductCard</span> <span class="attr">key</span>={<span class="var">product</span>.<span class="prop">id</span>} <span class="attr">product</span>={<span class="var">product</span>} <span class="attr">onAddToCart</span>={<span class="fn">handleAddToCart</span>} <span class="tag">/&gt;</span>
+      ))}
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── useMemo — cache expensive computation ─────────────────</span>
+<span class="cm">// Use when: computation is truly expensive (sorting 10,000 items, heavy math)</span>
+<span class="cm">// DON'T use for: simple operations — the overhead of useMemo itself costs time</span>
+<span class="kw">function</span> <span class="fn">ProductDashboard</span>({ <span class="var">orders</span> }: { <span class="prop">orders</span>: <span class="ty">Order</span>[] }) {
+  <span class="cm">// ✅ Only recalculate when orders changes</span>
+  <span class="kw">const</span> <span class="var">stats</span> = <span class="fn">useMemo</span>(() => ({
+    <span class="prop">total</span>:    <span class="var">orders</span>.<span class="fn">reduce</span>((<span class="var">s</span>, <span class="var">o</span>) => <span class="var">s</span> + <span class="fn">Number</span>(<span class="var">o</span>.<span class="prop">total</span>), <span class="num">0</span>),
+    <span class="prop">average</span>:  <span class="var">orders</span>.<span class="prop">length</span> ? <span class="var">orders</span>.<span class="fn">reduce</span>((<span class="var">s</span>, <span class="var">o</span>) => <span class="var">s</span> + <span class="fn">Number</span>(<span class="var">o</span>.<span class="prop">total</span>), <span class="num">0</span>) / <span class="var">orders</span>.<span class="prop">length</span> : <span class="num">0</span>,
+    <span class="prop">byStatus</span>: <span class="ty">Object</span>.<span class="fn">groupBy</span>(<span class="var">orders</span>, (<span class="var">o</span>) => <span class="var">o</span>.<span class="prop">status</span>),  <span class="cm">// expensive grouping</span>
+  }), [<span class="var">orders</span>])
+
+  <span class="cm">// ❌ Don't do this — not worth the overhead</span>
+  <span class="kw">const</span> <span class="var">count</span> = <span class="fn">useMemo</span>(() => <span class="var">orders</span>.<span class="prop">length</span>, [<span class="var">orders</span>])  <span class="cm">// just use orders.length!</span>
+
+  <span class="kw">return</span> <span class="tag">&lt;StatsPanel</span> <span class="attr">stats</span>={<span class="var">stats</span>} <span class="tag">/&gt;</span>
+}
+
+<span class="cm">// ── React DevTools Profiler — find what's slow ────────────</span>
+<span class="cm">// Open React DevTools → Profiler tab → Record → interact → Stop</span>
+<span class="cm">// Look for: long flame bars, components that re-render unexpectedly</span>
+<span class="cm">// Use "Why did this render?" to see what prop/state triggered it</span>
+
+<span class="cm">// ── useTransition — keep UI responsive during heavy updates ──</span>
+<span class="cm">// Use when: state update triggers expensive re-render (large list filter)</span>
+<span class="kw">const</span> [<span class="var">isPending</span>, <span class="fn">startTransition</span>] = <span class="fn">useTransition</span>()
+
+<span class="kw">function</span> <span class="fn">handleSearch</span>(<span class="var">q</span>: <span class="kw">string</span>) {
+  <span class="fn">startTransition</span>(() => {
+    <span class="fn">setQuery</span>(<span class="var">q</span>)  <span class="cm">// marks as low-priority — UI stays responsive</span>
+  })
+}</pre></div>
+  </div>
+</div>
+
+<!-- 06. DB PERFORMANCE -->
+<div class="section">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Database query performance — indexes, N+1, select</span>
+    <span class="sec-badge" style="background:var(--emerald-dim);color:var(--emerald);">database</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">N+1 problem, select vs include, Prisma indexes, query analysis</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── The N+1 problem — the most common DB performance issue ─</span>
+<span class="cm">// Bad: 1 query for orders + N queries for each user</span>
+<span class="kw">const</span> <span class="var">orders</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">order</span>.<span class="fn">findMany</span>()        <span class="cm">// 1 query: "SELECT * FROM orders"</span>
+<span class="kw">for</span> (<span class="kw">const</span> <span class="var">order</span> <span class="kw">of</span> <span class="var">orders</span>) {
+  <span class="var">order</span>.<span class="prop">user</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">user</span>.<span class="fn">findUnique</span>({ <span class="prop">where</span>: { <span class="prop">id</span>: <span class="var">order</span>.<span class="prop">userId</span> } })
+  <span class="cm">// ^ N queries: "SELECT * FROM users WHERE id = ?" for each order</span>
+}
+<span class="cm">// 1 + N queries total. With 100 orders = 101 queries. SLOW.</span>
+
+<span class="cm">// Good: 1 query with JOIN via include</span>
+<span class="kw">const</span> <span class="var">orders</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">order</span>.<span class="fn">findMany</span>({
+  <span class="prop">include</span>: { <span class="prop">user</span>: { <span class="prop">select</span>: { <span class="prop">id</span>: <span class="kw">true</span>, <span class="prop">name</span>: <span class="kw">true</span>, <span class="prop">email</span>: <span class="kw">true</span> } } }
+})
+<span class="cm">// 2 queries: orders + users in one batched query. Always fast.</span>
+
+<span class="cm">// ── select: fetch only needed columns ──────────────────────</span>
+<span class="cm">// Bad: fetch all columns including large description + images array</span>
+<span class="kw">const</span> <span class="var">products</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>()  <span class="cm">// description could be 10KB each</span>
+
+<span class="cm">// Good: only what the product card needs</span>
+<span class="kw">const</span> <span class="var">products</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({
+  <span class="prop">select</span>: { <span class="prop">id</span>: <span class="kw">true</span>, <span class="prop">name</span>: <span class="kw">true</span>, <span class="prop">price</span>: <span class="kw">true</span>, <span class="prop">slug</span>: <span class="kw">true</span>,
+             <span class="prop">images</span>: <span class="kw">true</span>,  <span class="cm">// first image only</span>
+             <span class="prop">rating</span>: <span class="kw">true</span>, <span class="prop">reviewCount</span>: <span class="kw">true</span> },
+})
+
+<span class="cm">// ── Indexes — add for every column you filter/sort by ─────</span>
+<span class="cm">// In schema.prisma:</span>
+<span class="cm">// @@index([categoryId])           ← filter by category</span>
+<span class="cm">// @@index([published, createdAt]) ← filter published + sort by date</span>
+<span class="cm">// @@index([userId])               ← fetch user's orders</span>
+
+<span class="cm">// Check if query uses index (PostgreSQL):</span>
+<span class="cm">// db.$queryRaw`EXPLAIN ANALYZE SELECT * FROM products WHERE "categoryId" = 'c1'`</span>
+<span class="cm">// Look for "Index Scan" vs "Seq Scan" — Seq Scan on large tables = missing index</span>
+
+<span class="cm">// ── Parallel queries — don't await sequentially ───────────</span>
+<span class="cm">// Bad: 3 sequential DB queries (sum of all their latencies)</span>
+<span class="kw">const</span> <span class="var">user</span>     = <span class="kw">await</span> <span class="var">db</span>.<span class="var">user</span>.<span class="fn">findUnique</span>({ <span class="prop">where</span>: { <span class="prop">id</span> } })
+<span class="kw">const</span> <span class="var">orders</span>   = <span class="kw">await</span> <span class="var">db</span>.<span class="var">order</span>.<span class="fn">findMany</span>({ <span class="prop">where</span>: { <span class="var">userId</span>: <span class="var">id</span> } })
+<span class="kw">const</span> <span class="var">wishlist</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">wishlist</span>.<span class="fn">findMany</span>({ <span class="prop">where</span>: { <span class="var">userId</span>: <span class="var">id</span> } })
+
+<span class="cm">// Good: parallel (max of all their latencies)</span>
+<span class="kw">const</span> [<span class="var">user</span>, <span class="var">orders</span>, <span class="var">wishlist</span>] = <span class="kw">await</span> <span class="ty">Promise</span>.<span class="fn">all</span>([
+  <span class="var">db</span>.<span class="var">user</span>.<span class="fn">findUnique</span>({ <span class="prop">where</span>: { <span class="var">id</span> } }),
+  <span class="var">db</span>.<span class="var">order</span>.<span class="fn">findMany</span>({ <span class="prop">where</span>: { <span class="var">userId</span>: <span class="var">id</span> } }),
+  <span class="var">db</span>.<span class="var">wishlist</span>.<span class="fn">findMany</span>({ <span class="prop">where</span>: { <span class="var">userId</span>: <span class="var">id</span> } }),
+])</pre></div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — performance patterns in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Memoization — implement useMemo and React.memo logic</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>memoize(fn)</code> (the core of useMemo) that caches results based on input arguments. Then implement <code>createMemoComponent(render)</code> (React.memo equivalent) that skips re-renders when props are shallowly equal. Measure the performance difference with a simulated expensive computation.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — memoization implementation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">// Implement memoize — cache results based on arguments
+function memoize(fn) {
+  const cache = new Map()
+  return function(...args) {
+    const key = JSON.stringify(args)
+    if (cache.has(key)) {
+      return { result: cache.get(key), cached: true }
+    }
+    const result = fn(...args)
+    cache.set(key, result)
+    return { result, cached: false }
+  }
+}
+
+// Expensive computation simulation
+let computeCallCount = 0
+function expensiveSort(items, field) {
+  computeCallCount++
+  // Simulate expensive work
+  const sorted = [...items].sort((a,b) => a[field] > b[field] ? 1 : -1)
+  return sorted
+}
+
+const memoizedSort = memoize(expensiveSort)
+
+// Test memoization
+const products = [
+  { id:1, name:"MacBook", price:1999 },
+  { id:2, name:"iPad",    price:799  },
+  { id:3, name:"AirPods", price:249  },
+]
+
+computeCallCount = 0
+
+// First call — computes
+const r1 = memoizedSort(products, "price")
+console.log("Call 1 (computed):", r1.cached, "| sorted:", r1.result.map(p=>p.price).join(","))
+
+// Second call — cached
+const r2 = memoizedSort(products, "price")
+console.log("Call 2 (cached):", r2.cached, "| same result:", JSON.stringify(r1.result) === JSON.stringify(r2.result))
+
+// Different args — computes again
+const r3 = memoizedSort(products, "name")
+console.log("Call 3 (different arg, computed):", r3.cached, "| sorted:", r3.result.map(p=>p.name).join(","))
+
+console.log("Total expensive fn calls:", computeCallCount, "(expected 2)")
+
+// ── React.memo equivalent ─────────────────────────────────
+function shallowEqual(a, b) {
+  if (a === b) return true
+  if (!a || !b || typeof a !== 'object') return false
+  const keysA = Object.keys(a), keysB = Object.keys(b)
+  if (keysA.length !== keysB.length) return false
+  return keysA.every(k => a[k] === b[k])
+}
+
+function createMemoComponent(renderFn) {
+  let lastProps = null
+  let lastResult = null
+  let renderCount = 0
+
+  return function(props) {
+    if (lastProps !== null && shallowEqual(props, lastProps)) {
+      return { output: lastResult, skipped: true, renderCount }
+    }
+    renderCount++
+    lastResult = renderFn(props)
+    lastProps = props
+    return { output: lastResult, skipped: false, renderCount }
+  }
+}
+
+// Simulate ProductCard component
+const ProductCard = createMemoComponent(({ product, highlighted }) => {
+  return `<div class="${highlighted?'highlighted':''}"><h3>${product.name}</h3><p>$${product.price}</p></div>`
+})
+
+const productA = { id:1, name:"MacBook", price:1999 }
+
+// First render
+const render1 = ProductCard({ product: productA, highlighted: false })
+console.log("\nRender 1:", render1.skipped ? "SKIPPED" : "RENDERED", "| count:", render1.renderCount)
+
+// Same props — skip
+const render2 = ProductCard({ product: productA, highlighted: false })
+console.log("Render 2 (same):", render2.skipped ? "SKIPPED ✓" : "RENDERED", "| count:", render2.renderCount)
+
+// Different highlighted — re-render
+const render3 = ProductCard({ product: productA, highlighted: true })
+console.log("Render 3 (changed):", render3.skipped ? "SKIPPED" : "RENDERED ✓", "| count:", render3.renderCount)
+
+// Same again — skip
+const render4 = ProductCard({ product: productA, highlighted: true })
+console.log("Render 4 (same):", render4.skipped ? "SKIPPED ✓" : "RENDERED", "| count:", render4.renderCount)
+
+// New object with same values — shallow equal check
+const productACopy = { ...productA }
+const render5 = ProductCard({ product: productACopy, highlighted: true })
+console.log("Render 5 (new obj, same values):", render5.skipped ? "SKIPPED ✓ (shallow equal)" : "RENDERED", "| count:", render5.renderCount)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">N+1 detector — identify and fix query waterfall</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createQueryTracker()</code> that wraps DB queries and detects N+1 patterns: a query that fires N times within a loop after an initial query. Show the difference in query count between the N+1 pattern and the batched <code>include</code> pattern.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — N+1 query detector</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">// Query tracker — detects N+1 patterns
+function createQueryTracker() {
+  const queries = []
+  let trackingEnabled = true
+
+  function trackQuery(sql, params=[]) {
+    if (!trackingEnabled) return
+    queries.push({ sql, params: [...params], timestamp: Date.now(), stack: new Error().stack.split('\n')[2]?.trim() })
+  }
+
+  function getReport() {
+    const grouped = {}
+    queries.forEach(q => {
+      const key = q.sql
+      if (!grouped[key]) grouped[key] = { sql: key, count: 0, params: [] }
+      grouped[key].count++
+      grouped[key].params.push(q.params)
+    })
+    const patterns = Object.values(grouped).filter(g => g.count > 3)
+    return { total: queries.length, unique: Object.keys(grouped).length, queries: Object.values(grouped), n1Patterns: patterns }
+  }
+
+  function reset() { queries.length = 0 }
+  return { trackQuery, getReport, reset, getQueries: () => [...queries] }
+}
+
+// Mock DB with tracking
+const tracker = createQueryTracker()
+
+const DB = {
+  orders: [
+    { id:"o1", userId:"u1", total:1999 },
+    { id:"o2", userId:"u2", total:799  },
+    { id:"o3", userId:"u1", total:249  },
+    { id:"o4", userId:"u3", total:1299 },
+    { id:"o5", userId:"u2", total:399  },
+  ],
+  users: [
+    { id:"u1", name:"Alice", email:"alice@test.com" },
+    { id:"u2", name:"Bob",   email:"bob@test.com"   },
+    { id:"u3", name:"Carol", email:"carol@test.com"  },
+  ]
+}
+
+// Simulate db.order.findMany()
+async function findOrders() {
+  tracker.trackQuery('SELECT * FROM orders')
+  return [...DB.orders]
+}
+
+// Simulate db.user.findUnique({ where: { id } })
+async function findUser(id) {
+  tracker.trackQuery('SELECT * FROM users WHERE id = ?', [id])
+  return DB.users.find(u => u.id === id) || null
+}
+
+// Simulate db.order.findMany({ include: { user: true } })
+async function findOrdersWithUsers() {
+  tracker.trackQuery('SELECT orders.*, users.* FROM orders LEFT JOIN users ON orders."userId" = users.id')
+  return DB.orders.map(o => ({ ...o, user: DB.users.find(u => u.id === o.userId) }))
+}
+
+async function runTests() {
+  // ── PATTERN 1: N+1 (bad) ─────────────────────────────────
+  console.log("=== Pattern 1: N+1 (BAD) ===")
+  tracker.reset()
+
+  const orders = await findOrders()                          // 1 query
+  for (const order of orders) {
+    order.user = await findUser(order.userId)                // N queries
+  }
+
+  const report1 = tracker.getReport()
+  console.log("Total queries:", report1.total)              // 1 + 5 = 6
+  console.log("Queries breakdown:")
+  report1.queries.forEach(q => console.log(`  "${q.sql.slice(0,40)}..." × ${q.count}`))
+  console.log("N+1 patterns detected:", report1.n1Patterns.length > 0 ? "⚠️ YES" : "✓ none")
+  console.log("Orders with users:", orders.every(o => o.user) ? "✓" : "✗")
+
+  // ── PATTERN 2: include (good) ─────────────────────────────
+  console.log("\n=== Pattern 2: include JOIN (GOOD) ===")
+  tracker.reset()
+
+  const ordersWithUsers = await findOrdersWithUsers()       // 1 query (JOIN)
+
+  const report2 = tracker.getReport()
+  console.log("Total queries:", report2.total)              // 1
+  console.log("Queries:", report2.queries.map(q => `"${q.sql.slice(0,45)}..." × ${q.count}`).join(", "))
+  console.log("Orders with users:", ordersWithUsers.every(o => o.user) ? "✓" : "✗")
+
+  // ── Performance comparison ────────────────────────────────
+  console.log("\n=== Performance Impact ===")
+  const n = 5
+  console.log(`N+1 with ${n} orders: ${1 + n} queries`)
+  console.log(`JOIN with ${n} orders: 1 query`)
+  console.log(`At 1000 orders: ${1+1000} vs 1 query`)
+  console.log(`At 10,000 orders: ${1+10000} vs 1 query`)
+
+  // Simulate what happens with 10k records
+  const simulatedTime_n1   = (1 + 10000) * 2   // assume 2ms per query
+  const simulatedTime_join = 1 * 15              // 1 query with JOIN takes longer but less total
+  console.log(`\n10k records estimated time:`)
+  console.log(`  N+1:  ${simulatedTime_n1}ms`)
+  console.log(`  JOIN: ${simulatedTime_join}ms`)
+  console.log(`  Speedup: ${Math.round(simulatedTime_n1/simulatedTime_join)}x faster with JOIN`)
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Cache simulator — TTL, tags, revalidation</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>createCache()</code> that simulates Next.js's data cache: set with TTL, get (returns stale if expired but triggers background revalidation), tag-based invalidation with <code>revalidateTag</code>, and path invalidation with <code>revalidatePath</code>. Demonstrate all four cache operations.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — Next.js data cache simulation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">function createCache() {
+  const store = new Map()  // key → { value, expiresAt, tags, revalidating }
+  const tagIndex = new Map()  // tag → Set of keys
+  let now = Date.now()
+  const originHits = { count: 0 }
+
+  function set(key, value, { revalidate = Infinity, tags = [] } = {}) {
+    const expiresAt = revalidate === Infinity ? Infinity : now + revalidate * 1000
+    store.set(key, { value, expiresAt, tags, revalidating: false, cachedAt: now })
+    tags.forEach(tag => {
+      if (!tagIndex.has(tag)) tagIndex.set(tag, new Set())
+      tagIndex.get(tag).add(key)
+    })
+  }
+
+  function get(key) {
+    const entry = store.get(key)
+    if (!entry) return { hit: false, stale: false, value: null }
+    const expired = entry.expiresAt !== Infinity && now > entry.expiresAt
+    if (expired) {
+      // ISR: return stale + trigger background revalidation
+      return { hit: true, stale: true, value: entry.value, needsRevalidation: !entry.revalidating }
+    }
+    return { hit: true, stale: false, value: entry.value }
+  }
+
+  function revalidateTag(tag) {
+    const keys = tagIndex.get(tag) || new Set()
+    let count = 0
+    keys.forEach(key => { store.delete(key); count++ })
+    tagIndex.delete(tag)
+    return count
+  }
+
+  function revalidatePath(path, type = 'page') {
+    let count = 0
+    for (const [key] of store) {
+      if (key.startsWith(path) || key === path) {
+        store.delete(key); count++
+      }
+    }
+    return count
+  }
+
+  // Fetch-and-cache utility (like Next.js fetch with cache options)
+  async function fetchWithCache(url, fetcher, options = {}) {
+    const { revalidate = Infinity, tags = [], noStore = false } = options
+    if (noStore) {
+      originHits.count++
+      return { value: await fetcher(), cached: false }
+    }
+    const cached = get(url)
+    if (cached.hit && !cached.stale) return { value: cached.value, cached: true }
+    originHits.count++
+    const value = await fetcher()
+    set(url, value, { revalidate, tags })
+    return { value, cached: false, wasStale: cached.stale }
+  }
+
+  return { set, get, revalidateTag, revalidatePath, fetchWithCache, advance: (ms) => { now += ms }, originHits, getSize: () => store.size }
+}
+
+async function runTests() {
+  const cache = createCache()
+  let fetchCount = 0
+
+  const mockFetch = async (url) => {
+    fetchCount++
+    return { url, data: `data_${fetchCount}`, fetchedAt: Date.now() }
+  }
+
+  console.log("=== Cache Simulation Tests ===\n")
+
+  // 1. Cache miss → fetches from origin
+  const r1 = await cache.fetchWithCache("/api/products", () => mockFetch("/api/products"), { revalidate: 60, tags:["products"] })
+  console.log("1. Cache miss:", !r1.cached, "| origin hits:", cache.originHits.count)
+
+  // 2. Cache hit → returns cached
+  const r2 = await cache.fetchWithCache("/api/products", () => mockFetch("/api/products"), { revalidate: 60, tags:["products"] })
+  console.log("2. Cache hit:", r2.cached, "| origin hits:", cache.originHits.count)
+
+  // 3. TTL expires → stale-while-revalidate
+  cache.advance(61_000)  // advance 61 seconds past TTL
+  const r3 = await cache.fetchWithCache("/api/products", () => mockFetch("/api/products"), { revalidate: 60, tags:["products"] })
+  console.log("3. After TTL:", !r3.cached, "revalidated:", r3.wasStale, "| origin hits:", cache.originHits.count)
+
+  // 4. Cache two different tagged endpoints
+  await cache.fetchWithCache("/api/products/1", () => mockFetch("/api/products/1"), { revalidate: 3600, tags:["products","product:1"] })
+  await cache.fetchWithCache("/api/categories",  () => mockFetch("/api/categories"),  { revalidate: 3600, tags:["categories"] })
+  console.log("\n4. Cached items:", cache.getSize())
+
+  // 5. revalidateTag — invalidate all "products" tagged entries
+  const invalidated = cache.revalidateTag("products")
+  console.log("5. revalidateTag('products') cleared:", invalidated, "entries")
+  console.log("   /api/products gone:", !cache.get("/api/products").hit)
+  console.log("   /api/categories intact:", cache.get("/api/categories").hit)
+
+  // 6. revalidatePath — invalidate by URL prefix
+  await cache.fetchWithCache("/api/products/1", () => mockFetch("p1"), { revalidate: 3600, tags:["product:1"] })
+  await cache.fetchWithCache("/api/products/2", () => mockFetch("p2"), { revalidate: 3600, tags:["product:2"] })
+  await cache.fetchWithCache("/api/orders",      () => mockFetch("orders"), { revalidate: 3600 })
+
+  const pathInvalidated = cache.revalidatePath("/api/products")
+  console.log("\n6. revalidatePath('/api/products') cleared:", pathInvalidated, "entries")
+  console.log("   /api/orders intact:", cache.get("/api/orders").hit)
+
+  // 7. noStore — never cached
+  const r7 = await cache.fetchWithCache("/api/cart", () => mockFetch("cart"), { noStore: true })
+  const r8 = await cache.fetchWithCache("/api/cart", () => mockFetch("cart"), { noStore: true })
+  console.log("\n7. noStore: both uncached:", !r7.cached && !r8.cached, "| extra fetches:", 2)
+
+  console.log("\nTotal origin hits:", cache.originHits.count)
+  console.log("\n✅ Cache simulation complete!")
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Bundle cost analyzer — detect expensive imports</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build <code>analyzeBundleCost(imports)</code> that flags expensive library choices and suggests lighter alternatives. Score imports by KB cost, detect unused exports (no tree-shaking), and calculate total estimated bundle size. Show what ShopCo's bundle would look like before and after optimisation.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — bundle cost analyzer</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">// Library cost database (minified + gzipped KB)
+const LIBRARY_COSTS = {
+  "moment":          { cost: 293, treeshakeable: false, alternative: "dayjs (2KB) or date-fns (selective)" },
+  "dayjs":           { cost: 2,   treeshakeable: false },
+  "date-fns":        { cost: 0,   treeshakeable: true,  note: "Import selectively: import { format } from 'date-fns'" },
+  "lodash":          { cost: 72,  treeshakeable: false, alternative: "lodash-es + named imports, or native JS" },
+  "lodash-es":       { cost: 0,   treeshakeable: true,  note: "Only imports used functions" },
+  "axios":           { cost: 12,  treeshakeable: false, alternative: "native fetch() — zero cost" },
+  "recharts":        { cost: 180, treeshakeable: false, alternative: "Dynamic import: load only on dashboard page" },
+  "chart.js":        { cost: 165, treeshakeable: true  },
+  "faker":           { cost: 850, treeshakeable: false, alternative: "NEVER in app code — dev/test only!" },
+  "@faker-js/faker": { cost: 850, treeshakeable: true,  alternative: "Dev dependency only, use dynamic import in tests" },
+  "xlsx":            { cost: 600, treeshakeable: false, alternative: "Dynamic import when download button clicked" },
+  "zod":             { cost: 10,  treeshakeable: true  },
+  "@prisma/client":  { cost: 0,   treeshakeable: false, note: "Server-only — never reaches browser bundle" },
+  "react":           { cost: 44,  treeshakeable: false, note: "Required — cannot avoid" },
+  "react-dom":       { cost: 130, treeshakeable: false, note: "Required — cannot avoid" },
+  "next":            { cost: 0,   treeshakeable: false, note: "Framework overhead — mostly server-side" },
+  "@clerk/nextjs":   { cost: 45,  treeshakeable: false, note: "Split: server code never reaches browser" },
+  "framer-motion":   { cost: 100, treeshakeable: true,  alternative: "CSS transitions for simple animations" },
+  "react-query":     { cost: 12,  treeshakeable: true  },
+  "@tanstack/react-query": { cost:12, treeshakeable:true },
+  "react-hook-form": { cost: 8,   treeshakeable: true  },
+}
+
+function analyzeBundleCost(imports) {
+  const results = []
+  let totalCost = 0
+  let savings = 0
+
+  for (const { pkg, importStyle, usedExports = [] } of imports) {
+    const info = LIBRARY_COSTS[pkg] || { cost: 5, treeshakeable: true }
+    let effectiveCost = info.cost
+
+    // If import is named (selective) and library is treeshakeable
+    if (importStyle === "named" && info.treeshakeable) {
+      effectiveCost = Math.round(info.cost * (usedExports.length / 10 || 0.1))
+    }
+
+    const issues = []
+    if (info.alternative) issues.push(`💡 Replace with: ${info.alternative}`)
+    if (!info.treeshakeable && importStyle === "default") issues.push(`❌ Not tree-shakeable — you're importing the full library`)
+    if (info.note) issues.push(`ℹ️  ${info.note}`)
+    if (pkg.includes("faker") && !pkg.startsWith("@")) issues.push("🚨 NEVER import faker in app code!")
+
+    totalCost += effectiveCost
+    if (info.alternative) savings += (info.cost - Math.min(effectiveCost, 5))
+
+    results.push({ pkg, importStyle, cost: effectiveCost, originalCost: info.cost, issues })
+  }
+
+  return { packages: results, totalKB: totalCost, potentialSavings: savings }
+}
+
+// ── ShopCo BEFORE optimization ────────────────────────────
+const beforeImports = [
+  { pkg:"moment",          importStyle:"default" },
+  { pkg:"lodash",          importStyle:"default" },
+  { pkg:"axios",           importStyle:"default" },
+  { pkg:"recharts",        importStyle:"named",   usedExports:["LineChart","BarChart","XAxis"] },
+  { pkg:"react",           importStyle:"named",   usedExports:["useState","useEffect","useCallback"] },
+  { pkg:"react-dom",       importStyle:"named" },
+  { pkg:"zod",             importStyle:"named",   usedExports:["z"] },
+  { pkg:"react-hook-form", importStyle:"named",   usedExports:["useForm"] },
+  { pkg:"@clerk/nextjs",   importStyle:"named" },
+]
+
+// ── ShopCo AFTER optimization ─────────────────────────────
+const afterImports = [
+  { pkg:"dayjs",           importStyle:"named",   usedExports:["format"] },
+  { pkg:"lodash-es",       importStyle:"named",   usedExports:["sortBy","groupBy"] },
+  { pkg:"react",           importStyle:"named",   usedExports:["useState","useEffect","useCallback"] },
+  { pkg:"react-dom",       importStyle:"named" },
+  { pkg:"zod",             importStyle:"named",   usedExports:["z"] },
+  { pkg:"react-hook-form", importStyle:"named",   usedExports:["useForm"] },
+  { pkg:"@clerk/nextjs",   importStyle:"named" },
+  // recharts moved to dynamic import — not in main bundle
+  // axios removed — using fetch()
+]
+
+const before = analyzeBundleCost(beforeImports)
+const after  = analyzeBundleCost(afterImports)
+
+console.log("=== Bundle Analysis: ShopCo ===\n")
+console.log("BEFORE optimization:")
+before.packages.forEach(p => {
+  console.log(`  ${p.pkg.padEnd(22)} ${String(p.cost+"KB").padStart(6)}`)
+  p.issues.forEach(i => console.log(`    ${i}`))
+})
+console.log(`  ${"TOTAL".padEnd(22)} ${before.totalKB}KB`)
+
+console.log("\nAFTER optimization:")
+after.packages.forEach(p => {
+  console.log(`  ${p.pkg.padEnd(22)} ${String(p.cost+"KB").padStart(6)}`)
+})
+console.log(`  ${"TOTAL".padEnd(22)} ${after.totalKB}KB`)
+
+console.log(`\n  Reduction: ${before.totalKB - after.totalKB}KB (${Math.round((before.totalKB-after.totalKB)/before.totalKB*100)}% smaller)`)
+console.log("  recharts → dynamic import (not counted in main bundle)")
+console.log("  axios → fetch() (zero cost)")
+console.log("  moment → dayjs (291KB saved!)")
+console.log("  lodash → lodash-es named imports (~70KB saved)")</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Core Web Vitals scorer — simulate and optimise</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build <code>scoreWebVitals(metrics)</code> that scores LCP, INP, CLS, and TTFB against thresholds, identifies the worst violations, and generates a prioritised fix list. Simulate "before" and "after" metrics for ShopCo and show score improvement.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — Core Web Vitals scorer</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">const THRESHOLDS = {
+  LCP:  { good: 2500,  poor: 4000,  unit: "ms",  label: "Largest Contentful Paint" },
+  INP:  { good: 200,   poor: 500,   unit: "ms",  label: "Interaction to Next Paint" },
+  CLS:  { good: 0.1,   poor: 0.25,  unit: "",    label: "Cumulative Layout Shift" },
+  TTFB: { good: 800,   poor: 1800,  unit: "ms",  label: "Time to First Byte" },
+  FCP:  { good: 1800,  poor: 3000,  unit: "ms",  label: "First Contentful Paint" },
+}
+
+const FIXES = {
+  LCP: [
+    { trigger: (v,t) => v > t.poor,  priority: "critical", fix: "Add priority prop to LCP image, implement SSR" },
+    { trigger: (v,t) => v > t.good,  priority: "high",     fix: "Preload hero image, use next/image with priority" },
+  ],
+  INP: [
+    { trigger: (v,t) => v > t.poor,  priority: "critical", fix: "Break up long tasks, move work off main thread" },
+    { trigger: (v,t) => v > t.good,  priority: "high",     fix: "Defer non-critical JS, use useTransition for heavy updates" },
+  ],
+  CLS: [
+    { trigger: (v,t) => v > t.poor,  priority: "critical", fix: "Set width+height on all images, reserve space for dynamic content" },
+    { trigger: (v,t) => v > t.good,  priority: "high",     fix: "Add font-display: optional, avoid inserting DOM above content" },
+  ],
+  TTFB: [
+    { trigger: (v,t) => v > t.poor,  priority: "critical", fix: "Enable Next.js caching, move to Edge runtime, check DB query times" },
+    { trigger: (v,t) => v > t.good,  priority: "high",     fix: "Add ISR revalidation, use CDN, optimize slow DB queries" },
+  ],
+  FCP: [
+    { trigger: (v,t) => v > t.poor,  priority: "high",     fix: "Remove render-blocking resources, preload critical CSS" },
+    { trigger: (v,t) => v > t.good,  priority: "medium",   fix: "Inline critical CSS, preconnect to external domains" },
+  ],
+}
+
+function scoreWebVitals(metrics) {
+  const scores = {}
+  const violations = []
+  let totalScore = 0
+
+  for (const [metric, value] of Object.entries(metrics)) {
+    const threshold = THRESHOLDS[metric]
+    if (!threshold) continue
+
+    let rating, score
+    if (value <= threshold.good)      { rating = "good";         score = 100 }
+    else if (value <= threshold.poor) { rating = "needs-work";   score = Math.round(60 + 40 * (1 - (value-threshold.good)/(threshold.poor-threshold.good))) }
+    else                               { rating = "poor";         score = Math.round(60 * (1 - Math.min(1,(value-threshold.poor)/(threshold.poor*2)))) }
+
+    scores[metric] = { value, rating, score, threshold }
+    totalScore += score
+
+    // Find applicable fixes
+    const fixes = (FIXES[metric] || []).filter(f => f.trigger(value, threshold))
+    fixes.forEach(f => violations.push({ metric, value, unit: threshold.unit, priority: f.priority, fix: f.fix, score }))
+  }
+
+  violations.sort((a,b) => {
+    const order = { critical:0, high:1, medium:2, low:3 }
+    return order[a.priority] - order[b.priority]
+  })
+
+  const avgScore = Math.round(totalScore / Object.keys(scores).length)
+  const grade = avgScore >= 90 ? "A" : avgScore >= 75 ? "B" : avgScore >= 60 ? "C" : "D"
+
+  return { scores, violations, avgScore, grade, passed: avgScore >= 90 }
+}
+
+// ShopCo BEFORE optimization
+const before = scoreWebVitals({
+  LCP:  4200,   // slow hero image (no priority, no SSR)
+  INP:  380,    // heavy cart calculation on main thread
+  CLS:  0.28,   // images without dimensions, font flash
+  TTFB: 1900,   // no caching, slow DB query
+  FCP:  2800,   // render-blocking scripts
+})
+
+// ShopCo AFTER optimization
+const after = scoreWebVitals({
+  LCP:  2100,   // next/image priority + SSR
+  INP:  140,    // useTransition + web worker
+  CLS:  0.05,   // width+height on images + font-display:optional
+  TTFB: 650,    // Next.js ISR + connection pooling
+  FCP:  1500,   // preloaded fonts + removed blocking scripts
+})
+
+function printReport(label, report) {
+  console.log(`\n=== ${label} | Score: ${report.avgScore}/100 (${report.grade}) ===`)
+  for (const [metric, data] of Object.entries(report.scores)) {
+    const emoji = data.rating==="good"?"✅":data.rating==="needs-work"?"⚠️":"❌"
+    const unit = data.threshold.unit
+    console.log(`  ${emoji} ${metric.padEnd(5)} ${String(data.value+unit).padStart(8)} | ${data.rating.padEnd(11)} | score: ${data.score}`)
+  }
+  if (report.violations.length) {
+    console.log("\n  Priority fixes:")
+    report.violations.slice(0,4).forEach(v =>
+      console.log(`    [${v.priority.toUpperCase()}] ${v.metric}: ${v.fix}`)
+    )
+  }
+}
+
+printReport("ShopCo BEFORE", before)
+printReport("ShopCo AFTER", after)
+
+console.log(`\n=== Improvement Summary ===`)
+for (const metric of Object.keys(before.scores)) {
+  const b = before.scores[metric], a = after.scores[metric]
+  const improved = a.score - b.score
+  const sign = improved > 0 ? "+" : ""
+  console.log(`  ${metric.padEnd(5)}: ${b.score} → ${a.score} (${sign}${improved} points) | ${b.rating} → ${a.rating}`)
+}
+console.log(`  Overall: ${before.avgScore} → ${after.avgScore} (+${after.avgScore-before.avgScore} points)`)
+console.log(`  Grade:   ${before.grade} → ${after.grade}`)
+console.log(`  Passes Core Web Vitals: ${after.passed ? "✅ YES" : "❌ NO"}`)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Full performance audit — ShopCo end-to-end</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Combine all performance techniques into a comprehensive audit of ShopCo: score the current metrics, identify the top 5 issues, estimate the impact of each fix, and produce a prioritised sprint plan. Show total expected score improvement after applying all recommendations.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — full performance audit</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// ShopCo full performance audit
+
+const audit = {
+  // Current measurements
+  metrics: { LCP:3800, INP:420, CLS:0.18, TTFB:1400, FCP:2400 },
+
+  // Issues discovered
+  issues: [
+    { id:"img-no-priority",  category:"LCP",    severity:"critical", effort:"low",
+      title: "Hero image missing priority prop",
+      description: "Product hero on /products/[slug] is the LCP element but loads lazily",
+      impact: { LCP: -1200, FCP: -400 },
+      fix: "Add priority to hero <Image> component" },
+
+    { id:"no-ssr-content",   category:"LCP",    severity:"critical", effort:"low",
+      title: "Product list fetched client-side",
+      description: "ProductList uses useEffect + fetch instead of Server Component",
+      impact: { LCP: -800, TTFB: -600 },
+      fix: "Convert to Server Component with Prisma query" },
+
+    { id:"heavy-cart",       category:"INP",    severity:"high",     effort:"medium",
+      title: "Cart total recalculated synchronously on every item change",
+      description: "Complex discount + tax calculation blocks main thread for 340ms",
+      impact: { INP: -280 },
+      fix: "Move to useTransition or web worker" },
+
+    { id:"img-no-dimensions",category:"CLS",    severity:"high",     effort:"low",
+      title: "Product grid images have no width/height",
+      description: "Images in <img> tags cause layout shift as they load",
+      impact: { CLS: -0.13 },
+      fix: "Replace <img> with next/image + width/height props" },
+
+    { id:"no-cache",         category:"TTFB",   severity:"high",     effort:"medium",
+      title: "No caching on product queries",
+      description: "Every /products request hits Prisma + DB with no cache",
+      impact: { TTFB: -600, LCP: -300 },
+      fix: "Add unstable_cache with revalidate:3600 + 'products' tag" },
+
+    { id:"moment-import",    category:"bundle", severity:"medium",   effort:"low",
+      title: "moment.js imported for date formatting",
+      description: "293KB for date formatting that dayjs handles in 2KB",
+      impact: { INP: -80 },
+      fix: "Replace moment with dayjs" },
+
+    { id:"recharts-bundle",  category:"bundle", severity:"medium",   effort:"low",
+      title: "Recharts in main bundle (180KB)",
+      description: "Dashboard charts loaded on every page, not just dashboard",
+      impact: { FCP: -200, INP: -60 },
+      fix: "Dynamic import: const Chart = dynamic(() => import('./Chart'), { ssr:false })" },
+
+    { id:"no-font-display",  category:"CLS",    severity:"low",      effort:"low",
+      title: "Google Fonts without font-display",
+      description: "FOUT causes 0.05 CLS on slow connections",
+      impact: { CLS: -0.05 },
+      fix: "Add display:'swap' to next/font/google config" },
+  ],
+}
+
+function runAudit(audit) {
+  const THRESHOLDS = {
+    LCP: {good:2500,poor:4000}, INP: {good:200,poor:500},
+    CLS: {good:0.1,poor:0.25},  TTFB:{good:800,poor:1800}, FCP:{good:1800,poor:3000}
+  }
+  function score(metric, value) {
+    const t = THRESHOLDS[metric]
+    if (!t) return 100
+    if (value <= t.good) return 100
+    if (value <= t.poor) return Math.round(60 + 40*(1-(value-t.good)/(t.poor-t.good)))
+    return Math.round(Math.max(0, 60*(1-(value-t.poor)/(t.poor*2))))
+  }
+
+  // Current scores
+  const currentScores = Object.fromEntries(Object.entries(audit.metrics).map(([k,v]) => [k, score(k,v)]))
+  const currentAvg    = Math.round(Object.values(currentScores).reduce((s,v)=>s+v,0)/Object.keys(currentScores).length)
+
+  // Apply all fixes
+  const projected = { ...audit.metrics }
+  const prioritized = [...audit.issues].sort((a,b) => {
+    const order = {critical:0,high:1,medium:2,low:3}
+    return order[a.severity] - order[b.severity] || (Object.values(b.impact)[0]||0) - (Object.values(a.impact)[0]||0)
+  })
+
+  prioritized.forEach(issue => {
+    Object.entries(issue.impact).forEach(([metric, delta]) => {
+      if (projected[metric] !== undefined) projected[metric] = Math.max(0, projected[metric] + delta)
+    })
+  })
+
+  const projectedScores = Object.fromEntries(Object.entries(projected).map(([k,v]) => [k, score(k,v)]))
+  const projectedAvg    = Math.round(Object.values(projectedScores).reduce((s,v)=>s+v,0)/Object.keys(projectedScores).length)
+
+  return { currentScores, currentAvg, projectedScores, projectedAvg, projected, prioritized }
+}
+
+const result = runAudit(audit)
+
+console.log("╔══════════════════════════════════════╗")
+console.log("║    ShopCo Performance Audit Report   ║")
+console.log("╚══════════════════════════════════════╝\n")
+
+console.log("Current Metrics:")
+Object.entries(audit.metrics).forEach(([k,v]) => {
+  const s = result.currentScores[k]
+  const emoji = s>=90?"✅":s>=60?"⚠️":"❌"
+  console.log(`  ${emoji} ${k.padEnd(5)}: ${String(v+(k==="CLS"?"":"ms")).padStart(8)} | score: ${s}/100`)
+})
+console.log(`  Overall score: ${result.currentAvg}/100 (${result.currentAvg>=90?"A":result.currentAvg>=75?"B":result.currentAvg>=60?"C":"D"})\n`)
+
+console.log("Prioritised Fix Plan:")
+result.prioritized.slice(0,6).forEach((issue,i) => {
+  const impacts = Object.entries(issue.impact).map(([k,v])=>`${k}${v>0?"+":""}${v}`).join(", ")
+  console.log(`  ${i+1}. [${issue.severity.toUpperCase()}] ${issue.title}`)
+  console.log(`     Impact: ${impacts} | Effort: ${issue.effort}`)
+  console.log(`     Fix: ${issue.fix}`)
+})
+
+console.log("\nProjected Metrics After All Fixes:")
+Object.entries(result.projected).forEach(([k,v]) => {
+  const current = audit.metrics[k]
+  const s = result.projectedScores[k]
+  const emoji = s>=90?"✅":s>=60?"⚠️":"❌"
+  const delta = v - current
+  const sign  = delta > 0 ? "+" : ""
+  console.log(`  ${emoji} ${k.padEnd(5)}: ${String(v+(k==="CLS"?"":"ms")).padStart(8)} (${sign}${k==="CLS"?delta.toFixed(2):delta}ms) | score: ${s}/100`)
+})
+console.log(`\n  Projected overall: ${result.projectedAvg}/100 (+${result.projectedAvg-result.currentAvg} points)`)
+console.log(`  Grade: ${result.currentAvg>=90?"A":result.currentAvg>=75?"B":"C"} → ${result.projectedAvg>=90?"A":result.projectedAvg>=75?"B":"C"}`)
+console.log(`\n✅ Audit complete — ${result.prioritized.length} improvements identified`)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">What are Core Web Vitals and why do they matter for a React app?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Core Web Vitals are Google's set of user experience metrics that directly affect search ranking. LCP (Largest Contentful Paint) measures how quickly the main content loads — good is under 2.5 seconds. INP (Interaction to Next Paint, replaced FID in 2024) measures responsiveness to clicks and taps — good is under 200ms. CLS (Cumulative Layout Shift) measures unexpected layout movement — good is under 0.1.<br><br>For React apps specifically: the biggest LCP threat is client-side rendering — a blank HTML shell that shows a spinner while JavaScript runs. Server Components (Next.js) eliminate this by rendering content on the server. The biggest INP threat is heavy JavaScript on the main thread — large re-renders, complex state calculations, or synchronous work blocking user interactions. The biggest CLS cause is images without dimensions or dynamically injected content that pushes existing content down.<br><br>Track these in Google Search Console, Chrome UX Report (real user data), or PageSpeed Insights. Lighthouse gives lab measurements — useful for development but field data tells the real story.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">How does next/image improve performance compared to a regular img tag?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Four key improvements. First, <strong>format conversion</strong>: automatically serves WebP or AVIF (30–50% smaller file sizes than JPEG) to browsers that support them, falling back to JPEG/PNG for older browsers. Second, <strong>responsive resizing</strong>: generates multiple sizes and sends the correct one based on the user's viewport (via srcset), so a mobile user downloading a 200px thumbnail doesn't get a 1200px image. Third, <strong>lazy loading</strong>: images below the fold are loaded lazily by default, preventing them from competing with above-the-fold content for bandwidth. Fourth, <strong>CLS prevention</strong>: the width and height props allow the browser to reserve the correct space before the image loads, eliminating layout shift.<br><br>The <code>priority</code> prop is important for LCP images — it triggers a preload link in the document head so the browser starts downloading the image as early as possible. Only use it for the hero image or the primary image above the fold; adding it to everything defeats the purpose.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">When should you use React.memo, useMemo, and useCallback? And when shouldn't you?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">These are performance optimisations with a cost — the memoisation itself consumes time and memory. Only apply them when you've identified a real performance problem with the React Profiler, not preemptively.<br><br><strong>React.memo</strong>: wrap a component when it renders frequently but its props rarely change, and when the render is expensive enough to be worth the comparison cost. Don't use it on components that always receive different props — the comparison runs every time and adds overhead for no benefit.<br><br><strong>useMemo</strong>: cache the result of an expensive computation (sorting 10,000 items, complex aggregate calculations) that would otherwise re-run on every render. Don't use it for simple operations like <code>orders.length</code> — the useMemo itself costs more than just running the expression.<br><br><strong>useCallback</strong>: required when passing a callback to a memoised child component — without it, the function is recreated each render, breaking memo. Also useful for event handlers in useEffect dependency arrays. Don't use it on callbacks that are only called directly in the component's own JSX without affecting memoised children.<br><br>The rule: measure first, memoize second. The React Profiler shows exactly which components are re-rendering and why.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">What is the N+1 query problem and how do you fix it in Prisma?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">N+1 happens when you run 1 query to fetch a list, then N separate queries to fetch related data for each item. With 100 orders, you'd run 101 queries instead of 2 — each round-trip to the database adds latency, so this is catastrophically slow at scale.<br><br>The classic pattern: <code>const orders = await db.order.findMany()</code> followed by a loop that calls <code>db.user.findUnique({ where: { id: order.userId } })</code> for each order. The fix: use Prisma's <code>include</code> to JOIN the related data in a single query: <code>db.order.findMany({ include: { user: { select: { name: true, email: true } } } })</code>. Prisma batches this into 2 efficient queries regardless of how many orders there are.<br><br>Detect N+1 in development by enabling Prisma query logging (<code>log: ["query"]</code> in PrismaClient config) — you'll see the repeated queries in the console. Or use the Prisma query event to count queries per request.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">What are the four caching layers in Next.js App Router?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">From innermost to outermost: <strong>Request Memoization</strong> — within a single render, identical fetch() calls are deduplicated automatically. If two Server Components both call <code>getProduct(id)</code>, the database is hit once. Clears between requests.<br><br><strong>Data Cache</strong> — persists fetch results on the server across requests. Controlled by <code>{ next: { revalidate: 60 } }</code> for TTL-based invalidation, or <code>revalidatePath()</code>/<code>revalidateTag()</code> for on-demand invalidation. This is where most performance wins come from — popular product pages can be cached for hours.<br><br><strong>Full Route Cache</strong> — stores the entire rendered HTML and RSC payload at build time (static) or after first render (ISR). Dynamic routes (using cookies, headers, or no-store fetches) bypass this. Essentially free page serving for cached routes.<br><br><strong>Router Cache</strong> — in-browser cache of RSC payloads from pages you've visited. Enables instant back/forward navigation. Lasts 5 minutes for static routes, 30 seconds for dynamic. Call <code>router.refresh()</code> to invalidate.</div>
+    <div class="tip-box">In Next.js 15, fetch() is no longer cached by default — you must opt in with { cache: "force-cache" } or { next: { revalidate: n } }. This is a breaking change from Next.js 14.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">How do you reduce JavaScript bundle size in a Next.js application?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Five main strategies. First, <strong>server components by default</strong>: code in Server Components never ships to the browser — the biggest free bundle reduction is keeping as much logic as possible server-side. Prisma client, heavy data transformations, and auth checks all stay on the server.<br><br>Second, <strong>dynamic imports</strong>: use <code>next/dynamic</code> to load heavy components only when needed — charts only on the dashboard page, modal components only when opened, rich text editors only when editing. Third, <strong>replace heavy libraries</strong>: moment (293KB) → dayjs (2KB), lodash (72KB) → lodash-es with named imports or native JS, axios → native fetch.<br><br>Fourth, <strong>tree shaking</strong>: import specifically (<code>import { format } from "date-fns"</code>), not the entire library. Fifth, <strong>analyse the bundle</strong>: run <code>ANALYZE=true npm run build</code> with <code>@next/bundle-analyzer</code> to see exactly what's taking space — often one unexpected import from a deep dependency causes most bloat. Target: first-load JS under 100KB, individual page JS under 50KB.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">What causes Cumulative Layout Shift and how do you prevent it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">CLS is caused by content moving after initial paint. The three most common causes: <strong>images without dimensions</strong> — the browser doesn't know how much space to reserve, so the page reflows when the image loads. Fix: always provide width and height props on <code>&lt;Image&gt;</code> (or use the fill prop with a parent container that has an explicit aspect ratio).<br><br><strong>Web fonts</strong> — FOUT (flash of unstyled text) and FOIT (flash of invisible text) cause layout shifts as fonts swap in. Fix: use Next.js's <code>next/font</code> which preloads fonts and uses <code>size-adjust</code> CSS to match fallback metrics, or set <code>font-display: optional</code> which only uses the custom font if it's already cached.<br><br><strong>Dynamically injected content</strong> — cookie banners, ads, or notification bars that appear above existing content push everything down. Fix: reserve the space in the layout before JavaScript runs, or inject content below existing content (e.g., sticky bottom bar instead of top banner).<br><br>Measure with the Layout Instability API or Chrome DevTools Performance panel — it highlights shifting elements in red.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">How does code splitting work in Next.js and when should you manually apply it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Next.js automatically code-splits at the route level — each page gets its own JavaScript chunk that's only downloaded when the user navigates to that page. The shared runtime and common components are in a separate shared chunk. This happens without any configuration.<br><br>Manual code splitting via <code>next/dynamic</code> is needed when: a heavy component (chart library, rich text editor, PDF viewer) is on a page but users don't always interact with it. Instead of loading it with the page, you load it lazily: <code>const Chart = dynamic(() => import("./SalesChart"), { loading: () => &lt;Skeleton /&gt;, ssr: false })</code>. The <code>ssr: false</code> option skips server-side rendering entirely — useful for components that use browser APIs.<br><br>React's <code>lazy</code> + <code>Suspense</code> achieves the same thing in non-Next.js apps: <code>const Modal = lazy(() => import("./Modal"))</code>. The difference is that <code>next/dynamic</code> integrates with Next.js's streaming and SSR capabilities, so the loading fallback can be server-rendered while the component loads.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">What is ISR (Incremental Static Regeneration) and when should you use it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">ISR is Next.js's strategy for serving static pages that stay fresh without a full rebuild. After the specified revalidation period, the next visitor triggers a background regeneration of the page. The current visitor still gets the (slightly stale) cached version instantly — subsequent visitors get the fresh version. It's "stale-while-revalidate" for entire pages.<br><br>Set it at the page level with <code>export const revalidate = 3600</code> (seconds), or at the fetch level with <code>{ next: { revalidate: 3600 } }</code>. For on-demand invalidation (trigger regeneration when an admin publishes a product), use <code>revalidatePath()</code> or <code>revalidateTag()</code> in a Server Action.<br><br>Use ISR for: product pages (update when product changes, not every second), blog posts, category pages, any content that changes less frequently than it's viewed. Don't use ISR for: user-specific pages (cart, orders, dashboard — these must be dynamic), real-time data (live prices, stock levels — use client-side fetching or no-store).</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">How do you measure and improve Time to First Byte (TTFB) in Next.js?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">TTFB is the time from the user making a request to receiving the first byte of the response. It directly affects everything else — a slow TTFB means everything downstream starts later. Measure it in Chrome DevTools Network tab → select the document request → Timing → TTFB.<br><br>The main causes and fixes: <strong>slow database queries</strong> — add indexes to commonly filtered columns, use <code>select</code> instead of fetching all columns, avoid N+1, use connection pooling. Profile with <code>db.$on("query", console.log)</code> to find slow queries. <strong>No caching</strong> — the biggest win is often simply adding Next.js data cache. A product page hitting the DB on every request vs serving from cache is the difference between 800ms and 50ms TTFB. <strong>Server location</strong> — Vercel's Edge Network deploys your server globally and routes users to the nearest instance. For server-only routes, the Edge runtime reduces cold start times. <strong>Cold starts</strong> — serverless functions have cold start latency. Warm them with periodic pings, or use Vercel Pro's minimum instances setting.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Night review — self-assessment</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">14 items</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can explain it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know LCP, INP, CLS thresholds and the top fix for each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know which next/image props matter: <code>priority</code>, <code>sizes</code>, <code>fill</code>, <code>quality</code>, <code>placeholder</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can run a bundle analysis and identify top 3 opportunities in a real project</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use <code>next/dynamic</code> to lazy-load a chart or modal component</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the 4 Next.js caching layers and what controls each one</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use <code>revalidate</code>, <code>revalidatePath</code>, and <code>revalidateTag</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain React.memo, useMemo, useCallback — and when NOT to use them</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand N+1 queries and can fix them with Prisma's <code>include</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know which columns need database indexes and how to check if they're being used</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I ran Lighthouse on ShopCo and addressed at least 3 findings today</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I added <code>priority</code> to the hero product image and <code>sizes</code> to product grid images</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I added ISR (<code>revalidate</code>) to the products listing page</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I replaced moment.js (or another heavy library) with a lighter alternative</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">ShopCo scores 90+ on Lighthouse Performance (or I have a clear plan to get there)</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(6,182,212,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--perf);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Tomorrow — Day 27: Testing with Vitest + React Testing Library + Playwright</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      Prep: install <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">vitest</code>, <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">@testing-library/react</code>, <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">@playwright/test</code> in ShopCo<br>
+      Think about: what are the 5 most critical flows to test? (auth, add to cart, checkout, admin publish, search)<br>
+      Read: <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">testing-library.com/docs/queries</code> — the core query methods you'll use tomorrow
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 5 · Day 26</div>
+      <div class="footer-day-name">Performance Optimization</div>
+      <div class="footer-day-next">Next up: <strong>Day 27 — Testing (Vitest + RTL + Playwright)</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 5 progress</span><span>Day 1 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:14%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day25_week4_review.html',25)">← Day 25</button>
+      <button class="footer-btn primary" onclick="navigateTo('day27_testing.html',27)">Day 27 — Testing →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html",current:true},
+  {num:27,file:"day27_testing.html"},
+]
+const CURRENT=26
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+  "day18_tailwind_css.html","day19_week3_review.html",
+  "day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html",
+  "day24_api_design.html","day25_week4_review.html",
+  "day26_performance.html","day27_testing.html"
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep shipping! ⚡`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

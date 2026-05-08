@@ -7,9 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link defer href="assets/css/components.css"  rel="stylesheet">
 <link defer href="assets/css/base.css" rel="stylesheet">
+
 <style>
-
-
 .nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
 .nav-brand{font-size:13px;font-weight:700;color:var(--nxt);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
 .nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
@@ -1787,6 +1786,7 @@ const DAY_PLAN=[
   {num:19,file:"day19_week3_review.html"},
   {num:20,file:"day20_advanced_patterns.html"},
   {num:21,file:"day21_nextjs_app_router.html",current:true},
+  {num:22,file:"day22_auth_clerk.html"},
 ]
 const CURRENT=21
 const AVAILABLE=new Set([
@@ -1800,6 +1800,7 @@ const AVAILABLE=new Set([
   "day16_react_hook_form.html","day17_typescript_react.html",
   "day18_tailwind_css.html","day19_week3_review.html",
   "day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html",
 ])
 function navigateTo(file,n){
   if(AVAILABLE.has(file))window.location.href=file

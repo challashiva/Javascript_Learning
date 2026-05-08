@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 27 — Testing</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--test);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--test);border-bottom-color:var(--test);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--test);font-weight:600;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;display:inline-block;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--test);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--test-dim);color:var(--test);border-color:rgba(34,197,94,.3);}
+.day-btn.primary:hover{background:rgba(34,197,94,.18);}
+
+.week-banner{background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(34,197,94,.06));border-bottom:1px solid var(--border);padding:12px 48px;}
+.week-banner-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.week-badge{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--test-dim);color:var(--test);border:1px solid rgba(34,197,94,.3);white-space:nowrap;}
+.week-text{font-size:13px;color:var(--muted);}
+.week-text strong{color:var(--text);}
+
+.hero{padding:56px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--test);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--test);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--test);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.topics-strip{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;}
+.topic-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.topic-sub{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--test);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--test-dim);color:var(--test);border-color:rgba(34,197,94,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--test);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--test);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+.ty{color:#38bdf8;}.pass{color:#4ade80;}.fail{color:#fb7185;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--test);}
+
+.comp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.comp-wrap-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table tr:hover td{background:var(--surface2);}
+.comp-table td code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--test);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--test-dim);color:var(--test);border:1px solid rgba(34,197,94,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(34,197,94,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:180px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(34,197,94,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--test);}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--test-dim);color:var(--test);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--test);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--test);border-color:var(--test);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--test);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--test-dim);color:var(--test);border-color:rgba(34,197,94,.3);}
+.footer-btn.primary:hover{background:rgba(34,197,94,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--test);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.topics-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav,.week-banner{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 27 · Testing</div>
+  <a href="#why">Why Test</a>
+  <a href="#vitest">Vitest</a>
+  <a href="#rtl">React Testing Library</a>
+  <a href="#mocking">Mocking</a>
+  <a href="#playwright">Playwright E2E</a>
+  <a href="#strategy">Strategy</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="week-banner">
+  <div class="week-banner-inner">
+    <span class="week-badge">Week 5 · Day 2</span>
+    <span class="week-text"><strong>Testing</strong> — Vitest for unit tests, React Testing Library for components, Playwright for end-to-end. Tests that catch real bugs, not tests that slow you down.</span>
+  </div>
+</div>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 5 · <span>Day 27 of 56</span> · Testing</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="display:flex;gap:5px;align-items:center;" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day26_performance.html',26)">← Day 26</button>
+      <button class="day-btn primary" onclick="navigateTo('day28_error_monitoring.html',28)">Day 28 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 5 · Day 27 · Ship with confidence</div>
+  <h1>Testing<br><em>Done Right</em></h1>
+  <p class="hero-sub">Tests that catch real bugs and let you refactor confidently — not tests that are brittle, slow, and lie to you. Vitest for fast unit tests, React Testing Library for component behaviour, Playwright for real browser E2E flows.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(34,197,94,.3);color:var(--test);">Vitest setup + config</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">unit test patterns</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">React Testing Library</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">queries + user events</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">mocking — modules, fetch</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">async testing</span>
+    <span class="topic-pill" style="border-color:rgba(69,186,75,.3);color:var(--pw);">Playwright E2E</span>
+    <span class="topic-pill" style="border-color:rgba(16,185,129,.3);color:var(--emerald);">test strategy + CI</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">focus time</div></div>
+  </div>
+</div>
+
+<!-- TOPICS -->
+<div class="topics-strip">
+  <div class="topics-grid">
+    <div class="topic-card"><span class="topic-icon">🎯</span><div><div class="topic-name">Why Test</div><div class="topic-sub">confidence, refactoring safety</div></div></div>
+    <div class="topic-card"><span class="topic-icon">⚡</span><div><div class="topic-name">Vitest</div><div class="topic-sub">fast, native ESM, watch mode</div></div></div>
+    <div class="topic-card"><span class="topic-icon">⚛️</span><div><div class="topic-name">React Testing Library</div><div class="topic-sub">test behaviour, not implementation</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🔍</span><div><div class="topic-name">Queries</div><div class="topic-sub">getBy, findBy, queryBy</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🎭</span><div><div class="topic-name">Mocking</div><div class="topic-sub">vi.mock, MSW, fetch</div></div></div>
+    <div class="topic-card"><span class="topic-icon">⏳</span><div><div class="topic-name">Async Testing</div><div class="topic-sub">waitFor, findBy, act</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🌐</span><div><div class="topic-name">Playwright E2E</div><div class="topic-sub">real browser, critical paths</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🏗️</span><div><div class="topic-name">Test Strategy</div><div class="topic-sub">pyramid, CI integration</div></div></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 27 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Why test</span>
+    <span class="tdot" onclick="markDone(this)">Vitest setup</span>
+    <span class="tdot" onclick="markDone(this)">Unit tests</span>
+    <span class="tdot" onclick="markDone(this)">RTL queries</span>
+    <span class="tdot" onclick="markDone(this)">User events</span>
+    <span class="tdot" onclick="markDone(this)">Mocking</span>
+    <span class="tdot" onclick="markDone(this)">Async</span>
+    <span class="tdot" onclick="markDone(this)">Playwright</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. WHY TEST -->
+<div class="section" id="why">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Why test — the only reasons that matter</span>
+    <span class="sec-badge" style="background:var(--test-dim);color:var(--test);">motivation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--test-dim);color:var(--test);">confidence to refactor</span>
+      <div class="cc-title">Change code without fear</div>
+      <div class="cc-body">The real value of tests isn't catching bugs when you write code — it's letting you <strong>change existing code without breaking it silently</strong>. Moving a calculation to a utility function, upgrading a dependency, extracting a hook — with tests you know immediately if something breaks. Without tests, every refactor is a gamble.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">specification</span>
+      <div class="cc-title">Tests describe what the code should do</div>
+      <div class="cc-body">A test suite is executable documentation. <code>it("displays error when stock is insufficient")</code> tells the next developer (or future you) exactly what the behaviour is without reading the implementation. When a test fails, you know <em>what</em> broke, not just <em>that</em> something broke.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">CI safety net</span>
+      <div class="cc-title">Block broken code from reaching users</div>
+      <div class="cc-body">Tests in CI catch regressions before they deploy. A developer changes an unrelated file, accidentally breaks the cart calculation — tests catch it in 30 seconds instead of a customer reporting it 2 days later. This is worth the time investment for any production application.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--coral-dim);color:var(--coral);">the test pyramid</span>
+      <div class="cc-title">Many unit, some integration, few E2E</div>
+      <div class="cc-body">Unit tests (utility functions, hooks): fast, cheap, many. Integration tests (components with data): medium speed, medium cost, some. E2E tests (full user journeys): slow, expensive, few. ShopCo target: <strong>~50 unit tests</strong> (utilities, server actions), <strong>~20 component tests</strong> (key UI), <strong>~5 E2E tests</strong> (checkout, auth, search).</div>
+    </div>
+  </div>
+</div>
+
+<!-- 02. VITEST -->
+<div class="section" id="vitest">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Vitest — setup, anatomy of a test, matchers</span>
+    <span class="sec-badge" style="background:var(--test-dim);color:var(--test);">unit tests</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + typescript</span><span class="cb-desc">Vitest setup for Next.js, test file anatomy, all key matchers</span></div>
+    <div class="cb-body"><pre><span class="cm"># Install</span>
+npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/user-event
+
+<span class="cm">// vitest.config.ts</span>
+<span class="kw">import</span> { <span class="fn">defineConfig</span> } <span class="kw">from</span> <span class="str">"vitest/config"</span>
+<span class="kw">import</span> <span class="var">react</span>            <span class="kw">from</span> <span class="str">"@vitejs/plugin-react"</span>
+
+<span class="kw">export default</span> <span class="fn">defineConfig</span>({
+  <span class="prop">plugins</span>: [<span class="fn">react</span>()],
+  <span class="prop">test</span>: {
+    <span class="prop">environment</span>: <span class="str">"jsdom"</span>,           <span class="cm">// simulated browser DOM</span>
+    <span class="prop">globals</span>:     <span class="kw">true</span>,               <span class="cm">// describe/it/expect without imports</span>
+    <span class="prop">setupFiles</span>:  [<span class="str">"./vitest.setup.ts"</span>],
+    <span class="prop">coverage</span>: {
+      <span class="prop">provider</span>: <span class="str">"v8"</span>,
+      <span class="prop">reporter</span>: [<span class="str">"text"</span>, <span class="str">"html"</span>],
+      <span class="prop">exclude</span>:  [<span class="str">"node_modules"</span>, <span class="str">".next"</span>],
+    },
+  },
+})
+
+<span class="cm">// vitest.setup.ts</span>
+<span class="kw">import</span> <span class="str">"@testing-library/jest-dom"</span>  <span class="cm">// adds toBeInTheDocument, toHaveValue etc.</span>
+
+<span class="cm">// package.json scripts</span>
+<span class="cm">// "test":       "vitest"</span>
+<span class="cm">// "test:ui":    "vitest --ui"</span>
+<span class="cm">// "test:run":   "vitest run"  ← single pass (for CI)</span>
+<span class="cm">// "coverage":   "vitest run --coverage"</span>
+
+<span class="cm">// ── Anatomy of a test file ────────────────────────────────</span>
+<span class="cm">// utils/__tests__/cart.test.ts</span>
+<span class="kw">import</span> { <span class="fn">describe</span>, <span class="fn">it</span>, <span class="fn">expect</span>, <span class="fn">beforeEach</span>, <span class="fn">afterEach</span>, <span class="fn">vi</span> } <span class="kw">from</span> <span class="str">"vitest"</span>
+<span class="kw">import</span> { <span class="fn">calculateCartTotal</span>, <span class="fn">applyDiscount</span> } <span class="kw">from</span> <span class="str">"../cart"</span>
+
+<span class="fn">describe</span>(<span class="str">"calculateCartTotal"</span>, () => {
+  <span class="fn">it</span>(<span class="str">"sums item prices × quantities"</span>, () => {
+    <span class="kw">const</span> <span class="var">items</span> = [
+      { <span class="prop">price</span>: <span class="num">10</span>, <span class="prop">quantity</span>: <span class="num">2</span> },  <span class="cm">// 20</span>
+      { <span class="prop">price</span>: <span class="num">5</span>,  <span class="prop">quantity</span>: <span class="num">3</span> },  <span class="cm">// 15</span>
+    ]
+    <span class="fn">expect</span>(<span class="fn">calculateCartTotal</span>(<span class="var">items</span>)).<span class="fn">toBe</span>(<span class="num">35</span>)
+  })
+
+  <span class="fn">it</span>(<span class="str">"returns 0 for empty cart"</span>, () => {
+    <span class="fn">expect</span>(<span class="fn">calculateCartTotal</span>([])).<span class="fn">toBe</span>(<span class="num">0</span>)
+  })
+
+  <span class="fn">it</span>(<span class="str">"throws for negative quantity"</span>, () => {
+    <span class="fn">expect</span>(() => <span class="fn">calculateCartTotal</span>([{ <span class="prop">price</span>: <span class="num">10</span>, <span class="prop">quantity</span>: -<span class="num">1</span> }]))
+      .<span class="fn">toThrow</span>(<span class="str">"Invalid quantity"</span>)
+  })
+})
+
+<span class="fn">describe</span>(<span class="str">"applyDiscount"</span>, () => {
+  <span class="fn">it</span>.<span class="fn">each</span>([
+    [<span class="num">100</span>, <span class="num">10</span>, <span class="num">90</span>],
+    [<span class="num">200</span>, <span class="num">25</span>, <span class="num">150</span>],
+    [<span class="num">50</span>,  <span class="num">0</span>,  <span class="num">50</span>],
+  ])(<span class="str">"total=%d, discount=%d% → %d"</span>, (<span class="var">total</span>, <span class="var">pct</span>, <span class="var">expected</span>) => {
+    <span class="fn">expect</span>(<span class="fn">applyDiscount</span>(<span class="var">total</span>, <span class="var">pct</span>)).<span class="fn">toBe</span>(<span class="var">expected</span>)
+  })
+})
+
+<span class="cm">// ── Key matchers ──────────────────────────────────────────</span>
+<span class="fn">expect</span>(<span class="var">value</span>).<span class="fn">toBe</span>(<span class="num">42</span>)              <span class="cm">// strict equality (===)</span>
+<span class="fn">expect</span>(<span class="var">obj</span>).<span class="fn">toEqual</span>({ <span class="prop">a</span>: <span class="num">1</span> })       <span class="cm">// deep equality</span>
+<span class="fn">expect</span>(<span class="var">arr</span>).<span class="fn">toContain</span>(<span class="str">"item"</span>)        <span class="cm">// array includes value</span>
+<span class="fn">expect</span>(<span class="var">str</span>).<span class="fn">toMatch</span>(<span class="str">/pattern/</span>)      <span class="cm">// regex match</span>
+<span class="fn">expect</span>(<span class="fn">fn</span>).<span class="fn">toThrow</span>(<span class="str">"message"</span>)        <span class="cm">// function throws</span>
+<span class="fn">expect</span>(<span class="var">value</span>).<span class="fn">toBeTruthy</span>()          <span class="cm">// truthy (not 0/null/false/"")</span>
+<span class="fn">expect</span>(<span class="var">value</span>).<span class="fn">toBeNull</span>()            <span class="cm">// exactly null</span>
+<span class="fn">expect</span>(<span class="var">value</span>).<span class="fn">toBeUndefined</span>()       <span class="cm">// undefined</span>
+<span class="fn">expect</span>(<span class="var">num</span>).<span class="fn">toBeCloseTo</span>(<span class="num">0.3</span>, <span class="num">5</span>)    <span class="cm">// floating point comparison</span>
+<span class="fn">expect</span>(<span class="var">mockFn</span>).<span class="fn">toHaveBeenCalledWith</span>(<span class="str">"arg"</span>)  <span class="cm">// spy assertion</span>
+<span class="fn">expect</span>(<span class="var">mockFn</span>).<span class="fn">toHaveBeenCalledTimes</span>(<span class="num">2</span>)    <span class="cm">// call count</span>
+<span class="cm">// From @testing-library/jest-dom:</span>
+<span class="fn">expect</span>(<span class="var">el</span>).<span class="fn">toBeInTheDocument</span>()       <span class="cm">// DOM element exists</span>
+<span class="fn">expect</span>(<span class="var">el</span>).<span class="fn">toHaveValue</span>(<span class="str">"Alice"</span>)      <span class="cm">// input value</span>
+<span class="fn">expect</span>(<span class="var">el</span>).<span class="fn">toBeDisabled</span>()            <span class="cm">// disabled attribute</span>
+<span class="fn">expect</span>(<span class="var">el</span>).<span class="fn">toHaveTextContent</span>(<span class="str">"text"</span>) <span class="cm">// element text</span></pre></div>
+  </div>
+</div>
+
+<!-- 03. RTL -->
+<div class="section" id="rtl">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">React Testing Library — test behaviour, not implementation</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">components</span>
+  </div>
+
+  <div class="mm">
+    <div class="mm-title"><span class="mm-dot" style="background:var(--amber);"></span>RTL queries — getBy vs queryBy vs findBy</div>
+    <div class="mm-grid">
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--test);">getBy* — element must exist</div>
+        <div class="mm-value">Throws immediately if not found. Use when: you expect the element to be present. <code>getByRole("button", { name:"Add to cart" })</code>. Most common for elements that should always be there.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--amber);">queryBy* — element may not exist</div>
+        <div class="mm-value">Returns null if not found (no throw). Use when: you're asserting an element is NOT present. <code>expect(queryByRole("alert")).not.toBeInTheDocument()</code>.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--blue);">findBy* — element appears async</div>
+        <div class="mm-value">Returns a promise, waits up to 1000ms. Use after async actions (API calls, state updates). <code>await findByText("Order placed!")</code>. Built-in waitFor.</div>
+      </div>
+      <div class="mm-item">
+        <div class="mm-label" style="color:var(--purple);">query priority order</div>
+        <div class="mm-value"><code>ByRole</code> (most semantic) → <code>ByLabelText</code> → <code>ByPlaceholderText</code> → <code>ByText</code> → <code>ByDisplayValue</code> → <code>ByAltText</code> → <code>ByTitle</code> → <code>ByTestId</code> (last resort). Prefer role queries — they test accessibility too.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">tsx</span><span class="cb-desc">RTL + userEvent — testing AddToCart, form validation, async state</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="fn">render</span>, <span class="fn">screen</span>, <span class="fn">waitFor</span> } <span class="kw">from</span> <span class="str">"@testing-library/react"</span>
+<span class="kw">import</span> <span class="fn">userEvent</span>                    <span class="kw">from</span> <span class="str">"@testing-library/user-event"</span>
+<span class="kw">import</span> { <span class="fn">describe</span>, <span class="fn">it</span>, <span class="fn">expect</span>, <span class="fn">vi</span> } <span class="kw">from</span> <span class="str">"vitest"</span>
+<span class="kw">import</span> { <span class="var">AddToCart</span> }               <span class="kw">from</span> <span class="str">"./AddToCart"</span>
+
+<span class="fn">describe</span>(<span class="str">"AddToCart"</span>, () => {
+  <span class="fn">it</span>(<span class="str">"shows Add to cart button initially"</span>, () => {
+    <span class="fn">render</span>(<span class="tag">&lt;AddToCart</span> <span class="attr">productId</span>=<span class="str">"p1"</span> <span class="attr">stock</span>={<span class="num">5</span>} <span class="tag">/&gt;</span>)
+    <span class="cm">// getByRole is preferred — tests accessibility role too</span>
+    <span class="fn">expect</span>(<span class="fn">screen</span>.<span class="fn">getByRole</span>(<span class="str">"button"</span>, { <span class="prop">name</span>: <span class="str">/add to cart/i</span> }))
+      .<span class="fn">toBeInTheDocument</span>()
+  })
+
+  <span class="fn">it</span>(<span class="str">"disables button when out of stock"</span>, () => {
+    <span class="fn">render</span>(<span class="tag">&lt;AddToCart</span> <span class="attr">productId</span>=<span class="str">"p1"</span> <span class="attr">stock</span>={<span class="num">0</span>} <span class="tag">/&gt;</span>)
+    <span class="fn">expect</span>(<span class="fn">screen</span>.<span class="fn">getByRole</span>(<span class="str">"button"</span>)).<span class="fn">toBeDisabled</span>()
+    <span class="fn">expect</span>(<span class="fn">screen</span>.<span class="fn">getByText</span>(<span class="str">/out of stock/i</span>)).<span class="fn">toBeInTheDocument</span>()
+  })
+
+  <span class="fn">it</span>(<span class="str">"calls addItem and shows Added! when clicked"</span>, <span class="kw">async</span> () => {
+    <span class="kw">const</span> <span class="var">user</span>      = <span class="fn">userEvent</span>.<span class="fn">setup</span>()  <span class="cm">// recommended over direct userEvent calls</span>
+    <span class="kw">const</span> <span class="fn">mockAdd</span>   = <span class="fn">vi</span>.<span class="fn">fn</span>()
+
+    <span class="fn">render</span>(<span class="tag">&lt;AddToCart</span> <span class="attr">productId</span>=<span class="str">"p1"</span> <span class="attr">stock</span>={<span class="num">5</span>} <span class="attr">onAdd</span>={<span class="fn">mockAdd</span>} <span class="tag">/&gt;</span>)
+
+    <span class="kw">await</span> <span class="var">user</span>.<span class="fn">click</span>(<span class="fn">screen</span>.<span class="fn">getByRole</span>(<span class="str">"button"</span>, { <span class="prop">name</span>: <span class="str">/add to cart/i</span> }))
+
+    <span class="fn">expect</span>(<span class="fn">mockAdd</span>).<span class="fn">toHaveBeenCalledWith</span>(<span class="str">"p1"</span>)
+    <span class="fn">expect</span>(<span class="fn">screen</span>.<span class="fn">getByText</span>(<span class="str">/added/i</span>)).<span class="fn">toBeInTheDocument</span>()
+  })
+})
+
+<span class="cm">// ── Testing a form with validation ────────────────────────</span>
+<span class="fn">describe</span>(<span class="str">"CheckoutForm"</span>, () => {
+  <span class="fn">it</span>(<span class="str">"shows validation errors on empty submit"</span>, <span class="kw">async</span> () => {
+    <span class="kw">const</span> <span class="var">user</span> = <span class="fn">userEvent</span>.<span class="fn">setup</span>()
+    <span class="fn">render</span>(<span class="tag">&lt;CheckoutForm</span> <span class="tag">/&gt;</span>)
+
+    <span class="kw">await</span> <span class="var">user</span>.<span class="fn">click</span>(<span class="fn">screen</span>.<span class="fn">getByRole</span>(<span class="str">"button"</span>, { <span class="prop">name</span>: <span class="str">/place order/i</span> }))
+
+    <span class="fn">expect</span>(<span class="fn">screen</span>.<span class="fn">getByText</span>(<span class="str">/address is required/i</span>)).<span class="fn">toBeInTheDocument</span>()
+    <span class="fn">expect</span>(<span class="fn">screen</span>.<span class="fn">getByText</span>(/city is required/i)).<span class="fn">toBeInTheDocument</span>()
+  })
+
+  <span class="fn">it</span>(<span class="str">"submits successfully with valid data"</span>, <span class="kw">async</span> () => {
+    <span class="kw">const</span> <span class="var">user</span>       = <span class="fn">userEvent</span>.<span class="fn">setup</span>()
+    <span class="kw">const</span> <span class="fn">mockSubmit</span> = <span class="fn">vi</span>.<span class="fn">fn</span>()
+    <span class="fn">render</span>(<span class="tag">&lt;CheckoutForm</span> <span class="attr">onSubmit</span>={<span class="fn">mockSubmit</span>} <span class="tag">/&gt;</span>)
+
+    <span class="kw">await</span> <span class="var">user</span>.<span class="fn">type</span>(<span class="fn">screen</span>.<span class="fn">getByLabelText</span>(<span class="str">/street address/i</span>), <span class="str">"123 Main St"</span>)
+    <span class="kw">await</span> <span class="var">user</span>.<span class="fn">type</span>(<span class="fn">screen</span>.<span class="fn">getByLabelText</span>(<span class="str">/city/i</span>), <span class="str">"London"</span>)
+    <span class="kw">await</span> <span class="var">user</span>.<span class="fn">type</span>(<span class="fn">screen</span>.<span class="fn">getByLabelText</span>(<span class="str">/postcode/i</span>), <span class="str">"EC1A 1BB"</span>)
+    <span class="kw">await</span> <span class="var">user</span>.<span class="fn">click</span>(<span class="fn">screen</span>.<span class="fn">getByRole</span>(<span class="str">"button"</span>, { <span class="prop">name</span>: <span class="str">/place order/i</span> }))
+
+    <span class="fn">expect</span>(<span class="fn">mockSubmit</span>).<span class="fn">toHaveBeenCalledWith</span>({
+      <span class="prop">address</span>: <span class="str">"123 Main St"</span>, <span class="prop">city</span>: <span class="str">"London"</span>, <span class="prop">postcode</span>: <span class="str">"EC1A 1BB"</span>
+    })
+  })
+})</pre></div>
+  </div>
+</div>
+
+<!-- 04. MOCKING -->
+<div class="section" id="mocking">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Mocking — modules, fetch, and Server Actions</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">mocks</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">vi.mock, vi.fn, mocking fetch, mocking Clerk auth, MSW setup</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> { <span class="fn">vi</span>, <span class="fn">describe</span>, <span class="fn">it</span>, <span class="fn">expect</span>, <span class="fn">beforeEach</span> } <span class="kw">from</span> <span class="str">"vitest"</span>
+
+<span class="cm">// ── vi.mock — replace entire module ───────────────────────</span>
+<span class="cm">// Must be at the top level (hoisted before imports)</span>
+<span class="fn">vi</span>.<span class="fn">mock</span>(<span class="str">"@clerk/nextjs"</span>, () => ({
+  <span class="fn">useAuth</span>:    () => ({ <span class="prop">isSignedIn</span>: <span class="kw">true</span>, <span class="prop">userId</span>: <span class="str">"test-user-id"</span> }),
+  <span class="fn">useUser</span>:    () => ({ <span class="prop">user</span>: { <span class="prop">fullName</span>: <span class="str">"Alice Smith"</span>, <span class="prop">emailAddresses</span>: [] } }),
+  <span class="var">SignedIn</span>:   ({ <span class="var">children</span> }) => <span class="var">children</span>,
+  <span class="var">SignedOut</span>:  () => <span class="kw">null</span>,
+}))
+
+<span class="fn">vi</span>.<span class="fn">mock</span>(<span class="str">"next/navigation"</span>, () => ({
+  <span class="fn">useRouter</span>:      () => ({ <span class="fn">push</span>: <span class="fn">vi</span>.<span class="fn">fn</span>(), <span class="fn">replace</span>: <span class="fn">vi</span>.<span class="fn">fn</span>(), <span class="fn">refresh</span>: <span class="fn">vi</span>.<span class="fn">fn</span>() }),
+  <span class="fn">usePathname</span>:    () => <span class="str">"/products"</span>,
+  <span class="fn">useSearchParams</span>:() => <span class="kw">new</span> <span class="fn">URLSearchParams</span>(),
+  <span class="fn">useParams</span>:      () => ({ <span class="prop">id</span>: <span class="str">"p1"</span> }),
+}))
+
+<span class="cm">// ── vi.fn() — spy on a function ───────────────────────────</span>
+<span class="kw">const</span> <span class="fn">mockAddItem</span> = <span class="fn">vi</span>.<span class="fn">fn</span>()
+<span class="fn">mockAddItem</span>.<span class="fn">mockReturnValue</span>(<span class="kw">true</span>)         <span class="cm">// always returns true</span>
+<span class="fn">mockAddItem</span>.<span class="fn">mockResolvedValue</span>({ <span class="prop">ok</span>: <span class="kw">true</span> }) <span class="cm">// resolves async</span>
+<span class="fn">mockAddItem</span>.<span class="fn">mockRejectedValue</span>(<span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"out of stock"</span>))
+
+<span class="cm">// ── Mock fetch globally ───────────────────────────────────</span>
+<span class="fn">beforeEach</span>(() => {
+  <span class="fn">vi</span>.<span class="fn">stubGlobal</span>(<span class="str">"fetch"</span>, <span class="fn">vi</span>.<span class="fn">fn</span>().<span class="fn">mockResolvedValue</span>({
+    <span class="prop">ok</span>:   <span class="kw">true</span>,
+    <span class="fn">json</span>: () => <span class="fn">Promise</span>.<span class="fn">resolve</span>({ <span class="prop">data</span>: [{ <span class="prop">id</span>: <span class="str">"p1"</span>, <span class="prop">name</span>: <span class="str">"MacBook"</span> }] }),
+  }))
+})
+
+<span class="cm">// ── Mock a Server Action ──────────────────────────────────</span>
+<span class="fn">vi</span>.<span class="fn">mock</span>(<span class="str">"@/actions/orders"</span>, () => ({
+  <span class="fn">createOrder</span>: <span class="fn">vi</span>.<span class="fn">fn</span>().<span class="fn">mockResolvedValue</span>({ <span class="prop">success</span>: <span class="kw">true</span>, <span class="prop">orderId</span>: <span class="str">"ord_123"</span> }),
+}))
+
+<span class="fn">it</span>(<span class="str">"redirects to order page after checkout"</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> { <span class="fn">createOrder</span> } = <span class="kw">await</span> <span class="kw">import</span>(<span class="str">"@/actions/orders"</span>)
+  <span class="kw">const</span> <span class="fn">mockPush</span>     = <span class="fn">vi</span>.<span class="fn">fn</span>()
+  <span class="fn">vi</span>.<span class="fn">mocked</span>(<span class="fn">useRouter</span>).<span class="fn">mockReturnValue</span>({ <span class="fn">push</span>: <span class="fn">mockPush</span> } <span class="kw">as</span> <span class="kw">any</span>)
+
+  <span class="cm">// ... render and interact ...</span>
+
+  <span class="fn">expect</span>(<span class="fn">createOrder</span>).<span class="fn">toHaveBeenCalled</span>()
+  <span class="fn">expect</span>(<span class="fn">mockPush</span>).<span class="fn">toHaveBeenCalledWith</span>(<span class="str">"/dashboard/orders/ord_123"</span>)
+})
+
+<span class="cm">// ── MSW (Mock Service Worker) — recommended for API tests ─</span>
+<span class="cm">// npm install -D msw</span>
+<span class="cm">// handlers.ts</span>
+<span class="kw">import</span> { <span class="fn">http</span>, <span class="fn">HttpResponse</span> } <span class="kw">from</span> <span class="str">"msw"</span>
+<span class="kw">export const</span> <span class="var">handlers</span> = [
+  <span class="fn">http</span>.<span class="fn">get</span>(<span class="str">"/api/products"</span>, () =>
+    <span class="fn">HttpResponse</span>.<span class="fn">json</span>({ <span class="prop">data</span>: [{ <span class="prop">id</span>: <span class="str">"p1"</span>, <span class="prop">name</span>: <span class="str">"MacBook"</span>, <span class="prop">price</span>: <span class="num">1999</span> }] })
+  ),
+  <span class="fn">http</span>.<span class="fn">post</span>(<span class="str">"/api/orders"</span>, () =>
+    <span class="fn">HttpResponse</span>.<span class="fn">json</span>({ <span class="prop">data</span>: { <span class="prop">id</span>: <span class="str">"ord_1"</span> } }, { <span class="prop">status</span>: <span class="num">201</span> })
+  ),
+  <span class="fn">http</span>.<span class="fn">post</span>(<span class="str">"/api/products"</span>, () =>
+    <span class="fn">HttpResponse</span>.<span class="fn">json</span>({ <span class="prop">error</span>: <span class="str">"Unauthorized"</span> }, { <span class="prop">status</span>: <span class="num">401</span> })
+  ),
+]</pre></div>
+  </div>
+</div>
+
+<!-- 05. PLAYWRIGHT -->
+<div class="section" id="playwright">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Playwright — E2E tests for critical user flows</span>
+    <span class="sec-badge" style="background:var(--pw-dim);color:var(--pw);">E2E</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + typescript</span><span class="cb-desc">Playwright setup, auth fixture, critical path tests</span></div>
+    <div class="cb-body"><pre><span class="cm"># Install</span>
+npm install -D @playwright/test
+npx playwright install  <span class="cm"># downloads Chromium, Firefox, WebKit</span>
+
+<span class="cm">// playwright.config.ts</span>
+<span class="kw">import</span> { <span class="fn">defineConfig</span>, <span class="fn">devices</span> } <span class="kw">from</span> <span class="str">"@playwright/test"</span>
+
+<span class="kw">export default</span> <span class="fn">defineConfig</span>({
+  <span class="prop">testDir</span>:       <span class="str">"./e2e"</span>,
+  <span class="prop">fullyParallel</span>: <span class="kw">true</span>,
+  <span class="prop">retries</span>:       <span class="var">process</span>.<span class="prop">env</span>.<span class="prop">CI</span> ? <span class="num">2</span> : <span class="num">0</span>,  <span class="cm">// retry flaky tests in CI</span>
+  <span class="prop">reporter</span>:      <span class="str">"html"</span>,
+  <span class="prop">use</span>: {
+    <span class="prop">baseURL</span>:        <span class="str">"http://localhost:3000"</span>,
+    <span class="prop">trace</span>:          <span class="str">"on-first-retry"</span>,  <span class="cm">// capture trace on failure</span>
+    <span class="prop">screenshot</span>:     <span class="str">"only-on-failure"</span>,
+  },
+  <span class="prop">projects</span>: [
+    { <span class="prop">name</span>: <span class="str">"chromium"</span>, <span class="prop">use</span>: { ...<span class="fn">devices</span>[<span class="str">"Desktop Chrome"</span>] } },
+    { <span class="prop">name</span>: <span class="str">"mobile"</span>,   <span class="prop">use</span>: { ...<span class="fn">devices</span>[<span class="str">"iPhone 14"</span>]     } },
+  ],
+  <span class="prop">webServer</span>: {
+    <span class="prop">command</span>:   <span class="str">"npm run dev"</span>,
+    <span class="prop">url</span>:       <span class="str">"http://localhost:3000"</span>,
+    <span class="prop">reuseExistingServer</span>: !<span class="var">process</span>.<span class="prop">env</span>.<span class="prop">CI</span>,
+  },
+})
+
+<span class="cm">// ── Auth fixture — sign in once, reuse across tests ───────</span>
+<span class="cm">// e2e/auth.setup.ts</span>
+<span class="kw">import</span> { <span class="fn">test</span> <span class="kw">as</span> <span class="fn">setup</span> } <span class="kw">from</span> <span class="str">"@playwright/test"</span>
+<span class="kw">const</span> <span class="var">authFile</span> = <span class="str">"playwright/.auth/user.json"</span>
+
+<span class="fn">setup</span>(<span class="str">"authenticate"</span>, <span class="kw">async</span> ({ <span class="var">page</span> }) => {
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">goto</span>(<span class="str">"/sign-in"</span>)
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">getByLabel</span>(<span class="str">"Email"</span>).<span class="fn">fill</span>(<span class="str">"test@shopco.com"</span>)
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">getByLabel</span>(<span class="str">"Password"</span>).<span class="fn">fill</span>(<span class="var">process</span>.<span class="prop">env</span>.<span class="prop">TEST_PASSWORD</span>!)
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">getByRole</span>(<span class="str">"button"</span>, { <span class="prop">name</span>: <span class="str">"Sign in"</span> }).<span class="fn">click</span>()
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">waitForURL</span>(<span class="str">"/dashboard"</span>)
+  <span class="kw">await</span> <span class="var">page</span>.<span class="prop">context</span>().<span class="fn">storageState</span>({ <span class="prop">path</span>: <span class="var">authFile</span> })
+})
+
+<span class="cm">// ── Critical path tests ───────────────────────────────────</span>
+<span class="cm">// e2e/checkout.spec.ts</span>
+<span class="kw">import</span> { <span class="fn">test</span>, <span class="fn">expect</span> } <span class="kw">from</span> <span class="str">"@playwright/test"</span>
+
+<span class="fn">test</span>.<span class="fn">use</span>({ <span class="prop">storageState</span>: <span class="str">"playwright/.auth/user.json"</span> })
+
+<span class="fn">test</span>(<span class="str">"complete checkout flow"</span>, <span class="kw">async</span> ({ <span class="var">page</span> }) => {
+  <span class="cm">// Browse to product</span>
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">goto</span>(<span class="str">"/products"</span>)
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">getByText</span>(<span class="str">"MacBook Pro"</span>).<span class="fn">click</span>()
+  <span class="kw">await</span> <span class="fn">expect</span>(<span class="var">page</span>).<span class="fn">toHaveURL</span>(<span class="str">/\/products\/.+/</span>)
+
+  <span class="cm">// Add to cart</span>
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">getByRole</span>(<span class="str">"button"</span>, { <span class="prop">name</span>: <span class="str">"Add to cart"</span> }).<span class="fn">click</span>()
+  <span class="kw">await</span> <span class="fn">expect</span>(<span class="var">page</span>.<span class="fn">getByRole</span>(<span class="str">"status"</span>)).<span class="fn">toContainText</span>(<span class="str">"Added to cart"</span>)
+
+  <span class="cm">// Checkout</span>
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">getByRole</span>(<span class="str">"link"</span>, { <span class="prop">name</span>: <span class="str">"Cart"</span> }).<span class="fn">click</span>()
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">getByRole</span>(<span class="str">"button"</span>, { <span class="prop">name</span>: <span class="str">"Checkout"</span> }).<span class="fn">click</span>()
+
+  <span class="cm">// Fill shipping</span>
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">getByLabel</span>(<span class="str">"Street address"</span>).<span class="fn">fill</span>(<span class="str">"123 Main Street"</span>)
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">getByLabel</span>(<span class="str">"City"</span>).<span class="fn">fill</span>(<span class="str">"London"</span>)
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">getByLabel</span>(<span class="str">"Postcode"</span>).<span class="fn">fill</span>(<span class="str">"EC1A 1BB"</span>)
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">getByRole</span>(<span class="str">"button"</span>, { <span class="prop">name</span>: <span class="str">"Place order"</span> }).<span class="fn">click</span>()
+
+  <span class="cm">// Confirm success</span>
+  <span class="kw">await</span> <span class="fn">expect</span>(<span class="var">page</span>).<span class="fn">toHaveURL</span>(<span class="str">/\/dashboard\/orders\/.+/</span>)
+  <span class="kw">await</span> <span class="fn">expect</span>(<span class="var">page</span>.<span class="fn">getByRole</span>(<span class="str">"heading"</span>)).<span class="fn">toContainText</span>(<span class="str">"Order confirmed"</span>)
+})
+
+<span class="fn">test</span>(<span class="str">"blocks unauthenticated checkout"</span>, <span class="kw">async</span> ({ <span class="var">page</span> }) => {
+  <span class="kw">await</span> <span class="var">page</span>.<span class="fn">goto</span>(<span class="str">"/dashboard"</span>)
+  <span class="kw">await</span> <span class="fn">expect</span>(<span class="var">page</span>).<span class="fn">toHaveURL</span>(<span class="str">/\/sign-in/</span>)
+})</pre></div>
+  </div>
+</div>
+
+<!-- 06. STRATEGY -->
+<div class="section" id="strategy">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Test strategy — what to test in ShopCo</span>
+    <span class="sec-badge" style="background:var(--emerald-dim);color:var(--emerald);">strategy</span>
+  </div>
+
+  <div class="comp-wrap">
+    <div class="comp-wrap-head">ShopCo test plan — what, where, why</div>
+    <table class="comp-table">
+      <tr><th>What to test</th><th>Type</th><th>Tool</th><th>Why it matters</th></tr>
+      <tr><td><code>calculateCartTotal()</code>, <code>applyDiscount()</code>, <code>slugify()</code></td><td>Unit</td><td>Vitest</td><td>Pure functions — fast, no setup, high confidence</td></tr>
+      <tr><td>Zod schemas (valid + invalid inputs)</td><td>Unit</td><td>Vitest</td><td>Validation logic is business-critical, easy to test exhaustively</td></tr>
+      <tr><td>Prisma query helpers (<code>getProduct</code>, <code>getProductsPaginated</code>)</td><td>Integration</td><td>Vitest + test DB</td><td>DB logic correctness — mock the DB or use SQLite test database</td></tr>
+      <tr><td><code>AddToCart</code> component — renders, clicks, states</td><td>Component</td><td>RTL</td><td>Most user-facing interaction — test what user sees and does</td></tr>
+      <tr><td><code>CheckoutForm</code> — validation, submission, pending state</td><td>Component</td><td>RTL</td><td>Most critical form in the app</td></tr>
+      <tr><td><code>ProductCard</code> — renders product info, out-of-stock state</td><td>Component</td><td>RTL</td><td>Repeated across the app — one change affects everything</td></tr>
+      <tr><td>Complete checkout flow — browse → cart → pay</td><td>E2E</td><td>Playwright</td><td>The money flow — must work end-to-end in real browser</td></tr>
+      <tr><td>Auth guard — unauthenticated → redirect to sign-in</td><td>E2E</td><td>Playwright</td><td>Security — test that middleware actually blocks routes</td></tr>
+      <tr><td>Admin product publish/unpublish</td><td>E2E</td><td>Playwright</td><td>Admin flow — test role-based access end-to-end</td></tr>
+      <tr><td>Product search + filter</td><td>E2E</td><td>Playwright</td><td>Discovery flow — core to e-commerce UX</td></tr>
+    </table>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">yaml</span><span class="cb-desc">GitHub Actions CI — run Vitest + Playwright on every PR</span></div>
+    <div class="cb-body"><pre><span class="cm"># .github/workflows/test.yml</span>
+<span class="prop">name</span>: <span class="str">Tests</span>
+<span class="prop">on</span>: [<span class="str">push</span>, <span class="str">pull_request</span>]
+
+<span class="prop">jobs</span>:
+  <span class="prop">unit-tests</span>:
+    <span class="prop">runs-on</span>: <span class="str">ubuntu-latest</span>
+    <span class="prop">steps</span>:
+      - <span class="prop">uses</span>: <span class="str">actions/checkout@v4</span>
+      - <span class="prop">uses</span>: <span class="str">actions/setup-node@v4</span>
+        <span class="prop">with</span>: { <span class="prop">node-version</span>: <span class="str">"20"</span>, <span class="prop">cache</span>: <span class="str">"npm"</span> }
+      - <span class="prop">run</span>: <span class="str">npm ci</span>
+      - <span class="prop">run</span>: <span class="str">npm run test:run</span>         <span class="cm"># vitest run (single pass)</span>
+      - <span class="prop">run</span>: <span class="str">npm run coverage</span>         <span class="cm"># optional: coverage report</span>
+
+  <span class="prop">e2e-tests</span>:
+    <span class="prop">runs-on</span>: <span class="str">ubuntu-latest</span>
+    <span class="prop">needs</span>: <span class="str">unit-tests</span>             <span class="cm"># only run E2E if unit tests pass</span>
+    <span class="prop">env</span>:
+      <span class="prop">DATABASE_URL</span>:    <span class="str">${{ secrets.TEST_DATABASE_URL }}</span>
+      <span class="prop">CLERK_SECRET_KEY</span>:<span class="str">${{ secrets.CLERK_TEST_SECRET_KEY }}</span>
+      <span class="prop">TEST_PASSWORD</span>:   <span class="str">${{ secrets.TEST_USER_PASSWORD }}</span>
+    <span class="prop">steps</span>:
+      - <span class="prop">uses</span>: <span class="str">actions/checkout@v4</span>
+      - <span class="prop">uses</span>: <span class="str">actions/setup-node@v4</span>
+        <span class="prop">with</span>: { <span class="prop">node-version</span>: <span class="str">"20"</span>, <span class="prop">cache</span>: <span class="str">"npm"</span> }
+      - <span class="prop">run</span>: <span class="str">npm ci</span>
+      - <span class="prop">run</span>: <span class="str">npx playwright install --with-deps chromium</span>
+      - <span class="prop">run</span>: <span class="str">npx playwright test</span>
+      - <span class="prop">uses</span>: <span class="str">actions/upload-artifact@v4</span>
+        <span class="prop">if</span>: <span class="str">failure()</span>
+        <span class="prop">with</span>:
+          <span class="prop">name</span>: <span class="str">playwright-report</span>
+          <span class="prop">path</span>: <span class="str">playwright-report/</span></pre></div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — testing patterns in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Unit test runner — implement describe/it/expect from scratch</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a minimal test runner with <code>describe()</code>, <code>it()</code>, and <code>expect()</code> — enough to understand how Vitest works internally. Implement matchers: <code>toBe</code>, <code>toEqual</code>, <code>toThrow</code>, <code>toBeTruthy</code>, <code>toContain</code>. Run a suite of ShopCo utility tests through it.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — minimal test runner</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">// ── Minimal test runner ───────────────────────────────────
+const results = { passed: 0, failed: 0, errors: [] }
+let currentSuite = ""
+
+function describe(name, fn) {
+  currentSuite = name
+  fn()
+  currentSuite = ""
+}
+
+function it(name, fn) {
+  const fullName = currentSuite ? `${currentSuite} > ${name}` : name
+  try {
+    fn()
+    results.passed++
+    console.log(`  ✓ ${name}`)
+  } catch(e) {
+    results.failed++
+    results.errors.push({ test: fullName, error: e.message })
+    console.log(`  ✗ ${name}`)
+    console.log(`    → ${e.message}`)
+  }
+}
+
+function expect(received) {
+  return {
+    toBe(expected) {
+      if (received !== expected)
+        throw new Error(`Expected ${JSON.stringify(expected)}, got ${JSON.stringify(received)}`)
+    },
+    toEqual(expected) {
+      const a = JSON.stringify(received), b = JSON.stringify(expected)
+      if (a !== b) throw new Error(`Expected ${b}, got ${a}`)
+    },
+    toBeTruthy() {
+      if (!received) throw new Error(`Expected truthy, got ${JSON.stringify(received)}`)
+    },
+    toBeFalsy() {
+      if (received) throw new Error(`Expected falsy, got ${JSON.stringify(received)}`)
+    },
+    toContain(item) {
+      const found = Array.isArray(received) ? received.includes(item) : String(received).includes(item)
+      if (!found) throw new Error(`Expected ${JSON.stringify(received)} to contain ${JSON.stringify(item)}`)
+    },
+    toThrow(msg) {
+      if (typeof received !== "function") throw new Error("Expected a function")
+      try { received(); throw new Error("Did not throw") }
+      catch(e) {
+        if (e.message === "Did not throw") throw e
+        if (msg && !e.message.includes(msg)) throw new Error(`Expected throw "${msg}", got "${e.message}"`)
+      }
+    },
+    toBeGreaterThan(n) {
+      if (received <= n) throw new Error(`Expected ${received} > ${n}`)
+    },
+    toBeNull() {
+      if (received !== null) throw new Error(`Expected null, got ${JSON.stringify(received)}`)
+    },
+    not: {
+      toBe: (expected) => { if (received === expected) throw new Error(`Expected not ${JSON.stringify(expected)}`) },
+      toBeNull: () => { if (received === null) throw new Error("Expected not null") },
+      toContain: (item) => {
+        const found = Array.isArray(received) ? received.includes(item) : String(received).includes(item)
+        if (found) throw new Error(`Expected ${JSON.stringify(received)} NOT to contain ${JSON.stringify(item)}`)
+      }
+    }
+  }
+}
+
+// ── ShopCo utility functions to test ─────────────────────
+function slugify(name) {
+  if (!name) throw new Error("Name required")
+  return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+}
+
+function calculateCartTotal(items) {
+  if (!Array.isArray(items)) throw new Error("Items must be array")
+  return items.reduce((sum, item) => {
+    if (item.quantity < 0) throw new Error("Invalid quantity")
+    return sum + (item.price * item.quantity)
+  }, 0)
+}
+
+function applyDiscount(total, percentOff) {
+  if (percentOff < 0 || percentOff > 100) throw new Error("Invalid discount")
+  return total * (1 - percentOff / 100)
+}
+
+function paginateArray(arr, page, pageSize) {
+  const start = (page - 1) * pageSize
+  return arr.slice(start, start + pageSize)
+}
+
+// ── Run tests ─────────────────────────────────────────────
+console.log("Running ShopCo utility tests...\n")
+
+describe("slugify", () => {
+  it("converts name to slug", () => expect(slugify("MacBook Pro")).toBe("macbook-pro"))
+  it("handles special characters", () => expect(slugify("iPad Pro (2024)")).toBe("ipad-pro-2024"))
+  it("trims spaces", () => expect(slugify("  AirPods  ")).toBe("airpods"))
+  it("throws for empty string", () => expect(() => slugify("")).toThrow("Name required"))
+  it("handles single word", () => expect(slugify("MacBook")).toBe("macbook"))
+})
+
+describe("calculateCartTotal", () => {
+  it("sums prices × quantities", () => {
+    expect(calculateCartTotal([{price:10,quantity:2},{price:5,quantity:3}])).toBe(35)
+  })
+  it("returns 0 for empty cart", () => expect(calculateCartTotal([])).toBe(0))
+  it("handles single item", () => expect(calculateCartTotal([{price:99.99,quantity:1}])).toBe(99.99))
+  it("throws for negative quantity", () => {
+    expect(() => calculateCartTotal([{price:10,quantity:-1}])).toThrow("Invalid quantity")
+  })
+})
+
+describe("applyDiscount", () => {
+  it("applies 10% discount", () => expect(applyDiscount(100, 10)).toBe(90))
+  it("applies 0% discount (no change)", () => expect(applyDiscount(100, 0)).toBe(100))
+  it("applies 100% discount (free)", () => expect(applyDiscount(100, 100)).toBe(0))
+  it("throws for negative discount", () => expect(() => applyDiscount(100, -5)).toThrow())
+})
+
+describe("paginateArray", () => {
+  const arr = [1,2,3,4,5,6,7,8,9,10]
+  it("returns first page", () => expect(paginateArray(arr,1,3)).toEqual([1,2,3]))
+  it("returns second page", () => expect(paginateArray(arr,2,3)).toEqual([4,5,6]))
+  it("returns partial last page", () => expect(paginateArray(arr,4,3)).toEqual([10]))
+  it("returns empty for out-of-range", () => expect(paginateArray(arr,5,3)).toEqual([]))
+})
+
+console.log(`\n${results.passed + results.failed} tests: ${results.passed} passed, ${results.failed} failed`)
+if (results.failed === 0) console.log("✅ All tests passed!")</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Mock system — implement vi.fn() and vi.mock() behaviour</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createMock()</code> function that replicates Vitest's <code>vi.fn()</code>: tracks calls, args, return values; supports <code>mockReturnValue</code>, <code>mockResolvedValue</code>, <code>mockRejectedValue</code>, and <code>mockImplementation</code>. Test it against the assertions you'd use in real tests.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — mock function implementation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">// Implement vi.fn() — mock function factory
+function createMock(implementation = null) {
+  const calls = []       // all call records
+  let impl = implementation
+  let returnVal = undefined
+  let resolvedVal = undefined
+  let rejectedVal = undefined
+
+  function mockFn(...args) {
+    const call = { args, timestamp: Date.now() }
+
+    let result
+    try {
+      if (impl)         result = impl(...args)
+      else if (rejectedVal !== undefined) return Promise.reject(rejectedVal)
+      else if (resolvedVal !== undefined) return Promise.resolve(resolvedVal)
+      else               result = returnVal
+      call.returned = result
+    } catch(e) {
+      call.threw = e.message
+      throw e
+    }
+
+    calls.push(call)
+    return result
+  }
+
+  // Configuration methods
+  mockFn.mockReturnValue    = (val) => { returnVal = val; impl = null; return mockFn }
+  mockFn.mockResolvedValue  = (val) => { resolvedVal = val; rejectedVal = undefined; impl = null; return mockFn }
+  mockFn.mockRejectedValue  = (val) => { rejectedVal = val; resolvedVal = undefined; impl = null; return mockFn }
+  mockFn.mockImplementation = (fn)  => { impl = fn; returnVal = undefined; return mockFn }
+  mockFn.mockReturnValueOnce= (val) => {
+    const original = impl
+    let used = false
+    impl = (...args) => { if (!used) { used = true; return val } return original?.(...args) ?? returnVal }
+    return mockFn
+  }
+
+  // Inspection methods
+  mockFn.mockClear = () => { calls.length = 0; return mockFn }
+  mockFn.mockReset = () => { calls.length = 0; impl = null; returnVal = undefined; resolvedVal = undefined; rejectedVal = undefined; return mockFn }
+
+  // Properties (like vi.fn())
+  Object.defineProperty(mockFn, "mock", {
+    get: () => ({
+      calls:          calls.map(c => c.args),
+      results:        calls.map(c => ({ type: c.threw ? "throw" : "return", value: c.threw || c.returned })),
+      instances:      [],
+      calls_full:     calls,
+    })
+  })
+
+  return mockFn
+}
+
+// Assertion helpers (like expect(fn).toHaveBeenCalledWith)
+function assertMock(fn) {
+  return {
+    toHaveBeenCalled() {
+      if (fn.mock.calls.length === 0) throw new Error("Expected mock to have been called")
+      console.log(`  ✓ toHaveBeenCalled (${fn.mock.calls.length} times)`)
+    },
+    toHaveBeenCalledWith(...expected) {
+      const found = fn.mock.calls.some(call =>
+        JSON.stringify(call) === JSON.stringify(expected)
+      )
+      if (!found) throw new Error(`Expected call with ${JSON.stringify(expected)}\n  Got calls: ${JSON.stringify(fn.mock.calls)}`)
+      console.log(`  ✓ toHaveBeenCalledWith(${JSON.stringify(expected)})`)
+    },
+    toHaveBeenCalledTimes(n) {
+      if (fn.mock.calls.length !== n) throw new Error(`Expected ${n} calls, got ${fn.mock.calls.length}`)
+      console.log(`  ✓ toHaveBeenCalledTimes(${n})`)
+    },
+    not: {
+      toHaveBeenCalled() {
+        if (fn.mock.calls.length > 0) throw new Error(`Expected mock NOT to have been called, was called ${fn.mock.calls.length} times`)
+        console.log(`  ✓ not.toHaveBeenCalled`)
+      }
+    }
+  }
+}
+
+// ── Tests ─────────────────────────────────────────────────
+console.log("=== Mock Function Tests ===\n")
+
+// Basic call tracking
+const addItem = createMock()
+addItem("p1"); addItem("p2"); addItem("p1")
+assertMock(addItem).toHaveBeenCalled()
+assertMock(addItem).toHaveBeenCalledWith("p1")
+assertMock(addItem).toHaveBeenCalledTimes(3)
+console.log("  ✓ Call tracking works")
+
+// mockReturnValue
+const getPrice = createMock().mockReturnValue(1999)
+console.log("  ✓ mockReturnValue:", getPrice() === 1999)
+
+// mockImplementation
+const multiply = createMock().mockImplementation((a, b) => a * b)
+console.log("  ✓ mockImplementation:", multiply(3, 4) === 12)
+
+// mockResolvedValue
+const fetchData = createMock().mockResolvedValue({ data: [1, 2, 3] })
+fetchData("url").then(res => {
+  console.log("  ✓ mockResolvedValue:", JSON.stringify(res) === '{"data":[1,2,3]}')
+})
+
+// mockRejectedValue
+const failingFetch = createMock().mockRejectedValue(new Error("Network error"))
+failingFetch("url").catch(e => {
+  console.log("  ✓ mockRejectedValue:", e.message === "Network error")
+})
+
+// mockClear
+addItem.mockClear()
+assertMock(addItem).not.toHaveBeenCalled()
+
+// mockReturnValueOnce
+const sequence = createMock().mockReturnValue(0)
+sequence.mockReturnValueOnce(1)
+console.log("  ✓ mockReturnValueOnce first:", sequence() === 1)
+console.log("  ✓ mockReturnValueOnce fallback:", sequence() === 0)
+
+// Simulate a component test pattern
+const mockRouter = { push: createMock(), replace: createMock(), refresh: createMock() }
+function simulateCheckout(router) {
+  // pretend component calls router.push after success
+  router.push("/dashboard/orders/ord_123")
+}
+simulateCheckout(mockRouter)
+assertMock(mockRouter.push).toHaveBeenCalledWith("/dashboard/orders/ord_123")
+assertMock(mockRouter.replace).not.toHaveBeenCalled()
+
+console.log("\n✅ All mock tests passed!")</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Async test patterns — waitFor, retry, timeout simulation</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>waitFor(callback, options)</code> — the RTL utility that polls an assertion until it passes or times out. Then build <code>findByText(text, container)</code> that waits for DOM text to appear. Test with simulated async state updates.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — async testing utilities</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">// waitFor — polls assertion until it passes or times out
+async function waitFor(callback, { timeout = 1000, interval = 50 } = {}) {
+  const start = Date.now()
+  let lastError
+
+  while (Date.now() - start < timeout) {
+    try {
+      const result = await callback()
+      return result  // success!
+    } catch(e) {
+      lastError = e
+      await new Promise(r => setTimeout(r, interval))
+    }
+  }
+
+  throw new Error(`waitFor timed out after ${timeout}ms.\nLast error: ${lastError?.message}`)
+}
+
+// Simulate async DOM update
+function createDOMSimulator() {
+  let content = {}
+  return {
+    setText: (key, val) => { content[key] = val },
+    getByText: (text) => {
+      const keys = Object.keys(content)
+      const found = keys.find(k => content[k].includes(text))
+      if (!found) throw new Error(`Text "${text}" not found in DOM`)
+      return { text: content[found], key: found }
+    },
+    queryByText: (text) => {
+      try { return this.getByText(text) } catch { return null }
+    },
+    clear: () => { content = {} }
+  }
+}
+
+// ── Tests ─────────────────────────────────────────────────
+async function runTests() {
+  console.log("=== Async Testing Tests ===\n")
+  let passed = 0, total = 0
+
+  async function test(name, fn) {
+    total++
+    try {
+      await fn()
+      console.log(`✓ ${name}`)
+      passed++
+    } catch(e) {
+      console.log(`✗ ${name}: ${e.message}`)
+    }
+  }
+
+  // Test 1: waitFor succeeds when assertion passes
+  await test("waitFor resolves when assertion passes", async () => {
+    let count = 0
+    const result = await waitFor(() => {
+      count++
+      if (count < 3) throw new Error("Not ready yet")
+      return "success"
+    }, { timeout: 500, interval: 20 })
+    if (result !== "success") throw new Error("Wrong result")
+    if (count < 3) throw new Error("Should have retried")
+  })
+
+  // Test 2: waitFor times out
+  await test("waitFor throws after timeout", async () => {
+    let timedOut = false
+    try {
+      await waitFor(
+        () => { throw new Error("Never passes") },
+        { timeout: 100, interval: 20 }
+      )
+    } catch(e) {
+      timedOut = e.message.includes("timed out")
+    }
+    if (!timedOut) throw new Error("Should have timed out")
+  })
+
+  // Test 3: async state simulation
+  await test("simulates async component state update", async () => {
+    const dom = createDOMSimulator()
+    dom.setText("status", "Loading...")
+
+    // Simulate server response after 80ms
+    setTimeout(() => {
+      dom.setText("status", "Order placed! Order #ord_123")
+    }, 80)
+
+    // waitFor polls until text appears
+    const el = await waitFor(
+      () => dom.getByText("Order placed!"),
+      { timeout: 500, interval: 20 }
+    )
+    if (!el.text.includes("ord_123")) throw new Error("Wrong order number")
+  })
+
+  // Test 4: async fetch mock simulation
+  await test("async fetch mock returns data", async () => {
+    // Simulate a component that fetches data
+    async function fetchProducts() {
+      // mock delay
+      await new Promise(r => setTimeout(r, 50))
+      return [{ id:"p1", name:"MacBook Pro" }, { id:"p2", name:"iPad Pro" }]
+    }
+
+    let products = null
+    fetchProducts().then(data => { products = data })
+
+    // Before resolve
+    if (products !== null) throw new Error("Should not have resolved yet")
+
+    // waitFor until products loaded
+    await waitFor(() => {
+      if (!products) throw new Error("Products not loaded")
+      return products
+    }, { timeout: 200 })
+
+    if (products.length !== 2) throw new Error("Wrong product count")
+    if (products[0].name !== "MacBook Pro") throw new Error("Wrong product name")
+  })
+
+  // Test 5: race condition — first update wins
+  await test("handles concurrent state updates correctly", async () => {
+    let finalState = null
+    async function slowUpdate() { await new Promise(r=>setTimeout(r,100)); finalState = "slow" }
+    async function fastUpdate() { await new Promise(r=>setTimeout(r,20));  finalState = "fast" }
+
+    slowUpdate(); fastUpdate()  // both fire simultaneously
+
+    await waitFor(() => {
+      if (finalState === null) throw new Error("No update yet")
+    }, { timeout: 200 })
+
+    // Fast update should win (20ms < 100ms)
+    if (finalState !== "fast") throw new Error(`Expected "fast", got "${finalState}"`)
+  })
+
+  console.log(`\n${passed}/${total} async tests passed ${passed===total?"✅":"❌"}`)
+}
+
+runTests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Zod schema tests — comprehensive validation coverage</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Write exhaustive tests for the ShopCo validation schemas: product creation, order placement, and user profile update. Cover valid inputs, each invalid field, edge cases (empty strings, zero values, negative numbers, too-long strings), and field coercion (string → number for query params).</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — Zod schema validation tests</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">// Minimal Zod-like schema simulation
+function z() {}
+z.string  = () => ({
+  _type:"string", min:(n,m)=>({...this,_min:n,_minMsg:m,min:(n2,m2)=>({...this,_min2:n2})}),
+  min(n, msg="Too short") {
+    return { _type:"string", _min:n, _minMsg:msg,
+      max(m, msg2="Too long") { return { _type:"string", _min:n, _minMsg:msg, _max:m, _maxMsg:msg2,
+        optional(){ return { ...this, _optional:true } }
+      }},
+      optional(){ return { ...this, _optional:true } },
+      email(){ return { ...this, _email:true } }
+    }
+  },
+  max(n, msg="Too long") { return { _type:"string", _max:n, _maxMsg:msg } },
+  email() { return { _type:"string", _email:true } },
+  optional() { return { _type:"string", _optional:true } },
+  cuid() { return { _type:"string", _cuid:true } }
+})
+z.number  = () => ({
+  _type:"number",
+  positive(msg="Must be positive") { return { _type:"number", _positive:true, _posMsg:msg } },
+  int() { return { _type:"number", _int:true } },
+  min(n,m){ return { _type:"number", _min:n, _minMsg:m } },
+  max(n,m){ return { _type:"number", _max:n, _maxMsg:m } },
+})
+z.coerce = { number: () => ({ _type:"number", _coerce:true,
+  positive(m){ return {...this,_positive:true,_posMsg:m} },
+  min(n,m){ return {...this,_min:n,_minMsg:m} },
+  max(n,m){ return {...this,_max:n,_maxMsg:m} },
+  int(){ return {...this,_int:true} }
+}) }
+z.boolean = () => ({ _type:"boolean" })
+z.object  = (shape) => ({ _type:"object", _shape:shape,
+  safeParse(data) {
+    const errors = {}, result = {}
+    for(const [k,schema] of Object.entries(shape)) {
+      let v = data[k]
+      if(schema._coerce && v !== undefined) v = Number(v)
+      if((v===undefined||v===null||v==="") && !schema._optional) {
+        errors[k]=schema._minMsg||"Required"; continue }
+      if(v!==undefined && v!==null && v!=="") {
+        if(schema._type==="string") {
+          if(schema._min && String(v).length<schema._min) { errors[k]=schema._minMsg||"Too short"; continue }
+          if(schema._max && String(v).length>schema._max) { errors[k]=schema._maxMsg||"Too long"; continue }
+          if(schema._email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { errors[k]="Invalid email"; continue }
+        }
+        if(schema._type==="number") {
+          if(isNaN(Number(v))) { errors[k]="Must be a number"; continue }
+          if(schema._positive && Number(v)<=0) { errors[k]=schema._posMsg||"Must be positive"; continue }
+          if(schema._int && !Number.isInteger(Number(v))) { errors[k]="Must be integer"; continue }
+          if(schema._min!==undefined && Number(v)<schema._min) { errors[k]=schema._minMsg||"Too small"; continue }
+          if(schema._max!==undefined && Number(v)>schema._max) { errors[k]=schema._maxMsg||"Too large"; continue }
+        }
+      }
+      if(v!==undefined) result[k]=schema._coerce?Number(v):v
+    }
+    return Object.keys(errors).length
+      ? { success:false, error:{ fieldErrors:errors, flatten:()=>({fieldErrors:errors}) } }
+      : { success:true, data:result }
+  }
+})
+z.array   = (schema) => ({ _type:"array", _of:schema,
+  min(n,m){ return {...this,_min:n,_minMsg:m} }
+})
+
+// ── ShopCo schemas ────────────────────────────────────────
+const createProductSchema = z.object({
+  name:        z.string().min(2, "Min 2 chars"),
+  price:       z.number().positive("Price must be positive"),
+  categoryId:  z.string().min(1, "Category required"),
+  description: z.string().min(10, "Description too short"),
+})
+
+const orderQuerySchema = z.object({
+  page:  z.coerce.number().min(1, "Min page 1"),
+  limit: z.coerce.number().min(1, "Min 1").max(100, "Max 100"),
+})
+
+const profileSchema = z.object({
+  name:     z.string().min(1, "Name required"),
+  email:    z.string().email(),
+  bio:      z.string().optional(),
+})
+
+// ── Tests ─────────────────────────────────────────────────
+let passed=0, total=0
+function test(name, fn) {
+  total++
+  try { fn(); console.log(`✓ ${name}`); passed++ }
+  catch(e) { console.log(`✗ ${name}: ${e.message}`) }
+}
+function assert(cond, msg) { if(!cond) throw new Error(msg) }
+
+console.log("=== createProductSchema ===")
+test("valid product passes", () => {
+  const r = createProductSchema.safeParse({ name:"MacBook Pro", price:1999, categoryId:"c1", description:"Amazing laptop from Apple" })
+  assert(r.success, "Expected success: " + JSON.stringify(r.error?.flatten()))
+})
+test("name too short", () => {
+  const r = createProductSchema.safeParse({ name:"X", price:1999, categoryId:"c1", description:"This is long enough" })
+  assert(!r.success && r.error.fieldErrors.name, "Expected name error")
+})
+test("negative price rejected", () => {
+  const r = createProductSchema.safeParse({ name:"Product", price:-5, categoryId:"c1", description:"Long enough description here" })
+  assert(!r.success && r.error.fieldErrors.price, "Expected price error")
+})
+test("zero price rejected", () => {
+  const r = createProductSchema.safeParse({ name:"Product", price:0, categoryId:"c1", description:"Long enough description here" })
+  assert(!r.success && r.error.fieldErrors.price, "Expected price error for zero")
+})
+test("missing categoryId rejected", () => {
+  const r = createProductSchema.safeParse({ name:"Product", price:99, description:"Long enough" })
+  assert(!r.success && r.error.fieldErrors.categoryId, "Expected category error")
+})
+test("short description rejected", () => {
+  const r = createProductSchema.safeParse({ name:"Product", price:99, categoryId:"c1", description:"Short" })
+  assert(!r.success && r.error.fieldErrors.description, "Expected description error")
+})
+
+console.log("\n=== orderQuerySchema (string coercion) ===")
+test("string numbers coerced", () => {
+  const r = orderQuerySchema.safeParse({ page:"2", limit:"20" })
+  assert(r.success && typeof r.data.page === "number", "Expected coerced number")
+  assert(r.data.page === 2 && r.data.limit === 20, "Wrong values")
+})
+test("limit max 100 enforced", () => {
+  const r = orderQuerySchema.safeParse({ page:"1", limit:"200" })
+  assert(!r.success && r.error.fieldErrors.limit, "Expected limit error")
+})
+test("page min 1 enforced", () => {
+  const r = orderQuerySchema.safeParse({ page:"0", limit:"10" })
+  assert(!r.success && r.error.fieldErrors.page, "Expected page error")
+})
+
+console.log("\n=== profileSchema ===")
+test("valid profile passes", () => {
+  const r = profileSchema.safeParse({ name:"Alice", email:"alice@test.com" })
+  assert(r.success, "Expected success")
+})
+test("invalid email rejected", () => {
+  const r = profileSchema.safeParse({ name:"Alice", email:"not-an-email" })
+  assert(!r.success && r.error.fieldErrors.email, "Expected email error")
+})
+test("bio is optional", () => {
+  const r = profileSchema.safeParse({ name:"Alice", email:"a@b.com" })
+  assert(r.success, "Bio should be optional")
+})
+
+console.log(`\n${passed}/${total} tests ${passed===total?"✅":"❌"}`)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Playwright flow simulator — E2E test logic without a browser</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Simulate Playwright's page API to write E2E-style tests without a real browser. Implement <code>createPage()</code> with <code>goto</code>, <code>getByRole</code>, <code>getByLabel</code>, <code>fill</code>, <code>click</code>, <code>waitForURL</code>. Test the complete ShopCo checkout flow.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — E2E flow simulation</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">// Playwright page simulator — tests E2E logic without a browser
+function createApp() {
+  // Simulate the app's state
+  const state = {
+    auth:     { signedIn: false, user: null },
+    cart:     [],
+    orders:   [],
+    products: [
+      { id:"p1", name:"MacBook Pro", price:1999, stock:5, slug:"macbook-pro" },
+      { id:"p2", name:"iPad Pro",    price:799,  stock:2, slug:"ipad-pro" },
+    ],
+    currentUrl: "/",
+    formData:   {},
+    alerts:     [],
+  }
+
+  return { state }
+}
+
+function createPage(app) {
+  const { state } = app
+  const actionLog = []
+
+  async function goto(url) {
+    actionLog.push(`goto(${url})`)
+    state.currentUrl = url
+    state.formData   = {}
+    return { url }
+  }
+
+  function getSelector(type, options = {}) {
+    return { type, ...options,
+      async fill(value) {
+        const key = options.name || options.label || options.placeholder || type
+        state.formData[key] = value
+        actionLog.push(`fill(${key}, "${value}")`)
+      },
+      async click() {
+        actionLog.push(`click(${type}:${options.name || ""})`)
+        await handleAction(type, options)
+      },
+      async textContent() {
+        if (type === "heading") return state.alerts[state.alerts.length-1] || ""
+        return ""
+      }
+    }
+  }
+
+  async function handleAction(type, options) {
+    const name = (options.name || "").toLowerCase()
+
+    if (type === "button") {
+      if (name.includes("sign in")) {
+        // Simulate Clerk sign-in
+        if (state.formData["Email"] === "test@shopco.com" && state.formData["Password"] === "password123") {
+          state.auth = { signedIn: true, user: { id:"u1", name:"Test User", email:"test@shopco.com" } }
+          state.currentUrl = "/dashboard"
+        } else {
+          state.alerts.push("Invalid credentials")
+        }
+      }
+      if (name.includes("add to cart")) {
+        const productId = state.currentUrl.split("/").pop()
+        const product = state.products.find(p => p.id === productId || p.slug === productId)
+        if (product && product.stock > 0) {
+          state.cart.push({ productId: product.id, name: product.name, price: product.price, qty: 1 })
+          state.alerts.push(`${product.name} added to cart`)
+        }
+      }
+      if (name.includes("checkout")) {
+        state.currentUrl = "/checkout"
+      }
+      if (name.includes("place order")) {
+        if (!state.auth.signedIn) { state.currentUrl = "/sign-in?callbackUrl=/checkout"; return }
+        const total = state.cart.reduce((s,i) => s+i.price, 0)
+        const order = { id:`ord_${Date.now()}`, items:[...state.cart], total, status:"PENDING" }
+        state.orders.push(order)
+        state.cart = []
+        state.currentUrl = `/dashboard/orders/${order.id}`
+        state.alerts.push("Order confirmed!")
+      }
+    }
+    if (type === "link") {
+      if (name.includes("cart")) state.currentUrl = "/cart"
+      if (name.includes("sign in")) state.currentUrl = "/sign-in"
+    }
+  }
+
+  return {
+    goto,
+    getByRole:    (role, opts) => getSelector(role, opts),
+    getByLabel:   (label) => getSelector("input", { label }),
+    getByText:    (text)  => ({ click: async() => actionLog.push(`click(text:${text})`), textContent: async()=>text }),
+    waitForURL:   async(pattern) => {
+      const matches = typeof pattern === "string" ? state.currentUrl === pattern : pattern.test(state.currentUrl)
+      if (!matches) throw new Error(`URL ${state.currentUrl} doesn't match ${pattern}`)
+      actionLog.push(`waitForURL(${pattern})`)
+    },
+    getAlerts:   () => [...state.alerts],
+    getURL:      () => state.currentUrl,
+    isSignedIn:  () => state.auth.signedIn,
+    getCart:     () => [...state.cart],
+    getOrders:   () => [...state.orders],
+    getLog:      () => [...actionLog],
+  }
+}
+
+// ── E2E Tests ─────────────────────────────────────────────
+async function runE2ETests() {
+  let passed=0, total=0
+  async function test(name, fn) {
+    total++
+    try { await fn(); console.log(`✓ ${name}`); passed++ }
+    catch(e) { console.log(`✗ ${name}: ${e.message}`) }
+  }
+
+  console.log("=== ShopCo E2E Tests ===\n")
+
+  // Test 1: Complete checkout flow (authenticated)
+  await test("complete checkout flow", async () => {
+    const app = createApp()
+    const page = createPage(app)
+
+    // Sign in
+    await page.goto("/sign-in")
+    await page.getByLabel("Email").fill("test@shopco.com")
+    await page.getByLabel("Password").fill("password123")
+    await page.getByRole("button", { name:"Sign in" }).click()
+    await page.waitForURL("/dashboard")
+    if (!page.isSignedIn()) throw new Error("Should be signed in")
+
+    // Browse to product
+    await page.goto("/products/p1")
+    await page.getByRole("button", { name:"Add to cart" }).click()
+    if (page.getAlerts().pop() !== "MacBook Pro added to cart") throw new Error("Cart alert wrong")
+    if (page.getCart().length !== 1) throw new Error("Cart should have 1 item")
+
+    // Go to cart and checkout
+    await page.getByRole("link", { name:"Cart" }).click()
+    await page.getByRole("button", { name:"Checkout" }).click()
+    await page.waitForURL("/checkout")
+
+    // Fill form and place order
+    await page.getByLabel("Address").fill("123 Main St")
+    await page.getByLabel("City").fill("London")
+    await page.getByRole("button", { name:"Place order" }).click()
+    await page.waitForURL(/\/dashboard\/orders\/.+/)
+
+    if (page.getOrders().length !== 1) throw new Error("Should have 1 order")
+    if (page.getCart().length !== 0) throw new Error("Cart should be empty after order")
+  })
+
+  // Test 2: Redirect unauthenticated users
+  await test("blocks unauthenticated checkout", async () => {
+    const app = createApp()
+    const page = createPage(app)
+
+    await page.goto("/products/p1")
+    await page.getByRole("button", { name:"Add to cart" }).click()
+    await page.getByRole("link", { name:"Cart" }).click()
+    await page.getByRole("button", { name:"Checkout" }).click()
+    await page.getByRole("button", { name:"Place order" }).click()
+    await page.waitForURL(/\/sign-in/)  // should redirect
+  })
+
+  // Test 3: Cart state management
+  await test("adds multiple products to cart", async () => {
+    const app = createApp(); const page = createPage(app)
+    // Sign in first
+    await page.goto("/sign-in")
+    await page.getByLabel("Email").fill("test@shopco.com")
+    await page.getByLabel("Password").fill("password123")
+    await page.getByRole("button", { name:"Sign in" }).click()
+
+    await page.goto("/products/p1")
+    await page.getByRole("button", { name:"Add to cart" }).click()
+    await page.goto("/products/p2")
+    await page.getByRole("button", { name:"Add to cart" }).click()
+    if (page.getCart().length !== 2) throw new Error("Should have 2 items")
+  })
+
+  console.log(`\n${passed}/${total} E2E tests ${passed===total?"✅":"❌"}`)
+  console.log("\nFlow log for checkout test:")
+  const app = createApp(); const page = createPage(app)
+  await page.goto("/sign-in")
+  await page.getByLabel("Email").fill("test@shopco.com")
+  await page.getByLabel("Password").fill("password123")
+  await page.getByRole("button", { name:"Sign in" }).click()
+  await page.goto("/products/p1")
+  await page.getByRole("button", { name:"Add to cart" }).click()
+  page.getLog().forEach(a => console.log(`  ${a}`))
+}
+runE2ETests()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Test coverage analyser — identify untested code paths</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>analyzeTestCoverage(functions, tests)</code> that instruments function calls to track which branches (if/else, switch cases) are exercised by tests. Report coverage percentage, uncovered branches, and suggest which tests to add. Apply to the ShopCo Server Action logic.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — test coverage analyser</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// Test coverage analyser — tracks branch coverage
+
+function createCoverageTracker() {
+  const coverage = new Map()  // fnName → { branches: Map(id → {hit, description}) }
+
+  function track(fnName, branchId, description) {
+    if (!coverage.has(fnName)) coverage.set(fnName, { branches: new Map(), calls: 0 })
+    const fn = coverage.get(fnName)
+    if (!fn.branches.has(branchId)) fn.branches.set(branchId, { hit: 0, description })
+    fn.branches.get(branchId).hit++
+    return true
+  }
+
+  function recordCall(fnName) {
+    if (!coverage.has(fnName)) coverage.set(fnName, { branches: new Map(), calls: 0 })
+    coverage.get(fnName).calls++
+  }
+
+  function report() {
+    const results = []
+    let totalBranches = 0, coveredBranches = 0
+
+    for (const [name, data] of coverage) {
+      const branches = [...data.branches.values()]
+      const covered  = branches.filter(b => b.hit > 0)
+      totalBranches   += branches.length
+      coveredBranches += covered.length
+      const pct = branches.length ? Math.round(covered.length/branches.length*100) : 100
+
+      results.push({
+        name, calls: data.calls, branchCoverage: pct,
+        covered: covered.map(b => b.description),
+        missed:  branches.filter(b=>b.hit===0).map(b=>b.description),
+      })
+    }
+
+    return { results, overall: totalBranches ? Math.round(coveredBranches/totalBranches*100) : 100 }
+  }
+
+  return { track, recordCall, report }
+}
+
+// ── ShopCo functions with branch tracking ─────────────────
+const cov = createCoverageTracker()
+
+function createOrder(userId, items, stock) {
+  cov.recordCall("createOrder")
+
+  if (!userId) {
+    cov.track("createOrder", "no-auth", "unauthenticated user")
+    return { error: "Unauthorized" }
+  }
+  cov.track("createOrder", "auth-ok", "authenticated user")
+
+  if (!items || items.length === 0) {
+    cov.track("createOrder", "empty-items", "empty cart")
+    return { error: "Cart is empty" }
+  }
+  cov.track("createOrder", "has-items", "cart has items")
+
+  for (const item of items) {
+    const available = stock[item.productId] || 0
+    if (available < item.quantity) {
+      cov.track("createOrder", "insufficient-stock", `insufficient stock for ${item.productId}`)
+      return { error: `Insufficient stock: ${item.productId}` }
+    }
+    cov.track("createOrder", "stock-ok", `stock ok for ${item.productId}`)
+  }
+
+  const total = items.reduce((s,i) => s + i.price * i.quantity, 0)
+  if (total <= 0) {
+    cov.track("createOrder", "zero-total", "zero total order")
+    return { error: "Invalid order total" }
+  }
+  cov.track("createOrder", "valid-total", "positive total")
+
+  const order = { id:`ord_${Date.now()}`, userId, items, total, status:"PENDING" }
+  cov.track("createOrder", "success", "order created successfully")
+  return { success: true, order }
+}
+
+function getProductStatus(product) {
+  cov.recordCall("getProductStatus")
+
+  if (!product.published) {
+    cov.track("getProductStatus", "unpublished", "product is draft")
+    return "draft"
+  }
+  if (product.stock === 0) {
+    cov.track("getProductStatus", "out-of-stock", "out of stock")
+    return "out-of-stock"
+  }
+  if (product.stock <= 5) {
+    cov.track("getProductStatus", "low-stock", "low stock warning")
+    return "low-stock"
+  }
+  cov.track("getProductStatus", "in-stock", "in stock")
+  return "in-stock"
+}
+
+const stock = { p1:5, p2:0, p3:10 }
+
+console.log("=== Running tests with coverage tracking ===\n")
+
+// Test suite (deliberately missing some branches)
+const tests = [
+  () => createOrder("u1", [{productId:"p1",quantity:2,price:1999}], stock),  // success
+  () => createOrder(null, [{productId:"p1",quantity:1,price:99}], stock),    // no auth
+  () => createOrder("u1", [], stock),                                         // empty cart
+  () => createOrder("u1", [{productId:"p2",quantity:1,price:799}], stock),   // insufficient stock
+  // Missing: zero-total branch
+
+  () => getProductStatus({ published:true, stock:10 }),   // in-stock
+  () => getProductStatus({ published:false, stock:5 }),   // draft
+  () => getProductStatus({ published:true, stock:0 }),    // out-of-stock
+  // Missing: low-stock branch
+]
+
+tests.forEach(t => { try { t() } catch(e) {} })
+
+const report = cov.report()
+
+console.log("=== Coverage Report ===\n")
+report.results.forEach(fn => {
+  const emoji = fn.branchCoverage === 100 ? "✅" : fn.branchCoverage >= 75 ? "⚠️" : "❌"
+  console.log(`${emoji} ${fn.name} — ${fn.branchCoverage}% branch coverage (${fn.calls} calls)`)
+  if (fn.covered.length) console.log(`   ✓ Covered: ${fn.covered.join(", ")}`)
+  if (fn.missed.length)  {
+    console.log(`   ✗ MISSING: ${fn.missed.join(", ")}`)
+    fn.missed.forEach(m => console.log(`     → Add test: "${m}" scenario`))
+  }
+})
+
+console.log(`\nOverall: ${report.overall}% branch coverage`)
+console.log(report.overall===100?"✅ 100% coverage!":"⚠️  Not at 100% — add missing tests above")
+
+// Show what tests would fix coverage
+if (report.overall < 100) {
+  console.log("\nSuggested tests to add:")
+  console.log("  1. createOrder with items totalling $0 → zero-total branch")
+  console.log("  2. getProductStatus({ published:true, stock:3 }) → low-stock branch")
+}</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">What is the testing pyramid and how does it apply to a Next.js app?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">The testing pyramid describes the ideal distribution: many unit tests at the base (fast, cheap, isolated), fewer integration/component tests in the middle (test how pieces fit together), and very few E2E tests at the top (slow, expensive, test real user flows in a browser).<br><br>For a Next.js app: <strong>Unit tests</strong> — utility functions, Zod schemas, data transformations, Prisma query helpers. These run in milliseconds and should be exhaustive. <strong>Component tests with RTL</strong> — interactive components (AddToCart button, CheckoutForm, ProductCard). Test user behaviour: what happens when they click, type, submit. Mock API calls and auth. <strong>E2E with Playwright</strong> — the 5–10 most critical user journeys: complete checkout, auth guard, admin publish. Run against a real (test) database and real Clerk test account.<br><br>Anti-pattern: testing implementation details (internals of how state is managed) rather than behaviour (what the user sees). Tests tied to implementation break every refactor even when nothing is actually broken.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">Why does React Testing Library encourage querying by role over test IDs?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Querying by ARIA role (<code>getByRole("button", { name: "Add to cart" })</code>) tests what the user actually sees and what screen readers announce — it simultaneously validates accessibility and behaviour. If you change the button implementation from <code>&lt;button&gt;</code> to a <code>&lt;div role="button"&gt;</code>, the test still works. If you rename the button text from "Add to cart" to something else, the test fails — which is correct, because the UX changed.<br><br>Test IDs (<code>data-testid</code>) are a last resort because they're invisible to users, add noise to your HTML, and don't validate accessibility. A test using <code>getByTestId("add-to-cart-btn")</code> would pass even if the button is visually broken, has no accessible label, or is hidden behind another element.<br><br>Query priority: <code>ByRole</code> → <code>ByLabelText</code> → <code>ByPlaceholderText</code> → <code>ByText</code> → <code>ByDisplayValue</code> → <code>ByAltText</code> → <code>ByTitle</code> → <code>ByTestId</code>. Use what a user or screen reader would use to find the element.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">What is the difference between getBy, queryBy, and findBy in RTL?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>getBy*</code>: synchronous, throws immediately if the element isn't found. Use when you expect the element to definitely be in the DOM at query time. If it's missing, the test fails with a helpful error showing what was in the DOM at that moment.<br><br><code>queryBy*</code>: synchronous, returns <code>null</code> instead of throwing if not found. Use specifically when you want to assert that something is <em>not</em> in the DOM: <code>expect(screen.queryByRole("alert")).not.toBeInTheDocument()</code>. Using <code>getBy*</code> for this would throw before you reach the expect.<br><br><code>findBy*</code>: async (returns a Promise), waits up to 1000ms polling for the element to appear. Use after async operations — clicking a button that makes an API call, or triggering a state update. <code>await screen.findByText("Order confirmed")</code> waits until that text appears in the DOM. It's a built-in <code>waitFor</code> wrapper. Always <code>await</code> it.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">How do you test a component that makes API calls?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Three approaches. <strong>vi.stubGlobal("fetch")</strong>: quickest for simple cases. Mock the global fetch to return controlled responses. Works well when you have one or two calls per test. Downside: brittle if the URL format changes.<br><br><strong>MSW (Mock Service Worker)</strong>: recommended for components with multiple API calls. Define handlers that intercept fetch requests by URL pattern and return mock responses. Handlers are reusable across tests, the component doesn't know it's being mocked, and you can test error states easily by overriding handlers per-test. More setup but much more robust.<br><br><strong>Mock the module</strong>: if the component uses a custom hook (<code>useProducts</code>) instead of calling fetch directly, mock just the hook: <code>vi.mock("./useProducts", () => ({ useProducts: () => ({ data: mockProducts, isLoading: false }) }))</code>. This is cleanest for testing UI behaviour independently of data fetching logic. Test the hook separately in its own test file.</div>
+    <div class="tip-box">The pattern: test the component with mocked data, test the hook with mocked fetch, test the API route handler separately. Never test all three at once in a component test.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">What should you test in an E2E suite vs component tests?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">E2E tests are for the critical paths where multiple systems must work together correctly, and where a failure would cause immediate, obvious user harm. The checkout flow: if the cart, auth, order creation, stock decrement, and order confirmation page don't all work together, customers can't pay. That's an E2E test. Authentication guard: if the middleware doesn't redirect unauthenticated users to login, protected data is exposed. That's an E2E test.<br><br>Component tests are for unit-level behaviour that E2E tests would test too slowly or too indirectly. Testing that a button shows "Added!" after clicking without waiting for a real network round-trip. Testing all the validation error states of a form (you'd need to fill in and submit the form multiple times in E2E — very slow). Testing that a component renders correctly in each loading/error/empty state.<br><br>The key distinction: E2E tests verify that the integration works. Component tests verify that each piece works correctly in isolation. Both are necessary; neither replaces the other.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">How do you handle authentication in Playwright E2E tests?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">The naive approach — sign in at the start of every test — is slow and fragile. Playwright provides a much better approach: sign in once in a setup step, save the browser storage state to a JSON file, then reuse that state across all tests that need auth.<br><br>Create an <code>auth.setup.ts</code> file that logs in, waits for redirect to the dashboard, then calls <code>context.storageState({ path: "playwright/.auth/user.json" })</code>. Configure tests that need auth to use <code>test.use({ storageState: "playwright/.auth/user.json" })</code>. The browser loads with cookies and localStorage already set — no login step needed per test.<br><br>For tests that need to run as both authenticated and anonymous users, structure your test files: auth-required tests use the storage state, unauthenticated tests don't. For role-based tests (admin vs regular user), create separate storage state files: <code>admin.json</code> and <code>user.json</code>. Use environment variables for credentials — never hardcode passwords in test files that are committed to git.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">What is vi.mock() and what are its gotchas?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>vi.mock("module-name")</code> replaces the entire module with a mock version for all tests in that file. Vitest hoists <code>vi.mock</code> calls to the top of the file before any imports — this is why they "just work" even when written after import statements.<br><br>The main gotcha: <code>vi.mock</code> is hoisted, so you can't reference variables declared with <code>const</code> in the factory function — they haven't been initialised yet. Use <code>vi.fn()</code> directly in the factory, or use <code>vi.importMock</code> for dynamic mocking. Another gotcha: <code>vi.mock</code> mocks the module for the entire file — if you need different behaviour per test, use <code>vi.mocked(fn).mockReturnValue()</code> inside the test to override the default.<br><br>Always call <code>vi.clearAllMocks()</code> in <code>beforeEach</code> to reset call histories between tests, otherwise a mock called in test 1 will still show those calls in test 2's assertions.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">How do you test Server Actions in Next.js?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Server Actions are plain async functions — they don't require a running Next.js server to test. Import the action directly and call it with test data. Mock the dependencies (Clerk auth, Prisma, revalidatePath) using <code>vi.mock</code>.<br><br>Mock Clerk's <code>auth()</code>: <code>vi.mock("@clerk/nextjs/server", () => ({ auth: vi.fn().mockResolvedValue({ userId: "test-user" }) }))</code>. Mock Prisma: <code>vi.mock("@/lib/db", () => ({ db: { order: { create: vi.fn().mockResolvedValue({ id:"ord_1" }) }, product: { update: vi.fn() } } }))</code>. Mock <code>revalidatePath</code>: <code>vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }))</code>.<br><br>Test the action for: success (valid input → correct DB call → revalidation triggered), validation failure (invalid input → error returned without DB call), auth failure (no userId → error without DB call), DB error (mock throws → correct error response). This gives you thorough Server Action coverage without a running database.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">What is userEvent vs fireEvent in React Testing Library?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>fireEvent</code> dispatches a single DOM event directly. <code>fireEvent.click(button)</code> fires exactly one click event — no hover, no focus, no real user simulation. It's synchronous and fast.<br><br><code>userEvent</code> simulates real user interactions, firing multiple events in the same sequence a real user would trigger. <code>userEvent.click(button)</code> fires: pointerover, pointerenter, mouseover, mouseenter, pointermove, mousemove, pointerdown, mousedown, focus, pointerup, mouseup, click — then blur if focus moves away. <code>userEvent.type(input, "hello")</code> fires keydown, keypress, keyup, and input events for every character, including correctly handling backspace, tab navigation, and modifier keys.<br><br>Use <code>userEvent</code> for almost everything — it catches bugs that <code>fireEvent</code> misses (like buttons that only respond to hover states, or validation that triggers on blur not change). Use <code>userEvent.setup()</code> (the instance API) instead of calling <code>userEvent.click()</code> directly — it properly handles fake timers and is the recommended modern pattern.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">How do you integrate tests into CI/CD with GitHub Actions?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Two jobs: unit tests and E2E tests. Unit tests run first — they're fast (under 30 seconds for most codebases) and block E2E if they fail, saving time. E2E tests only run if unit tests pass.<br><br>For unit tests: <code>npm ci</code> → <code>vitest run</code> (single pass, exits with code 1 on failure). For E2E: install Playwright browsers with <code>npx playwright install --with-deps chromium</code> (just chromium to keep CI fast), set environment variables from GitHub Secrets (database URL, Clerk keys, test user credentials), run <code>npx playwright test</code>. Upload the Playwright HTML report as an artifact on failure so you can see what went wrong.<br><br>Key decisions: run E2E against a separate test database (not production), use a dedicated test Clerk application, store test credentials in GitHub Secrets. Add <code>retries: 2</code> in Playwright config for CI to handle flaky network conditions. Target: unit tests under 1 minute, E2E tests under 5 minutes — tests that take longer don't get run.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Night review — self-assessment</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">14 items</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can do it without reference. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the testing pyramid and how it applies to ShopCo specifically</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can set up Vitest in a Next.js project with jsdom, globals, and jest-dom matchers</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write unit tests with <code>describe</code>, <code>it</code>, <code>expect</code>, and the key matchers</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the RTL query priority and when to use <code>getBy</code> vs <code>queryBy</code> vs <code>findBy</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can test a component with <code>userEvent.setup()</code> — click, type, submit</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can mock a module with <code>vi.mock()</code> — Clerk auth, next/navigation, Server Actions</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why <code>userEvent</code> is preferred over <code>fireEvent</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write an async test using <code>waitFor</code> and <code>findBy*</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can set up Playwright, configure the auth storage state fixture, and write a critical path test</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to add tests to GitHub Actions CI — unit tests + E2E in separate jobs</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I wrote unit tests for the ShopCo utility functions today (at minimum: slugify, calculateCartTotal)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I wrote RTL tests for AddToCart and/or CheckoutForm</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I wrote at least 1 Playwright E2E test (checkout flow or auth guard)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My tests run in CI (GitHub Actions or locally via <code>vitest run</code>)</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--test);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Night recall — blank project</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      1. Write 5 unit tests for <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">calculateCartTotal</code> covering edge cases — empty, single, multi-item, negative quantity<br>
+      2. Write RTL tests for <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal);">AddToCart</code> — renders, disabled when out of stock, calls handler when clicked, shows "Added!"<br>
+      3. Write a Playwright test for the complete checkout flow with auth fixture<br>
+      4. Set up a GitHub Actions workflow that runs Vitest on every PR
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 5 · Day 27</div>
+      <div class="footer-day-name">Testing</div>
+      <div class="footer-day-next">Next up: <strong>Day 28 — Error Monitoring with Sentry</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 5 progress</span><span>Day 2 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:28%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day26_performance.html',26)">← Day 26</button>
+      <button class="footer-btn primary" onclick="navigateTo('day28_error_monitoring.html',28)">Day 28 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html",current:true},
+]
+const CURRENT=27
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+  "day18_tailwind_css.html","day19_week3_review.html",
+  "day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html",
+  "day24_api_design.html","day25_week4_review.html",
+  "day26_performance.html","day27_testing.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep testing! ✅`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>
