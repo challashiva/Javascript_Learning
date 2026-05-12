@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 28 — Error Monitoring</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link defer href="assets/css/components.css"  rel="stylesheet">
+<link defer href="assets/css/base.css" rel="stylesheet">
+<style>
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
+.nav-brand{font-size:13px;font-weight:700;color:var(--sentry-accent);padding:16px 20px 16px 0;border-right:1px solid var(--border);margin-right:6px;white-space:nowrap;}
+.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:16px 12px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--text);}
+.nav a.active{color:var(--sentry-accent);border-bottom-color:var(--sentry-accent);}
+
+.day-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.day-nav-title{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.day-nav-title span{color:var(--sentry-accent);font-weight:600;}
+.day-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .15s;display:inline-block;}
+.day-dot.done{background:var(--green);}
+.day-dot.current{background:var(--sentry-accent);width:22px;border-radius:4px;}
+.day-dot:hover{opacity:.75;}
+.day-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:7px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+.day-btn:hover{background:var(--surface3);color:var(--text);}
+.day-btn.primary{background:var(--sentry-dim);color:var(--sentry-accent);border-color:rgba(124,92,191,.3);}
+.day-btn.primary:hover{background:rgba(124,92,191,.18);}
+
+.week-banner{background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(124,92,191,.06));border-bottom:1px solid var(--border);padding:12px 48px;}
+.week-banner-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.week-badge{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--sentry-dim);color:var(--sentry-accent);border:1px solid rgba(124,92,191,.3);white-space:nowrap;}
+.week-text{font-size:13px;color:var(--muted);}
+.week-text strong{color:var(--text);}
+
+.hero{padding:56px 48px 48px;max-width:1120px;margin:0 auto;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--sentry-accent);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::after{content:'';flex:1;max-width:48px;height:1px;background:var(--sentry-accent);}
+.hero h1{font-size:clamp(36px,5vw,68px);font-weight:800;line-height:1.03;letter-spacing:-.025em;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--sentry-accent);}
+.hero-sub{font-size:16px;color:var(--muted);max-width:640px;margin-bottom:32px;line-height:1.75;}
+.hero-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.topic-pill{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);border-right:none;}
+.hstat:first-child{border-radius:10px 0 0 10px;}
+.hstat:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.hstat-num{font-size:22px;font-weight:700;}
+.hstat-lbl{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.topics-strip{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;}
+.topic-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.topic-sub{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.progress-wrap{max-width:1120px;margin:0 auto;padding:0 48px 44px;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-track{height:3px;background:var(--surface3);border-radius:2px;}
+.progress-fill{height:3px;background:var(--sentry-accent);border-radius:2px;width:0%;transition:width .4s ease;}
+.topic-dots-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.tdot{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.tdot.done{background:var(--sentry-dim);color:var(--sentry-accent);border-color:rgba(124,92,191,.25);}
+
+.section{max-width:1120px;margin:0 auto;padding:0 48px 56px;}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);width:28px;}
+.sec-title{font-size:21px;font-weight:700;}
+.sec-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cc-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+.cc-title{font-size:15px;font-weight:600;margin-bottom:7px;}
+.cc-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.cc-body strong{color:var(--text);font-weight:500;}
+.cc-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--sentry-accent);}
+
+.cb{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.cb-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.cb-lang{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--sentry-accent);}
+.cb-desc{font-size:11px;color:var(--muted);}
+.cb-body{padding:18px 20px;overflow-x:auto;}
+.cb-body pre{font-size:12.5px;line-height:1.85;white-space:pre;}
+.kw{color:#c084fc;}.str{color:#86efac;}.num{color:#f9a8d4;}.fn{color:#93c5fd;}
+.cm{color:#3d3d55;font-style:italic;}.var{color:#5eead4;}.op{color:#fcd34d;}
+.prop{color:#fbbf24;}.tag{color:#fb7185;}.attr{color:#fbbf24;}
+.ty{color:#38bdf8;}
+
+.mm{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0;}
+.mm-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mm-dot{width:8px;height:8px;border-radius:50%;}
+.mm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.mm-item{background:var(--surface2);border-radius:10px;padding:13px;border:1px solid var(--border);}
+.mm-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:5px;}
+.mm-value{font-size:12.5px;color:var(--text);line-height:1.6;}
+.mm-value code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--sentry-accent);}
+
+.divider{max-width:1120px;margin:0 auto 44px;padding:0 48px;}
+.divider-line{border:none;border-top:1px solid var(--border);}
+.divider-label{display:inline-block;background:var(--bg);padding:0 14px;position:relative;top:-11px;left:32px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:14px 0;}
+.runner-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.runner-title{font-size:13px;font-weight:600;flex:1;}
+.run-btn{font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px 16px;background:var(--sentry-dim);color:var(--sentry-accent);border:1px solid rgba(124,92,191,.25);border-radius:6px;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.run-btn:hover{background:rgba(124,92,191,.18);}
+.runner-code textarea{width:100%;background:var(--surface3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:16px 18px;resize:vertical;min-height:180px;outline:none;}
+.runner-code textarea:focus{border-bottom-color:rgba(124,92,191,.3);}
+.runner-output{padding:14px 18px;}
+.output-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
+.output-box{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);background:var(--surface3);border-radius:8px;padding:12px 14px;min-height:48px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.output-box.err{color:var(--coral);}
+
+.exercise{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:14px 0;overflow:hidden;}
+.ex-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.ex-num{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ex-title{font-size:14px;font-weight:600;flex:1;}
+.ex-diff{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;}
+.ex-body{padding:18px 20px;}
+.ex-task{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.7;}
+.ex-task code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:3px;color:var(--sentry-accent);}
+
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:10px 0;overflow:hidden;}
+.qa-q{padding:17px 20px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .1s;}
+.qa-q:hover{background:var(--surface2);}
+.q-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;background:var(--sentry-dim);color:var(--sentry-accent);}
+.q-text{font-size:14px;font-weight:500;flex:1;line-height:1.6;}
+.qa-chev{color:var(--muted);transition:transform .2s;font-size:11px;margin-top:3px;flex-shrink:0;}
+.qa-a{display:none;padding:0 20px 18px;border-top:1px solid var(--border);}
+.qa-a.open{display:block;}
+.ans-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;}
+.ans-text{font-size:13px;color:var(--muted);line-height:1.82;}
+.ans-text strong{color:var(--text);font-weight:500;}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--sentry-accent);}
+.tip-box{background:var(--teal-dim);border:1px solid rgba(45,212,191,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--teal);line-height:1.6;}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,.15);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--coral);line-height:1.6;}
+
+.checklist{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;}
+.cl-item{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cl-item:last-child{border-bottom:none;}
+.cl-box{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s;}
+.cl-box.checked{background:var(--sentry-accent);border-color:var(--sentry-accent);}
+.cl-box.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.cl-text{font-size:13px;color:var(--text);line-height:1.6;}
+.cl-text.checked{color:var(--muted);text-decoration:line-through;}
+.cl-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--sentry-accent);}
+
+.footer-nav{max-width:1120px;margin:0 auto;padding:32px 48px 48px;}
+.footer-nav-inner{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-day-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.footer-day-name{font-size:16px;font-weight:700;}
+.footer-day-next{font-size:12px;color:var(--muted);}
+.footer-day-next strong{color:var(--text);}
+.footer-btns{display:flex;gap:10px;}
+.footer-btn{font-size:13px;font-weight:600;padding:10px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:var(--surface2);transition:all .15s;}
+.footer-btn:hover{color:var(--text);background:var(--surface3);}
+.footer-btn.primary{background:var(--sentry-dim);color:var(--sentry-accent);border-color:rgba(124,92,191,.3);}
+.footer-btn.primary:hover{background:rgba(124,92,191,.18);}
+.footer-progress{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.footer-prog-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;}
+.footer-prog-track{height:4px;background:var(--surface3);border-radius:2px;}
+.footer-prog-fill{height:4px;background:var(--sentry-accent);border-radius:2px;transition:width .4s;}
+
+@media(max-width:680px){
+  .hero,.section,.topics-strip,.progress-wrap,.divider,.footer-nav{padding-left:20px;padding-right:20px;}
+  .nav,.day-nav,.week-banner{padding-left:16px;padding-right:16px;}
+  .hero h1{font-size:34px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Day 28 · Monitoring</div>
+  <a href="#why">Why Monitor</a>
+  <a href="#setup">Sentry Setup</a>
+  <a href="#capture">Capturing Errors</a>
+  <a href="#context">Context + Users</a>
+  <a href="#performance">Performance</a>
+  <a href="#alerts">Alerts + Triage</a>
+  <a href="#exercises">Exercises</a>
+  <a href="#interview">Interview</a>
+  <a href="#review">Review</a>
+</nav>
+
+<div class="week-banner">
+  <div class="week-banner-inner">
+    <span class="week-badge">Week 5 · Day 3</span>
+    <span class="week-text"><strong>Error Monitoring</strong> — know about errors before your users tell you. Sentry, structured logging, alerting, and production debugging.</span>
+  </div>
+</div>
+
+<div class="day-nav">
+  <div class="day-nav-title">Week 5 · <span>Day 28 of 56</span> · Error Monitoring with Sentry</div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="display:flex;gap:5px;align-items:center;" id="day-dots-top"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="day-btn" onclick="navigateTo('day27_testing.html',27)">← Day 27</button>
+      <button class="day-btn primary" onclick="navigateTo('day29_genai_sdk.html',29)">Day 29 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Week 5 · Day 28 · Observability</div>
+  <h1>Error<br><em>Monitoring</em></h1>
+  <p class="hero-sub">In production, things break in ways you never tested. Sentry tells you exactly what broke, for which user, on which browser, with the full stack trace — before your users file a support ticket. Pair it with structured logging and smart alerts to run a reliable production app.</p>
+  <div class="hero-topics">
+    <span class="topic-pill" style="border-color:rgba(124,92,191,.3);color:var(--sentry-accent);">Sentry Next.js setup</span>
+    <span class="topic-pill" style="border-color:rgba(74,222,128,.3);color:var(--green);">automatic error capture</span>
+    <span class="topic-pill" style="border-color:rgba(251,191,36,.3);color:var(--amber);">manual Sentry.captureException</span>
+    <span class="topic-pill" style="border-color:rgba(167,139,250,.3);color:var(--purple);">user context + breadcrumbs</span>
+    <span class="topic-pill" style="border-color:rgba(45,212,191,.3);color:var(--teal);">performance tracing</span>
+    <span class="topic-pill" style="border-color:rgba(251,113,133,.3);color:var(--coral);">structured logging</span>
+    <span class="topic-pill" style="border-color:rgba(96,165,250,.3);color:var(--blue);">alert rules + triage</span>
+    <span class="topic-pill" style="border-color:rgba(16,185,129,.3);color:var(--emerald);">source maps</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">topics</div></div>
+    <div class="hstat"><div class="hstat-num">6</div><div class="hstat-lbl">runnable exercises</div></div>
+    <div class="hstat"><div class="hstat-num">10</div><div class="hstat-lbl">interview Q&As</div></div>
+    <div class="hstat"><div class="hstat-num">6.5h</div><div class="hstat-lbl">focus time</div></div>
+  </div>
+</div>
+
+<!-- TOPICS -->
+<div class="topics-strip">
+  <div class="topics-grid">
+    <div class="topic-card"><span class="topic-icon">🔥</span><div><div class="topic-name">Why Monitor</div><div class="topic-sub">production is different</div></div></div>
+    <div class="topic-card"><span class="topic-icon">⚙️</span><div><div class="topic-name">Sentry Setup</div><div class="topic-sub">Next.js wizard, DSN, source maps</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🎯</span><div><div class="topic-name">Error Capture</div><div class="topic-sub">auto + manual + boundaries</div></div></div>
+    <div class="topic-card"><span class="topic-icon">👤</span><div><div class="topic-name">User Context</div><div class="topic-sub">setUser, addBreadcrumb, tags</div></div></div>
+    <div class="topic-card"><span class="topic-icon">📊</span><div><div class="topic-name">Performance</div><div class="topic-sub">transactions, spans, tracing</div></div></div>
+    <div class="topic-card"><span class="topic-icon">📝</span><div><div class="topic-name">Structured Logging</div><div class="topic-sub">levels, context, no secrets</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🔔</span><div><div class="topic-name">Alerts + Triage</div><div class="topic-sub">rules, severity, on-call</div></div></div>
+    <div class="topic-card"><span class="topic-icon">🗺️</span><div><div class="topic-name">Source Maps</div><div class="topic-sub">minified → readable traces</div></div></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Day 28 progress</span><span id="pct-label">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  <div class="topic-dots-row">
+    <span class="tdot" onclick="markDone(this)">Why monitor</span>
+    <span class="tdot" onclick="markDone(this)">Sentry setup</span>
+    <span class="tdot" onclick="markDone(this)">Error capture</span>
+    <span class="tdot" onclick="markDone(this)">User context</span>
+    <span class="tdot" onclick="markDone(this)">Performance</span>
+    <span class="tdot" onclick="markDone(this)">Structured logging</span>
+    <span class="tdot" onclick="markDone(this)">Alerts</span>
+    <span class="tdot" onclick="markDone(this)">Source maps</span>
+    <span class="tdot" onclick="markDone(this)">Exercises</span>
+    <span class="tdot" onclick="markDone(this)">Interview prep</span>
+    <span class="tdot" onclick="markDone(this)">Night review</span>
+  </div>
+</div>
+
+<!-- 01. WHY MONITOR -->
+<div class="section" id="why">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Why monitor — production is a different world</span>
+    <span class="sec-badge" style="background:var(--sentry-dim);color:var(--sentry-accent);">motivation</span>
+  </div>
+
+  <div class="concept-grid">
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--red-dim);color:var(--red);">the problem</span>
+      <div class="cc-title">Errors happen that you never see</div>
+      <div class="cc-body">In development you test the happy path. In production: edge case input from a user in an unexpected locale, a race condition that only manifests under load, a third-party API returning an unexpected shape, a browser extension interfering with your JavaScript. Without monitoring, you learn about these from angry customer emails — hours or days after they started.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--green-dim);color:var(--green);">Sentry's value</span>
+      <div class="cc-title">Know the moment something breaks</div>
+      <div class="cc-body">Sentry captures every unhandled exception with: the exact stack trace (even in minified code via source maps), the user who hit it (email, ID), what they were doing (breadcrumbs — clicks, API calls, navigation), their browser, OS, and screen size. You can reproduce and fix the bug without talking to the user.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--amber-dim);color:var(--amber);">what monitoring covers</span>
+      <div class="cc-title">Frontend + backend + performance</div>
+      <div class="cc-body">Sentry captures: client-side JavaScript errors (unhandled promise rejections, React render errors), server-side exceptions in Route Handlers and Server Actions, performance problems (slow API routes, slow page renders), and custom events you manually capture (<code>captureException</code>, <code>captureMessage</code>). One dashboard for the whole stack.</div>
+    </div>
+    <div class="cc">
+      <span class="cc-tag" style="background:var(--purple-dim);color:var(--purple);">vs alternatives</span>
+      <div class="cc-title">Sentry vs console.log vs Datadog</div>
+      <div class="cc-body"><code>console.log</code> in production is invisible — the browser console and server stdout go nowhere useful. Datadog is expensive and complex, better for large teams with infra engineers. Sentry is the sweet spot for indie developers and startups: generous free tier (5K errors/month), excellent Next.js integration, minimal setup, immediately actionable alerts.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 02. SETUP -->
+<div class="section" id="setup">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <span class="sec-title">Sentry setup — Next.js wizard and configuration</span>
+    <span class="sec-badge" style="background:var(--green-dim);color:var(--green);">setup</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">bash + typescript</span><span class="cb-desc">Sentry Next.js installation, instrumentation files, source maps</span></div>
+    <div class="cb-body"><pre><span class="cm"># Use the official wizard — sets up everything automatically</span>
+npx @sentry/wizard@latest -i nextjs
+
+<span class="cm"># What the wizard creates:</span>
+<span class="cm"># sentry.client.config.ts   ← browser error monitoring</span>
+<span class="cm"># sentry.server.config.ts   ← server/edge error monitoring</span>
+<span class="cm"># sentry.edge.config.ts     ← middleware error monitoring</span>
+<span class="cm"># instrumentation.ts        ← Next.js instrumentation hook</span>
+<span class="cm"># next.config.ts updated    ← source maps + Sentry webpack plugin</span>
+
+<span class="cm">// .env.local — add your DSN (from sentry.io project settings)</span>
+NEXT_PUBLIC_SENTRY_DSN=https://abc123@o12345.ingest.sentry.io/67890
+SENTRY_ORG=your-org
+SENTRY_PROJECT=shopco
+SENTRY_AUTH_TOKEN=sntrys_...  <span class="cm">// for source map upload (CI only)</span>
+
+<span class="cm">// sentry.client.config.ts — browser SDK</span>
+<span class="kw">import</span> * <span class="kw">as</span> <span class="ty">Sentry</span> <span class="kw">from</span> <span class="str">"@sentry/nextjs"</span>
+
+<span class="ty">Sentry</span>.<span class="fn">init</span>({
+  <span class="prop">dsn</span>:              <span class="var">process</span>.<span class="prop">env</span>.<span class="prop">NEXT_PUBLIC_SENTRY_DSN</span>,
+  <span class="prop">environment</span>:      <span class="var">process</span>.<span class="prop">env</span>.<span class="prop">NODE_ENV</span>,
+  <span class="prop">tracesSampleRate</span>: <span class="var">process</span>.<span class="prop">env</span>.<span class="prop">NODE_ENV</span> === <span class="str">"production"</span> ? <span class="num">0.1</span> : <span class="num">1.0</span>,
+  <span class="cm">// ↑ sample 10% of traces in prod (performance data), 100% in dev</span>
+  <span class="prop">replaysSessionSampleRate</span>: <span class="num">0.1</span>,  <span class="cm">// 10% session replay (optional, costs)</span>
+  <span class="prop">replaysOnErrorSampleRate</span>:  <span class="num">1.0</span>,  <span class="cm">// 100% replay on error (essential)</span>
+  <span class="prop">integrations</span>: [
+    <span class="ty">Sentry</span>.<span class="fn">replayIntegration</span>(),
+    <span class="ty">Sentry</span>.<span class="fn">browserTracingIntegration</span>(),
+  ],
+  <span class="prop">ignoreErrors</span>: [
+    <span class="str">"ResizeObserver loop limit exceeded"</span>,  <span class="cm">// known browser noise</span>
+    <span class="str">/Network Error/i</span>,                        <span class="cm">// user's connection issues</span>
+    <span class="str">"Script error."</span>,                         <span class="cm">// cross-origin script errors (no stack)</span>
+  ],
+  <span class="prop">beforeSend</span>(<span class="var">event</span>) {
+    <span class="cm">// Strip PII before sending to Sentry</span>
+    <span class="kw">if</span> (<span class="var">event</span>.<span class="prop">request</span>?.<span class="prop">data</span>) {
+      <span class="kw">delete</span> <span class="var">event</span>.<span class="prop">request</span>.<span class="prop">data</span>.<span class="prop">password</span>
+      <span class="kw">delete</span> <span class="var">event</span>.<span class="prop">request</span>.<span class="prop">data</span>.<span class="prop">creditCard</span>
+    }
+    <span class="kw">return</span> <span class="var">event</span>
+  },
+})
+
+<span class="cm">// sentry.server.config.ts — server SDK (mostly same config)</span>
+<span class="kw">import</span> * <span class="kw">as</span> <span class="ty">Sentry</span> <span class="kw">from</span> <span class="str">"@sentry/nextjs"</span>
+<span class="ty">Sentry</span>.<span class="fn">init</span>({
+  <span class="prop">dsn</span>:              <span class="var">process</span>.<span class="prop">env</span>.<span class="prop">NEXT_PUBLIC_SENTRY_DSN</span>,
+  <span class="prop">tracesSampleRate</span>: <span class="num">0.1</span>,
+})
+
+<span class="cm">// instrumentation.ts — registers Sentry with Next.js</span>
+<span class="kw">export async function</span> <span class="fn">register</span>() {
+  <span class="kw">if</span> (<span class="var">process</span>.<span class="prop">env</span>.<span class="prop">NEXT_RUNTIME</span> === <span class="str">"nodejs"</span>) {
+    <span class="kw">await</span> <span class="kw">import</span>(<span class="str">"../sentry.server.config"</span>)
+  }
+  <span class="kw">if</span> (<span class="var">process</span>.<span class="prop">env</span>.<span class="prop">NEXT_RUNTIME</span> === <span class="str">"edge"</span>) {
+    <span class="kw">await</span> <span class="kw">import</span>(<span class="str">"../sentry.edge.config"</span>)
+  }
+}</pre></div>
+  </div>
+</div>
+
+<!-- 03. CAPTURING ERRORS -->
+<div class="section" id="capture">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Capturing errors — automatic, manual, and boundaries</span>
+    <span class="sec-badge" style="background:var(--amber-dim);color:var(--amber);">capture</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript + tsx</span><span class="cb-desc">Auto capture, captureException, error boundaries, Server Action errors</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> * <span class="kw">as</span> <span class="ty">Sentry</span> <span class="kw">from</span> <span class="str">"@sentry/nextjs"</span>
+
+<span class="cm">// ── Automatic capture — just install, these work ───────────</span>
+<span class="cm">// ✓ Unhandled promise rejections</span>
+<span class="cm">// ✓ Uncaught JavaScript errors</span>
+<span class="cm">// ✓ React error boundaries (via Sentry.withErrorBoundary)</span>
+<span class="cm">// ✓ Next.js Route Handler errors (via instrumentation.ts)</span>
+<span class="cm">// ✓ Server Component errors</span>
+
+<span class="cm">// ── Manual capture — catch and report ─────────────────────</span>
+<span class="kw">async function</span> <span class="fn">createOrder</span>(<span class="var">items</span>: <span class="ty">CartItem</span>[]) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> <span class="var">order</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">order</span>.<span class="fn">create</span>({ <span class="prop">data</span>: <span class="cm">/* ... */</span> })
+    <span class="kw">return</span> { <span class="prop">success</span>: <span class="kw">true</span>, <span class="var">order</span> }
+  } <span class="kw">catch</span> (<span class="var">error</span>) {
+    <span class="cm">// Report to Sentry with context</span>
+    <span class="ty">Sentry</span>.<span class="fn">captureException</span>(<span class="var">error</span>, {
+      <span class="prop">tags</span>: { <span class="prop">action</span>: <span class="str">"createOrder"</span>, <span class="prop">itemCount</span>: <span class="var">items</span>.<span class="prop">length</span>.<span class="fn">toString</span>() },
+      <span class="prop">extra</span>: { <span class="prop">items</span>: <span class="var">items</span>.<span class="fn">map</span>(<span class="var">i</span> => ({ <span class="prop">id</span>: <span class="var">i</span>.<span class="prop">productId</span>, <span class="prop">qty</span>: <span class="var">i</span>.<span class="prop">quantity</span> })) }
+    })
+    <span class="kw">return</span> { <span class="prop">error</span>: <span class="str">"Failed to create order"</span> }
+  }
+}
+
+<span class="cm">// captureMessage — log events that aren't exceptions</span>
+<span class="ty">Sentry</span>.<span class="fn">captureMessage</span>(<span class="str">"Payment processor fallback used"</span>, {
+  <span class="prop">level</span>: <span class="str">"warning"</span>,   <span class="cm">// "fatal" | "error" | "warning" | "info" | "debug"</span>
+  <span class="prop">tags</span>:  { <span class="prop">processor</span>: <span class="str">"stripe-fallback"</span>, <span class="prop">reason</span>: <span class="str">"primary-timeout"</span> },
+})
+
+<span class="cm">// ── Error Boundary with Sentry ─────────────────────────────</span>
+<span class="cm">// app/error.tsx — Next.js error boundary (must be "use client")</span>
+<span class="str">"use client"</span>
+<span class="kw">import</span> * <span class="kw">as</span> <span class="ty">Sentry</span> <span class="kw">from</span> <span class="str">"@sentry/nextjs"</span>
+<span class="kw">import</span> { <span class="fn">useEffect</span> }  <span class="kw">from</span> <span class="str">"react"</span>
+
+<span class="kw">export default function</span> <span class="fn">ErrorPage</span>({ <span class="var">error</span>, <span class="fn">reset</span> }: { <span class="prop">error</span>: <span class="ty">Error</span>; <span class="prop">reset</span>: () => <span class="ty">void</span> }) {
+  <span class="fn">useEffect</span>(() => {
+    <span class="ty">Sentry</span>.<span class="fn">captureException</span>(<span class="var">error</span>)  <span class="cm">// report to Sentry immediately</span>
+  }, [<span class="var">error</span>])
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"flex flex-col items-center justify-center min-h-[50vh] gap-4"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;h2</span> <span class="attr">className</span>=<span class="str">"text-xl font-semibold"</span><span class="tag">&gt;</span>Something went wrong<span class="tag">&lt;/h2&gt;</span>
+      <span class="tag">&lt;p</span> <span class="attr">className</span>=<span class="str">"text-gray-500 text-sm"</span><span class="tag">&gt;</span>We've been notified and are looking into it.<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={<span class="fn">reset</span>} <span class="attr">className</span>=<span class="str">"px-4 py-2 bg-blue-600 text-white rounded-lg"</span><span class="tag">&gt;</span>
+        Try again
+      <span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}
+
+<span class="cm">// ── Sentry wrapping for Server Actions ────────────────────</span>
+<span class="str">"use server"</span>
+<span class="kw">import</span> { <span class="fn">withSentry</span> } <span class="kw">from</span> <span class="str">"@sentry/nextjs"</span>  <span class="cm">// automatic context + error wrapping</span>
+
+<span class="cm">// Or wrap manually:</span>
+<span class="kw">export async function</span> <span class="fn">createOrderAction</span>(<span class="var">prevState</span>: <span class="kw">unknown</span>, <span class="var">data</span>: <span class="ty">FormData</span>) {
+  <span class="kw">return</span> <span class="kw">await</span> <span class="ty">Sentry</span>.<span class="fn">withScope</span>(<span class="kw">async</span> (<span class="var">scope</span>) => {
+    <span class="var">scope</span>.<span class="fn">setTag</span>(<span class="str">"action"</span>, <span class="str">"createOrder"</span>)
+    <span class="var">scope</span>.<span class="fn">setContext</span>(<span class="str">"formData"</span>, { <span class="prop">itemCount</span>: <span class="fn">Number</span>(<span class="var">data</span>.<span class="fn">get</span>(<span class="str">"itemCount"</span>)) })
+    <span class="kw">try</span> {
+      <span class="kw">return</span> <span class="kw">await</span> <span class="fn">processOrder</span>(<span class="var">data</span>)
+    } <span class="kw">catch</span> (<span class="var">e</span>) {
+      <span class="ty">Sentry</span>.<span class="fn">captureException</span>(<span class="var">e</span>)
+      <span class="kw">return</span> { <span class="prop">error</span>: <span class="str">"Order failed"</span> }
+    }
+  })
+}</pre></div>
+  </div>
+</div>
+
+<!-- 04. USER CONTEXT + BREADCRUMBS -->
+<div class="section" id="context">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <span class="sec-title">User context + breadcrumbs — who was affected and what did they do</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">context</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">setUser, addBreadcrumb, tags, extra — answering "who and what" for every error</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> * <span class="kw">as</span> <span class="ty">Sentry</span> <span class="kw">from</span> <span class="str">"@sentry/nextjs"</span>
+
+<span class="cm">// ── setUser — attach who was affected ─────────────────────</span>
+<span class="cm">// Call after sign-in, in a Providers component or useEffect</span>
+<span class="str">"use client"</span>
+<span class="kw">import</span> { <span class="fn">useEffect</span> } <span class="kw">from</span> <span class="str">"react"</span>
+<span class="kw">import</span> { <span class="fn">useUser</span> }  <span class="kw">from</span> <span class="str">"@clerk/nextjs"</span>
+
+<span class="kw">export function</span> <span class="fn">SentryUserProvider</span>() {
+  <span class="kw">const</span> { <span class="var">user</span> } = <span class="fn">useUser</span>()
+
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">if</span> (<span class="var">user</span>) {
+      <span class="ty">Sentry</span>.<span class="fn">setUser</span>({
+        <span class="prop">id</span>:       <span class="var">user</span>.<span class="prop">id</span>,
+        <span class="prop">email</span>:    <span class="var">user</span>.<span class="prop">primaryEmailAddress</span>?.<span class="prop">emailAddress</span>,
+        <span class="prop">username</span>: <span class="var">user</span>.<span class="prop">fullName</span> ?? <span class="kw">undefined</span>,
+        <span class="cm">// Don't include: passwords, full addresses, payment info!</span>
+      })
+    } <span class="kw">else</span> {
+      <span class="ty">Sentry</span>.<span class="fn">setUser</span>(<span class="kw">null</span>)  <span class="cm">// clear on sign-out</span>
+    }
+  }, [<span class="var">user</span>])
+
+  <span class="kw">return</span> <span class="kw">null</span>
+}
+
+<span class="cm">// ── addBreadcrumb — record user journey ───────────────────</span>
+<span class="cm">// Sentry automatically adds: navigation, clicks, HTTP requests</span>
+<span class="cm">// Add custom breadcrumbs for important business events:</span>
+
+<span class="kw">function</span> <span class="fn">handleAddToCart</span>(<span class="var">product</span>: <span class="ty">Product</span>) {
+  <span class="ty">Sentry</span>.<span class="fn">addBreadcrumb</span>({
+    <span class="prop">category</span>: <span class="str">"cart"</span>,
+    <span class="prop">message</span>:  `Added "${<span class="var">product</span>.<span class="prop">name</span>}" to cart`,
+    <span class="prop">level</span>:    <span class="str">"info"</span>,
+    <span class="prop">data</span>:     { <span class="prop">productId</span>: <span class="var">product</span>.<span class="prop">id</span>, <span class="prop">price</span>: <span class="var">product</span>.<span class="prop">price</span> },
+  })
+  <span class="cm">// Now if checkout fails, Sentry shows: "Added X to cart → clicked checkout → error"</span>
+}
+
+<span class="kw">async function</span> <span class="fn">processPayment</span>(<span class="var">amount</span>: <span class="ty">number</span>) {
+  <span class="ty">Sentry</span>.<span class="fn">addBreadcrumb</span>({
+    <span class="prop">category</span>: <span class="str">"payment"</span>,
+    <span class="prop">message</span>:  <span class="str">"Initiating payment"</span>,
+    <span class="prop">level</span>:    <span class="str">"info"</span>,
+    <span class="prop">data</span>:     { <span class="prop">amount</span> },  <span class="cm">// amount OK, not card number!</span>
+  })
+}
+
+<span class="cm">// ── Tags — searchable metadata ─────────────────────────────</span>
+<span class="cm">// Tags are indexed and searchable in Sentry dashboard</span>
+<span class="ty">Sentry</span>.<span class="fn">setTag</span>(<span class="str">"subscription_plan"</span>, <span class="str">"pro"</span>)   <span class="cm">// find all pro user errors</span>
+<span class="ty">Sentry</span>.<span class="fn">setTag</span>(<span class="str">"checkout_step"</span>, <span class="str">"payment"</span>)   <span class="cm">// filter by checkout step</span>
+
+<span class="cm">// ── Extra — non-indexed context ───────────────────────────</span>
+<span class="cm">// Extra is attached to the event but not indexed (not searchable)</span>
+<span class="ty">Sentry</span>.<span class="fn">setExtra</span>(<span class="str">"cartState"</span>, { <span class="prop">itemCount</span>: <span class="num">3</span>, <span class="prop">total</span>: <span class="num">299</span> })
+
+<span class="cm">// ── withScope — temporary context for one event ──────────</span>
+<span class="ty">Sentry</span>.<span class="fn">withScope</span>((<span class="var">scope</span>) => {
+  <span class="var">scope</span>.<span class="fn">setTag</span>(<span class="str">"payment_processor"</span>, <span class="str">"stripe"</span>)
+  <span class="var">scope</span>.<span class="fn">setExtra</span>(<span class="str">"stripeError"</span>, <span class="var">stripeError</span>.<span class="prop">code</span>)
+  <span class="ty">Sentry</span>.<span class="fn">captureException</span>(<span class="var">paymentError</span>)
+  <span class="cm">// scope is reset after this block — tags don't leak to other events</span>
+})
+
+<span class="cm">// ── GDPR: what NOT to send to Sentry ─────────────────────</span>
+<span class="cm">// ❌ Passwords, tokens, API keys</span>
+<span class="cm">// ❌ Full credit card numbers, CVV</span>
+<span class="cm">// ❌ SSN, passport numbers</span>
+<span class="cm">// ❌ Full addresses (partial OK)</span>
+<span class="cm">// ✓ User ID (anonymous but traceable)</span>
+<span class="cm">// ✓ Email (user has consented in ToS)</span>
+<span class="cm">// ✓ Product IDs, order IDs, amounts</span>
+<span class="cm">// Use beforeSend() to strip PII before events leave the browser</span></pre></div>
+  </div>
+</div>
+
+<!-- 05. PERFORMANCE MONITORING -->
+<div class="section" id="performance">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Performance monitoring — traces, spans, and slow operations</span>
+    <span class="sec-badge" style="background:var(--teal-dim);color:var(--teal);">performance</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">Sentry transactions, custom spans, measuring slow DB queries and API calls</span></div>
+    <div class="cb-body"><pre><span class="kw">import</span> * <span class="kw">as</span> <span class="ty">Sentry</span> <span class="kw">from</span> <span class="str">"@sentry/nextjs"</span>
+
+<span class="cm">// ── Auto-instrumentation — works out of the box ───────────</span>
+<span class="cm">// ✓ HTTP requests (fetch, axios)</span>
+<span class="cm">// ✓ Next.js page loads and navigations</span>
+<span class="cm">// ✓ Server route handler execution time</span>
+<span class="cm">// ✓ React component render time (with React integration)</span>
+
+<span class="cm">// ── Custom span — measure a specific operation ────────────</span>
+<span class="kw">async function</span> <span class="fn">getProductsWithStats</span>() {
+  <span class="kw">return</span> <span class="ty">Sentry</span>.<span class="fn">startSpan</span>(
+    { <span class="prop">name</span>: <span class="str">"db.getProductsWithStats"</span>, <span class="prop">op</span>: <span class="str">"db.query"</span> },
+    <span class="kw">async</span> () => {
+      <span class="kw">const</span> <span class="var">products</span> = <span class="kw">await</span> <span class="var">db</span>.<span class="var">product</span>.<span class="fn">findMany</span>({
+        <span class="prop">include</span>: { <span class="prop">reviews</span>: <span class="kw">true</span>, <span class="prop">category</span>: <span class="kw">true</span>, <span class="prop">_count</span>: <span class="kw">true</span> }
+      })
+      <span class="cm">// If this span takes > 1000ms, Sentry flags it as slow</span>
+      <span class="kw">return</span> <span class="var">products</span>
+    }
+  )
+}
+
+<span class="cm">// ── Instrument a checkout flow ────────────────────────────</span>
+<span class="kw">async function</span> <span class="fn">checkout</span>(<span class="var">userId</span>: <span class="kw">string</span>, <span class="var">items</span>: <span class="ty">CartItem</span>[]) {
+  <span class="kw">return</span> <span class="ty">Sentry</span>.<span class="fn">startSpan</span>(
+    { <span class="prop">name</span>: <span class="str">"checkout.complete"</span>, <span class="prop">op</span>: <span class="str">"business"</span> },
+    <span class="kw">async</span> (<span class="var">span</span>) => {
+      <span class="var">span</span>.<span class="fn">setAttribute</span>(<span class="str">"checkout.item_count"</span>, <span class="var">items</span>.<span class="prop">length</span>)
+
+      <span class="cm">// Step 1: validate stock</span>
+      <span class="kw">await</span> <span class="ty">Sentry</span>.<span class="fn">startSpan</span>({ <span class="prop">name</span>: <span class="str">"checkout.validateStock"</span>, <span class="prop">op</span>: <span class="str">"db.query"</span> },
+        <span class="kw">async</span> () => <span class="fn">validateStock</span>(<span class="var">items</span>))
+
+      <span class="cm">// Step 2: create order</span>
+      <span class="kw">const</span> <span class="var">order</span> = <span class="kw">await</span> <span class="ty">Sentry</span>.<span class="fn">startSpan</span>({ <span class="prop">name</span>: <span class="str">"checkout.createOrder"</span>, <span class="prop">op</span>: <span class="str">"db.query"</span> },
+        <span class="kw">async</span> () => <span class="fn">createOrderInDB</span>(<span class="var">userId</span>, <span class="var">items</span>))
+
+      <span class="cm">// Step 3: send confirmation email</span>
+      <span class="kw">await</span> <span class="ty">Sentry</span>.<span class="fn">startSpan</span>({ <span class="prop">name</span>: <span class="str">"checkout.sendEmail"</span>, <span class="prop">op</span>: <span class="str">"email"</span> },
+        <span class="kw">async</span> () => <span class="fn">sendConfirmationEmail</span>(<span class="var">order</span>))
+
+      <span class="kw">return</span> <span class="var">order</span>
+    }
+  )
+  <span class="cm">// In Sentry Performance: see the full waterfall</span>
+  <span class="cm">// checkout.complete: 340ms</span>
+  <span class="cm">// ├─ checkout.validateStock: 45ms</span>
+  <span class="cm">// ├─ checkout.createOrder: 280ms ← slow! investigate</span>
+  <span class="cm">// └─ checkout.sendEmail: 12ms</span>
+}
+
+<span class="cm">// ── Performance thresholds — set alerts ───────────────────</span>
+<span class="cm">// Sentry → Performance → Thresholds:</span>
+<span class="cm">// LCP: 2500ms | FCP: 1800ms | TTFB: 800ms</span>
+<span class="cm">// Create alert: "if p75 LCP > 4000ms for 5 minutes → Slack alert"</span></pre></div>
+  </div>
+</div>
+
+<!-- 06. STRUCTURED LOGGING -->
+<div class="section" id="alerts">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Structured logging + alert strategy</span>
+    <span class="sec-badge" style="background:var(--blue-dim);color:var(--blue);">logging + alerts</span>
+  </div>
+
+  <div class="cb">
+    <div class="cb-head"><span class="cb-lang">typescript</span><span class="cb-desc">Structured logger, log levels, Sentry alert rules, on-call runbook</span></div>
+    <div class="cb-body"><pre><span class="cm">// ── Structured logger — replace console.log in production ─</span>
+<span class="cm">// lib/logger.ts</span>
+<span class="kw">import</span> * <span class="kw">as</span> <span class="ty">Sentry</span> <span class="kw">from</span> <span class="str">"@sentry/nextjs"</span>
+
+<span class="kw">type</span> <span class="ty">LogLevel</span> = <span class="str">"debug"</span> | <span class="str">"info"</span> | <span class="str">"warn"</span> | <span class="str">"error"</span>
+<span class="kw">type</span> <span class="ty">LogContext</span> = <span class="ty">Record</span>&lt;<span class="kw">string</span>, <span class="kw">unknown</span>&gt;
+
+<span class="kw">function</span> <span class="fn">log</span>(<span class="var">level</span>: <span class="ty">LogLevel</span>, <span class="var">message</span>: <span class="kw">string</span>, <span class="var">ctx</span>: <span class="ty">LogContext</span> = {}) {
+  <span class="kw">const</span> <span class="var">entry</span> = {
+    <span class="var">level</span>,
+    <span class="var">message</span>,
+    <span class="prop">timestamp</span>: <span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">toISOString</span>(),
+    <span class="prop">service</span>:   <span class="str">"shopco-api"</span>,
+    ...<span class="var">ctx</span>
+  }
+  <span class="cm">// Structured JSON logs — parseable by log aggregators (Datadog, Loki)</span>
+  <span class="var">console</span>[<span class="var">level</span> === <span class="str">"debug"</span> ? <span class="str">"log"</span> : <span class="var">level</span>](<span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="var">entry</span>))
+
+  <span class="cm">// Forward warnings and errors to Sentry as breadcrumbs</span>
+  <span class="kw">if</span> (<span class="var">level</span> === <span class="str">"warn"</span> || <span class="var">level</span> === <span class="str">"error"</span>) {
+    <span class="ty">Sentry</span>.<span class="fn">addBreadcrumb</span>({ <span class="prop">category</span>: <span class="str">"log"</span>, <span class="var">message</span>, <span class="var">level</span>, <span class="prop">data</span>: <span class="var">ctx</span> })
+  }
+}
+
+<span class="kw">export const</span> <span class="var">logger</span> = {
+  <span class="fn">debug</span>: (<span class="var">msg</span>: <span class="kw">string</span>, <span class="var">ctx</span>?: <span class="ty">LogContext</span>) => <span class="fn">log</span>(<span class="str">"debug"</span>, <span class="var">msg</span>, <span class="var">ctx</span>),
+  <span class="fn">info</span>:  (<span class="var">msg</span>: <span class="kw">string</span>, <span class="var">ctx</span>?: <span class="ty">LogContext</span>) => <span class="fn">log</span>(<span class="str">"info"</span>,  <span class="var">msg</span>, <span class="var">ctx</span>),
+  <span class="fn">warn</span>:  (<span class="var">msg</span>: <span class="kw">string</span>, <span class="var">ctx</span>?: <span class="ty">LogContext</span>) => <span class="fn">log</span>(<span class="str">"warn"</span>,  <span class="var">msg</span>, <span class="var">ctx</span>),
+  <span class="fn">error</span>: (<span class="var">msg</span>: <span class="kw">string</span>, <span class="var">ctx</span>?: <span class="ty">LogContext</span>) => <span class="fn">log</span>(<span class="str">"error"</span>, <span class="var">msg</span>, <span class="var">ctx</span>),
+}
+
+<span class="cm">// Usage:</span>
+<span class="var">logger</span>.<span class="fn">info</span>(<span class="str">"Order created"</span>, { <span class="prop">orderId</span>: <span class="str">"ord_123"</span>, <span class="prop">total</span>: <span class="num">299</span>, <span class="prop">userId</span>: <span class="str">"u_1"</span> })
+<span class="var">logger</span>.<span class="fn">warn</span>(<span class="str">"Stock low"</span>,     { <span class="prop">productId</span>: <span class="str">"p_1"</span>, <span class="prop">remaining</span>: <span class="num">2</span> })
+<span class="var">logger</span>.<span class="fn">error</span>(<span class="str">"Payment failed"</span>, { <span class="prop">userId</span>: <span class="str">"u_1"</span>, <span class="prop">amount</span>: <span class="num">299</span>, <span class="prop">code</span>: <span class="str">"card_declined"</span> })
+<span class="cm">// Never: logger.error("Payment failed", { card: "4242424242424242" }) ← PII!</span>
+
+<span class="cm">// ── Sentry alert rules ────────────────────────────────────</span>
+<span class="cm">// Sentry → Alerts → Create Alert Rule:</span>
+<span class="cm">//</span>
+<span class="cm">// Rule 1: "Any new issue" → Slack #sentry-alerts immediately</span>
+<span class="cm">// Rule 2: "Error count > 10/hour" → Slack #incidents + PagerDuty</span>
+<span class="cm">// Rule 3: "Unhandled checkout error" (filter by tag) → Slack #payments</span>
+<span class="cm">// Rule 4: "Performance P95 TTFB > 2s" → Slack #perf-alerts</span>
+<span class="cm">//</span>
+<span class="cm">// Priority levels:</span>
+<span class="cm">// P0 — checkout broken, auth down → wake someone up now</span>
+<span class="cm">// P1 — feature broken for subset of users → fix today</span>
+<span class="cm">// P2 — degraded experience, workaround exists → fix this sprint</span>
+<span class="cm">// P3 — minor issue, cosmetic → backlog</span>
+
+<span class="cm">// ── Source maps — readable stack traces in production ─────</span>
+<span class="cm">// Without source maps: "at o (main-abc123.js:1:23456)"</span>
+<span class="cm">// With source maps:    "at createOrder (app/actions/orders.ts:42:7)"</span>
+<span class="cm">//</span>
+<span class="cm">// next.config.ts — Sentry uploads source maps on every build:</span>
+<span class="kw">const</span> <span class="var">nextConfig</span> = <span class="fn">withSentryConfig</span>(<span class="var">baseConfig</span>, {
+  <span class="prop">org</span>:              <span class="str">"your-org"</span>,
+  <span class="prop">project</span>:          <span class="str">"shopco"</span>,
+  <span class="prop">silent</span>:           <span class="kw">true</span>,   <span class="cm">// suppress upload logs</span>
+  <span class="prop">hideSourceMaps</span>:   <span class="kw">true</span>,   <span class="cm">// don't expose maps to end users</span>
+  <span class="prop">widenClientFileUpload</span>: <span class="kw">true</span>,
+})</pre></div>
+  </div>
+</div>
+
+<!-- EXERCISES -->
+<div class="divider"><hr class="divider-line"><span class="divider-label">Exercises</span></div>
+
+<div class="section" id="exercises">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <span class="sec-title">Coding exercises — observability patterns in plain JS</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">6 exercises</span>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">1</div>
+      <div class="ex-title">Error monitor — implement Sentry.captureException core</div>
+      <span class="ex-diff" style="background:var(--green-dim);color:var(--green);">beginner</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createErrorMonitor()</code> that simulates Sentry's core behaviour: capture exceptions with stack traces, store user context, add breadcrumbs, tag events, and batch events before "sending" (logging). Implement <code>captureException</code>, <code>captureMessage</code>, <code>setUser</code>, <code>addBreadcrumb</code>, and <code>withScope</code>.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 1 — error monitor core</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex1-code">function createErrorMonitor({ dsn = "mock-dsn", environment = "test" } = {}) {
+  let user = null
+  let tags = {}
+  let extras = {}
+  const breadcrumbs = []
+  const events = []
+  const MAX_BREADCRUMBS = 50
+
+  function buildEvent(type, data, overrides = {}) {
+    return {
+      id:          Math.random().toString(36).slice(2, 10),
+      timestamp:   new Date().toISOString(),
+      environment,
+      type,
+      user:        user ? { ...user } : null,
+      tags:        { ...tags, ...overrides.tags },
+      extra:       { ...extras, ...overrides.extra },
+      breadcrumbs: [...breadcrumbs],
+      ...data,
+    }
+  }
+
+  function send(event) {
+    events.push(event)
+    // In real Sentry: POST to DSN endpoint
+  }
+
+  return {
+    setUser(u) { user = u },
+    setTag(key, val) { tags[key] = val },
+    setExtra(key, val) { extras[key] = val },
+
+    addBreadcrumb({ category, message, level = "info", data = {} }) {
+      breadcrumbs.push({ category, message, level, data, timestamp: new Date().toISOString() })
+      if (breadcrumbs.length > MAX_BREADCRUMBS) breadcrumbs.shift()
+    },
+
+    captureException(error, options = {}) {
+      const event = buildEvent("error", {
+        exception: {
+          type:    error.name || "Error",
+          value:   error.message,
+          stack:   error.stack,
+        },
+      }, options)
+      send(event)
+      return event.id
+    },
+
+    captureMessage(message, options = {}) {
+      const event = buildEvent("message", { message }, options)
+      send(event)
+      return event.id
+    },
+
+    withScope(fn) {
+      // Temporary scope: tags/extras revert after fn completes
+      const savedTags   = { ...tags }
+      const savedExtras = { ...extras }
+      try { return fn({ setTag: (k,v)=>tags[k]=v, setExtra:(k,v)=>extras[k]=v, setContext:(k,v)=>extras[k]=v }) }
+      finally { tags = savedTags; extras = savedExtras }
+    },
+
+    getEvents: () => [...events],
+    getUser:   () => user,
+    clearUser: () => { user = null },
+    getBreadcrumbs: () => [...breadcrumbs],
+  }
+}
+
+const Sentry = createErrorMonitor({ environment: "production" })
+
+// ── Test 1: captureException ──────────────────────────────
+console.log("=== Error Capture Tests ===\n")
+
+const id1 = Sentry.captureException(new Error("Database connection failed"), {
+  tags: { service: "database", operation: "connect" }
+})
+console.log("1. Captured exception, id:", id1)
+
+const evt1 = Sentry.getEvents()[0]
+console.log("   type:", evt1.type)
+console.log("   exception:", evt1.exception.type, "-", evt1.exception.value)
+console.log("   tags:", JSON.stringify(evt1.tags))
+
+// ── Test 2: setUser + breadcrumbs ─────────────────────────
+Sentry.setUser({ id:"u123", email:"alice@test.com", username:"Alice" })
+Sentry.addBreadcrumb({ category:"navigation", message:"Navigated to /checkout", level:"info" })
+Sentry.addBreadcrumb({ category:"cart",       message:'Added "MacBook Pro" to cart', level:"info", data:{ productId:"p1" } })
+Sentry.addBreadcrumb({ category:"payment",    message:"Initiated payment", level:"info", data:{ amount:1999 } })
+
+const id2 = Sentry.captureException(new Error("Stripe API timeout"))
+const evt2 = Sentry.getEvents()[1]
+console.log("\n2. Exception with user context:")
+console.log("   user:", JSON.stringify(evt2.user))
+console.log("   breadcrumbs:", evt2.breadcrumbs.length)
+evt2.breadcrumbs.forEach(b => console.log(`   → [${b.category}] ${b.message}`))
+
+// ── Test 3: withScope (temporary context) ─────────────────
+Sentry.setTag("global_tag", "always_present")
+Sentry.withScope(scope => {
+  scope.setTag("temporary", "only_in_scope")
+  scope.setExtra("paymentData", { amount:99 })
+  Sentry.captureMessage("Payment attempt failed", { level:"warning" })
+})
+// After scope: temporary tags gone
+const evt3 = Sentry.getEvents()[2]
+console.log("\n3. withScope (temporary tags):")
+console.log("   Has global_tag:", !!evt3.tags.global_tag)   // true
+console.log("   Has temporary:", !!evt3.tags.temporary)       // true (inside scope)
+// Now verify scope reset
+Sentry.captureMessage("Post-scope event")
+const evt4 = Sentry.getEvents()[3]
+console.log("   Post-scope has temporary:", !!evt4.tags.temporary)  // false — reset!
+
+// ── Test 4: captureMessage levels ─────────────────────────
+Sentry.captureMessage("Stock running low", { tags: { level: "warning" } })
+const warnings = Sentry.getEvents().filter(e => e.type === "message")
+console.log("\n4. Messages captured:", warnings.length)
+
+console.log("\nTotal events captured:", Sentry.getEvents().length)
+console.log("Active user:", Sentry.getUser()?.email)
+console.log("Breadcrumbs:", Sentry.getBreadcrumbs().length)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex1-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--green-dim);color:var(--green);">2</div>
+      <div class="ex-title">Structured logger — production-grade logging system</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build a <code>createLogger(options)</code> that outputs structured JSON logs with levels (debug/info/warn/error), context propagation (request ID threaded through all logs), log sampling for debug messages (to avoid flooding), and PII scrubbing (auto-redact known sensitive fields before logging).</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 2 — structured logger</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex2-code">// Structured logger with PII scrubbing and sampling
+function createLogger({ service = "app", minLevel = "info", debugSampleRate = 0.1 } = {}) {
+  const LEVELS = { debug: 0, info: 1, warn: 2, error: 3 }
+  const MIN = LEVELS[minLevel] ?? 1
+
+  const PII_FIELDS = new Set([
+    "password","token","secret","apiKey","api_key","creditCard","credit_card",
+    "cardNumber","card_number","cvv","ssn","passport","authorization"
+  ])
+
+  function scrubPII(obj, depth = 0) {
+    if (depth > 5) return obj  // prevent infinite recursion
+    if (!obj || typeof obj !== "object") return obj
+    if (Array.isArray(obj)) return obj.map(i => scrubPII(i, depth+1))
+
+    const result = {}
+    for (const [k, v] of Object.entries(obj)) {
+      if (PII_FIELDS.has(k)) result[k] = "[REDACTED]"
+      else if (typeof v === "object") result[k] = scrubPII(v, depth+1)
+      else result[k] = v
+    }
+    return result
+  }
+
+  const logs = []  // store for testing
+
+  function log(level, message, context = {}) {
+    const levelNum = LEVELS[level] ?? 0
+    if (levelNum < MIN) return  // below min level
+
+    // Sample debug logs to avoid flooding
+    if (level === "debug" && Math.random() > debugSampleRate) return
+
+    const entry = {
+      timestamp: new Date().toISOString(),
+      level,
+      service,
+      message,
+      ...scrubPII(context),
+    }
+
+    logs.push(entry)
+    const output = JSON.stringify(entry)
+    if (level === "error") console.error(output)
+    else if (level === "warn") console.warn(output)
+    else console.log(output)
+  }
+
+  // Child logger with persistent context (request-scoped)
+  function child(persistentContext) {
+    return {
+      debug: (msg, ctx) => log("debug", msg, { ...persistentContext, ...ctx }),
+      info:  (msg, ctx) => log("info",  msg, { ...persistentContext, ...ctx }),
+      warn:  (msg, ctx) => log("warn",  msg, { ...persistentContext, ...ctx }),
+      error: (msg, ctx) => log("error", msg, { ...persistentContext, ...ctx }),
+    }
+  }
+
+  return {
+    debug: (msg, ctx) => log("debug", msg, ctx),
+    info:  (msg, ctx) => log("info",  msg, ctx),
+    warn:  (msg, ctx) => log("warn",  msg, ctx),
+    error: (msg, ctx) => log("error", msg, ctx),
+    child,
+    getLogs: () => [...logs],
+  }
+}
+
+const logger = createLogger({ service:"shopco-api", minLevel:"info", debugSampleRate:1.0 })
+
+console.log("=== Structured Logger Tests ===\n")
+
+// 1. Basic levels
+logger.info("Server started", { port: 3000 })
+logger.warn("High memory usage", { used: "450MB", limit: "512MB" })
+logger.error("DB connection failed", { host:"db.prod.com", attempt: 3 })
+
+// 2. PII scrubbing
+logger.info("User signed in", {
+  userId: "u123",
+  email: "alice@test.com",
+  password: "supersecret123",   // should be REDACTED
+  token: "jwt_abc",              // should be REDACTED
+  role: "admin"
+})
+
+const piiLog = logger.getLogs().find(l => l.userId === "u123")
+console.log("\nPII scrubbing check:")
+console.log("  password:", piiLog?.password)  // [REDACTED]
+console.log("  token:", piiLog?.token)          // [REDACTED]
+console.log("  userId:", piiLog?.userId)        // u123 (not PII)
+console.log("  email:", piiLog?.email)          // alice@test.com (logged with consent)
+
+// 3. Request-scoped child logger (propagates requestId to all logs)
+const requestLogger = logger.child({ requestId: "req_abc123", userId: "u456" })
+requestLogger.info("Processing checkout", { cartTotal: 299 })
+requestLogger.info("Payment initiated", { amount: 299, processor: "stripe" })
+requestLogger.error("Payment failed", { code: "card_declined", creditCard: "4242..." })  // CC redacted!
+
+const requestLogs = logger.getLogs().filter(l => l.requestId === "req_abc123")
+console.log("\nRequest-scoped logs (requestId propagated):")
+requestLogs.forEach(l => {
+  const ctx = { ...l }
+  delete ctx.timestamp; delete ctx.level; delete ctx.service
+  console.log(`  [${l.level}] ${l.message}`, JSON.stringify(ctx))
+})
+
+// 4. Structured output shows machine-parseable fields
+console.log("\nLog entries count:", logger.getLogs().length)
+console.log("All have timestamps:", logger.getLogs().every(l => !!l.timestamp))
+console.log("All have service:", logger.getLogs().every(l => l.service === "shopco-api"))</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex2-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">3</div>
+      <div class="ex-title">Performance tracer — implement Sentry.startSpan</div>
+      <span class="ex-diff" style="background:var(--amber-dim);color:var(--amber);">intermediate</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Implement <code>createTracer()</code> with <code>startSpan(options, fn)</code> that measures execution time of any async operation, supports nested spans (waterfall view), captures errors within spans, and produces a formatted trace tree showing the full checkout flow timing.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 3 — performance tracer</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex3-code">function createTracer() {
+  const spans = []
+  const stack = []  // active span stack (for nesting)
+
+  async function startSpan({ name, op = "function" }, fn) {
+    const span = {
+      id:       Math.random().toString(36).slice(2, 10),
+      name,
+      op,
+      parentId: stack.length ? stack[stack.length-1].id : null,
+      startMs:  performance.now(),
+      endMs:    null,
+      duration: null,
+      status:   "ok",
+      error:    null,
+      attributes: {},
+    }
+    span.setAttribute = (k, v) => { span.attributes[k] = v }
+    spans.push(span)
+    stack.push(span)
+
+    try {
+      const result = await fn(span)
+      span.status = "ok"
+      return result
+    } catch(e) {
+      span.status = "error"
+      span.error  = e.message
+      throw e
+    } finally {
+      span.endMs    = performance.now()
+      span.duration = Math.round(span.endMs - span.startMs)
+      stack.pop()
+    }
+  }
+
+  function printTrace() {
+    const rootSpans = spans.filter(s => !s.parentId)
+    function printSpan(span, depth = 0) {
+      const indent  = "  ".repeat(depth)
+      const bar     = "├─ "
+      const status  = span.status === "error" ? "❌" : span.duration > 500 ? "⚠️" : "✓"
+      const attrs   = Object.keys(span.attributes).length ? " " + JSON.stringify(span.attributes) : ""
+      console.log(`${indent}${depth>0?bar:""}${status} ${span.name} [${span.op}] ${span.duration}ms${span.error?" ERROR:"+span.error:""}${attrs}`)
+      spans.filter(s=>s.parentId===span.id).forEach(child=>printSpan(child,depth+1))
+    }
+    rootSpans.forEach(r => printSpan(r))
+  }
+
+  function getReport() {
+    const total      = spans.reduce((s,sp)=>s+sp.duration,0)
+    const slowSpans  = spans.filter(s=>s.duration>200)
+    const errorSpans = spans.filter(s=>s.status==="error")
+    return { spans:[...spans], total, slowSpans, errorSpans }
+  }
+
+  return { startSpan, printTrace, getReport, getSpans:()=>[...spans] }
+}
+
+const wait = (ms) => new Promise(r=>setTimeout(r,ms))
+
+async function simulateCheckout() {
+  const tracer = createTracer()
+
+  console.log("=== Simulated Checkout Trace ===\n")
+
+  try {
+    await tracer.startSpan({ name:"checkout.complete", op:"business" }, async (span) => {
+      span.setAttribute("checkout.item_count", 2)
+      span.setAttribute("checkout.total", 2798)
+
+      // Validate stock (fast DB query)
+      await tracer.startSpan({ name:"checkout.validateStock", op:"db.query" }, async () => {
+        await wait(35)  // simulate 35ms DB query
+      })
+
+      // Create order (slow — writes to multiple tables)
+      await tracer.startSpan({ name:"checkout.createOrder", op:"db.transaction" }, async (orderSpan) => {
+        orderSpan.setAttribute("db.tables", "orders,order_items,products")
+        await tracer.startSpan({ name:"db.order.create", op:"db.query" }, async () => await wait(80))
+        await tracer.startSpan({ name:"db.orderItem.createMany", op:"db.query" }, async () => await wait(45))
+        await tracer.startSpan({ name:"db.product.update(stock)", op:"db.query" }, async () => await wait(120))
+      })
+
+      // Revalidate Next.js cache
+      await tracer.startSpan({ name:"cache.revalidatePath", op:"cache" }, async () => await wait(5))
+
+      // Send email (external API)
+      await tracer.startSpan({ name:"email.sendConfirmation", op:"http.client" }, async () => {
+        await wait(180)  // external API call
+      })
+    })
+  } catch(e) {
+    console.log("Checkout failed:", e.message)
+  }
+
+  // Print the trace
+  tracer.printTrace()
+
+  // Performance report
+  const report = tracer.getReport()
+  console.log("\n=== Performance Report ===")
+  console.log("Total time:", report.total + "ms")
+  if (report.slowSpans.length) {
+    console.log("Slow spans (>200ms):")
+    report.slowSpans.forEach(s => console.log(`  ⚠️  ${s.name}: ${s.duration}ms`))
+  }
+
+  // Test error capture in spans
+  const tracer2 = createTracer()
+  try {
+    await tracer2.startSpan({ name:"processPayment", op:"external" }, async () => {
+      await wait(50)
+      throw new Error("Card declined")
+    })
+  } catch(e) {}
+
+  console.log("\n=== Error in Span ===")
+  tracer2.getSpans().forEach(s =>
+    console.log(`  ${s.status==="error"?"❌":"✓"} ${s.name}: ${s.duration}ms${s.error?" ("+s.error+")":""}`)
+  )
+}
+
+simulateCheckout()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex3-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--amber-dim);color:var(--amber);">4</div>
+      <div class="ex-title">Alert rule engine — classify and route errors</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build an <code>createAlertEngine(rules)</code> that evaluates incoming error events against configurable rules: threshold-based (N errors/minute), error type matching, user impact (N users affected), and tag-based routing. Dispatch alerts to different channels (Slack, email, PagerDuty).</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 4 — alert rule engine</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex4-code">function createAlertEngine(rules) {
+  const eventHistory = []   // rolling window of events
+  const alertLog     = []   // alerts fired
+  const userSets     = new Map()  // error message → Set of affected userIds
+  const WINDOW_MS    = 60_000  // 1-minute window
+  let mockNow        = Date.now()
+
+  function advance(ms) { mockNow += ms }
+
+  function ingestEvent(event) {
+    eventHistory.push({ ...event, receivedAt: mockNow })
+
+    // Track unique users affected per error type
+    if (event.user?.id) {
+      const key = event.exception?.type || event.message || "unknown"
+      if (!userSets.has(key)) userSets.set(key, new Set())
+      userSets.get(key).add(event.user.id)
+    }
+
+    // Prune old events outside window
+    const cutoff = mockNow - WINDOW_MS
+    while (eventHistory.length && eventHistory[0].receivedAt < cutoff) eventHistory.shift()
+
+    // Evaluate rules
+    evaluateRules(event)
+  }
+
+  function evaluateRules(triggeringEvent) {
+    const windowEvents = eventHistory.filter(e => e.receivedAt >= mockNow - WINDOW_MS)
+
+    for (const rule of rules) {
+      let triggered = false
+      let context   = {}
+
+      // Count-based rule
+      if (rule.type === "count") {
+        const matching = windowEvents.filter(e => {
+          if (rule.errorType && !e.exception?.type?.includes(rule.errorType) && !e.message?.includes(rule.errorType)) return false
+          if (rule.tags) return Object.entries(rule.tags).every(([k,v]) => e.tags?.[k] === v)
+          return true
+        })
+        if (matching.length >= rule.threshold) {
+          triggered = true; context = { count: matching.length, threshold: rule.threshold }
+        }
+      }
+
+      // User impact rule
+      if (rule.type === "users") {
+        const key = triggeringEvent.exception?.type || triggeringEvent.message || "unknown"
+        const affected = userSets.get(key)?.size || 0
+        if (affected >= rule.threshold) {
+          triggered = true; context = { affectedUsers: affected }
+        }
+      }
+
+      // Tag match rule (always fires when matched)
+      if (rule.type === "tag_match") {
+        const matches = Object.entries(rule.tags).every(([k,v]) => triggeringEvent.tags?.[k] === v)
+        if (matches) { triggered = true; context = { tags: rule.tags } }
+      }
+
+      if (triggered) {
+        const alert = {
+          rule:    rule.name,
+          channel: rule.channel,
+          priority:rule.priority || "P2",
+          message: `[${rule.priority||"P2"}] ${rule.name}: ${JSON.stringify(context)}`,
+          event:   triggeringEvent,
+          firedAt: mockNow,
+        }
+        alertLog.push(alert)
+        // In real Sentry: POST to Slack/PagerDuty webhook
+      }
+    }
+  }
+
+  return { ingestEvent, advance, getAlerts: () => [...alertLog], getHistory: () => [...eventHistory] }
+}
+
+const engine = createAlertEngine([
+  { name:"High Error Rate",     type:"count",     threshold:5,  channel:"slack-incidents",  priority:"P1" },
+  { name:"Checkout Error",      type:"tag_match", channel:"slack-payments", priority:"P0",
+    tags:{ action:"createOrder" } },
+  { name:"Auth Error",          type:"count",     threshold:3,  channel:"slack-security",   priority:"P1",
+    errorType:"AuthError" },
+  { name:"Multiple Users Hit",  type:"users",     threshold:3,  channel:"pagerduty",        priority:"P0" },
+  { name:"Payment Failure",     type:"count",     threshold:2,  channel:"slack-payments",   priority:"P1",
+    tags:{ processor:"stripe" } },
+])
+
+function makeEvent(type, extra = {}) {
+  return { exception:{ type }, user:{ id:extra.userId||null }, tags:{}, ...extra }
+}
+
+console.log("=== Alert Engine Tests ===\n")
+
+// Normal errors — no alert yet
+engine.ingestEvent(makeEvent("TypeError", { userId:"u1" }))
+engine.ingestEvent(makeEvent("TypeError", { userId:"u2" }))
+console.log("After 2 TypeErrors, alerts:", engine.getAlerts().length)  // 0
+
+// 5 errors in window → high error rate alert
+engine.ingestEvent(makeEvent("TypeError", { userId:"u3" }))
+engine.ingestEvent(makeEvent("TypeError", { userId:"u4" }))
+engine.ingestEvent(makeEvent("TypeError", { userId:"u5" }))
+console.log("After 5 TypeErrors, alerts:", engine.getAlerts().length)  // 1 (High Error Rate)
+console.log("Alert:", engine.getAlerts()[0]?.rule, "→", engine.getAlerts()[0]?.channel)
+
+// Checkout error → immediate P0 alert
+engine.ingestEvent({ exception:{ type:"StockError" }, tags:{ action:"createOrder" }, user:{ id:"u6" } })
+const checkoutAlerts = engine.getAlerts().filter(a=>a.rule==="Checkout Error")
+console.log("\nCheckout P0 alert fired:", checkoutAlerts.length > 0)
+console.log("Priority:", checkoutAlerts[0]?.priority)
+
+// Multiple users hit same error → user impact alert
+engine.ingestEvent(makeEvent("PaymentError", { userId:"u7" }))
+engine.ingestEvent(makeEvent("PaymentError", { userId:"u8" }))
+engine.ingestEvent(makeEvent("PaymentError", { userId:"u9" }))  // 3rd user → trigger
+const userAlerts = engine.getAlerts().filter(a=>a.rule==="Multiple Users Hit")
+console.log("\nUser impact alert (3+ users):", userAlerts.length > 0)
+
+// Advance past window — old events expire
+engine.advance(61_000)
+engine.ingestEvent(makeEvent("NewError", { userId:"u10" }))
+const prevCount = engine.getAlerts().length
+engine.ingestEvent(makeEvent("NewError", { userId:"u11" }))
+console.log("\nAfter window reset, no high-rate alert (only 2 events):", engine.getAlerts().length === prevCount)
+
+console.log("\n=== Alert Summary ===")
+const byChannel = {}
+engine.getAlerts().forEach(a => {
+  byChannel[a.channel] = (byChannel[a.channel] || 0) + 1
+})
+Object.entries(byChannel).forEach(([ch, count]) =>
+  console.log(`  ${ch}: ${count} alert(s)`)
+)
+console.log("Total alerts fired:", engine.getAlerts().length)</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex4-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--coral-dim);color:var(--coral);">5</div>
+      <div class="ex-title">Error triage system — classify, prioritise, assign</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Build <code>createTriageSystem()</code> that automatically classifies incoming errors by severity (P0–P3), detects regression (new errors vs recurring), groups similar errors by fingerprint, suggests ownership based on file path, and generates a triage report. Test with a realistic ShopCo error stream.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 5 — error triage system</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex5-code">function createTriageSystem() {
+  const knownErrors  = new Map()  // fingerprint → { first, count, lastSeen, status }
+  const errorGroups  = new Map()  // fingerprint → [events]
+
+  // Determine severity based on error properties
+  function classify(event) {
+    const { exception, tags, breadcrumbs = [] } = event
+    const type    = exception?.type    || ""
+    const message = exception?.message || ""
+    const stack   = exception?.stack   || ""
+
+    // P0: Critical paths that break core functionality
+    if (tags?.action === "createOrder" || tags?.action === "processPayment") return "P0"
+    if (type.includes("AuthError") || message.includes("unauthorized"))       return "P0"
+    if (tags?.route === "/api/webhooks")                                       return "P0"
+
+    // P1: Important features broken
+    if (stack.includes("/app/api/")  || tags?.route?.startsWith("/api/"))     return "P1"
+    if (type.includes("DatabaseError") || message.includes("ECONNREFUSED"))   return "P1"
+    if (tags?.action?.includes("admin"))                                       return "P1"
+
+    // P2: Degraded experience
+    if (stack.includes("/components/") || stack.includes("/app/dashboard/"))  return "P2"
+    if (type.includes("TypeError") || type.includes("RangeError"))            return "P2"
+
+    // P3: Minor issues
+    return "P3"
+  }
+
+  // Fingerprint similar errors together
+  function fingerprint(event) {
+    const type = event.exception?.type || "Message"
+    const msg  = (event.exception?.message || event.message || "").slice(0, 50)
+    const frame= (event.exception?.stack || "").split("\n")[1]?.trim().slice(0, 60) || ""
+    return `${type}:${msg}:${frame}`
+  }
+
+  // Suggest owner based on file path in stack
+  function suggestOwner(event) {
+    const stack = event.exception?.stack || ""
+    if (stack.includes("/api/") || stack.includes("route.ts"))           return "backend-team"
+    if (stack.includes("/components/") || stack.includes("use client"))  return "frontend-team"
+    if (stack.includes("auth") || stack.includes("clerk"))               return "auth-team"
+    if (stack.includes("prisma") || stack.includes("database"))          return "data-team"
+    return "unassigned"
+  }
+
+  function ingest(event) {
+    const fp       = fingerprint(event)
+    const severity = classify(event)
+    const owner    = suggestOwner(event)
+    const now      = Date.now()
+
+    if (!errorGroups.has(fp)) errorGroups.set(fp, [])
+    errorGroups.get(fp).push({ ...event, severity, owner })
+
+    const isNew = !knownErrors.has(fp)
+    if (!knownErrors.has(fp)) {
+      knownErrors.set(fp, { first: now, count: 0, lastSeen: null, severity, owner, status:"new" })
+    }
+    const group = knownErrors.get(fp)
+    group.count++
+    group.lastSeen = now
+    if (!isNew && group.status === "resolved") group.status = "regression"
+
+    return { severity, owner, fingerprint: fp, isNew, isRegression: group.status === "regression" }
+  }
+
+  function resolve(fp) {
+    if (knownErrors.has(fp)) knownErrors.get(fp).status = "resolved"
+  }
+
+  function getReport() {
+    const groups = [...knownErrors.entries()].map(([fp, data]) => ({
+      fingerprint: fp.slice(0, 50) + "...",
+      ...data,
+      events: errorGroups.get(fp)?.length || 0,
+    }))
+    groups.sort((a,b) => {
+      const order = { P0:0,P1:1,P2:2,P3:3 }
+      return order[a.severity] - order[b.severity] || b.count - a.count
+    })
+
+    const byPriority = { P0:0,P1:0,P2:0,P3:0 }
+    groups.forEach(g => byPriority[g.severity]++)
+
+    return { groups, byPriority, total: groups.length }
+  }
+
+  return { ingest, resolve, getReport }
+}
+
+const triage = createTriageSystem()
+
+// Simulate a realistic error stream for ShopCo
+const events = [
+  // P0: checkout broken
+  { exception:{ type:"StockError", message:"Insufficient stock: MacBook Pro", stack:"at createOrder (app/api/orders/route.ts:42)" }, tags:{ action:"createOrder" } },
+  { exception:{ type:"StockError", message:"Insufficient stock: MacBook Pro", stack:"at createOrder (app/api/orders/route.ts:42)" }, tags:{ action:"createOrder" } },
+
+  // P1: API error
+  { exception:{ type:"PrismaClientError", message:"Can't reach database server", stack:"at db.query (lib/db.ts:12)" }, tags:{ route:"/api/products" } },
+
+  // P2: UI error
+  { exception:{ type:"TypeError", message:"Cannot read property 'price' of undefined", stack:"at ProductCard (components/ProductCard.tsx:24)" } },
+  { exception:{ type:"TypeError", message:"Cannot read property 'price' of undefined", stack:"at ProductCard (components/ProductCard.tsx:24)" } },
+  { exception:{ type:"TypeError", message:"Cannot read property 'price' of undefined", stack:"at ProductCard (components/ProductCard.tsx:24)" } },
+
+  // P0: Auth broken
+  { exception:{ type:"AuthError", message:"Session invalid", stack:"at auth (app/api/auth:8)" } },
+
+  // P3: Minor
+  { exception:{ type:"RangeError", message:"Invalid date", stack:"at formatDate (utils/date.ts:5)" } },
+
+  // Regression: previously resolved error comes back
+  { exception:{ type:"StockError", message:"Insufficient stock: MacBook Pro", stack:"at createOrder (app/api/orders/route.ts:42)" }, tags:{ action:"createOrder" } },
+]
+
+console.log("=== Error Triage Report ===\n")
+const results = events.map(e => triage.ingest(e))
+console.log("Ingested:", events.length, "events\n")
+
+// Show classifications
+results.forEach((r, i) => {
+  if (r.isNew) console.log(`  NEW ${r.severity} [${r.owner}]: ${events[i].exception.type}`)
+})
+
+const regressions = results.filter(r => r.isRegression)
+if (regressions.length) console.log(`\n⚠️  Regression detected:`, regressions.length, "previously resolved error(s) returned!\n")
+
+const report = triage.getReport()
+console.log("Priority breakdown:")
+Object.entries(report.byPriority).forEach(([p, n]) => {
+  const emoji = p==="P0"?"🔴":p==="P1"?"🟠":p==="P2"?"🟡":"⚪"
+  console.log(`  ${emoji} ${p}: ${n} unique error(s)`)
+})
+
+console.log("\nTop issues by priority:")
+report.groups.slice(0,5).forEach((g, i) => {
+  console.log(`  ${i+1}. [${g.severity}] ${g.fingerprint}`)
+  console.log(`     Owner: ${g.owner} | Count: ${g.count} | Status: ${g.status}`)
+})</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex5-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="exercise">
+    <div class="ex-head">
+      <div class="ex-num" style="background:var(--purple-dim);color:var(--purple);">6</div>
+      <div class="ex-title">Full observability stack — error + performance + logging integrated</div>
+      <span class="ex-diff" style="background:var(--coral-dim);color:var(--coral);">advanced</span>
+    </div>
+    <div class="ex-body">
+      <div class="ex-task">Combine all today's pieces into a unified observability layer for ShopCo: the logger feeds breadcrumbs into Sentry, traces wrap all critical operations, errors are automatically classified and alerts fired. Simulate the full lifecycle of a production incident — error occurs → alert fires → breadcrumbs show context → trace shows slowness.</div>
+    </div>
+    <div class="runner">
+      <div class="runner-head"><span class="runner-title">Exercise 6 — full observability integration</span><button class="run-btn" onclick="runCode(this)">▶ Run</button></div>
+      <div class="runner-code">
+        <textarea id="ex6-code">// Full observability stack simulation
+function createObservabilityStack() {
+  // Shared breadcrumb store
+  const breadcrumbs = []
+  const events      = []
+  const spans       = []
+  const alerts      = []
+  let   user        = null
+
+  // Logger feeds into Sentry breadcrumbs
+  const logger = {
+    info:  (msg, ctx={}) => { breadcrumbs.push({level:"info", message:msg, data:ctx, ts:Date.now()}) },
+    warn:  (msg, ctx={}) => { breadcrumbs.push({level:"warn", message:msg, data:ctx, ts:Date.now()}); console.log(`[WARN] ${msg}`, ctx) },
+    error: (msg, ctx={}) => { breadcrumbs.push({level:"error",message:msg, data:ctx, ts:Date.now()}) },
+  }
+
+  // Sentry-like error capture
+  const monitor = {
+    setUser: (u) => { user = u },
+    captureException: (err, opts={}) => {
+      const event = { id:Math.random().toString(36).slice(2,8), error:err.message, stack:err.stack,
+        user:{...user}, breadcrumbs:[...breadcrumbs], tags:opts.tags||{}, ts:Date.now() }
+      events.push(event)
+      // Auto-alert on checkout errors
+      if (opts.tags?.action==="createOrder") alerts.push({ priority:"P0", message:`CHECKOUT FAILURE: ${err.message}`, event })
+      return event.id
+    },
+  }
+
+  // Performance tracer
+  async function trace(name, op, fn) {
+    const start = performance.now()
+    let error = null
+    try { return await fn() }
+    catch(e) { error = e.message; throw e }
+    finally {
+      const duration = Math.round(performance.now() - start)
+      spans.push({ name, op, duration, error })
+      if (duration > 300) logger.warn(`Slow operation detected`, { name, op, duration })
+    }
+  }
+
+  return {
+    logger, monitor, trace,
+    getEvents:  () => [...events],
+    getAlerts:  () => [...alerts],
+    getSpans:   () => [...spans],
+    getBreadcrumbs: () => [...breadcrumbs],
+  }
+}
+
+// Simulate a ShopCo production incident: Stripe API suddenly slow → checkout timeouts
+async function simulateIncident() {
+  const obs = createObservabilityStack()
+  const { logger, monitor, trace } = obs
+
+  // User signs in
+  monitor.setUser({ id:"u123", email:"alice@test.com" })
+  logger.info("User signed in", { userId:"u123" })
+  logger.info("Navigated to /products", { page:"/products" })
+  logger.info("Added MacBook Pro to cart", { productId:"p1", price:1999 })
+  logger.info("Navigated to /checkout", { cartTotal:1999 })
+
+  console.log("=== Production Incident Simulation ===\n")
+  console.log("User flow: sign in → browse → add to cart → checkout → FAILURE\n")
+
+  // Simulate checkout with Stripe timeout
+  try {
+    await trace("checkout.complete", "business", async () => {
+      // Stock validation (fast)
+      await trace("validateStock", "db.query", async () => {
+        await new Promise(r=>setTimeout(r,30))
+        logger.info("Stock validated", { productId:"p1", available:5 })
+      })
+
+      // Stripe payment (timing out — incident!)
+      await trace("stripe.createPaymentIntent", "http.external", async () => {
+        await new Promise(r=>setTimeout(r,450))  // 450ms → Stripe is slow
+        // Timeout error
+        const err = new Error("Stripe API timeout after 450ms")
+        err.name = "StripeTimeoutError"
+        throw err
+      })
+    })
+  } catch(err) {
+    logger.error("Checkout failed", { userId:"u123", amount:1999, reason:err.message })
+    const eventId = monitor.captureException(err, {
+      tags: { action:"createOrder", processor:"stripe", amount:"1999" }
+    })
+    console.log("📡 Error reported to Sentry:", eventId)
+  }
+
+  // Show what Sentry would display
+  console.log("\n=== What Sentry Shows ===")
+  const event = obs.getEvents()[0]
+  if (event) {
+    console.log("Error:", event.error)
+    console.log("User:", event.user?.email)
+    console.log("\nBreadcrumb trail (what the user did before crash):")
+    event.breadcrumbs.forEach(b => console.log(`  [${b.level}] ${b.message}`, b.data.page||b.data.productId||b.data.reason||""))
+  }
+
+  console.log("\n=== Performance Trace ===")
+  obs.getSpans().forEach(s => {
+    const slow  = s.duration > 300 ? " ⚠️ SLOW" : ""
+    const error = s.error ? ` ❌ ERROR: ${s.error}` : ""
+    console.log(`  ${s.name} [${s.op}]: ${s.duration}ms${slow}${error}`)
+  })
+
+  console.log("\n=== Alerts Fired ===")
+  obs.getAlerts().forEach(a => console.log(`  🔴 [${a.priority}] ${a.message}`))
+
+  console.log("\n=== Incident Timeline ===")
+  console.log("  1. 00:00 — User alice@test.com starts checkout ($1999)")
+  console.log("  2. 00:00 — Stock validation: OK (30ms)")
+  console.log("  3. 00:00 — Stripe API call: TIMEOUT (450ms > 300ms threshold)")
+  console.log("  4. 00:00 — P0 alert fired → Slack #payments + PagerDuty")
+  console.log("  5. 00:00 — Sentry event created with full context + breadcrumbs")
+  console.log("  6. ??:?? — On-call engineer wakes up, sees: Stripe slow → checks Stripe status page")
+  console.log("\n✅ Observability caught the incident before users filed tickets")
+}
+
+simulateIncident()</textarea>
+      </div>
+      <div class="runner-output"><div class="output-label">output</div><div class="output-box" id="ex6-out">Click ▶ Run</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div class="section" id="interview">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <span class="sec-title">Interview questions + model answers</span>
+    <span class="sec-badge" style="background:var(--purple-dim);color:var(--purple);">10 Q&As</span>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q1</span><span class="q-text">Why do you need error monitoring if you have tests?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Tests verify behaviour for inputs you anticipated. Production users do things you never tested: a user in an unexpected locale with a special character in their name, a race condition that requires specific timing, a third-party API returning an undocumented error code, a browser extension interfering with your JavaScript, an edge case in your Zod schema you didn't cover. Tests prove the code works for the scenarios you imagined — monitoring tells you what happens in the scenarios you didn't.<br><br>Additionally, tests run in a controlled environment with mocked data and predictable timing. Production has real network latency, real database load, real third-party APIs that go down, and real users doing unexpected things. Error monitoring is what bridges the gap between "it passes tests" and "it works in production for everyone."</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q2</span><span class="q-text">What is a DSN in Sentry and what does it contain?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">DSN stands for Data Source Name — it's a URL that tells the Sentry SDK where to send captured events. Format: <code>https://public_key@host/project_id</code>. It contains the public key (identifies which project events belong to) and the endpoint URL (usually Sentry's cloud or your self-hosted instance).<br><br>Important: the DSN is safe to expose on the client side (it's already in your browser's JavaScript). It can only be used to send events to your project — it can't be used to read events or access your account. The secret key (for API operations like source map uploads) should never be exposed client-side. Always use the environment variable <code>NEXT_PUBLIC_SENTRY_DSN</code> for the DSN (public) and <code>SENTRY_AUTH_TOKEN</code> as a build-time secret (never shipped to browser).</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q3</span><span class="q-text">What are breadcrumbs in Sentry and why are they valuable?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Breadcrumbs are a chronological trail of events leading up to an error — like the browser's back button history but for what happened in the application. Sentry automatically captures: navigation events (page changes), HTTP requests (what URLs were called), console output, and DOM events (clicks).<br><br>You can add custom breadcrumbs for important business events: "User added MacBook Pro to cart", "Payment initiated for $1999", "Stripe API called". When an error occurs, you see the full sequence: user navigated to /checkout → added item → clicked pay → payment failed. Without breadcrumbs, you'd see the exception in isolation without knowing how the user got there. With breadcrumbs, you can often reproduce the bug immediately — just follow the same sequence of actions.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q4</span><span class="q-text">What PII should you never send to Sentry, and how do you prevent it?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Never send: passwords, authentication tokens, API keys, credit card numbers and CVV, SSNs or national ID numbers, full bank account numbers, or passport numbers. These could be exposed in a Sentry data breach (low but non-zero risk) and may violate GDPR, PCI-DSS, or other regulations.<br><br>Safe to send: user IDs (anonymous), email addresses (user has consented in ToS), order amounts, product IDs, error codes, browser/OS information, and page URLs (scrubbed of sensitive query params).<br><br>Prevention: use <code>beforeSend(event)</code> in your Sentry config to scrub sensitive fields before events leave the browser. This runs client-side before any data is transmitted. Also: don't log passwords or tokens in your structured logger, don't include card details in breadcrumbs, and use the <code>scrubFields</code> config option for automatic scrubbing by field name pattern.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q5</span><span class="q-text">What is tracesSampleRate and how do you choose the right value?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>tracesSampleRate</code> controls what fraction of transactions (page loads, API calls) are tracked for performance monitoring. 1.0 = 100% (every transaction traced), 0.1 = 10% (1 in 10 traced). Errors are always captured regardless of this setting.<br><br>In development: use 1.0 — you want full visibility while debugging. In production: start with 0.1 (10%). This gives statistically meaningful performance data while keeping your Sentry quota manageable (performance spans count against your monthly limit). For very high traffic apps (millions of requests/day), you might go lower: 0.01 (1%).<br><br>The tradeoff: lower sample rate = less accurate tail latency metrics (p95, p99). For most apps under 100k daily users, 10% is sufficient. You can also use <code>tracesSampler</code> (a function) instead of a static rate to always trace important operations like checkout at 100% while sampling less critical pages at 1%.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q6</span><span class="q-text">Why use structured logging instead of console.log?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text"><code>console.log("Order created for user", userId)</code> in production goes to server stdout where it's unstructured, unsearchable text that disappears into log files or is never seen at all.<br><br>Structured logging outputs JSON: <code>{ "timestamp": "...", "level": "info", "message": "Order created", "userId": "u123", "orderId": "ord_1", "total": 299 }</code>. Log aggregators (Datadog, Grafana Loki, AWS CloudWatch) ingest this JSON, allowing you to: filter by <code>level:error</code> to see only errors, filter by <code>userId:u123</code> to trace one user's journey, aggregate by <code>orderId</code> to debug a specific order, create metrics from log data (order volume over time).<br><br>Use log levels correctly: debug (development only, verbose), info (normal operations — order created, user signed in), warn (something unexpected but handled — stock running low, retry needed), error (something broke that needs attention — payment failed, DB connection lost). Never log passwords, tokens, or PII at any level.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q7</span><span class="q-text">What are source maps and why are they needed for production debugging?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Next.js (and any bundler) minifies and bundles your JavaScript in production. A stack trace from minified code looks like: <code>TypeError: Cannot read property 'price' of undefined at o (main-abc.js:1:23456)</code> — completely unreadable. You have no idea where in your codebase this is.<br><br>Source maps are files that map the minified code back to the original TypeScript source. With source maps, the same error shows: <code>TypeError: Cannot read property 'price' of undefined at ProductCard (app/components/ProductCard.tsx:42:15)</code> — immediately actionable.<br><br>The Sentry webpack plugin (configured in next.config.ts) uploads source maps to Sentry's servers during every build. The maps are private — they're never exposed to users. Sentry uses them server-side to transform stack traces before displaying them to you. Important: set <code>hideSourceMaps: true</code> in the Sentry config to prevent the maps from being served to the browser, where malicious users could use them to understand your code.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q8</span><span class="q-text">How do you set up meaningful Sentry alerts without alert fatigue?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Alert fatigue happens when you get so many alerts that you start ignoring them. The fix: alert on things that require human action, not on things the system can handle itself or that happen all the time.<br><br>Good alerts: "New error in checkout flow" (P0 — requires immediate action), "Error rate > 10/minute for 5 minutes" (something is systemically broken), "A specific user-facing feature is broken for 3+ users" (meaningful impact). Bad alerts: every single JavaScript error (most are user-side, benign), every single 4xx response (normal — users mistype URLs), the same recurring error you've already decided is acceptable.<br><br>Use alert rules with conditions: minimum threshold (1 alert, not 100 for the same event), time window (errors in last hour vs instant), severity levels (only P0/P1 go to PagerDuty for wake-ups, P2/P3 go to Slack). Review your alert history weekly and silence rules that generate noise without action. The goal: every alert you receive should require you to do something.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q9</span><span class="q-text">How does Sentry's session replay help debug hard-to-reproduce bugs?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">Session replay captures a pixel-accurate recording of what the user saw and did before the error occurred — clicks, scrolls, typed characters (masked by default), and DOM changes — without actually recording video (it records DOM mutations and replays them). When you open a Sentry error, you can watch exactly what happened in the seconds before the crash.<br><br>This is invaluable for bugs that are hard to reproduce: "Add to cart fails sometimes" — watch the replay, see that the user clicked extremely quickly and triggered a race condition. "Form submission fails for some users" — see that a specific browser auto-fill behaviour was injecting unexpected data. "Mobile layout broken" — see the actual mobile viewport and interaction sequence.<br><br>Configure with: <code>replaysSessionSampleRate: 0.1</code> (record 10% of all sessions, for performance data) and <code>replaysOnErrorSampleRate: 1.0</code> (record 100% of sessions that encounter an error). The error rate one is the important one — you always want a replay when something breaks.</div></div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggleQA(this)"><span class="q-badge">Q10</span><span class="q-text">How do you debug a production incident methodically using Sentry?</span><span class="qa-chev">▶</span></div>
+    <div class="qa-a"><div class="ans-label">model answer</div>
+    <div class="ans-text">A systematic approach: first, understand scope — how many users are affected (the Issues list shows this), when it started (the graph shows the spike), and whether it's a new issue or a regression. Check if it correlates with a recent deploy (Releases feature shows issues introduced by each version).<br><br>Then, understand the error — open the issue, read the full stack trace with source maps (directly references your code file and line), read the breadcrumbs (user journey leading to the error), check the tags (browser, OS, route, any custom tags you've set). Often you can reproduce it locally within 5 minutes.<br><br>If you can't reproduce: watch the session replay, compare the environments (does it only happen on iOS Safari?), look at the extra context fields you attached. Finally fix, deploy, and mark the issue as resolved in Sentry — it will automatically reopen as a regression if the same error occurs again after the fix. Always add a test that covers the fixed bug before closing the issue.</div></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="section" id="review">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <span class="sec-title">Night review — self-assessment</span>
+    <span class="sec-badge" style="background:var(--coral-dim);color:var(--coral);">14 items</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.75;">Check only if you can demonstrate it. Unchecked = tomorrow's warm-up.</p>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I have Sentry installed in ShopCo and errors are appearing in my Sentry dashboard</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the difference between <code>captureException</code>, <code>captureMessage</code>, and breadcrumbs</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I've set up <code>setUser</code> to attach user context to errors in ShopCo</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I've added custom breadcrumbs for cart and checkout events</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know what PII to never include in Sentry events and how <code>beforeSend</code> strips it</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I have the <code>app/error.tsx</code> boundary calling <code>Sentry.captureException</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I've wrapped at least one critical operation (checkout) with <code>Sentry.startSpan</code></div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I've set up at least 2 alert rules: "new checkout error" and "error rate threshold"</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I've replaced <code>console.log</code> in Route Handlers with the structured logger</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why source maps are needed and that they're configured in next.config.ts</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between <code>tracesSampleRate: 1.0</code> (dev) and <code>0.1</code> (prod)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the P0/P1/P2/P3 priority framework and give an example of each for ShopCo</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I've deliberately triggered an error in ShopCo and seen it appear in Sentry with full context</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">My Sentry is connected to the deployed Vercel app and catching real production errors</div></div>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid rgba(124,92,191,.15);border-radius:14px;padding:20px 24px;margin-top:18px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--sentry-accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Tomorrow — Day 29: GenAI with Vercel AI SDK</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2.1;">
+      Prep: create an Anthropic account → get an API key → add to <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal)">.env.local</code> as <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal)">ANTHROPIC_API_KEY</code><br>
+      Install: <code style="font-size:12px;background:var(--surface3);padding:1px 5px;border-radius:3px;color:var(--teal)">npm install ai @ai-sdk/anthropic</code> in ShopCo<br>
+      Read: Vercel AI SDK docs at sdk.vercel.ai — skim the Getting Started section
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer-nav">
+  <div class="footer-nav-inner">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="footer-day-label">Week 5 · Day 28</div>
+      <div class="footer-day-name">Error Monitoring with Sentry</div>
+      <div class="footer-day-next">Next up: <strong>Day 29 — GenAI with Vercel AI SDK</strong></div>
+    </div>
+    <div class="footer-progress">
+      <div class="footer-prog-label"><span>Week 5 progress</span><span>Day 3 / 7</span></div>
+      <div class="footer-prog-track"><div class="footer-prog-fill" style="width:43%"></div></div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="navigateTo('day27_testing.html',27)">← Day 27</button>
+      <button class="footer-btn primary" onclick="navigateTo('day29_genai_sdk.html',29)">Day 29 — GenAI →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_PLAN=[
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_javascript_arrays_objects.html"},
+  {num:3,file:"day3_functions_async_js.html"},
+  {num:4,file:"day4_dom_events_classes.html"},
+  {num:5,file:"day5_dom_events_classes.html"},
+  {num:6,file:"day6_es6_modules_iterators_generators.html"},
+  {num:7,file:"day7_week1_review_project.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html"},
+  {num:28,file:"day28_error_monitoring.html",current:true},
+  {num:29,file:"day29_genai_sdk.html"},
+]
+const CURRENT=28
+const AVAILABLE=new Set([
+  "day1_javascript_fundamentals.html","day2_javascript_arrays_objects.html",
+  "day3_functions_async_js.html","day5_dom_events_classes.html",
+  "day6_es6_modules_iterators_generators.html","day7_week1_review_project.html",
+  "day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html",
+  "day12_context_global_state.html","day13_week2_review.html",
+  "day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html",
+  "day18_tailwind_css.html","day19_week3_review.html",
+  "day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html",
+  "day24_api_design.html","day25_week4_review.html",
+  "day26_performance.html","day27_testing.html","day28_error_monitoring.html",
+  "day29_genai_sdk.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast(`Day ${n} coming soon — keep monitoring! 🔥`)
+}
+function showToast(msg){
+  document.querySelector('.toast')?.remove()
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+    font-size:13px;font-family:'JetBrains Mono',monospace;padding:12px 24px;
+    border-radius:10px;z-index:9999;max-width:90vw;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);animation:tUp .25s ease;`
+  document.head.insertAdjacentHTML('beforeend',`<style>@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>`)
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500)
+}
+function buildDots(id){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML=''
+  DAY_PLAN.forEach(d=>{
+    const dot=document.createElement('div')
+    dot.className='day-dot'+(d.num<CURRENT?' done':'')+(d.num===CURRENT?' current':'')
+    dot.title=`Day ${d.num}`
+    dot.onclick=()=>navigateTo(d.file,d.num)
+    el.appendChild(dot)
+  })
+}
+buildDots('day-dots-top')
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea'),out=wrap.querySelector('.output-box')
+  const logs=[];const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{new Function(ta.value)();out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function toggleQA(el){
+  const a=el.nextElementSibling,c=el.querySelector('.qa-chev'),open=a.classList.toggle('open')
+  c.style.transform=open?'rotate(90deg)':'';el.style.background=open?'var(--surface3)':''
+}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+const secs=document.querySelectorAll('.section'),links=document.querySelectorAll('.nav a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Day 27 — Testing</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link defer href="assets/css/components.css"  rel="stylesheet">
+<link defer href="assets/css/base.css" rel="stylesheet">
 <style>
   
 .nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 32px;display:flex;align-items:center;overflow-x:auto;}
@@ -1880,6 +1882,7 @@ const DAY_PLAN=[
   {num:25,file:"day25_week4_review.html"},
   {num:26,file:"day26_performance.html"},
   {num:27,file:"day27_testing.html",current:true},
+  {num:28,file:"day28_error_monitoring.html"},
 ]
 const CURRENT=27
 const AVAILABLE=new Set([
@@ -1896,6 +1899,7 @@ const AVAILABLE=new Set([
   "day22_auth_clerk.html","day23_prisma_database.html",
   "day24_api_design.html","day25_week4_review.html",
   "day26_performance.html","day27_testing.html",
+  "day28_error_monitoring.html",
 ])
 function navigateTo(file,n){
   if(AVAILABLE.has(file))window.location.href=file

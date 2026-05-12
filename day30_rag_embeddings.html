@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Day 30 — RAG & Embeddings | ShopCo Course</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link defer href="assets/css/components.css"  rel="stylesheet">
+<link defer href="assets/css/base.css" rel="stylesheet">
+<style>
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0;padding:0 24px;height:52px}
+.nav-brand{font-weight:700;font-size:14px;color:var(--accent);white-space:nowrap;margin-right:24px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:6px 12px;border-radius:6px;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{color:var(--accent);background:var(--accent-dim)}
+/* WEEK BANNER */
+.week-banner{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
+.week-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(45,212,191,0.25)}
+.week-desc{font-size:12px;color:var(--muted)}
+/* DAY NAV */
+.day-nav{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px}
+.day-nav-title{font-size:14px;font-weight:700;color:var(--text);margin-right:8px}
+.day-dots{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.ddot{width:10px;height:10px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .2s;border:none;padding:0}
+.ddot.done{background:var(--green)}
+.ddot.current{background:var(--accent);box-shadow:0 0 8px rgba(45,212,191,0.5)}
+.ddot.available:hover{background:var(--muted);transform:scale(1.2)}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+/* HERO */
+.hero{padding:64px 24px 48px;max-width:900px;margin:0 auto;text-align:center}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:20px}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin:0 auto 28px}
+.topic-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:36px}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+.pill.accent{background:var(--accent-dim);border-color:rgba(45,212,191,0.3);color:var(--accent)}
+.stats-row{display:flex;gap:0;border:1px solid var(--border2);border-radius:12px;overflow:hidden;max-width:500px;margin:0 auto}
+.stat{flex:1;padding:16px 8px;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+/* TOPICS GRID */
+.section{padding:48px 24px;max-width:1000px;margin:0 auto}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.section-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(45,212,191,0.2)}
+.section-title{font-size:22px;font-weight:700}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.topic-card:hover{border-color:var(--accent);background:var(--surface2)}
+.topic-card.done{border-color:rgba(74,222,128,0.3);background:var(--green-dim)}
+.topic-icon{font-size:24px;margin-bottom:10px}
+.topic-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.topic-sub{font-size:11px;color:var(--muted);line-height:1.4}
+/* PROGRESS */
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.progress-label{font-size:14px;font-weight:600}
+.pct{font-size:14px;font-weight:700;color:var(--accent)}
+.prog-bar{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.topic-dots{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tdot{width:28px;height:28px;border-radius:6px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.tdot.done{background:var(--accent-dim);border-color:rgba(45,212,191,0.4);color:var(--accent)}
+/* CONCEPT CARDS */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.concept-card h3{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.concept-card p{font-size:13px;color:var(--muted);line-height:1.7}
+.concept-card code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:4px;color:var(--teal)}
+/* CODE BLOCKS */
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7}
+.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#86efac}.num{color:#f9a8d4}.fn{color:#93c5fd}
+.cm{color:#3d3d55;font-style:italic}.var{color:#5eead4}.op{color:#fcd34d}
+.prop{color:#fbbf24}.ty{color:#38bdf8}.tag{color:#fb7185}.attr{color:#fbbf24}
+/* TABLE */
+.compare-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.compare-table th{background:var(--surface3);padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border2)}
+.compare-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--surface2)}
+.tag-g{color:var(--green);font-size:11px;font-weight:600}
+.tag-a{color:var(--amber);font-size:11px;font-weight:600}
+.tag-c{color:var(--coral);font-size:11px;font-weight:600}
+/* EXERCISES */
+.ex-divider{padding:20px 24px;max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.ex-line{flex:1;height:1px;background:var(--border)}
+.ex-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.runner-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.runner-num{width:24px;height:24px;border-radius:6px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid rgba(45,212,191,0.3)}
+.runner-title{font-size:13px;font-weight:600;flex:1}
+.diff-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.diff-b{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.diff-i{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.diff-a{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.runner-body{padding:16px}
+.runner-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;min-height:120px;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent)}
+.run-btn{margin-top:10px;padding:8px 20px;border-radius:7px;border:none;background:var(--accent);color:#000;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.run-btn:hover{background:#1fb8a8;transform:translateY(-1px)}
+.output-box{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);min-height:48px;white-space:pre-wrap;line-height:1.6}
+.output-box.err{color:var(--coral)}
+/* QA */
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.qa-item:hover{border-color:var(--border2)}
+.qa-q{padding:16px 20px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.qa-q::after{content:'▸';color:var(--muted);transition:transform .25s;flex-shrink:0}
+.qa-item.open .qa-q::after{transform:rotate(90deg);color:var(--accent)}
+.qa-item.open{border-color:rgba(45,212,191,0.3)}
+.ans-text{display:none;padding:0 20px 16px;font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border)}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:4px;color:var(--teal)}
+.qa-item.open .ans-text{display:block}
+/* CHECKLIST */
+.checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-bottom:20px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s}
+.cl-item:hover{border-color:var(--border2)}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s}
+.cl-box.checked{background:var(--accent);border-color:var(--accent)}
+.cl-box.checked::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.cl-text{font-size:12px;color:var(--text);line-height:1.5}
+.cl-text.checked{color:var(--muted);text-decoration:line-through}
+.tomorrow-box{background:var(--surface);border:1px solid rgba(45,212,191,0.2);border-radius:10px;padding:20px;margin-top:16px}
+.tomorrow-box h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.tomorrow-box p{font-size:13px;color:var(--muted);line-height:1.7}
+/* FOOTER */
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:24px;text-align:center}
+.footer-btns{display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.footer-btn{padding:10px 24px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.footer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.footer-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.footer-btn.primary:hover{background:#1fb8a8}
+.week-prog{margin-top:16px}
+.week-prog-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.week-prog-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;max-width:300px;margin:0 auto}
+.week-prog-fill{height:100%;background:var(--accent);border-radius:2px}
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+/* INFO BOX */
+.info-box{background:var(--accent-dim);border:1px solid rgba(45,212,191,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.info-box strong{color:var(--accent)}
+.warn-box{background:var(--amber-dim);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+/* FLOW DIAGRAM */
+.flow{display:flex;align-items:center;gap:0;overflow-x:auto;padding:20px 0;margin:16px 0}
+.flow-step{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:12px 16px;text-align:center;min-width:110px;flex-shrink:0}
+.flow-step .fs-icon{font-size:20px;margin-bottom:6px}
+.flow-step .fs-name{font-size:11px;font-weight:600;color:var(--text)}
+.flow-step .fs-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.flow-arrow{font-size:16px;color:var(--accent);padding:0 8px;flex-shrink:0}
+.highlight{color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 30 · RAG & Embeddings</div>
+  <div class="nav-links">
+    <a href="#topics">Topics</a>
+    <a href="#concepts">Concepts</a>
+    <a href="#pgvector">pgvector</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#qa">Interview</a>
+    <a href="#checklist">Review</a>
+  </div>
+</nav>
+
+<!-- WEEK BANNER -->
+<div class="week-banner">
+  <span class="week-badge">Week 5</span>
+  <span class="week-desc">Testing & AI Integration — adding intelligence to ShopCo</span>
+</div>
+
+<!-- DAY NAV -->
+<div class="day-nav">
+  <span class="day-nav-title">Day 30 — RAG & Embeddings</span>
+  <div class="day-dots" id="day-dots"></div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="navigateTo('day29_genai_vercel_ai_sdk.html',29)">← Prev</button>
+    <button class="nav-btn" onclick="navigateTo('day31_ai_agents_tools.html',31)">Next →</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Week 5 · Day 30 of 56</div>
+  <h1>RAG & <span>Embeddings</span></h1>
+  <p class="hero-sub">Build semantic search and retrieval-augmented generation for ShopCo — making your AI actually know your products.</p>
+  <div class="topic-pills">
+    <span class="pill accent">Vector Embeddings</span>
+    <span class="pill accent">pgvector</span>
+    <span class="pill accent">Similarity Search</span>
+    <span class="pill">RAG Pipeline</span>
+    <span class="pill">Cosine Distance</span>
+    <span class="pill">Chunking Strategy</span>
+    <span class="pill">Hybrid Search</span>
+    <span class="pill">Context Window</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">8</div><div class="stat-l">Topics</div></div>
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Exercises</div></div>
+    <div class="stat"><div class="stat-n">10</div><div class="stat-l">Q&amp;As</div></div>
+    <div class="stat"><div class="stat-n">6h</div><div class="stat-l">Study</div></div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<section class="section" id="topics">
+  <div class="section-header">
+    <span class="section-badge">01</span>
+    <h2 class="section-title">Today's Topics</h2>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label">Day Progress</span>
+      <span class="pct" id="pct-label">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="topic-dots" id="tdots">
+      <div class="tdot" onclick="markDone(this)" title="What is RAG?">R</div>
+      <div class="tdot" onclick="markDone(this)" title="Embeddings">E</div>
+      <div class="tdot" onclick="markDone(this)" title="pgvector">P</div>
+      <div class="tdot" onclick="markDone(this)" title="Chunking">C</div>
+      <div class="tdot" onclick="markDone(this)" title="Similarity Search">S</div>
+      <div class="tdot" onclick="markDone(this)" title="RAG Pipeline">G</div>
+      <div class="tdot" onclick="markDone(this)" title="Hybrid Search">H</div>
+      <div class="tdot" onclick="markDone(this)" title="Exercises">X</div>
+    </div>
+  </div>
+  <div class="topics-grid">
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🧠</div>
+      <div class="topic-name">What is RAG?</div>
+      <div class="topic-sub">Retrieval-Augmented Generation — grounding LLMs with your own data</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📐</div>
+      <div class="topic-name">Vector Embeddings</div>
+      <div class="topic-sub">Converting text to numerical vectors that encode semantic meaning</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🐘</div>
+      <div class="topic-name">pgvector</div>
+      <div class="topic-sub">Postgres extension for storing and querying vector data at scale</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">✂️</div>
+      <div class="topic-name">Chunking Strategy</div>
+      <div class="topic-sub">Splitting documents into optimal pieces for embedding and retrieval</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🎯</div>
+      <div class="topic-name">Similarity Search</div>
+      <div class="topic-sub">Cosine similarity, L2 distance, and dot product for finding matches</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔀</div>
+      <div class="topic-name">RAG Pipeline</div>
+      <div class="topic-sub">Embed → Store → Retrieve → Augment → Generate end-to-end flow</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔍</div>
+      <div class="topic-name">Hybrid Search</div>
+      <div class="topic-sub">Combining vector similarity with keyword BM25 for best results</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🛍️</div>
+      <div class="topic-name">ShopCo Integration</div>
+      <div class="topic-sub">Embedding product descriptions, reviews, and FAQs for AI search</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPTS -->
+<section class="section" id="concepts">
+  <div class="section-header">
+    <span class="section-badge">02</span>
+    <h2 class="section-title">Core Concepts</h2>
+  </div>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <h3>🧠 Why RAG?</h3>
+      <p>LLMs are trained on public data up to a cutoff date — they know nothing about <em>your</em> products, docs, or business. RAG solves this by <strong>retrieving relevant context</strong> from your own database and injecting it into the prompt before generation. The LLM answers using your real data, not hallucinations.</p>
+    </div>
+    <div class="concept-card">
+      <h3>📐 What is an Embedding?</h3>
+      <p>An embedding is a list of numbers (e.g. 1536 floats) that represents the <strong>semantic meaning</strong> of text. "blue running shoes" and "azure sneakers for jogging" produce similar vectors even though no words match. Models like <code>text-embedding-3-small</code> convert any text to these vectors.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🎯 Cosine Similarity</h3>
+      <p>Two vectors are "similar" if they point in the same direction, regardless of magnitude. <strong>Cosine similarity = 1</strong> means identical meaning, <strong>0</strong> means unrelated, <strong>-1</strong> means opposite. pgvector uses <code>&lt;=&gt;</code> for cosine distance (1 - similarity), so lower = more similar.</p>
+    </div>
+    <div class="concept-card">
+      <h3>✂️ Chunking</h3>
+      <p>You can't embed an entire product catalogue as one vector. Split content into <strong>chunks of ~500 tokens</strong> with ~50-token overlap so context isn't lost at boundaries. For ShopCo: one chunk per product (name + description + category + reviews summary).</p>
+    </div>
+    <div class="concept-card">
+      <h3>🐘 pgvector</h3>
+      <p>A Postgres extension that adds a <code>vector</code> column type and distance operators. Add it to your Prisma schema with <code>Unsupported("vector(1536)")</code>. Create an <strong>HNSW index</strong> for fast approximate nearest-neighbour search across millions of rows.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🔀 Hybrid Search</h3>
+      <p>Pure vector search misses exact keyword matches. Pure full-text search misses semantic similarity. <strong>Hybrid search</strong> combines both using Reciprocal Rank Fusion (RRF) — merge and re-rank results from both systems. Best for e-commerce where users mix product names with descriptions.</p>
+    </div>
+  </div>
+
+  <!-- RAG FLOW -->
+  <h3 style="font-size:16px;font-weight:700;margin:28px 0 8px">The RAG Pipeline (End-to-End)</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="fs-icon">📝</div><div class="fs-name">Your Data</div><div class="fs-sub">Products, docs, FAQs</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="fs-icon">✂️</div><div class="fs-name">Chunk</div><div class="fs-sub">~500 tokens</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="fs-icon">📐</div><div class="fs-name">Embed</div><div class="fs-sub">OpenAI API</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="fs-icon">🐘</div><div class="fs-name">Store</div><div class="fs-sub">pgvector</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="fs-icon">🔍</div><div class="fs-name">Retrieve</div><div class="fs-sub">Top-K similar</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="fs-icon">💬</div><div class="fs-name">Augment</div><div class="fs-sub">Inject context</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="fs-icon">✨</div><div class="fs-name">Generate</div><div class="fs-sub">LLM answer</div></div>
+  </div>
+</section>
+
+<!-- PGVECTOR -->
+<section class="section" id="pgvector">
+  <div class="section-header">
+    <span class="section-badge">03</span>
+    <h2 class="section-title">pgvector Setup</h2>
+  </div>
+
+  <div class="code-label">schema.prisma — add vector support to ShopCo</div>
+  <pre><span class="cm">// Enable pgvector extension</span>
+<span class="kw">generator</span> client {
+  provider        = <span class="str">"prisma-client-js"</span>
+  previewFeatures = [<span class="str">"postgresqlExtensions"</span>]
+}
+
+<span class="kw">datasource</span> db {
+  provider   = <span class="str">"postgresql"</span>
+  url        = <span class="prop">env</span>(<span class="str">"DATABASE_URL"</span>)
+  extensions = [vector]
+}
+
+<span class="kw">model</span> <span class="ty">Product</span> {
+  id          <span class="ty">String</span>   <span class="prop">@id</span> <span class="prop">@default</span>(<span class="fn">cuid</span>())
+  name        <span class="ty">String</span>
+  description <span class="ty">String</span>
+  price       <span class="ty">Float</span>
+  category    <span class="ty">String</span>
+  <span class="cm">// 1536-dim vector from text-embedding-3-small</span>
+  embedding   <span class="ty">Unsupported</span>(<span class="str">"vector(1536)"</span>)?
+  createdAt   <span class="ty">DateTime</span> <span class="prop">@default</span>(<span class="fn">now</span>())
+}
+
+<span class="kw">model</span> <span class="ty">ProductChunk</span> {
+  id        <span class="ty">String</span>               <span class="prop">@id</span> <span class="prop">@default</span>(<span class="fn">cuid</span>())
+  productId <span class="ty">String</span>
+  content   <span class="ty">String</span>               <span class="cm">// the actual text chunk</span>
+  embedding <span class="ty">Unsupported</span>(<span class="str">"vector(1536)"</span>)?
+  product   <span class="ty">Product</span>              <span class="prop">@relation</span>(fields: [productId], references: [id])
+}</pre>
+
+  <div class="code-label">migration.sql — create HNSW index for fast search</div>
+  <pre><span class="cm">-- Enable extension</span>
+<span class="kw">CREATE EXTENSION IF NOT EXISTS</span> vector;
+
+<span class="cm">-- HNSW index: fast approximate nearest-neighbour</span>
+<span class="cm">-- m=16 (connections per layer), ef_construction=64 (build quality)</span>
+<span class="kw">CREATE INDEX</span> product_embedding_idx
+  <span class="kw">ON</span> <span class="ty">"ProductChunk"</span>
+  <span class="kw">USING hnsw</span> (embedding vector_cosine_ops)
+  <span class="kw">WITH</span> (m = <span class="num">16</span>, ef_construction = <span class="num">64</span>);</pre>
+
+  <div class="code-label">lib/embeddings.ts — embed and search products</div>
+  <pre><span class="kw">import</span> OpenAI <span class="kw">from</span> <span class="str">'openai'</span>
+<span class="kw">import</span> { prisma } <span class="kw">from</span> <span class="str">'@/lib/prisma'</span>
+
+<span class="kw">const</span> <span class="var">openai</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">OpenAI</span>()
+
+<span class="cm">// Embed any text into a 1536-dim vector</span>
+<span class="kw">export async function</span> <span class="fn">embed</span>(<span class="var">text</span>: <span class="ty">string</span>): <span class="ty">Promise</span>&lt;<span class="ty">number</span>[]&gt; {
+  <span class="kw">const</span> { <span class="var">data</span> } <span class="op">=</span> <span class="kw">await</span> <span class="var">openai</span>.<span class="prop">embeddings</span>.<span class="fn">create</span>({
+    model: <span class="str">'text-embedding-3-small'</span>,
+    input: <span class="var">text</span>.<span class="fn">trim</span>().<span class="fn">slice</span>(<span class="num">0</span>, <span class="num">8000</span>), <span class="cm">// token limit</span>
+  })
+  <span class="kw">return</span> <span class="var">data</span>[<span class="num">0</span>].<span class="prop">embedding</span>
+}
+
+<span class="cm">// Embed a product and store it</span>
+<span class="kw">export async function</span> <span class="fn">embedProduct</span>(<span class="var">productId</span>: <span class="ty">string</span>) {
+  <span class="kw">const</span> <span class="var">product</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">product</span>.<span class="fn">findUniqueOrThrow</span>({
+    where: { id: <span class="var">productId</span> }
+  })
+  <span class="kw">const</span> <span class="var">text</span> <span class="op">=</span> <span class="str">`</span><span class="var">${product.name}</span><span class="str">. </span><span class="var">${product.description}</span><span class="str">. Category: </span><span class="var">${product.category}</span><span class="str">`</span>
+  <span class="kw">const</span> <span class="var">vector</span> <span class="op">=</span> <span class="kw">await</span> <span class="fn">embed</span>(<span class="var">text</span>)
+  <span class="cm">// Raw SQL needed — Prisma doesn't support vector type natively yet</span>
+  <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">$executeRaw</span><span class="op">`</span>
+    <span class="kw">UPDATE</span> <span class="str">"Product"</span>
+    <span class="kw">SET</span> <span class="var">embedding</span> <span class="op">=</span> <span class="var">${JSON.stringify(vector)}</span>::vector
+    <span class="kw">WHERE</span> <span class="var">id</span> <span class="op">=</span> <span class="var">${productId}</span>
+  <span class="op">`</span>
+}
+
+<span class="cm">// Semantic search: find top-K products by meaning</span>
+<span class="kw">export async function</span> <span class="fn">searchProducts</span>(<span class="var">query</span>: <span class="ty">string</span>, <span class="var">k</span> <span class="op">=</span> <span class="num">5</span>) {
+  <span class="kw">const</span> <span class="var">qVector</span> <span class="op">=</span> <span class="kw">await</span> <span class="fn">embed</span>(<span class="var">query</span>)
+  <span class="kw">const</span> <span class="var">results</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">$queryRaw</span><span class="op">`</span>
+    <span class="kw">SELECT</span> <span class="var">id</span>, <span class="var">name</span>, <span class="var">price</span>,
+      <span class="num">1</span> <span class="op">-</span> (<span class="var">embedding</span> <span class="op">&lt;=&gt;</span> <span class="var">${JSON.stringify(qVector)}</span>::vector) <span class="kw">AS</span> similarity
+    <span class="kw">FROM</span> <span class="str">"Product"</span>
+    <span class="kw">WHERE</span> <span class="var">embedding</span> <span class="kw">IS NOT NULL</span>
+    <span class="kw">ORDER BY</span> <span class="var">embedding</span> <span class="op">&lt;=&gt;</span> <span class="var">${JSON.stringify(qVector)}</span>::vector
+    <span class="kw">LIMIT</span> <span class="var">${k}</span>
+  <span class="op">`</span>
+  <span class="kw">return</span> <span class="var">results</span>
+}</pre>
+</section>
+
+<!-- PIPELINE -->
+<section class="section" id="pipeline">
+  <div class="section-header">
+    <span class="section-badge">04</span>
+    <h2 class="section-title">RAG Pipeline for ShopCo</h2>
+  </div>
+
+  <div class="code-label">app/api/chat/route.ts — RAG-powered product assistant</div>
+  <pre><span class="kw">import</span> { streamText } <span class="kw">from</span> <span class="str">'ai'</span>
+<span class="kw">import</span> { openai } <span class="kw">from</span> <span class="str">'@ai-sdk/openai'</span>
+<span class="kw">import</span> { searchProducts, embed } <span class="kw">from</span> <span class="str">'@/lib/embeddings'</span>
+
+<span class="kw">export async function</span> <span class="fn">POST</span>(<span class="var">req</span>: <span class="ty">Request</span>) {
+  <span class="kw">const</span> { <span class="var">messages</span> } <span class="op">=</span> <span class="kw">await</span> <span class="var">req</span>.<span class="fn">json</span>()
+  <span class="kw">const</span> <span class="var">lastMsg</span> <span class="op">=</span> <span class="var">messages</span>[<span class="var">messages</span>.<span class="prop">length</span> <span class="op">-</span> <span class="num">1</span>].<span class="prop">content</span>
+
+  <span class="cm">// 1. Embed the user's query</span>
+  <span class="cm">// 2. Retrieve top-5 relevant products</span>
+  <span class="kw">const</span> <span class="var">products</span> <span class="op">=</span> <span class="kw">await</span> <span class="fn">searchProducts</span>(<span class="var">lastMsg</span>, <span class="num">5</span>)
+
+  <span class="cm">// 3. Build context from retrieved products</span>
+  <span class="kw">const</span> <span class="var">context</span> <span class="op">=</span> <span class="var">products</span>
+    .<span class="fn">map</span>((<span class="var">p</span>: <span class="kw">any</span>) <span class="op">=&gt;</span>
+      <span class="str">`- </span><span class="var">${p.name}</span><span class="str"> ($</span><span class="var">${p.price}</span><span class="str">): </span><span class="var">${p.description}</span><span class="str">`</span>)
+    .<span class="fn">join</span>(<span class="str">'\n'</span>)
+
+  <span class="cm">// 4. Augment: inject context into system prompt</span>
+  <span class="kw">const</span> <span class="var">systemPrompt</span> <span class="op">=</span> <span class="str">`You are ShopCo's helpful assistant.
+Answer questions using ONLY the products below.
+If no products match, say so honestly.
+
+AVAILABLE PRODUCTS:
+</span><span class="var">${context}</span><span class="str">`</span>
+
+  <span class="cm">// 5. Generate with context-aware LLM</span>
+  <span class="kw">const</span> <span class="var">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="fn">streamText</span>({
+    model: <span class="fn">openai</span>(<span class="str">'gpt-4o-mini'</span>),
+    system: <span class="var">systemPrompt</span>,
+    messages,
+  })
+  <span class="kw">return</span> <span class="var">result</span>.<span class="fn">toDataStreamResponse</span>()
+}</pre>
+
+  <h3 style="font-size:16px;font-weight:700;margin:28px 0 12px">Chunking Strategies Compared</h3>
+  <table class="compare-table">
+    <thead><tr><th>Strategy</th><th>Best For</th><th>Chunk Size</th><th>Overlap</th><th>ShopCo Use</th></tr></thead>
+    <tbody>
+      <tr><td>Fixed Size</td><td>Uniform docs</td><td>512 tokens</td><td>50 tokens</td><td class="tag-a">Not ideal</td></tr>
+      <tr><td>Sentence Split</td><td>Prose, articles</td><td>3–5 sentences</td><td>1 sentence</td><td class="tag-g">Product descriptions</td></tr>
+      <tr><td>Product Per Chunk</td><td>Structured data</td><td>1 product</td><td>None</td><td class="tag-g">Main approach</td></tr>
+      <tr><td>Semantic Split</td><td>Long documents</td><td>Variable</td><td>Smart</td><td class="tag-g">FAQs &amp; guides</td></tr>
+      <tr><td>Recursive Split</td><td>Mixed content</td><td>Adaptive</td><td>10–20%</td><td class="tag-a">Reviews</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn-box">
+    <strong style="color:var(--amber)">⚠ Common RAG Mistakes:</strong><br/>
+    Chunks too large (loses precision) · Chunks too small (loses context) · No overlap (cuts sentences mid-thought) · Embedding the query differently from the documents · Skipping metadata (category, price) in chunks · Not filtering by business rules before vector search
+  </div>
+</section>
+
+<!-- EXERCISES -->
+<div class="ex-divider">
+  <div class="ex-line"></div>
+  <div class="ex-label">⚡ Exercises</div>
+  <div class="ex-line"></div>
+</div>
+
+<section class="section" id="exercises">
+
+  <!-- EX 1 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">1</div>
+      <div class="runner-title">Cosine Similarity Calculator</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Implement cosine similarity between two vectors. This is the core math behind embedding search — find how similar two vectors are (1 = identical, 0 = unrelated).</div>
+      <textarea id="ta1">// Cosine similarity = dot product / (magnitude A × magnitude B)
+function cosineSimilarity(vecA, vecB) {
+  // 1. Dot product: sum of (a[i] * b[i])
+  const dot = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0)
+  // 2. Magnitude of each vector: sqrt(sum of squares)
+  const magA = Math.sqrt(vecA.reduce((s, a) => s + a * a, 0))
+  const magB = Math.sqrt(vecB.reduce((s, b) => s + b * b, 0))
+  return dot / (magA * magB)
+}
+
+// Simulated 4-dim embeddings for ShopCo products
+const runningShoes  = [0.8, 0.1, 0.5, 0.2]  // "blue running shoes"
+const azureSneakers = [0.75, 0.15, 0.55, 0.18] // "azure sneakers"
+const winterJacket  = [0.1, 0.9, 0.2, 0.8]  // totally different
+
+console.log('Running shoes vs Azure sneakers:',
+  cosineSimilarity(runningShoes, azureSneakers).toFixed(4))
+console.log('Running shoes vs Winter jacket:',
+  cosineSimilarity(runningShoes, winterJacket).toFixed(4))
+console.log('Cosine distance (pgvector <=>):',
+  (1 - cosineSimilarity(runningShoes, azureSneakers)).toFixed(4))
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">2</div>
+      <div class="runner-title">Product Chunker for ShopCo</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a function that converts ShopCo product objects into text chunks ready for embedding. Good chunking = good retrieval.</div>
+      <textarea id="ta2">const products = [
+  { id: 'p1', name: 'TrailRunner Pro X', category: 'Footwear',
+    description: 'Lightweight trail running shoe with carbon fiber plate.',
+    price: 189, rating: 4.8, reviews: ['Amazing grip', 'True to size'] },
+  { id: 'p2', name: 'ArcticShell Jacket', category: 'Outerwear',
+    description: 'Waterproof shell jacket rated to -20°C with pit zips.',
+    price: 349, rating: 4.6, reviews: ['Keeps me dry', 'Runs large'] },
+]
+
+function chunkProduct(product) {
+  // Combine all relevant text for semantic meaning
+  const reviewSummary = product.reviews.join('. ')
+  const content = [
+    `Product: ${product.name}`,
+    `Category: ${product.category}`,
+    `Price: $${product.price}`,
+    `Rating: ${product.rating}/5`,
+    `Description: ${product.description}`,
+    `Customer reviews: ${reviewSummary}`,
+  ].join('\n')
+  return {
+    id: `chunk_${product.id}`,
+    productId: product.id,
+    content,
+    tokenEstimate: Math.ceil(content.length / 4), // ~4 chars/token
+  }
+}
+
+products.forEach(p => {
+  const chunk = chunkProduct(p)
+  console.log(`=== ${chunk.id} ===`)
+  console.log(chunk.content)
+  console.log(`Estimated tokens: ${chunk.tokenEstimate}\n`)
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">3</div>
+      <div class="runner-title">In-Memory Vector Store</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a simple in-memory vector store that can add documents and search them by cosine similarity. This simulates what pgvector does in Postgres.</div>
+      <textarea id="ta3">class VectorStore {
+  constructor() { this.docs = [] }
+
+  // Simulate embed: use simple bag-of-words vectors for demo
+  _mockEmbed(text) {
+    const words = ['shoe','run','trail','jacket','warm','water','sport','fast','light','outdoor']
+    return words.map(w => text.toLowerCase().includes(w) ? 1 : 0)
+  }
+
+  cosineSim(a, b) {
+    const dot = a.reduce((s, v, i) => s + v * b[i], 0)
+    const magA = Math.sqrt(a.reduce((s,v) => s + v*v, 0)) || 1
+    const magB = Math.sqrt(b.reduce((s,v) => s + v*v, 0)) || 1
+    return dot / (magA * magB)
+  }
+
+  add(id, text) {
+    this.docs.push({ id, text, vector: this._mockEmbed(text) })
+    return this
+  }
+
+  search(query, k = 3) {
+    const qVec = this._mockEmbed(query)
+    return this.docs
+      .map(doc => ({ ...doc, score: this.cosineSim(qVec, doc.vector) }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, k)
+      .map(d => ({ id: d.id, score: d.score.toFixed(3), text: d.text.slice(0, 60) }))
+  }
+}
+
+const store = new VectorStore()
+  .add('p1', 'TrailRunner Pro X lightweight trail running shoe carbon fiber')
+  .add('p2', 'ArcticShell waterproof warm outdoor jacket sport')
+  .add('p3', 'SpeedLite running shoe fast light sport performance')
+  .add('p4', 'Summit Parka warm outdoor jacket water resistant')
+
+console.log('Query: "fast running shoe for trails"')
+console.log(JSON.stringify(store.search('fast running shoe for trails'), null, 2))
+console.log('\nQuery: "warm outdoor jacket"')
+console.log(JSON.stringify(store.search('warm outdoor jacket'), null, 2))
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">4</div>
+      <div class="runner-title">Hybrid Search with RRF</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Implement Reciprocal Rank Fusion (RRF) to combine vector similarity results with keyword search results. This is what production e-commerce search uses.</div>
+      <textarea id="ta4">const products = [
+  { id: 'p1', name: 'TrailRunner Pro X', desc: 'trail running shoe carbon fiber plate lightweight' },
+  { id: 'p2', name: 'SpeedMax Elite', desc: 'road running shoe fast cushioned marathon racing' },
+  { id: 'p3', name: 'ArcticShell Jacket', desc: 'waterproof jacket outdoor winter warm' },
+  { id: 'p4', name: 'TrailShield Boot', desc: 'trail hiking boot waterproof ankle support' },
+  { id: 'p5', name: 'RunLite Sneaker', desc: 'casual running shoe lightweight everyday comfortable' },
+]
+
+// Simulate vector search (by mock embedding similarity)
+function vectorSearch(query) {
+  const qWords = query.toLowerCase().split(' ')
+  return products
+    .map(p => {
+      const text = (p.name + ' ' + p.desc).toLowerCase()
+      const score = qWords.filter(w => text.includes(w)).length / qWords.length
+      return { id: p.id, score }
+    })
+    .sort((a,b) => b.score - a.score)
+}
+
+// Keyword search (exact word match count)
+function keywordSearch(query) {
+  const qWords = query.toLowerCase().split(' ')
+  return products
+    .map(p => {
+      const text = p.name.toLowerCase()
+      const hits = qWords.filter(w => text.includes(w)).length
+      return { id: p.id, score: hits }
+    })
+    .filter(r => r.score > 0)
+    .sort((a,b) => b.score - a.score)
+}
+
+// Reciprocal Rank Fusion: score = sum of 1/(k + rank)
+function rrfFuse(lists, k = 60) {
+  const scores = {}
+  lists.forEach(list => {
+    list.forEach(({ id }, rank) => {
+      scores[id] = (scores[id] || 0) + 1 / (k + rank + 1)
+    })
+  })
+  return Object.entries(scores)
+    .sort(([,a],[,b]) => b - a)
+    .map(([id, score]) => ({
+      id,
+      name: products.find(p => p.id === id).name,
+      rrf: score.toFixed(4)
+    }))
+}
+
+const query = 'trail running shoe'
+const vResults = vectorSearch(query)
+const kResults = keywordSearch(query)
+const hybrid  = rrfFuse([vResults, kResults])
+
+console.log('Vector results:', vResults.map(r => r.id).join(', '))
+console.log('Keyword results:', kResults.map(r => r.id).join(', '))
+console.log('\nHybrid RRF ranking:')
+hybrid.forEach((r,i) => console.log(`  ${i+1}. ${r.name} (RRF: ${r.rrf})`))
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">5</div>
+      <div class="runner-title">RAG Context Builder</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build the "Augment" step of RAG: take retrieved products and format them into an optimal system prompt for the LLM. Include token budget management.</div>
+      <textarea id="ta5">// Simulate retrieved products from pgvector search
+const retrieved = [
+  { id:'p1', name:'TrailRunner Pro X', price:189, similarity:0.94,
+    description:'Lightweight trail running shoe with carbon fiber plate and Vibram outsole.',
+    category:'Footwear', inStock:true, rating:4.8 },
+  { id:'p2', name:'SpeedMax Elite', price:229, similarity:0.81,
+    description:'Road racing shoe for marathon runners with nitrogen-infused foam.',
+    category:'Footwear', inStock:true, rating:4.7 },
+  { id:'p3', name:'TrailHiker Boot', price:159, similarity:0.72,
+    description:'Waterproof hiking boot with ankle support, rated for light trails.',
+    category:'Footwear', inStock:false, rating:4.3 },
+]
+
+function buildRAGContext(products, query, maxTokens = 800) {
+  let tokenBudget = maxTokens
+  const lines = []
+
+  // Filter out-of-stock if query implies buying intent
+  const buyIntent = /buy|price|order|get|want/i.test(query)
+  const filtered = buyIntent
+    ? products.filter(p => p.inStock)
+    : products
+
+  // Format each product, respecting token budget
+  for (const p of filtered) {
+    const entry = [
+      `[${p.name}] $${p.price} | ⭐${p.rating} | ${p.inStock?'In Stock':'Out of Stock'}`,
+      `Category: ${p.category}`,
+      `Match score: ${(p.similarity * 100).toFixed(0)}%`,
+      `Info: ${p.description}`,
+    ].join('\n')
+
+    const entryTokens = Math.ceil(entry.length / 4)
+    if (entryTokens > tokenBudget) break
+    lines.push(entry)
+    tokenBudget -= entryTokens
+  }
+
+  const context = lines.join('\n\n')
+  const systemPrompt = `You are ShopCo's product assistant. Answer using ONLY the products below.
+Be specific about prices and ratings. If asked to compare, highlight key differences.
+Say "I don't have that in stock" if the product is unavailable.
+
+RELEVANT PRODUCTS:
+${context}
+
+USER QUERY: "${query}"`
+
+  return {
+    systemPrompt,
+    productsUsed: lines.length,
+    estimatedTokens: Math.ceil(systemPrompt.length / 4),
+    tokenBudgetRemaining: tokenBudget,
+  }
+}
+
+const query = 'I want to buy a fast trail running shoe'
+const result = buildRAGContext(retrieved, query)
+console.log('=== Generated System Prompt ===')
+console.log(result.systemPrompt)
+console.log('\n=== Stats ===')
+console.log(`Products used: ${result.productsUsed}/${retrieved.length}`)
+console.log(`Estimated tokens: ${result.estimatedTokens}`)
+console.log(`Budget remaining: ${result.tokenBudgetRemaining} tokens`)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">6</div>
+      <div class="runner-title">Embedding Pipeline Batch Processor</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate a production batch embedding pipeline that processes the entire ShopCo product catalogue, handles rate limits, tracks progress, and reports cost estimates.</div>
+      <textarea id="ta6">// Simulate a production embedding pipeline
+class EmbeddingPipeline {
+  constructor({ batchSize = 20, rateLimit = 100, costPer1kTokens = 0.00002 } = {}) {
+    this.batchSize = batchSize
+    this.rateLimit = rateLimit // requests per minute
+    this.costPer1k = costPer1kTokens
+    this.processed = 0
+    this.failed = 0
+    this.totalTokens = 0
+  }
+
+  estimateTokens(text) { return Math.ceil(text.length / 4) }
+
+  async processBatch(items) {
+    // Simulate API call with occasional failures
+    await new Promise(r => setTimeout(r, 10)) // fake network delay
+    const results = []
+    for (const item of items) {
+      const tokens = this.estimateTokens(item.content)
+      if (Math.random() > 0.95) { // 5% failure rate
+        this.failed++
+        results.push({ id: item.id, status: 'failed', error: 'Rate limit' })
+      } else {
+        this.processed++
+        this.totalTokens += tokens
+        // Fake 1536-dim vector (just 4 for demo)
+        results.push({
+          id: item.id,
+          status: 'ok',
+          tokens,
+          vector: Array.from({length:4}, () => +(Math.random()*2-1).toFixed(4))
+        })
+      }
+    }
+    return results
+  }
+
+  async run(products) {
+    console.log(`Starting pipeline: ${products.length} products, batch size ${this.batchSize}`)
+    const chunks = products.map(p => ({
+      id: p.id,
+      content: `${p.name}. ${p.desc}. Category: ${p.cat}. $${p.price}`
+    }))
+
+    const allResults = []
+    for (let i = 0; i < chunks.length; i += this.batchSize) {
+      const batch = chunks.slice(i, i + this.batchSize)
+      const results = await this.processBatch(batch)
+      allResults.push(...results)
+      const pct = Math.round(((i + batch.length) / chunks.length) * 100)
+      console.log(`Batch ${Math.ceil((i+1)/this.batchSize)}: processed ${Math.min(i+this.batchSize,chunks.length)}/${chunks.length} (${pct}%)`)
+    }
+
+    const cost = (this.totalTokens / 1000) * this.costPer1k
+    console.log('\n=== Pipeline Complete ===')
+    console.log(`✓ Processed: ${this.processed}`)
+    console.log(`✗ Failed: ${this.failed}`)
+    console.log(`Tokens used: ${this.totalTokens.toLocaleString()}`)
+    console.log(`Estimated cost: $${cost.toFixed(6)}`)
+    console.log(`Avg tokens/product: ${Math.round(this.totalTokens/this.processed)}`)
+    return allResults
+  }
+}
+
+// Simulate 50 ShopCo products
+const catalogue = Array.from({length:50}, (_,i) => ({
+  id: `prod_${i+1}`,
+  name: ['TrailRunner','SpeedMax','ArcticShell','SummitPack','HydroFlask'][i%5] + ` ${i+1}`,
+  desc: 'Premium outdoor gear built for performance and durability.',
+  cat: ['Footwear','Jackets','Bags','Hydration'][i%4],
+  price: 49 + (i * 7)
+}))
+
+const pipeline = new EmbeddingPipeline({ batchSize: 10 })
+pipeline.run(catalogue)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+</section>
+
+<!-- Q&A -->
+<section class="section" id="qa">
+  <div class="section-header">
+    <span class="section-badge">05</span>
+    <h2 class="section-title">Interview Q&amp;A</h2>
+  </div>
+
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">1. What is RAG and why is it better than fine-tuning for product search?</div>
+    <div class="ans-text">RAG (Retrieval-Augmented Generation) retrieves relevant documents at query time and injects them into the prompt. Fine-tuning bakes knowledge into model weights. For product search, RAG is better because: products change frequently (fine-tuning is expensive to redo), you get exact prices/stock at query time, and the LLM can cite specific products. Fine-tuning is better for style/behaviour — not dynamic data.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">2. Explain cosine similarity vs L2 (Euclidean) distance for embeddings.</div>
+    <div class="ans-text">Cosine similarity measures the <em>angle</em> between vectors (direction of meaning), ignoring magnitude. L2 distance measures straight-line distance between vector endpoints. For text embeddings, cosine is preferred because the magnitude of a vector often reflects text length, not meaning — "cat" and "the cat sat on the mat" should be similar in direction even if different in magnitude. pgvector uses <code>&lt;=&gt;</code> for cosine distance and <code>&lt;-&gt;</code> for L2.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">3. What is the difference between HNSW and IVFFlat indexes in pgvector?</div>
+    <div class="ans-text">HNSW (Hierarchical Navigable Small World) builds a graph of vectors for navigation — better recall, faster queries, no training needed, but higher memory. IVFFlat divides vectors into clusters (inverted file) then searches nearby clusters — lower memory, requires training with <code>VACUUM ANALYZE</code>, slightly lower recall. For ShopCo with &lt;1M products, HNSW is recommended. IVFFlat for &gt;10M rows where memory is constrained.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">4. How do you handle the "lost in the middle" problem in RAG?</div>
+    <div class="ans-text">LLMs attend better to content at the beginning and end of the context window — the "lost in the middle" problem. Mitigate with: (1) put the most relevant chunks first and last, (2) reduce k (fewer but better chunks), (3) use re-ranking models (cross-encoders) to score each chunk against the query after retrieval, (4) use <code>max_marginal_relevance_search</code> to diversify results and avoid redundancy.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">5. What is Reciprocal Rank Fusion (RRF) and when do you use it?</div>
+    <div class="ans-text">RRF combines multiple ranked result lists into one by scoring each item as <code>sum(1 / (k + rank))</code> across all lists, where k=60 is a smoothing constant. Use it for hybrid search: combine vector similarity results with BM25 keyword results. The advantage is it's rank-based (not score-based) so you don't need to normalize scores from different systems. Works well in e-commerce where users mix semantic queries with exact product names.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">6. How do you decide on chunk size for embeddings?</div>
+    <div class="ans-text">It's a precision vs context trade-off. Smaller chunks (128–256 tokens): precise retrieval, loses surrounding context. Larger chunks (512–1024 tokens): more context, less precise. Rules of thumb: (1) match chunk size to your query length — a one-line product search needs small chunks, (2) use 10–20% overlap to avoid boundary issues, (3) respect semantic boundaries (sentences, paragraphs), (4) for ShopCo products: one product per chunk is natural and works well.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">7. How do you evaluate RAG quality?</div>
+    <div class="ans-text">Key metrics: <strong>Retrieval quality</strong> — precision@k (what % of top-k retrieved are relevant), recall@k (what % of relevant items were retrieved). <strong>Generation quality</strong> — faithfulness (does the answer come from the context?), relevance (does it answer the question?), groundedness (can every claim be traced to a retrieved doc?). Tools: RAGAS framework, LlamaIndex evaluation, manual human review. For ShopCo: test with real customer queries and verify the returned products actually match intent.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">8. What is the difference between text-embedding-3-small and text-embedding-3-large?</div>
+    <div class="ans-text"><code>text-embedding-3-small</code>: 1536 dimensions, ~5× cheaper, great for most use cases. <code>text-embedding-3-large</code>: 3072 dimensions, higher quality on complex tasks, 13× more expensive. For ShopCo product search, small is sufficient — products are short texts with clear keywords. Use large for complex FAQ matching or document analysis. You can also specify <code>dimensions</code> param to reduce output size (e.g. 256-dim) at the cost of some quality.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">9. How do you keep embeddings in sync when products change?</div>
+    <div class="ans-text">Three strategies: (1) <strong>On-write</strong>: re-embed in a Prisma middleware or after-update hook — synchronous, adds latency to writes. (2) <strong>Background job</strong>: queue changed product IDs and process them async with a cron job — best for bulk updates. (3) <strong>Change data capture</strong>: use Postgres logical replication or triggers to detect changes and trigger re-embedding. For ShopCo: use Prisma middleware for individual edits, batch job for catalogue imports. Track an <code>embeddedAt</code> timestamp to detect staleness.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">10. How would you implement multi-tenant RAG where each store has isolated product data?</div>
+    <div class="ans-text">Add a <code>storeId</code> column to your embeddings table and always include <code>WHERE store_id = $1</code> in vector queries. This ensures Postgres filters rows before doing similarity search. For pgvector, add a partial index: <code>CREATE INDEX ON product_chunks USING hnsw (embedding vector_cosine_ops) WHERE store_id = 'store_123'</code>. Alternatively use separate Postgres schemas per tenant (full isolation, harder to manage). Avoid putting all tenants in one vector space and filtering after — it wastes compute and leaks data if a bug occurs.</div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section class="section" id="checklist">
+  <div class="section-header">
+    <span class="section-badge">06</span>
+    <h2 class="section-title">Night Review Checklist</h2>
+  </div>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain what an embedding is and why semantic similarity works</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand cosine similarity and can implement it from scratch</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to add pgvector to a Prisma/Postgres project</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the difference between HNSW and IVFFlat indexes</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write raw SQL to query vectors with the &lt;=&gt; operator</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand chunking strategies and can pick the right one</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can build the full RAG pipeline: chunk → embed → store → retrieve → augment → generate</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand hybrid search and how RRF combines vector + keyword results</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built the cosine similarity exercise and understood the output</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built the in-memory vector store exercise</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the RRF fusion exercise and could explain it in an interview</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain why you'd use text-embedding-3-small vs large</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to keep embeddings in sync when products are updated</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can answer all 10 interview questions confidently</div></div>
+  </div>
+  <div class="tomorrow-box">
+    <h4>🌅 Tomorrow — Day 31: AI Agents & Tools</h4>
+    <p>We'll build multi-step AI agents that can use tools — letting Claude call functions like <code>searchProducts()</code>, <code>checkInventory()</code>, and <code>placeOrder()</code> autonomously. You'll wire up tool calling with the Vercel AI SDK and build a ShopCo shopping agent that can research, compare, and recommend products in a multi-turn conversation. Prepare by reviewing today's RAG pipeline — the agent will use it as one of its tools.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-btns">
+    <button class="footer-btn" onclick="navigateTo('day29_genai_vercel_ai_sdk.html',29)">← Day 29: GenAI SDK</button>
+    <button class="footer-btn primary" onclick="navigateTo('day31_ai_agents_tools.html',31)">Day 31: AI Agents →</button>
+  </div>
+  <div class="week-prog">
+    <div class="week-prog-label">Week 5 Progress — 4 of 7 days complete</div>
+    <div class="week-prog-bar"><div class="week-prog-fill" style="width:57%"></div></div>
+  </div>
+  <div style="margin-top:16px;font-size:11px;color:var(--hint)">ShopCo Course · Day 30 of 56 · RAG & Embeddings</div>
+</footer>
+
+<script>
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_arrays_objects.html"},
+  {num:3,file:"day3_functions_async.html"},
+  {num:4,file:"day4_error_handling.html"},
+  {num:5,file:"day5_dom_events.html"},
+  {num:6,file:"day6_es6_modules.html"},
+  {num:7,file:"day7_week1_review.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design_rest.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html"},
+  {num:28,file:"day28_error_monitoring.html"},
+  {num:29,file:"day29_genai_vercel_ai_sdk.html"},
+  {num:30,file:"day30_rag_embeddings.html",current:true},
+  {num:31,file:"day31_ai_agents_tools.html"},
+  {num:32,file:"day32_week5_review.html"},
+  {num:33,file:"day33_project_setup.html"},
+  {num:34,file:"day34_auth_roles.html"},
+  {num:35,file:"day35_data_modeling.html"},
+  {num:36,file:"day36_api_layer.html"},
+  {num:37,file:"day37_realtime_features.html"},
+  {num:38,file:"day38_file_uploads.html"},
+  {num:39,file:"day39_week6_review.html"},
+  {num:40,file:"day40_stripe_payments.html"},
+  {num:41,file:"day41_email_notifications.html"},
+  {num:42,file:"day42_search.html"},
+  {num:43,file:"day43_advanced_rag.html"},
+  {num:44,file:"day44_ai_pipelines.html"},
+  {num:45,file:"day45_analytics.html"},
+  {num:46,file:"day46_week7_review.html"},
+  {num:47,file:"day47_accessibility.html"},
+  {num:48,file:"day48_i18n_l10n.html"},
+  {num:49,file:"day49_advanced_testing.html"},
+  {num:50,file:"day50_devops_cicd.html"},
+  {num:51,file:"day51_portfolio_project_1.html"},
+  {num:52,file:"day52_portfolio_project_2.html"},
+  {num:53,file:"day53_resume_github.html"},
+  {num:54,file:"day54_interview_prep.html"},
+  {num:55,file:"day55_mock_interviews.html"},
+  {num:56,file:"day56_graduation.html"},
+]
+const CURRENT = 30
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html",
+  "day2_arrays_objects.html",
+  "day3_functions_async.html",
+  "day5_dom_events.html",
+  "day6_es6_modules.html",
+  "day7_week1_review.html",
+  "day8_react_essentials.html",
+  "day9_react_state_events.html",
+  "day10_react_hooks.html",
+  "day11_react_router.html",
+  "day12_context_global_state.html",
+  "day13_week2_review.html",
+  "day14_react_query.html",
+  "day15_advanced_react_query.html",
+  "day16_react_hook_form.html",
+  "day17_typescript_react.html",
+  "day18_tailwind_css.html",
+  "day19_week3_review.html",
+  "day20_advanced_patterns.html",
+  "day21_nextjs_app_router.html",
+  "day22_auth_clerk.html",
+  "day23_prisma_database.html",
+  "day24_api_design_rest.html",
+  "day25_week4_review.html",
+  "day26_performance.html",
+  "day27_testing.html",
+  "day28_error_monitoring.html",
+  "day29_genai_vercel_ai_sdk.html",
+  "day30_rag_embeddings.html",
+  "day31_ai_agents_tools.html"
+])
+
+function navigateTo(file, n) {
+  if (AVAILABLE.has(file)) window.location.href = file
+  else showToast('Day ' + n + ' coming soon!')
+}
+
+function showToast(msg) {
+  const t = document.createElement('div')
+  t.className = 'toast'
+  t.textContent = msg
+  document.body.appendChild(t)
+  setTimeout(() => t.remove(), 3000)
+}
+
+// Build day dots
+const dotsEl = document.getElementById('day-dots')
+DAY_PLAN.forEach(d => {
+  const btn = document.createElement('button')
+  btn.className = 'ddot' + (d.current ? ' current' : AVAILABLE.has(d.file) ? ' done available' : ' available')
+  btn.title = 'Day ' + d.num
+  btn.onclick = () => navigateTo(d.file, d.num)
+  dotsEl.appendChild(btn)
+})
+
+function runCode(btn) {
+  const wrap = btn.closest('.runner')
+  const ta   = wrap.querySelector('textarea')
+  const out  = wrap.querySelector('.output-box')
+  const logs = []
+  const o = console.log, ow = console.warn, oe = console.error
+  console.log   = (...a) => logs.push(a.map(x => typeof x==='object'&&x!==null ? JSON.stringify(x,null,2) : String(x)).join(' '))
+  console.warn  = (...a) => logs.push('⚠ ' + a.join(' '))
+  console.error = (...a) => logs.push('✗ ' + a.join(' '))
+  out.classList.remove('err')
+  try {
+    new Function(ta.value)()
+    out.textContent = logs.length ? logs.join('\n') : '(no output)'
+  } catch(e) {
+    out.classList.add('err')
+    out.textContent = '✗ ' + e.message
+  }
+  console.log = o; console.warn = ow; console.error = oe
+}
+
+function updateProgress() {
+  const done   = document.querySelectorAll('.tdot.done').length
+  const checked = document.querySelectorAll('.cl-box.checked').length
+  const total  = document.querySelectorAll('.tdot').length + document.querySelectorAll('.cl-box').length
+  const pct    = Math.round(((done + checked) / total) * 100)
+  document.getElementById('prog-fill').style.width = pct + '%'
+  document.getElementById('pct-label').textContent = pct + '%'
+}
+
+function markDone(el) { el.classList.toggle('done'); updateProgress() }
+
+function toggleCheck(el) {
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+
+// Active nav on scroll
+const secs  = document.querySelectorAll('.section')
+const links = document.querySelectorAll('.nav-links a')
+window.addEventListener('scroll', () => {
+  let cur = ''
+  secs.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id })
+  links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur))
+}, { passive: true })
+</script>
+</body>
+</html>

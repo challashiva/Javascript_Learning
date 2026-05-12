@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Day 31 — AI Agents & Tools | ShopCo Course</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --accent:#f59e0b;--accent-dim:rgba(245,158,11,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;height:52px;gap:0}
+.nav-brand{font-weight:700;font-size:14px;color:var(--accent);white-space:nowrap;margin-right:24px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:6px 12px;border-radius:6px;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{color:var(--accent);background:var(--accent-dim)}
+.week-banner{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
+.week-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(245,158,11,0.25)}
+.week-desc{font-size:12px;color:var(--muted)}
+.day-nav{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px}
+.day-nav-title{font-size:14px;font-weight:700;color:var(--text);margin-right:8px}
+.day-dots{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.ddot{width:10px;height:10px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .2s;border:none;padding:0}
+.ddot.done{background:var(--green)}
+.ddot.current{background:var(--accent);box-shadow:0 0 8px rgba(245,158,11,0.5)}
+.ddot.available:hover{background:var(--muted);transform:scale(1.2)}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hero{padding:64px 24px 48px;max-width:900px;margin:0 auto;text-align:center}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:20px}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin:0 auto 28px}
+.topic-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:36px}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+.pill.accent{background:var(--accent-dim);border-color:rgba(245,158,11,0.3);color:var(--accent)}
+.stats-row{display:flex;border:1px solid var(--border2);border-radius:12px;overflow:hidden;max-width:500px;margin:0 auto}
+.stat{flex:1;padding:16px 8px;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+.section{padding:48px 24px;max-width:1000px;margin:0 auto}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.section-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(245,158,11,0.2)}
+.section-title{font-size:22px;font-weight:700}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.topic-card:hover{border-color:var(--accent);background:var(--surface2)}
+.topic-card.done{border-color:rgba(74,222,128,0.3);background:var(--green-dim)}
+.topic-icon{font-size:24px;margin-bottom:10px}
+.topic-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.topic-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.progress-label{font-size:14px;font-weight:600}
+.pct{font-size:14px;font-weight:700;color:var(--accent)}
+.prog-bar{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.topic-dots{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tdot{width:28px;height:28px;border-radius:6px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.tdot.done{background:var(--accent-dim);border-color:rgba(245,158,11,0.4);color:var(--accent)}
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.concept-card h3{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.concept-card p{font-size:13px;color:var(--muted);line-height:1.7}
+.concept-card code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:4px;color:var(--teal)}
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7}
+.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#86efac}.num{color:#f9a8d4}.fn{color:#93c5fd}
+.cm{color:#3d3d55;font-style:italic}.var{color:#5eead4}.op{color:#fcd34d}
+.prop{color:#fbbf24}.ty{color:#38bdf8}.tag{color:#fb7185}.attr{color:#fbbf24}
+.compare-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.compare-table th{background:var(--surface3);padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border2)}
+.compare-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--surface2)}
+.tag-g{color:var(--green);font-size:11px;font-weight:600}
+.tag-a{color:var(--amber);font-size:11px;font-weight:600}
+.tag-c{color:var(--coral);font-size:11px;font-weight:600}
+.ex-divider{padding:20px 24px;max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.ex-line{flex:1;height:1px;background:var(--border)}
+.ex-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.runner-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.runner-num{width:24px;height:24px;border-radius:6px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid rgba(245,158,11,0.3)}
+.runner-title{font-size:13px;font-weight:600;flex:1}
+.diff-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.diff-b{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.diff-i{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.diff-a{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.runner-body{padding:16px}
+.runner-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;min-height:130px;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent)}
+.run-btn{margin-top:10px;padding:8px 20px;border-radius:7px;border:none;background:var(--accent);color:#000;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.run-btn:hover{background:#d97706;transform:translateY(-1px)}
+.output-box{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);min-height:48px;white-space:pre-wrap;line-height:1.6}
+.output-box.err{color:var(--coral)}
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.qa-item:hover{border-color:var(--border2)}
+.qa-q{padding:16px 20px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.qa-q::after{content:'▸';color:var(--muted);transition:transform .25s;flex-shrink:0}
+.qa-item.open .qa-q::after{transform:rotate(90deg);color:var(--accent)}
+.qa-item.open{border-color:rgba(245,158,11,0.3)}
+.ans-text{display:none;padding:0 20px 16px;font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border)}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:4px;color:var(--teal)}
+.qa-item.open .ans-text{display:block}
+.checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-bottom:20px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s}
+.cl-item:hover{border-color:var(--border2)}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s}
+.cl-box.checked{background:var(--accent);border-color:var(--accent)}
+.cl-box.checked::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.cl-text{font-size:12px;color:var(--text);line-height:1.5}
+.cl-text.checked{color:var(--muted);text-decoration:line-through}
+.tomorrow-box{background:var(--surface);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:20px;margin-top:16px}
+.tomorrow-box h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.tomorrow-box p{font-size:13px;color:var(--muted);line-height:1.7}
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:24px;text-align:center}
+.footer-btns{display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.footer-btn{padding:10px 24px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.footer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.footer-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.footer-btn.primary:hover{background:#d97706}
+.week-prog{margin-top:16px}
+.week-prog-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.week-prog-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;max-width:300px;margin:0 auto}
+.week-prog-fill{height:100%;background:var(--accent);border-radius:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.info-box{background:var(--accent-dim);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.warn-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.flow{display:flex;align-items:center;gap:0;overflow-x:auto;padding:20px 0;margin:16px 0}
+.flow-step{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:12px 16px;text-align:center;min-width:110px;flex-shrink:0}
+.flow-step .fs-icon{font-size:20px;margin-bottom:6px}
+.flow-step .fs-name{font-size:11px;font-weight:600;color:var(--text)}
+.flow-step .fs-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.flow-arrow{font-size:16px;color:var(--accent);padding:0 8px;flex-shrink:0}
+.loop-arrow{font-size:16px;color:var(--amber);padding:0 8px;flex-shrink:0}
+.agent-loop{background:var(--surface2);border:2px dashed rgba(245,158,11,0.3);border-radius:12px;padding:20px;margin:16px 0}
+.agent-loop-label{font-size:11px;font-weight:700;color:var(--amber);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 31 · AI Agents & Tools</div>
+  <div class="nav-links">
+    <a href="#topics">Topics</a>
+    <a href="#concepts">Concepts</a>
+    <a href="#toolcalling">Tool Calling</a>
+    <a href="#agents">Agents</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#qa">Interview</a>
+    <a href="#checklist">Review</a>
+  </div>
+</nav>
+
+<!-- WEEK BANNER -->
+<div class="week-banner">
+  <span class="week-badge">Week 5</span>
+  <span class="week-desc">Testing & AI Integration — giving your AI the power to act</span>
+</div>
+
+<!-- DAY NAV -->
+<div class="day-nav">
+  <span class="day-nav-title">Day 31 — AI Agents & Tools</span>
+  <div class="day-dots" id="day-dots"></div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="navigateTo('day30_rag_embeddings.html',30)">← Prev</button>
+    <button class="nav-btn" onclick="navigateTo('day32_week5_review.html',32)">Next →</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Week 5 · Day 31 of 56</div>
+  <h1>AI Agents &amp; <span>Tools</span></h1>
+  <p class="hero-sub">Give Claude the ability to call your ShopCo functions — search products, check inventory, place orders — and watch it reason its way to a goal autonomously.</p>
+  <div class="topic-pills">
+    <span class="pill accent">Tool Calling</span>
+    <span class="pill accent">Function Definitions</span>
+    <span class="pill accent">Multi-Step Agents</span>
+    <span class="pill">ReAct Loop</span>
+    <span class="pill">Structured Output</span>
+    <span class="pill">Tool Results</span>
+    <span class="pill">Agent Safety</span>
+    <span class="pill">Vercel AI SDK</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">8</div><div class="stat-l">Topics</div></div>
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Exercises</div></div>
+    <div class="stat"><div class="stat-n">10</div><div class="stat-l">Q&amp;As</div></div>
+    <div class="stat"><div class="stat-n">6h</div><div class="stat-l">Study</div></div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<section class="section" id="topics">
+  <div class="section-header">
+    <span class="section-badge">01</span>
+    <h2 class="section-title">Today's Topics</h2>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label">Day Progress</span>
+      <span class="pct" id="pct-label">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="topic-dots" id="tdots">
+      <div class="tdot" onclick="markDone(this)" title="Tool Calling">T</div>
+      <div class="tdot" onclick="markDone(this)" title="Function Defs">F</div>
+      <div class="tdot" onclick="markDone(this)" title="ReAct Loop">R</div>
+      <div class="tdot" onclick="markDone(this)" title="Multi-Step">M</div>
+      <div class="tdot" onclick="markDone(this)" title="Structured Output">S</div>
+      <div class="tdot" onclick="markDone(this)" title="Parallel Tools">P</div>
+      <div class="tdot" onclick="markDone(this)" title="Agent Safety">A</div>
+      <div class="tdot" onclick="markDone(this)" title="Exercises">X</div>
+    </div>
+  </div>
+  <div class="topics-grid">
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔧</div>
+      <div class="topic-name">Tool Calling</div>
+      <div class="topic-sub">Define functions the LLM can call to get real data or trigger actions</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📋</div>
+      <div class="topic-name">Function Definitions</div>
+      <div class="topic-sub">JSON Schema descriptions that tell the model what tools are available</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔄</div>
+      <div class="topic-name">ReAct Loop</div>
+      <div class="topic-sub">Reason → Act → Observe — the agent's think-call-respond cycle</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🪜</div>
+      <div class="topic-name">Multi-Step Agents</div>
+      <div class="topic-sub">Chaining multiple tool calls to complete complex tasks autonomously</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🏗️</div>
+      <div class="topic-name">Structured Output</div>
+      <div class="topic-sub">Force the LLM to return typed JSON using generateObject and Zod</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">⚡</div>
+      <div class="topic-name">Parallel Tool Calls</div>
+      <div class="topic-sub">Run multiple tool calls simultaneously when they don't depend on each other</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🛡️</div>
+      <div class="topic-name">Agent Safety</div>
+      <div class="topic-sub">Guardrails, max steps, human-in-the-loop, and reversible vs irreversible actions</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🛍️</div>
+      <div class="topic-name">ShopCo Agent</div>
+      <div class="topic-sub">A shopping assistant that searches, compares, and recommends products</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPTS -->
+<section class="section" id="concepts">
+  <div class="section-header">
+    <span class="section-badge">02</span>
+    <h2 class="section-title">Core Concepts</h2>
+  </div>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <h3>🔧 What is Tool Calling?</h3>
+      <p>Instead of generating text, the LLM can signal "I need to call a function" by outputting a structured <code>tool_use</code> block with a function name and arguments. Your code executes the function, returns the result, and the LLM continues — grounding its answer in real data.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🔄 The ReAct Loop</h3>
+      <p><strong>Re</strong>ason + <strong>Act</strong>: the agent thinks about what it needs, calls a tool, observes the result, reasons again, and repeats until the task is done. Each iteration adds a <code>tool_use</code> and <code>tool_result</code> pair to the message history. The loop ends when the LLM produces a final text response with no more tool calls.</p>
+    </div>
+    <div class="concept-card">
+      <h3>📋 Function Definitions</h3>
+      <p>Each tool is described with a name, description, and JSON Schema for its parameters. The description is critical — the LLM decides <em>when</em> to call a tool based purely on your description. Be specific: "Search ShopCo products by keyword" is better than "search".</p>
+    </div>
+    <div class="concept-card">
+      <h3>🏗️ Structured Output</h3>
+      <p>Use <code>generateObject</code> with a Zod schema to force the LLM to return typed JSON. Perfect for extracting product comparisons, order summaries, or analysis reports. Unlike tool calling, structured output is for the <em>final response</em> — not mid-task actions.</p>
+    </div>
+    <div class="concept-card">
+      <h3>⚡ Parallel vs Sequential</h3>
+      <p>When the LLM needs two independent pieces of data, it can request multiple tool calls in a single turn. Execute them in parallel with <code>Promise.all</code> for speed. Sequential calls are needed when each step depends on the previous result (e.g. search → get details → check stock).</p>
+    </div>
+    <div class="concept-card">
+      <h3>🛡️ Safety & Guardrails</h3>
+      <p>Agents are powerful — and can go wrong. Always set <code>maxSteps</code> to prevent infinite loops, distinguish <strong>read-only</strong> tools (safe to auto-execute) from <strong>write</strong> tools (require confirmation), log every tool call, and add a human-in-the-loop gate before irreversible actions like placing orders.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;font-weight:700;margin:28px 0 8px">The Agent ReAct Loop</h3>
+  <div class="agent-loop">
+    <div class="agent-loop-label">🔄 Repeats until final answer</div>
+    <div class="flow">
+      <div class="flow-step"><div class="fs-icon">💭</div><div class="fs-name">Reason</div><div class="fs-sub">What do I need?</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="fs-icon">🔧</div><div class="fs-name">Tool Call</div><div class="fs-sub">Pick + call tool</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="fs-icon">📊</div><div class="fs-name">Observe</div><div class="fs-sub">Read result</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="fs-icon">🤔</div><div class="fs-name">Reason</div><div class="fs-sub">Is task done?</div></div>
+      <div class="loop-arrow">↺</div>
+      <div class="flow-step" style="border-color:rgba(74,222,128,0.4)"><div class="fs-icon">✅</div><div class="fs-name">Answer</div><div class="fs-sub">Final response</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOL CALLING -->
+<section class="section" id="toolcalling">
+  <div class="section-header">
+    <span class="section-badge">03</span>
+    <h2 class="section-title">Tool Calling with Vercel AI SDK</h2>
+  </div>
+
+  <div class="code-label">app/api/agent/route.ts — defining ShopCo tools</div>
+  <pre><span class="kw">import</span> { streamText, tool } <span class="kw">from</span> <span class="str">'ai'</span>
+<span class="kw">import</span> { openai } <span class="kw">from</span> <span class="str">'@ai-sdk/openai'</span>
+<span class="kw">import</span> { z } <span class="kw">from</span> <span class="str">'zod'</span>
+<span class="kw">import</span> { prisma } <span class="kw">from</span> <span class="str">'@/lib/prisma'</span>
+<span class="kw">import</span> { searchProducts } <span class="kw">from</span> <span class="str">'@/lib/embeddings'</span>
+
+<span class="kw">export async function</span> <span class="fn">POST</span>(<span class="var">req</span>: <span class="ty">Request</span>) {
+  <span class="kw">const</span> { <span class="var">messages</span> } <span class="op">=</span> <span class="kw">await</span> <span class="var">req</span>.<span class="fn">json</span>()
+
+  <span class="kw">const</span> <span class="var">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="fn">streamText</span>({
+    model: <span class="fn">openai</span>(<span class="str">'gpt-4o'</span>),
+    maxSteps: <span class="num">5</span>, <span class="cm">// prevent infinite loops</span>
+    system: <span class="str">`You are ShopCo's shopping assistant.
+Use tools to find real product data. Never guess prices or stock.
+Always call searchProducts before recommending anything.`</span>,
+    messages,
+    tools: {
+      <span class="cm">// Tool 1: Semantic product search (from Day 30)</span>
+      <span class="prop">searchProducts</span>: <span class="fn">tool</span>({
+        description: <span class="str">'Search ShopCo products by meaning/intent. Use for any product query.'</span>,
+        parameters: <span class="var">z</span>.<span class="fn">object</span>({
+          query: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">describe</span>(<span class="str">'Natural language search query'</span>),
+          limit: <span class="var">z</span>.<span class="fn">number</span>().<span class="fn">optional</span>().<span class="fn">default</span>(<span class="num">5</span>),
+        }),
+        <span class="kw">execute</span>: <span class="kw">async</span> ({ <span class="var">query</span>, <span class="var">limit</span> }) <span class="op">=&gt;</span> {
+          <span class="kw">return</span> <span class="kw">await</span> <span class="fn">searchProducts</span>(<span class="var">query</span>, <span class="var">limit</span>)
+        },
+      }),
+      <span class="cm">// Tool 2: Check real-time stock</span>
+      <span class="prop">checkInventory</span>: <span class="fn">tool</span>({
+        description: <span class="str">'Check if a specific product is in stock and how many remain.'</span>,
+        parameters: <span class="var">z</span>.<span class="fn">object</span>({
+          productId: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">describe</span>(<span class="str">'The product ID to check'</span>),
+        }),
+        <span class="kw">execute</span>: <span class="kw">async</span> ({ <span class="var">productId</span> }) <span class="op">=&gt;</span> {
+          <span class="kw">const</span> <span class="var">inv</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">inventory</span>.<span class="fn">findUnique</span>({ where: { productId } })
+          <span class="kw">return</span> { inStock: (<span class="var">inv</span>?.<span class="prop">quantity</span> <span class="op">??</span> <span class="num">0</span>) <span class="op">&gt;</span> <span class="num">0</span>, quantity: <span class="var">inv</span>?.<span class="prop">quantity</span> <span class="op">??</span> <span class="num">0</span> }
+        },
+      }),
+      <span class="cm">// Tool 3: Get product reviews</span>
+      <span class="prop">getReviews</span>: <span class="fn">tool</span>({
+        description: <span class="str">'Get customer reviews for a product to assess quality.'</span>,
+        parameters: <span class="var">z</span>.<span class="fn">object</span>({
+          productId: <span class="var">z</span>.<span class="fn">string</span>(),
+          limit: <span class="var">z</span>.<span class="fn">number</span>().<span class="fn">optional</span>().<span class="fn">default</span>(<span class="num">3</span>),
+        }),
+        <span class="kw">execute</span>: <span class="kw">async</span> ({ <span class="var">productId</span>, <span class="var">limit</span> }) <span class="op">=&gt;</span> {
+          <span class="kw">return</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">review</span>.<span class="fn">findMany</span>({
+            where: { productId }, take: <span class="var">limit</span>,
+            orderBy: { createdAt: <span class="str">'desc'</span> },
+            select: { rating: <span class="kw">true</span>, comment: <span class="kw">true</span>, verified: <span class="kw">true</span> }
+          })
+        },
+      }),
+      <span class="cm">// Tool 4: Add to cart (WRITE — confirm before calling in production)</span>
+      <span class="prop">addToCart</span>: <span class="fn">tool</span>({
+        description: <span class="str">'Add a product to the user cart. Only call after explicit user confirmation.'</span>,
+        parameters: <span class="var">z</span>.<span class="fn">object</span>({
+          productId: <span class="var">z</span>.<span class="fn">string</span>(),
+          quantity: <span class="var">z</span>.<span class="fn">number</span>().<span class="fn">min</span>(<span class="num">1</span>),
+        }),
+        <span class="kw">execute</span>: <span class="kw">async</span> ({ <span class="var">productId</span>, <span class="var">quantity</span> }) <span class="op">=&gt;</span> {
+          <span class="cm">// ... cart logic</span>
+          <span class="kw">return</span> { success: <span class="kw">true</span>, message: <span class="str">`Added ${quantity}x to cart`</span> }
+        },
+      }),
+    },
+  })
+  <span class="kw">return</span> <span class="var">result</span>.<span class="fn">toDataStreamResponse</span>()
+}</pre>
+
+  <div class="code-label">Structured output with generateObject — product comparison report</div>
+  <pre><span class="kw">import</span> { generateObject } <span class="kw">from</span> <span class="str">'ai'</span>
+<span class="kw">import</span> { openai } <span class="kw">from</span> <span class="str">'@ai-sdk/openai'</span>
+<span class="kw">import</span> { z } <span class="kw">from</span> <span class="str">'zod'</span>
+
+<span class="kw">const</span> <span class="ty">ComparisonSchema</span> <span class="op">=</span> <span class="var">z</span>.<span class="fn">object</span>({
+  winner:     <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">describe</span>(<span class="str">'Product ID of the recommended choice'</span>),
+  summary:    <span class="var">z</span>.<span class="fn">string</span>().<fn>describe</span>(<span class="str">'One sentence recommendation'</span>),
+  scores:     <span class="var">z</span>.<span class="fn">array</span>(<span class="var">z</span>.<span class="fn">object</span>({
+    productId:    <span class="var">z</span>.<span class="fn">string</span>(),
+    valueScore:   <span class="var">z</span>.<span class="fn">number</span>().<span class="fn">min</span>(<span class="num">1</span>).<span class="fn">max</span>(<span class="num">10</span>),
+    qualityScore: <span class="var">z</span>.<span class="fn">number</span>().<span class="fn">min</span>(<span class="num">1</span>).<span class="fn">max</span>(<span class="num">10</span>),
+    pros:         <span class="var">z</span>.<span class="fn">array</span>(<span class="var">z</span>.<span class="fn">string</span>()),
+    cons:         <span class="var">z</span>.<span class="fn">array</span>(<span class="var">z</span>.<span class="fn">string</span>()),
+  })),
+})
+
+<span class="kw">export async function</span> <span class="fn">compareProducts</span>(<span class="var">products</span>: <span class="ty">Product</span>[]) {
+  <span class="kw">const</span> { <span class="var">object</span> } <span class="op">=</span> <span class="kw">await</span> <span class="fn">generateObject</span>({
+    model: <span class="fn">openai</span>(<span class="str">'gpt-4o-mini'</span>),
+    schema: <span class="ty">ComparisonSchema</span>,
+    prompt: <span class="str">`Compare these ShopCo products and recommend the best one:
+</span><span class="var">${JSON.stringify(products, null, 2)}</span><span class="str">`</span>,
+  })
+  <span class="kw">return</span> <span class="var">object</span> <span class="cm">// fully typed: ComparisonSchema</span>
+}</pre>
+
+  <h3 style="font-size:16px;font-weight:700;margin:28px 0 12px">Tool Types Compared</h3>
+  <table class="compare-table">
+    <thead><tr><th>Tool Type</th><th>Examples</th><th>Auto-execute?</th><th>Risk Level</th><th>ShopCo Tools</th></tr></thead>
+    <tbody>
+      <tr><td>Read-only</td><td>Search, lookup, fetch</td><td class="tag-g">Yes</td><td class="tag-g">Low</td><td>searchProducts, getReviews, checkInventory</td></tr>
+      <tr><td>Write (reversible)</td><td>Add to cart, save draft</td><td class="tag-a">With caution</td><td class="tag-a">Medium</td><td>addToCart, saveWishlist</td></tr>
+      <tr><td>Write (irreversible)</td><td>Place order, charge card</td><td class="tag-c">Never</td><td class="tag-c">High</td><td>placeOrder, processPayment</td></tr>
+      <tr><td>External API</td><td>Email, webhook, SMS</td><td class="tag-c">Confirm first</td><td class="tag-c">High</td><td>sendConfirmation, notifyWarehouse</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- AGENTS -->
+<section class="section" id="agents">
+  <div class="section-header">
+    <span class="section-badge">04</span>
+    <h2 class="section-title">Multi-Step Agent Patterns</h2>
+  </div>
+
+  <div class="code-label">Frontend: useChat hook wired to the agent route</div>
+  <pre><span class="str">'use client'</span>
+<span class="kw">import</span> { useChat } <span class="kw">from</span> <span class="str">'ai/react'</span>
+
+<span class="kw">export function</span> <span class="fn">ShopCoAgent</span>() {
+  <span class="kw">const</span> { <span class="var">messages</span>, <span class="var">input</span>, <span class="prop">handleInputChange</span>, <span class="prop">handleSubmit</span>, <span class="var">isLoading</span> }
+    <span class="op">=</span> <span class="fn">useChat</span>({ api: <span class="str">'/api/agent'</span> })
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"agent-chat"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"messages"</span><span class="tag">&gt;</span>
+        {messages.<span class="fn">map</span>(<span class="var">m</span> <span class="op">=&gt;</span> (
+          <span class="tag">&lt;div</span> <span class="attr">key</span>={m.id} <span class="attr">className</span>={<span class="str">`msg msg-${m.role}`</span>}<span class="tag">&gt;</span>
+            <span class="cm">{/* Show tool invocations in the UI */}</span>
+            {m.toolInvocations?.<span class="fn">map</span>(<span class="var">t</span> <span class="op">=&gt;</span> (
+              <span class="tag">&lt;div</span> <span class="attr">key</span>={t.toolCallId} <span class="attr">className</span>=<span class="str">"tool-call"</span><span class="tag">&gt;</span>
+                <span class="tag">&lt;span&gt;</span>🔧 {t.toolName}<span class="tag">&lt;/span&gt;</span>
+                {t.state <span class="op">===</span> <span class="str">'result'</span> <span class="op">&amp;&amp;</span> <span class="tag">&lt;span&gt;</span>✓<span class="tag">&lt;/span&gt;</span>}
+              <span class="tag">&lt;/div&gt;</span>
+            ))}
+            <span class="tag">&lt;p&gt;</span>{m.content}<span class="tag">&lt;/p&gt;</span>
+          <span class="tag">&lt;/div&gt;</span>
+        ))}
+      <span class="tag">&lt;/div&gt;</span>
+      <span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={handleSubmit}<span class="tag">&gt;</span>
+        <span class="tag">&lt;input</span> <span class="attr">value</span>={input} <span class="attr">onChange</span>={handleInputChange}
+          <span class="attr">placeholder</span>=<span class="str">"Find me trail running shoes under $200..."</span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;button</span> <span class="attr">disabled</span>={isLoading}<span class="tag">&gt;</span>Send<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;/form&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}</pre>
+
+  <div class="warn-box">
+    <strong style="color:var(--coral)">⚠ Agent Safety Rules for ShopCo:</strong><br/>
+    Always set <code>maxSteps: 5</code> — without it, a confused agent loops forever and burns tokens. Never auto-execute cart or order tools without user confirmation. Log every tool call to a database for auditing. Return <code>tool_result</code> errors gracefully (don't throw) so the agent can recover. Rate-limit agent endpoints separately from regular API routes.
+  </div>
+</section>
+
+<!-- EXERCISES -->
+<div class="ex-divider">
+  <div class="ex-line"></div>
+  <div class="ex-label">⚡ Exercises</div>
+  <div class="ex-line"></div>
+</div>
+
+<section class="section" id="exercises">
+
+  <!-- EX 1 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">1</div>
+      <div class="runner-title">Tool Definition Parser</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a function that validates tool definitions before sending to the LLM. Each tool needs a name, description, and valid JSON Schema parameters.</div>
+      <textarea id="ta1">function validateToolDefinition(tool) {
+  const errors = []
+  if (!tool.name || typeof tool.name !== 'string')
+    errors.push('name must be a non-empty string')
+  if (!tool.description || tool.description.length < 10)
+    errors.push('description must be at least 10 chars — the LLM uses this to decide when to call it')
+  if (!tool.parameters || tool.parameters.type !== 'object')
+    errors.push('parameters must be a JSON Schema object type')
+  if (!tool.parameters?.properties || Object.keys(tool.parameters.properties).length === 0)
+    errors.push('parameters must have at least one property')
+  return { valid: errors.length === 0, errors }
+}
+
+const shopCoTools = [
+  {
+    name: 'searchProducts',
+    description: 'Search ShopCo products using semantic similarity. Use for any product-related query.',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Natural language product search query' },
+        limit: { type: 'number', description: 'Max results to return (1-10)', default: 5 }
+      },
+      required: ['query']
+    }
+  },
+  {
+    name: 'bad', // too short description
+    description: 'gets stuff',
+    parameters: { type: 'object', properties: {} }
+  },
+  {
+    name: 'checkInventory',
+    description: 'Check real-time stock levels for a specific product by its ID.',
+    parameters: {
+      type: 'object',
+      properties: { productId: { type: 'string', description: 'The product ID' } },
+      required: ['productId']
+    }
+  }
+]
+
+shopCoTools.forEach(tool => {
+  const result = validateToolDefinition(tool)
+  console.log(`${result.valid ? '✓' : '✗'} ${tool.name}: ${result.valid ? 'valid' : result.errors.join(', ')}`)
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">2</div>
+      <div class="runner-title">Simulated Tool Executor</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a tool executor that routes tool_use blocks from the LLM to the right function, handles errors gracefully, and returns tool_result messages.</div>
+      <textarea id="ta2">// Simulated ShopCo tool implementations
+const TOOLS = {
+  searchProducts: ({ query, limit = 3 }) => {
+    const db = [
+      { id:'p1', name:'TrailRunner Pro X', price:189, category:'Footwear' },
+      { id:'p2', name:'ArcticShell Jacket', price:349, category:'Outerwear' },
+      { id:'p3', name:'SpeedMax Elite', price:229, category:'Footwear' },
+      { id:'p4', name:'HydroTrail Pack', price:89, category:'Bags' },
+    ]
+    const q = query.toLowerCase()
+    return db.filter(p =>
+      p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
+    ).slice(0, limit)
+  },
+  checkInventory: ({ productId }) => {
+    const stock = { p1: 12, p2: 3, p3: 0, p4: 45 }
+    const qty = stock[productId] ?? null
+    if (qty === null) return { error: `Product ${productId} not found` }
+    return { productId, inStock: qty > 0, quantity: qty }
+  },
+  getReviews: ({ productId }) => {
+    return [
+      { rating: 5, comment: 'Best purchase ever!', verified: true },
+      { rating: 4, comment: 'Great quality, runs a bit large', verified: true },
+    ]
+  }
+}
+
+// Tool executor — routes LLM tool_use to real functions
+async function executeToolCall(toolUse) {
+  const { id, name, input } = toolUse
+  const fn = TOOLS[name]
+  if (!fn) {
+    return { tool_use_id: id, type: 'tool_result',
+      content: JSON.stringify({ error: `Unknown tool: ${name}` }), is_error: true }
+  }
+  try {
+    const result = fn(input)
+    return { tool_use_id: id, type: 'tool_result', content: JSON.stringify(result) }
+  } catch (err) {
+    return { tool_use_id: id, type: 'tool_result',
+      content: JSON.stringify({ error: err.message }), is_error: true }
+  }
+}
+
+// Simulate tool calls from an LLM response
+const llmToolCalls = [
+  { id: 'tc_1', name: 'searchProducts', input: { query: 'footwear', limit: 2 } },
+  { id: 'tc_2', name: 'checkInventory', input: { productId: 'p3' } },
+  { id: 'tc_3', name: 'unknownTool', input: {} },
+]
+
+Promise.all(llmToolCalls.map(executeToolCall)).then(results => {
+  results.forEach(r => {
+    const data = JSON.parse(r.content)
+    console.log(`[${r.tool_use_id}] ${r.is_error ? '✗ ERROR' : '✓'}: ${JSON.stringify(data)}`)
+  })
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">3</div>
+      <div class="runner-title">ReAct Loop Simulator</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate the agent's ReAct loop: the LLM "reasons", picks tools, you execute them, feed results back, and repeat until a final answer is produced. No real LLM needed.</div>
+      <textarea id="ta3">// Simulate the ReAct loop for: "Find me trail shoes and check if they're in stock"
+const FAKE_DB = {
+  p1: { name:'TrailRunner Pro X', price:189, category:'Footwear' },
+  p2: { name:'TrailShield Boot', price:159, category:'Footwear' },
+}
+const FAKE_STOCK = { p1: 5, p2: 0 }
+
+// Simulated "LLM responses" for each step
+function simulateLLM(messages) {
+  const step = messages.filter(m => m.role === 'tool').length
+  if (step === 0) {
+    return { type: 'tool_use', calls: [
+      { id:'tc1', name:'searchProducts', input:{ query:'trail shoes' } }
+    ]}
+  }
+  if (step === 1) {
+    // LLM sees search results, now checks stock for both
+    return { type: 'tool_use', calls: [
+      { id:'tc2', name:'checkInventory', input:{ productId:'p1' } },
+      { id:'tc3', name:'checkInventory', input:{ productId:'p2' } },
+    ]}
+  }
+  // Final step: LLM has all info, produces answer
+  return { type: 'text', content: 'TrailRunner Pro X is in stock (5 units, $189). TrailShield Boot is out of stock. I recommend the TrailRunner Pro X.' }
+}
+
+function executeTool(name, input) {
+  if (name === 'searchProducts') {
+    return Object.entries(FAKE_DB)
+      .filter(([,p]) => p.name.toLowerCase().includes(input.query.replace(' ', '')))
+      .map(([id, p]) => ({ id, ...p }))
+  }
+  if (name === 'checkInventory') {
+    const qty = FAKE_STOCK[input.productId] ?? 0
+    return { productId: input.productId, inStock: qty > 0, quantity: qty }
+  }
+}
+
+// Run the loop
+async function runAgentLoop(userQuery, maxSteps = 5) {
+  const messages = [{ role: 'user', content: userQuery }]
+  console.log(`👤 User: ${userQuery}\n`)
+  for (let step = 0; step < maxSteps; step++) {
+    const response = simulateLLM(messages)
+    if (response.type === 'text') {
+      console.log(`🤖 Agent: ${response.content}`)
+      console.log(`\nCompleted in ${step + 1} step(s)`)
+      return
+    }
+    // Execute all tool calls (parallel if multiple)
+    console.log(`Step ${step + 1}: calling ${response.calls.map(c => c.name).join(' + ')}`)
+    for (const call of response.calls) {
+      const result = executeTool(call.name, call.input)
+      console.log(`  🔧 ${call.name}(${JSON.stringify(call.input)}) → ${JSON.stringify(result)}`)
+      messages.push({ role: 'tool', tool_use_id: call.id, content: JSON.stringify(result) })
+    }
+  }
+  console.log('Max steps reached — stopping agent')
+}
+
+runAgentLoop('Find me trail shoes and check if they are in stock')
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">4</div>
+      <div class="runner-title">Structured Output Schema Builder</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a runtime validator for structured LLM output. Simulate generateObject by validating that the LLM's JSON response matches your expected schema (mimicking what Zod does).</div>
+      <textarea id="ta4">// Simulate Zod-style schema validation for generateObject
+function createSchema(shape) {
+  return {
+    shape,
+    parse(data) {
+      const errors = []
+      const result = {}
+      for (const [key, rule] of Object.entries(shape)) {
+        const val = data[key]
+        if (rule.required && (val === undefined || val === null)) {
+          errors.push(`${key}: required field missing`)
+          continue
+        }
+        if (val !== undefined) {
+          if (rule.type === 'string' && typeof val !== 'string')
+            errors.push(`${key}: expected string, got ${typeof val}`)
+          if (rule.type === 'number' && typeof val !== 'number')
+            errors.push(`${key}: expected number, got ${typeof val}`)
+          if (rule.type === 'array' && !Array.isArray(val))
+            errors.push(`${key}: expected array`)
+          if (rule.min !== undefined && val < rule.min)
+            errors.push(`${key}: must be >= ${rule.min}`)
+          if (rule.max !== undefined && val > rule.max)
+            errors.push(`${key}: must be <= ${rule.max}`)
+          result[key] = val
+        }
+      }
+      if (errors.length > 0) throw new Error('Validation failed:\n  ' + errors.join('\n  '))
+      return result
+    }
+  }
+}
+
+const ComparisonSchema = createSchema({
+  winner:  { type:'string', required:true },
+  summary: { type:'string', required:true },
+  confidence: { type:'number', required:true, min:0, max:1 },
+  pros: { type:'array', required:true },
+  cons: { type:'array', required:true },
+})
+
+// Simulated LLM responses
+const goodResponse = {
+  winner: 'p1',
+  summary: 'TrailRunner Pro X offers the best value for trail running with superior grip.',
+  confidence: 0.87,
+  pros: ['Lightweight carbon plate', 'Vibram outsole', 'True to size'],
+  cons: ['Premium price point', 'Not waterproof'],
+}
+const badResponse = {
+  winner: 'p1',
+  confidence: 1.5, // exceeds max!
+  pros: 'should be array', // wrong type
+}
+
+console.log('=== Testing good response ===')
+try {
+  const result = ComparisonSchema.parse(goodResponse)
+  console.log('✓ Valid:', JSON.stringify(result, null, 2))
+} catch (e) { console.log('✗', e.message) }
+
+console.log('\n=== Testing bad response ===')
+try {
+  ComparisonSchema.parse(badResponse)
+} catch (e) { console.log('✗ Caught errors:\n' + e.message) }
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">5</div>
+      <div class="runner-title">Parallel Tool Call Optimizer</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a smart tool executor that detects which tool calls can run in parallel vs which must be sequential (because they depend on previous results). Measure the speedup.</div>
+      <textarea id="ta5">// Simulate async tools with realistic latencies
+function mockDelay(ms) { return new Promise(r => setTimeout(r, ms)) }
+
+const TOOLS = {
+  searchProducts: async ({ query }) => {
+    await mockDelay(50) // 50ms DB query
+    return [{ id:'p1', name:'TrailRunner' }, { id:'p2', name:'SpeedMax' }]
+  },
+  checkInventory: async ({ productId }) => {
+    await mockDelay(30) // 30ms cache lookup
+    return { productId, inStock: productId === 'p1', quantity: productId === 'p1' ? 8 : 0 }
+  },
+  getReviews: async ({ productId }) => {
+    await mockDelay(40) // 40ms DB query
+    return [{ rating: 4.8, count: 124 }]
+  },
+  getUserPreferences: async ({ userId }) => {
+    await mockDelay(20)
+    return { preferredCategories: ['Footwear'], budget: 200 }
+  }
+}
+
+async function executeTools(toolCalls) {
+  return Promise.all(toolCalls.map(async tc => {
+    const fn = TOOLS[tc.name]
+    if (!fn) return { id: tc.id, error: 'not found' }
+    const result = await fn(tc.input)
+    return { id: tc.id, name: tc.name, result }
+  }))
+}
+
+async function runComparison() {
+  // Step 1: search + getUserPrefs can run in parallel (independent)
+  const step1Calls = [
+    { id:'tc1', name:'searchProducts', input:{ query:'trail shoes' } },
+    { id:'tc2', name:'getUserPreferences', input:{ userId:'usr_123' } }
+  ]
+  const t1 = Date.now()
+  const step1 = await executeTools(step1Calls)
+  const t1ms = Date.now() - t1
+
+  // Step 2: checkInventory + getReviews for EACH product (parallel)
+  const products = step1[0].result
+  const step2Calls = products.flatMap(p => [
+    { id:`inv_${p.id}`, name:'checkInventory', input:{ productId:p.id } },
+    { id:`rev_${p.id}`, name:'getReviews', input:{ productId:p.id } }
+  ])
+  const t2 = Date.now()
+  const step2 = await executeTools(step2Calls)
+  const t2ms = Date.now() - t2
+
+  console.log('=== Parallel Execution Results ===')
+  console.log(`Step 1 (search + user prefs): ${t1ms}ms (parallel, saved ~20ms)`)
+  console.log(`Step 2 (inventory + reviews × ${products.length} products): ${t2ms}ms (parallel)`)
+  console.log(`Total: ~${t1ms + t2ms}ms`)
+  console.log(`\nSequential equivalent: ~${50+20+30+40+30+40}ms`)
+  console.log(`Speedup: ${((50+20+30+40+30+40) / (t1ms+t2ms)).toFixed(1)}x faster`)
+  console.log('\nProducts found:', step1[0].result.map(p => p.name).join(', '))
+  console.log('In stock:', step2.filter(r => r.result?.inStock).map(r => r.id).join(', '))
+}
+
+runComparison()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">6</div>
+      <div class="runner-title">Full ShopCo Shopping Agent</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a complete simulated ShopCo shopping agent that takes a user request, plans its tool calls, executes them step-by-step, and produces a structured recommendation — all without a real LLM.</div>
+      <textarea id="ta6">// Complete ShopCo agent simulation
+const CATALOG = [
+  { id:'p1', name:'TrailRunner Pro X', price:189, category:'Footwear', rating:4.8, tags:['trail','running','lightweight'] },
+  { id:'p2', name:'SpeedMax Elite', price:229, category:'Footwear', rating:4.7, tags:['road','running','marathon'] },
+  { id:'p3', name:'ArcticShell Jacket', price:349, category:'Outerwear', rating:4.6, tags:['waterproof','warm','outdoor'] },
+  { id:'p4', name:'TrailShield Boot', price:159, category:'Footwear', rating:4.3, tags:['trail','hiking','waterproof'] },
+  { id:'p5', name:'RunLite Sneaker', price:99, category:'Footwear', rating:4.1, tags:['casual','running','everyday'] },
+]
+const STOCK = { p1:12, p2:0, p3:5, p4:8, p5:23 }
+const REVIEWS = {
+  p1: ['Great grip on trails!', 'Worth every penny', 'True to size'],
+  p2: ['Fastest shoe I own', 'Out of stock too often', 'Amazing for marathons'],
+}
+
+// Tools
+const agentTools = {
+  search: ({ query, maxPrice }) => {
+    const q = query.toLowerCase().split(' ')
+    return CATALOG.filter(p => {
+      const text = (p.name + ' ' + p.tags.join(' ')).toLowerCase()
+      const matches = q.some(word => text.includes(word))
+      const affordable = !maxPrice || p.price <= maxPrice
+      return matches && affordable
+    })
+  },
+  stock: ({ productId }) => ({ qty: STOCK[productId] ?? 0, inStock: (STOCK[productId] ?? 0) > 0 }),
+  reviews: ({ productId }) => REVIEWS[productId] ?? ['No reviews yet'],
+}
+
+// Agent brain: decides what to do based on the task
+async function shopCoAgent(userRequest) {
+  console.log(`🛍️  ShopCo Agent starting...\nUser: "${userRequest}"\n`)
+  const log = []
+
+  // Parse intent (simplified NLP)
+  const budget = userRequest.match(/\$(\d+)/)?.[1]
+  const maxPrice = budget ? parseInt(budget) : null
+  const keywords = userRequest.replace(/under \$\d+/, '').trim()
+
+  // Step 1: Search
+  log.push('Step 1: Searching for products...')
+  const products = agentTools.search({ query: keywords, maxPrice })
+  log.push(`  Found ${products.length} products: ${products.map(p => p.name).join(', ')}`)
+
+  if (products.length === 0) {
+    console.log(log.join('\n'))
+    console.log('\n🤖 Agent: No products found matching your criteria.')
+    return
+  }
+
+  // Step 2: Check stock for all (parallel)
+  log.push('\nStep 2: Checking stock & reviews in parallel...')
+  const details = products.map(p => ({
+    ...p,
+    stock: agentTools.stock({ productId: p.id }),
+    reviews: agentTools.reviews({ productId: p.id })
+  }))
+  const inStock = details.filter(p => p.stock.inStock)
+  log.push(`  In stock: ${inStock.length}/${products.length} products`)
+
+  // Step 3: Rank and recommend
+  log.push('\nStep 3: Ranking by score (rating × stock availability)...')
+  const ranked = inStock
+    .map(p => ({ ...p, score: p.rating * (p.stock.qty > 5 ? 1 : 0.9) }))
+    .sort((a, b) => b.score - a.score)
+
+  console.log(log.join('\n'))
+  console.log('\n' + '='.repeat(50))
+  console.log('🤖 Agent Recommendation:')
+  ranked.slice(0, 2).forEach((p, i) => {
+    console.log(`\n${i + 1}. ${p.name} — $${p.price} ⭐${p.rating}`)
+    console.log(`   Stock: ${p.stock.qty} units | Score: ${p.score.toFixed(2)}`)
+    console.log(`   Top review: "${p.reviews[0]}"`)
+  })
+  if (ranked.length === 0) console.log('All matching products are currently out of stock.')
+}
+
+shopCoAgent('trail running shoes under $200')
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+</section>
+
+<!-- Q&A -->
+<section class="section" id="qa">
+  <div class="section-header">
+    <span class="section-badge">05</span>
+    <h2 class="section-title">Interview Q&amp;A</h2>
+  </div>
+
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">1. What is the difference between tool calling and function calling?</div>
+    <div class="ans-text">They're the same concept with different names. OpenAI originally called it "function calling", then unified the terminology to "tool calling" in later API versions. Anthropic calls them "tool use". The Vercel AI SDK uses "tools" uniformly. The core mechanic is identical: the LLM outputs a structured request to call a named function with typed arguments, you execute it, and return the result for the LLM to continue.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">2. How does the LLM decide which tool to call?</div>
+    <div class="ans-text">Purely based on your tool's <strong>description</strong> and <strong>parameter descriptions</strong>. The model is trained to match user intent against tool descriptions. A description like "Search ShopCo products by semantic similarity — use for any product discovery query" is far better than "search". The model also considers parameter names and their descriptions to extract the right values from user messages. Never rely on the function name alone — write descriptions as if explaining to a new team member.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">3. What is maxSteps and why is it critical for agents?</div>
+    <div class="ans-text"><code>maxSteps</code> caps how many times the agent can go through the reason-act loop before being forcibly stopped. Without it, a confused agent can loop indefinitely (e.g. keeps searching for a product that doesn't exist), burning tokens and money. Set it conservatively (3–5 for simple tasks, 10–15 for complex ones). When maxSteps is hit, either return a partial result with a "couldn't complete" message, or surface the error to the user for manual intervention.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">4. When would you use generateObject instead of tool calling?</div>
+    <div class="ans-text"><code>generateObject</code> is for when you want the <strong>final LLM output</strong> to be structured JSON (e.g. a product comparison, a sentiment analysis, an order summary). Tool calling is for when the LLM needs to <strong>fetch data mid-task</strong> before it can answer. Use generateObject for: data extraction, classification, report generation. Use tool calling for: tasks requiring real-time data, multi-step workflows, or side effects like adding to a cart.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">5. How do you implement human-in-the-loop for dangerous agent actions?</div>
+    <div class="ans-text">For irreversible actions (place order, charge card), use a two-phase approach: (1) define a <code>confirmOrder</code> tool that returns a <em>preview</em> without executing — the LLM calls this first and presents it to the user; (2) only execute the real action when the user explicitly confirms. In the Vercel AI SDK, mark write tools as requiring confirmation by returning a <code>confirmation_required</code> flag in the tool result, then check for it in the frontend before proceeding.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">6. What is the ReAct pattern and how does it differ from a basic chatbot?</div>
+    <div class="ans-text">ReAct (Reason + Act) is an agent architecture where the LLM alternates between <strong>reasoning</strong> (thinking about what it needs) and <strong>acting</strong> (calling tools). A basic chatbot just generates text from conversation history. A ReAct agent dynamically fetches information, takes actions, and adjusts its plan based on tool results — it can complete tasks that require multiple steps and real-world data. The message history grows with each tool call+result pair, giving the agent memory of what it's already done.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">7. How do you handle tool errors in a production agent?</div>
+    <div class="ans-text">Never throw errors from tool execute functions — catch them and return a structured error object like <code>&#123; error: "Product not found", code: "NOT_FOUND" &#125;</code>. This lets the LLM reason about the failure and adapt (try a different search, tell the user, or skip to the next step). Log all errors with the full tool call context. Set up alerts for high error rates. For transient errors (network timeout, rate limit), implement retry logic inside the execute function with exponential backoff before returning an error.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">8. What is the difference between streaming and non-streaming agents?</div>
+    <div class="ans-text">Non-streaming (<code>generateText</code>): the entire agent loop completes server-side, then the final answer is returned — simpler but the user sees nothing until done. Streaming (<code>streamText</code>): intermediate text, tool call notifications, and the final answer stream to the client in real time — better UX for long-running agents. The Vercel AI SDK's <code>useChat</code> hook handles streaming automatically; <code>toolInvocations</code> on messages let you display tool call progress in the UI.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">9. How do you test agents reliably?</div>
+    <div class="ans-text">Three layers: (1) <strong>Unit test tools</strong> in isolation — test <code>searchProducts()</code> with known inputs, independent of the LLM. (2) <strong>Integration test the agent loop</strong> with a mock LLM that always returns predetermined tool calls — test that your executor, error handling, and maxSteps logic work correctly. (3) <strong>Evals</strong> — run the full agent with the real LLM against a golden dataset of user queries, and assert on the final output (did it recommend an in-stock product? did it stay within budget?). Tools: Vitest for unit/integration, LangSmith or custom scripts for evals.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">10. How would you build a multi-agent system for ShopCo?</div>
+    <div class="ans-text">Orchestrate specialised agents: a <strong>Router Agent</strong> classifies the intent and delegates to specialists; a <strong>Search Agent</strong> uses RAG + tool calling to find products; a <strong>Review Agent</strong> analyses sentiment and summarises reviews; an <strong>Order Agent</strong> handles cart and checkout (with strict human-in-the-loop). Agents communicate via shared message history or a central state object. Use <code>generateText</code> with tool calling for each sub-agent, with the orchestrator passing context. Key challenge: prevent context explosion — summarise sub-agent results before passing upstream.</div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section class="section" id="checklist">
+  <div class="section-header">
+    <span class="section-badge">06</span>
+    <h2 class="section-title">Night Review Checklist</h2>
+  </div>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain tool calling and why it differs from a basic chatbot</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to write a good tool description (the LLM reads this, not the code)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the ReAct loop: Reason → Act → Observe → repeat</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to define tools with Vercel AI SDK's tool() helper and Zod schemas</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand maxSteps and why it's critical for preventing infinite loops</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can distinguish read-only vs write tools and apply appropriate safety guardrails</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand when to use generateObject vs tool calling</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to run multiple tool calls in parallel with Promise.all</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built the ReAct loop simulator and understood the message history</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed the full ShopCo agent exercise and traced its execution</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand how to implement human-in-the-loop for irreversible actions</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to handle tool errors without crashing the agent</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the difference between streaming and non-streaming agents</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can answer all 10 interview questions with confidence</div></div>
+  </div>
+  <div class="tomorrow-box">
+    <h4>🌅 Tomorrow — Day 32: Week 5 Review</h4>
+    <p>We wrap up Week 5 by building the <strong>ShopCo AI Suite</strong> — a complete review project that integrates everything from this week: testing (Day 27), error monitoring (Day 28), the Vercel AI SDK (Day 29), RAG embeddings (Day 30), and the agents + tools system you just built (Day 31). You'll wire up a full AI-powered product assistant with semantic search, multi-step agent capabilities, and E2E Playwright tests to verify it all works. Prepare by reviewing the RAG pipeline and the ReAct loop — tomorrow we connect them together.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-btns">
+    <button class="footer-btn" onclick="navigateTo('day30_rag_embeddings.html',30)">← Day 30: RAG & Embeddings</button>
+    <button class="footer-btn primary" onclick="navigateTo('day32_week5_review.html',32)">Day 32: Week 5 Review →</button>
+  </div>
+  <div class="week-prog">
+    <div class="week-prog-label">Week 5 Progress — 5 of 7 days complete</div>
+    <div class="week-prog-bar"><div class="week-prog-fill" style="width:71%"></div></div>
+  </div>
+  <div style="margin-top:16px;font-size:11px;color:var(--hint)">ShopCo Course · Day 31 of 56 · AI Agents & Tools</div>
+</footer>
+
+<script>
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_arrays_objects.html"},
+  {num:3,file:"day3_functions_async.html"},
+  {num:4,file:"day4_error_handling.html"},
+  {num:5,file:"day5_dom_events.html"},
+  {num:6,file:"day6_es6_modules.html"},
+  {num:7,file:"day7_week1_review.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design_rest.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html"},
+  {num:28,file:"day28_error_monitoring.html"},
+  {num:29,file:"day29_genai_vercel_ai_sdk.html"},
+  {num:30,file:"day30_rag_embeddings.html"},
+  {num:31,file:"day31_ai_agents_tools.html",current:true},
+  {num:32,file:"day32_week5_review.html"},
+  {num:33,file:"day33_project_setup.html"},
+  {num:34,file:"day34_auth_roles.html"},
+  {num:35,file:"day35_data_modeling.html"},
+  {num:36,file:"day36_api_layer.html"},
+  {num:37,file:"day37_realtime_features.html"},
+  {num:38,file:"day38_file_uploads.html"},
+  {num:39,file:"day39_week6_review.html"},
+  {num:40,file:"day40_stripe_payments.html"},
+  {num:41,file:"day41_email_notifications.html"},
+  {num:42,file:"day42_search.html"},
+  {num:43,file:"day43_advanced_rag.html"},
+  {num:44,file:"day44_ai_pipelines.html"},
+  {num:45,file:"day45_analytics.html"},
+  {num:46,file:"day46_week7_review.html"},
+  {num:47,file:"day47_accessibility.html"},
+  {num:48,file:"day48_i18n_l10n.html"},
+  {num:49,file:"day49_advanced_testing.html"},
+  {num:50,file:"day50_devops_cicd.html"},
+  {num:51,file:"day51_portfolio_project_1.html"},
+  {num:52,file:"day52_portfolio_project_2.html"},
+  {num:53,file:"day53_resume_github.html"},
+  {num:54,file:"day54_interview_prep.html"},
+  {num:55,file:"day55_mock_interviews.html"},
+  {num:56,file:"day56_graduation.html"},
+]
+const CURRENT = 31
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_arrays_objects.html",
+  "day3_functions_async.html","day5_dom_events.html","day6_es6_modules.html",
+  "day7_week1_review.html","day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html","day12_context_global_state.html",
+  "day13_week2_review.html","day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html","day18_tailwind_css.html",
+  "day19_week3_review.html","day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html","day24_api_design_rest.html",
+  "day25_week4_review.html","day26_performance.html","day27_testing.html",
+  "day28_error_monitoring.html","day29_genai_vercel_ai_sdk.html",
+  "day30_rag_embeddings.html","day31_ai_agents_tools.html",
+])
+
+function navigateTo(file, n) {
+  if (AVAILABLE.has(file)) window.location.href = file
+  else showToast('Day ' + n + ' coming soon!')
+}
+function showToast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg
+  document.body.appendChild(t); setTimeout(() => t.remove(), 3000)
+}
+const dotsEl = document.getElementById('day-dots')
+DAY_PLAN.forEach(d => {
+  const btn = document.createElement('button')
+  btn.className = 'ddot' + (d.current ? ' current' : AVAILABLE.has(d.file) ? ' done available' : ' available')
+  btn.title = 'Day ' + d.num
+  btn.onclick = () => navigateTo(d.file, d.num)
+  dotsEl.appendChild(btn)
+})
+function runCode(btn) {
+  const wrap = btn.closest('.runner'), ta = wrap.querySelector('textarea')
+  const out = wrap.querySelector('.output-box'), logs = []
+  const o = console.log, ow = console.warn, oe = console.error
+  console.log   = (...a) => logs.push(a.map(x => typeof x==='object'&&x!==null ? JSON.stringify(x,null,2) : String(x)).join(' '))
+  console.warn  = (...a) => logs.push('⚠ ' + a.join(' '))
+  console.error = (...a) => logs.push('✗ ' + a.join(' '))
+  out.classList.remove('err')
+  try {
+    const fn = new Function(ta.value)
+    const result = fn()
+    if (result && typeof result.then === 'function') {
+      out.textContent = 'Running async...'
+      result.then(() => { out.textContent = logs.length ? logs.join('\n') : '(no output)' })
+             .catch(e => { out.classList.add('err'); out.textContent = '✗ ' + e.message })
+    } else {
+      out.textContent = logs.length ? logs.join('\n') : '(no output)'
+    }
+  } catch(e) { out.classList.add('err'); out.textContent = '✗ ' + e.message }
+  console.log = o; console.warn = ow; console.error = oe
+}
+function updateProgress() {
+  const d = document.querySelectorAll('.tdot.done').length
+  const c = document.querySelectorAll('.cl-box.checked').length
+  const t = document.querySelectorAll('.tdot').length + document.querySelectorAll('.cl-box').length
+  const p = Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width = p+'%'
+  document.getElementById('pct-label').textContent = p+'%'
+}
+function markDone(el) { el.classList.toggle('done'); updateProgress() }
+function toggleCheck(el) {
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+const secs = document.querySelectorAll('.section')
+const links = document.querySelectorAll('.nav-links a')
+window.addEventListener('scroll', () => {
+  let cur = ''
+  secs.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id })
+  links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur))
+}, { passive: true })
+</script>
+</body>
+</html>
