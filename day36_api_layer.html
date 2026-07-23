@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Day 36 — API Layer | ShopCo Course</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --accent:#60a5fa;--accent-dim:rgba(96,165,250,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;height:52px}
+.nav-brand{font-weight:700;font-size:14px;color:var(--accent);white-space:nowrap;margin-right:24px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:6px 12px;border-radius:6px;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{color:var(--accent);background:var(--accent-dim)}
+.week-banner{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
+.week-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(96,165,250,0.25)}
+.week-desc{font-size:12px;color:var(--muted)}
+.day-nav{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px}
+.day-nav-title{font-size:14px;font-weight:700;color:var(--text);margin-right:8px}
+.day-dots{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.ddot{width:10px;height:10px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .2s;border:none;padding:0}
+.ddot.done{background:var(--green)}
+.ddot.current{background:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.5)}
+.ddot.available:hover{background:var(--muted);transform:scale(1.2)}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hero{padding:64px 24px 48px;max-width:900px;margin:0 auto;text-align:center}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:20px}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin:0 auto 28px}
+.topic-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:36px}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+.pill.accent{background:var(--accent-dim);border-color:rgba(96,165,250,0.3);color:var(--accent)}
+.stats-row{display:flex;border:1px solid var(--border2);border-radius:12px;overflow:hidden;max-width:500px;margin:0 auto}
+.stat{flex:1;padding:16px 8px;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+.section{padding:48px 24px;max-width:1000px;margin:0 auto}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.section-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(96,165,250,0.2)}
+.section-title{font-size:22px;font-weight:700}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.topic-card:hover{border-color:var(--accent);background:var(--surface2)}
+.topic-card.done{border-color:rgba(74,222,128,0.3);background:var(--green-dim)}
+.topic-icon{font-size:24px;margin-bottom:10px}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.topic-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.progress-label{font-size:14px;font-weight:600}
+.pct{font-size:14px;font-weight:700;color:var(--accent)}
+.prog-bar{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.topic-dots{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tdot{width:28px;height:28px;border-radius:6px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.tdot.done{background:var(--accent-dim);border-color:rgba(96,165,250,0.4);color:var(--accent)}
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.concept-card h3{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.concept-card p{font-size:13px;color:var(--muted);line-height:1.7}
+.concept-card code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:4px;color:var(--teal)}
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7}
+.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#86efac}.num{color:#f9a8d4}.fn{color:#93c5fd}
+.cm{color:#3d3d55;font-style:italic}.var{color:#5eead4}.op{color:#fcd34d}
+.prop{color:#fbbf24}.ty{color:#38bdf8}.tag{color:#fb7185}.attr{color:#fbbf24}
+.compare-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.compare-table th{background:var(--surface3);padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border2)}
+.compare-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--surface2)}
+.tag-g{color:var(--green);font-size:11px;font-weight:600}
+.tag-a{color:var(--amber);font-size:11px;font-weight:600}
+.tag-c{color:var(--coral);font-size:11px;font-weight:600}
+.ex-divider{padding:20px 24px;max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.ex-line{flex:1;height:1px;background:var(--border)}
+.ex-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.runner-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.runner-num{width:24px;height:24px;border-radius:6px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid rgba(96,165,250,0.3)}
+.runner-title{font-size:13px;font-weight:600;flex:1}
+.diff-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.diff-b{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.diff-i{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.diff-a{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.runner-body{padding:16px}
+.runner-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;min-height:130px;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent)}
+.run-btn{margin-top:10px;padding:8px 20px;border-radius:7px;border:none;background:var(--accent);color:#000;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.run-btn:hover{background:#3b82f6;transform:translateY(-1px)}
+.output-box{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);min-height:48px;white-space:pre-wrap;line-height:1.6}
+.output-box.err{color:var(--coral)}
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.qa-item:hover{border-color:var(--border2)}
+.qa-q{padding:16px 20px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.qa-q::after{content:'▸';color:var(--muted);transition:transform .25s;flex-shrink:0}
+.qa-item.open .qa-q::after{transform:rotate(90deg);color:var(--accent)}
+.qa-item.open{border-color:rgba(96,165,250,0.3)}
+.ans-text{display:none;padding:0 20px 16px;font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border)}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:4px;color:var(--teal)}
+.qa-item.open .ans-text{display:block}
+.checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-bottom:20px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s}
+.cl-item:hover{border-color:var(--border2)}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s}
+.cl-box.checked{background:var(--accent);border-color:var(--accent)}
+.cl-box.checked::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.cl-text{font-size:12px;color:var(--text);line-height:1.5}
+.cl-text.checked{color:var(--muted);text-decoration:line-through}
+.tomorrow-box{background:var(--surface);border:1px solid rgba(96,165,250,0.2);border-radius:10px;padding:20px;margin-top:16px}
+.tomorrow-box h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.tomorrow-box p{font-size:13px;color:var(--muted);line-height:1.7}
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:24px;text-align:center}
+.footer-btns{display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.footer-btn{padding:10px 24px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.footer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.footer-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.footer-btn.primary:hover{background:#3b82f6}
+.week-prog-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.week-prog-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;max-width:300px;margin:0 auto}
+.week-prog-fill{height:100%;background:var(--accent);border-radius:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.info-box{background:var(--accent-dim);border:1px solid rgba(96,165,250,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.warn-box{background:var(--amber-dim);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+/* API route table */
+.route-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12px}
+.route-table th{background:var(--surface3);padding:9px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border2)}
+.route-table td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+.route-table tr:last-child td{border-bottom:none}
+.route-table tr:hover td{background:var(--surface2)}
+.method{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.m-get{background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.m-post{background:rgba(96,165,250,0.12);color:var(--blue);border:1px solid rgba(96,165,250,0.2)}
+.m-patch{background:rgba(251,191,36,0.12);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.m-delete{background:rgba(251,113,133,0.12);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.route-path{font-family:'JetBrains Mono',monospace;color:var(--text);font-size:11px}
+.route-auth{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600}
+.ra-pub{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.ra-auth{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(96,165,250,0.2)}
+.ra-staff{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.ra-admin{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+/* tRPC vs REST */
+.vs-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:600px){.vs-grid{grid-template-columns:1fr}}
+.vs-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
+.vs-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.vs-list{list-style:none;padding:0}
+.vs-list li{font-size:12px;color:var(--muted);padding:4px 0;padding-left:16px;position:relative;line-height:1.5}
+.vs-list li::before{content:'→';position:absolute;left:0;color:var(--accent);font-size:10px;top:5px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 36 · API Layer</div>
+  <div class="nav-links">
+    <a href="#topics">Topics</a>
+    <a href="#concepts">Concepts</a>
+    <a href="#rest">REST Routes</a>
+    <a href="#trpc">tRPC</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#qa">Interview</a>
+    <a href="#checklist">Review</a>
+  </div>
+</nav>
+
+<!-- WEEK BANNER -->
+<div class="week-banner">
+  <span class="week-badge">Week 6</span>
+  <span class="week-desc">Full-Stack Project Build — type-safe APIs from database to React component</span>
+</div>
+
+<!-- DAY NAV -->
+<div class="day-nav">
+  <span class="day-nav-title">Day 36 — API Layer</span>
+  <div class="day-dots" id="day-dots"></div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="navigateTo('day35_data_modeling.html',35)">← Prev</button>
+    <button class="nav-btn" onclick="navigateTo('day37_realtime_features.html',37)">Next →</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Week 6 · Day 36 of 56</div>
+  <h1>API <span>Layer</span></h1>
+  <p class="hero-sub">Build ShopCo's type-safe API with REST for public endpoints and tRPC for internal dashboards — eliminating entire classes of bugs by sharing types end-to-end from Prisma to React.</p>
+  <div class="topic-pills">
+    <span class="pill accent">REST Design</span>
+    <span class="pill accent">tRPC</span>
+    <span class="pill accent">Type-Safe End-to-End</span>
+    <span class="pill">Route Handlers</span>
+    <span class="pill">Zod Validation</span>
+    <span class="pill">Error Handling</span>
+    <span class="pill">API Versioning</span>
+    <span class="pill">Rate Limiting</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">8</div><div class="stat-l">Topics</div></div>
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Exercises</div></div>
+    <div class="stat"><div class="stat-n">10</div><div class="stat-l">Q&amp;As</div></div>
+    <div class="stat"><div class="stat-n">6h</div><div class="stat-l">Study</div></div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<section class="section" id="topics">
+  <div class="section-header">
+    <span class="section-badge">01</span>
+    <h2 class="section-title">Today's Topics</h2>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label">Day Progress</span>
+      <span class="pct" id="pct-label">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="topic-dots" id="tdots">
+      <div class="tdot" onclick="markDone(this)" title="REST">R</div>
+      <div class="tdot" onclick="markDone(this)" title="tRPC">T</div>
+      <div class="tdot" onclick="markDone(this)" title="Zod">Z</div>
+      <div class="tdot" onclick="markDone(this)" title="Error Handling">E</div>
+      <div class="tdot" onclick="markDone(this)" title="Versioning">V</div>
+      <div class="tdot" onclick="markDone(this)" title="Rate Limiting">L</div>
+      <div class="tdot" onclick="markDone(this)" title="Middleware">M</div>
+      <div class="tdot" onclick="markDone(this)" title="Exercises">X</div>
+    </div>
+  </div>
+  <div class="topics-grid">
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🌐</div>
+      <div class="topic-name">REST Route Design</div>
+      <div class="topic-sub">Resource naming, HTTP verbs, status codes, and ShopCo's full API surface</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔗</div>
+      <div class="topic-name">tRPC Basics</div>
+      <div class="topic-sub">Procedures, routers, context, and end-to-end type safety without codegen</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">✅</div>
+      <div class="topic-name">Zod Validation</div>
+      <div class="topic-sub">Input/output schemas, transformations, and custom error messages</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🚨</div>
+      <div class="topic-name">Error Handling</div>
+      <div class="topic-sub">Structured errors, HTTP status codes, tRPC TRPCError, and error serialization</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📌</div>
+      <div class="topic-name">API Versioning</div>
+      <div class="topic-sub">URL versioning, header versioning, and sunset strategies</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🚦</div>
+      <div class="topic-name">Rate Limiting</div>
+      <div class="topic-sub">Upstash Redis sliding window, per-user limits, and 429 responses</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔌</div>
+      <div class="topic-name">tRPC Middleware</div>
+      <div class="topic-sub">isAuthed, isAdmin procedures — enforcing auth at the router level</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">⚡</div>
+      <div class="topic-name">REST vs tRPC</div>
+      <div class="topic-sub">When to use each — public API vs internal dashboard, tradeoffs</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPTS -->
+<section class="section" id="concepts">
+  <div class="section-header">
+    <span class="section-badge">02</span>
+    <h2 class="section-title">Core Concepts</h2>
+  </div>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <h3>🌐 REST in Next.js App Router</h3>
+      <p>Route handlers live in <code>app/api/[route]/route.ts</code>. Export named functions <code>GET</code>, <code>POST</code>, <code>PATCH</code>, <code>DELETE</code>. Use <code>Request</code> and <code>Response</code> Web APIs — no Express. Parse body with <code>req.json()</code>, validate with Zod, then query Prisma. Always return <code>Response.json(data, { status: 200 })</code>. REST is best for public APIs consumed by third parties or mobile apps.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🔗 What is tRPC?</h3>
+      <p>tRPC gives you RPC-style API calls with full TypeScript safety — no REST conventions, no code generation, no schema files. Define procedures (queries + mutations) in server routers, call them from React with <code>trpc.products.list.useQuery()</code>. TypeScript infers the input and output types automatically. If you rename a field server-side, your editor highlights the client-side usage as broken. The entire stack is one TypeScript project.</p>
+    </div>
+    <div class="concept-card">
+      <h3>✅ Zod Everywhere</h3>
+      <p>Zod validates data at runtime while TypeScript checks it at compile time. Use Zod for: REST request bodies (<code>z.object({...}).parse(await req.json())</code>), tRPC procedure inputs (<code>input: z.object({...})</code>), environment variables (Day 33), and API response shapes. When Zod fails, throw a 400 with the formatted errors. Never trust user input that hasn't been parsed by Zod.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🚨 Structured Error Responses</h3>
+      <p>Every error response should be a consistent JSON shape: <code>{ error: string, code: string, details?: any }</code>. Map error types to HTTP status codes: validation → 400, unauthenticated → 401, forbidden → 403, not found → 404, conflict → 409, server error → 500. In tRPC, use <code>new TRPCError({ code: 'NOT_FOUND', message: '...' })</code>. Log 5xx errors to Sentry, not 4xx (those are user errors).</p>
+    </div>
+    <div class="concept-card">
+      <h3>📌 API Versioning</h3>
+      <p>Version APIs from day one even if you don't need it yet. URL versioning (<code>/api/v1/products</code>) is most visible and easy to route. When making breaking changes: create <code>/api/v2/</code>, run both versions concurrently, set a sunset date for v1, communicate via <code>Sunset</code> and <code>Deprecation</code> headers. For internal tRPC, versioning is less critical since you own all clients.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🚦 Rate Limiting</h3>
+      <p>Protect your API from abuse and control costs. Use Upstash Redis with a sliding window algorithm. In Next.js middleware, check before the route handler runs. Limits by tier: anonymous → 20 req/min, authenticated → 100 req/min, premium → 500 req/min. Return <code>429 Too Many Requests</code> with <code>Retry-After</code> header. Log rate limit hits to detect scraping or DDoS patterns.</p>
+    </div>
+  </div>
+
+  <div class="vs-grid">
+    <div class="vs-card">
+      <div class="vs-title" style="color:var(--blue)">🌐 Use REST when...</div>
+      <ul class="vs-list">
+        <li>Third-party clients consume your API</li>
+        <li>Mobile apps need a stable contract</li>
+        <li>Public developer API with docs</li>
+        <li>Webhooks (always REST)</li>
+        <li>File uploads (multipart/form-data)</li>
+        <li>CDN caching on GET endpoints</li>
+        <li>OpenAPI/Swagger documentation needed</li>
+      </ul>
+    </div>
+    <div class="vs-card">
+      <div class="vs-title" style="color:var(--purple)">🔗 Use tRPC when...</div>
+      <ul class="vs-list">
+        <li>TypeScript client you control (same repo)</li>
+        <li>Admin dashboard, internal tools</li>
+        <li>Rapid iteration — refactor safely</li>
+        <li>Complex nested queries with relations</li>
+        <li>Real-time subscriptions (tRPC + WS)</li>
+        <li>Shared input validation client + server</li>
+        <li>Auto-generated React Query hooks</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- REST ROUTES -->
+<section class="section" id="rest">
+  <div class="section-header">
+    <span class="section-badge">03</span>
+    <h2 class="section-title">ShopCo REST API Surface</h2>
+  </div>
+
+  <table class="route-table">
+    <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Auth</th></tr></thead>
+    <tbody>
+      <tr><td><span class="method m-get">GET</span></td><td class="route-path">/api/v1/products</td><td>List products with filters + cursor pagination</td><td><span class="route-auth ra-pub">public</span></td></tr>
+      <tr><td><span class="method m-get">GET</span></td><td class="route-path">/api/v1/products/:slug</td><td>Get product with variants and reviews</td><td><span class="route-auth ra-pub">public</span></td></tr>
+      <tr><td><span class="method m-post">POST</span></td><td class="route-path">/api/v1/products</td><td>Create product</td><td><span class="route-auth ra-admin">admin</span></td></tr>
+      <tr><td><span class="method m-patch">PATCH</span></td><td class="route-path">/api/v1/products/:id</td><td>Update product fields</td><td><span class="route-auth ra-admin">admin</span></td></tr>
+      <tr><td><span class="method m-delete">DELETE</span></td><td class="route-path">/api/v1/products/:id</td><td>Soft delete product</td><td><span class="route-auth ra-admin">admin</span></td></tr>
+      <tr><td><span class="method m-get">GET</span></td><td class="route-path">/api/v1/orders</td><td>List orders (own for customers, all for staff+)</td><td><span class="route-auth ra-auth">authed</span></td></tr>
+      <tr><td><span class="method m-post">POST</span></td><td class="route-path">/api/v1/orders</td><td>Place new order</td><td><span class="route-auth ra-auth">authed</span></td></tr>
+      <tr><td><span class="method m-get">GET</span></td><td class="route-path">/api/v1/orders/:id</td><td>Get order details (own or staff+)</td><td><span class="route-auth ra-auth">authed</span></td></tr>
+      <tr><td><span class="method m-patch">PATCH</span></td><td class="route-path">/api/v1/orders/:id/status</td><td>Update order status</td><td><span class="route-auth ra-staff">staff</span></td></tr>
+      <tr><td><span class="method m-post">POST</span></td><td class="route-path">/api/v1/products/:id/reviews</td><td>Create review (verified purchase check)</td><td><span class="route-auth ra-auth">authed</span></td></tr>
+      <tr><td><span class="method m-get">GET</span></td><td class="route-path">/api/v1/search</td><td>Semantic product search (RAG)</td><td><span class="route-auth ra-pub">public</span></td></tr>
+      <tr><td><span class="method m-post">POST</span></td><td class="route-path">/api/webhooks/clerk</td><td>Clerk user lifecycle events</td><td><span class="route-auth ra-pub">webhook sig</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="code-label" style="margin-top:20px">app/api/v1/products/route.ts — GET + POST with full validation</div>
+  <pre><span class="kw">import</span> { <span class="fn">requireRole</span>, <span class="fn">requireAuth</span> } <span class="kw">from</span> <span class="str">'@/lib/auth'</span>
+<span class="kw">import</span> { prisma } <span class="kw">from</span> <span class="str">'@/lib/prisma'</span>
+<span class="kw">import</span> { z } <span class="kw">from</span> <span class="str">'zod'</span>
+<span class="kw">import</span> { <span class="fn">apiError</span>, <span class="fn">apiSuccess</span> } <span class="kw">from</span> <span class="str">'@/lib/api-response'</span>
+
+<span class="kw">const</span> <span class="ty">ProductQuerySchema</span> <span class="op">=</span> <span class="var">z</span>.<span class="fn">object</span>({
+  cursor:     <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">optional</span>(),
+  limit:      <span class="var">z</span>.<span class="fn">coerce</span>.<span class="fn">number</span>().<span class="fn">min</span>(<span class="num">1</span>).<span class="fn">max</span>(<span class="num">50</span>).<span class="fn">default</span>(<span class="num">20</span>),
+  categoryId: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">optional</span>(),
+  search:     <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">max</span>(<span class="num">100</span>).<span class="fn">optional</span>(),
+})
+
+<span class="kw">const</span> <span class="ty">CreateProductSchema</span> <span class="op">=</span> <span class="var">z</span>.<span class="fn">object</span>({
+  name:        <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">2</span>).<span class="fn">max</span>(<span class="num">120</span>),
+  description: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">10</span>),
+  basePrice:   <span class="var">z</span>.<span class="fn">number</span>().<span class="fn">positive</span>().<span class="fn">multipleOf</span>(<span class="num">0.01</span>),
+  categoryId:  <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">cuid</span>(),
+})
+
+<span class="kw">export async function</span> <span class="fn">GET</span>(<span class="var">req</span>: <span class="ty">Request</span>) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> <span class="var">url</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">URL</span>(<span class="var">req</span>.<span class="prop">url</span>)
+    <span class="kw">const</span> <span class="var">params</span> <span class="op">=</span> <span class="ty">ProductQuerySchema</span>.<span class="fn">parse</span>(
+      <span class="ty">Object</span>.<span class="fn">fromEntries</span>(<span class="var">url</span>.<span class="prop">searchParams</span>)
+    )
+    <span class="kw">const</span> { <span class="var">data</span>, <span class="var">nextCursor</span>, <span class="var">hasNextPage</span> } <span class="op">=</span> <span class="kw">await</span> <span class="fn">getProducts</span>(<span class="var">params</span>)
+    <span class="kw">return</span> <span class="fn">apiSuccess</span>({ data, nextCursor, hasNextPage })
+  } <span class="kw">catch</span> (<span class="var">err</span>) {
+    <span class="kw">return</span> <span class="fn">handleApiError</span>(<span class="var">err</span>)
+  }
+}
+
+<span class="kw">export async function</span> <span class="fn">POST</span>(<span class="var">req</span>: <span class="ty">Request</span>) {
+  <span class="kw">try</span> {
+    <span class="kw">await</span> <span class="fn">requireRole</span>(<span class="str">'admin'</span>)
+    <span class="kw">const</span> <span class="var">body</span> <span class="op">=</span> <span class="ty">CreateProductSchema</span>.<span class="fn">parse</span>(<span class="kw">await</span> <span class="var">req</span>.<span class="fn">json</span>())
+    <span class="kw">const</span> <span class="var">slug</span> <span class="op">=</span> <span class="var">body</span>.<span class="prop">name</span>.<span class="fn">toLowerCase</span>().<span class="fn">replace</span>(<span class="str">/[^a-z0-9]+/g</span>, <span class="str">'-'</span>)
+    <span class="kw">const</span> <span class="var">product</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">product</span>.<span class="fn">create</span>({
+      data: { ...<span class="var">body</span>, slug, basePrice: <span class="var">body</span>.<span class="prop">basePrice</span>.<span class="fn">toString</span>() }
+    })
+    <span class="kw">return</span> <span class="fn">apiSuccess</span>(<span class="var">product</span>, <span class="num">201</span>)
+  } <span class="kw">catch</span> (<span class="var">err</span>) {
+    <span class="kw">return</span> <span class="fn">handleApiError</span>(<span class="var">err</span>)
+  }
+}</pre>
+
+  <div class="code-label">lib/api-response.ts — consistent response helpers</div>
+  <pre><span class="kw">import</span> { <span class="ty">ZodError</span> } <span class="kw">from</span> <span class="str">'zod'</span>
+
+<span class="kw">export function</span> <span class="fn">apiSuccess</span>(<span class="var">data</span>: <span class="kw">unknown</span>, <span class="var">status</span> <span class="op">=</span> <span class="num">200</span>) {
+  <span class="kw">return</span> <span class="ty">Response</span>.<span class="fn">json</span>({ success: <span class="kw">true</span>, data }, { status })
+}
+
+<span class="kw">export function</span> <span class="fn">apiError</span>(<span class="var">message</span>: <span class="ty">string</span>, <span class="var">status</span>: <span class="ty">number</span>, <span class="var">details</span>?: <span class="kw">unknown</span>) {
+  <span class="kw">return</span> <span class="ty">Response</span>.<span class="fn">json</span>({ success: <span class="kw">false</span>, error: <span class="var">message</span>, details }, { status })
+}
+
+<span class="kw">export function</span> <span class="fn">handleApiError</span>(<span class="var">err</span>: <span class="kw">unknown</span>) {
+  <span class="kw">if</span> (<span class="var">err</span> <span class="kw">instanceof</span> <span class="ty">ZodError</span>)
+    <span class="kw">return</span> <span class="fn">apiError</span>(<span class="str">'Validation failed'</span>, <span class="num">400</span>, <span class="var">err</span>.<span class="fn">flatten</span>().<span class="prop">fieldErrors</span>)
+  <span class="kw">if</span> (<span class="var">err</span> <span class="kw">instanceof</span> <span class="ty">Error</span>) {
+    <span class="kw">if</span> (<span class="var">err</span>.<span class="prop">message</span> <span class="op">===</span> <span class="str">'Unauthorized'</span>) <span class="kw">return</span> <span class="fn">apiError</span>(<span class="str">'Unauthorized'</span>, <span class="num">401</span>)
+    <span class="kw">if</span> (<span class="var">err</span>.<span class="prop">message</span>.<span class="fn">startsWith</span>(<span class="str">'Forbidden'</span>))   <span class="kw">return</span> <span class="fn">apiError</span>(<span class="str">'Forbidden'</span>, <span class="num">403</span>)
+    <span class="kw">if</span> (<span class="var">err</span>.<span class="prop">message</span> <span class="op">===</span> <span class="str">'Not found'</span>)    <span class="kw">return</span> <span class="fn">apiError</span>(<span class="str">'Not found'</span>, <span class="num">404</span>)
+  }
+  console.<span class="fn">error</span>(<span class="str">'Unhandled API error:'</span>, <span class="var">err</span>)
+  <span class="kw">return</span> <span class="fn">apiError</span>(<span class="str">'Internal server error'</span>, <span class="num">500</span>)
+}</pre>
+</section>
+
+<!-- tRPC -->
+<section class="section" id="trpc">
+  <div class="section-header">
+    <span class="section-badge">04</span>
+    <h2 class="section-title">tRPC Setup</h2>
+  </div>
+
+  <div class="code-label">server/trpc.ts — tRPC initialisation with context and middleware</div>
+  <pre><span class="kw">import</span> { initTRPC, <span class="ty">TRPCError</span> } <span class="kw">from</span> <span class="str">'@trpc/server'</span>
+<span class="kw">import</span> { <span class="fn">auth</span> } <span class="kw">from</span> <span class="str">'@clerk/nextjs/server'</span>
+<span class="kw">import</span> { <span class="ty">ZodError</span> } <span class="kw">from</span> <span class="str">'zod'</span>
+
+<span class="cm">// Context: available in every procedure</span>
+<span class="kw">export async function</span> <span class="fn">createTRPCContext</span>() {
+  <span class="kw">const</span> { <span class="var">userId</span>, <span class="var">sessionClaims</span> } <span class="op">=</span> <span class="kw">await</span> <span class="fn">auth</span>()
+  <span class="kw">return</span> {
+    <span class="var">userId</span>,
+    role: <span class="var">sessionClaims</span>?.<span class="prop">metadata</span>?.<span class="prop">role</span> <span class="op">??</span> <span class="str">'customer'</span>
+  }
+}
+<span class="kw">type</span> <span class="ty">Context</span> <span class="op">=</span> <span class="ty">Awaited</span>&lt;<span class="ty">ReturnType</span>&lt;<span class="kw">typeof</span> <span class="fn">createTRPCContext</span>&gt;&gt;
+
+<span class="kw">const</span> <span class="var">t</span> <span class="op">=</span> <span class="ty">initTRPC</span>.<span class="fn">context</span>&lt;<span class="ty">Context</span>&gt;().<span class="fn">create</span>({
+  errorFormatter({ <span class="var">shape</span>, <span class="var">error</span> }) {
+    <span class="kw">return</span> {
+      ...<span class="var">shape</span>,
+      data: {
+        ...<span class="var">shape</span>.<span class="prop">data</span>,
+        zodError: <span class="var">error</span>.<span class="prop">cause</span> <span class="kw">instanceof</span> <span class="ty">ZodError</span>
+          ? <span class="var">error</span>.<span class="prop">cause</span>.<span class="fn">flatten</span>() : <span class="kw">null</span>,
+      },
+    }
+  },
+})
+
+<span class="kw">export const</span> <span class="var">router</span>     <span class="op">=</span> <span class="var">t</span>.<span class="prop">router</span>
+<span class="kw">export const</span> <span class="var">publicProc</span> <span class="op">=</span> <span class="var">t</span>.<span class="prop">procedure</span>
+
+<span class="cm">// isAuthed middleware — requires login</span>
+<span class="kw">const</span> <span class="var">isAuthed</span> <span class="op">=</span> <span class="var">t</span>.<span class="prop">middleware</span>(({ <span class="var">ctx</span>, <span class="var">next</span> }) <span class="op">=&gt;</span> {
+  <span class="kw">if</span> (!<span class="var">ctx</span>.<span class="prop">userId</span>) <span class="kw">throw new</span> <span class="ty">TRPCError</span>({ code: <span class="str">'UNAUTHORIZED'</span> })
+  <span class="kw">return</span> <span class="fn">next</span>({ ctx: { ...<span class="var">ctx</span>, userId: <span class="var">ctx</span>.<span class="prop">userId</span> } })
+})
+
+<span class="cm">// isAdmin middleware — requires admin role</span>
+<span class="kw">const</span> <span class="var">HIERARCHY</span> <span class="op">=</span> [<span class="str">'customer'</span>,<span class="str">'staff'</span>,<span class="str">'admin'</span>,<span class="str">'super_admin'</span>]
+<span class="kw">const</span> <span class="var">isAdmin</span> <span class="op">=</span> <span class="var">t</span>.<span class="prop">middleware</span>(({ <span class="var">ctx</span>, <span class="var">next</span> }) <span class="op">=&gt;</span> {
+  <span class="kw">if</span> (<span class="var">HIERARCHY</span>.<span class="fn">indexOf</span>(<span class="var">ctx</span>.<span class="prop">role</span>) <span class="op">&lt;</span> <span class="var">HIERARCHY</span>.<span class="fn">indexOf</span>(<span class="str">'admin'</span>))
+    <span class="kw">throw new</span> <span class="ty">TRPCError</span>({ code: <span class="str">'FORBIDDEN'</span> })
+  <span class="kw">return</span> <span class="fn">next</span>({ ctx })
+})
+
+<span class="kw">export const</span> <span class="var">authedProc</span> <span class="op">=</span> <span class="var">t</span>.<span class="prop">procedure</span>.<span class="fn">use</span>(<span class="var">isAuthed</span>)
+<span class="kw">export const</span> <span class="var">adminProc</span>  <span class="op">=</span> <span class="var">t</span>.<span class="prop">procedure</span>.<span class="fn">use</span>(<span class="var">isAuthed</span>).<span class="fn">use</span>(<span class="var">isAdmin</span>)</pre>
+
+  <div class="code-label">server/routers/products.ts — tRPC product router</div>
+  <pre><span class="kw">import</span> { <span class="var">router</span>, <span class="var">publicProc</span>, <span class="var">adminProc</span> } <span class="kw">from</span> <span class="str">'@/server/trpc'</span>
+<span class="kw">import</span> { prisma } <span class="kw">from</span> <span class="str">'@/lib/prisma'</span>
+<span class="kw">import</span> { z } <span class="kw">from</span> <span class="str">'zod'</span>
+<span class="kw">import</span> { <span class="ty">TRPCError</span> } <span class="kw">from</span> <span class="str">'@trpc/server'</span>
+
+<span class="kw">export const</span> <span class="var">productsRouter</span> <span class="op">=</span> <span class="fn">router</span>({
+  <span class="cm">// Public: list products with cursor pagination</span>
+  <span class="prop">list</span>: <span class="var">publicProc</span>
+    .<span class="fn">input</span>(<span class="var">z</span>.<span class="fn">object</span>({
+      cursor:     <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">optional</span>(),
+      limit:      <span class="var">z</span>.<span class="fn">number</span>().<span class="fn">min</span>(<span class="num">1</span>).<span class="fn">max</span>(<span class="num">50</span>).<span class="fn">default</span>(<span class="num">20</span>),
+      categoryId: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">optional</span>(),
+    }))
+    .<span class="fn">query</span>(<span class="kw">async</span> ({ <span class="var">input</span> }) <span class="op">=&gt;</span> {
+      <span class="kw">return</span> <span class="fn">getProducts</span>(<span class="var">input</span>)
+    }),
+
+  <span class="cm">// Public: get single product by slug</span>
+  <span class="prop">bySlug</span>: <span class="var">publicProc</span>
+    .<span class="fn">input</span>(<span class="var">z</span>.<span class="fn">object</span>({ slug: <span class="var">z</span>.<span class="fn">string</span>() }))
+    .<span class="fn">query</span>(<span class="kw">async</span> ({ <span class="var">input</span> }) <span class="op">=&gt;</span> {
+      <span class="kw">const</span> <span class="var">product</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">product</span>.<span class="fn">findFirst</span>({
+        where: { slug: <span class="var">input</span>.<span class="prop">slug</span>, deletedAt: <span class="kw">null</span> },
+        include: { variants: <span class="kw">true</span>, reviews: { take: <span class="num">10</span> } }
+      })
+      <span class="kw">if</span> (!<span class="var">product</span>) <span class="kw">throw new</span> <span class="ty">TRPCError</span>({ code: <span class="str">'NOT_FOUND'</span> })
+      <span class="kw">return</span> <span class="var">product</span>
+    }),
+
+  <span class="cm">// Admin: create product</span>
+  <span class="prop">create</span>: <span class="var">adminProc</span>
+    .<span class="fn">input</span>(<span class="var">z</span>.<span class="fn">object</span>({
+      name:        <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">2</span>),
+      description: <span class="var">z</span>.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">10</span>),
+      basePrice:   <span class="var">z</span>.<span class="fn">number</span>().<span class="fn">positive</span>(),
+      categoryId:  <span class="var">z</span>.<span class="fn">string</span>(),
+    }))
+    .<span class="fn">mutation</span>(<span class="kw">async</span> ({ <span class="var">input</span>, <span class="var">ctx</span> }) <span class="op">=&gt;</span> {
+      <span class="kw">const</span> <span class="var">slug</span> <span class="op">=</span> <span class="var">input</span>.<span class="prop">name</span>.<span class="fn">toLowerCase</span>().<span class="fn">replace</span>(<span class="str">/[^a-z0-9]+/g</span>, <span class="str">'-'</span>)
+      <span class="kw">return</span> <span class="var">prisma</span>.<span class="prop">product</span>.<span class="fn">create</span>({
+        data: { ...<span class="var">input</span>, slug, basePrice: <span class="var">input</span>.<span class="prop">basePrice</span>.<span class="fn">toString</span>() }
+      })
+    }),
+
+  <span class="cm">// Admin: delete (soft)</span>
+  <span class="prop">delete</span>: <span class="var">adminProc</span>
+    .<span class="fn">input</span>(<span class="var">z</span>.<span class="fn">object</span>({ id: <span class="var">z</span>.<span class="fn">string</span>() }))
+    .<span class="fn">mutation</span>(<span class="kw">async</span> ({ <span class="var">input</span> }) <span class="op">=&gt;</span> {
+      <span class="kw">return</span> <span class="var">prisma</span>.<span class="prop">product</span>.<span class="fn">update</span>({
+        where: { id: <span class="var">input</span>.<span class="prop">id</span> },
+        data: { deletedAt: <span class="kw">new</span> <span class="fn">Date</span>() }
+      })
+    }),
+})</pre>
+
+  <div class="code-label">React component: using tRPC with React Query hooks</div>
+  <pre><span class="str">'use client'</span>
+<span class="kw">import</span> { trpc } <span class="kw">from</span> <span class="str">'@/lib/trpc'</span>
+
+<span class="kw">export function</span> <span class="fn">ProductList</span>() {
+  <span class="cm">// Fully typed — TypeScript knows the return shape!</span>
+  <span class="kw">const</span> { <span class="var">data</span>, <span class="var">isLoading</span>, <span class="fn">fetchNextPage</span> } <span class="op">=</span>
+    <span class="var">trpc</span>.<span class="prop">products</span>.<span class="prop">list</span>.<span class="fn">useInfiniteQuery</span>(
+      { limit: <span class="num">20</span> },
+      { getNextPageParam: (<span class="var">last</span>) <span class="op">=&gt;</span> <span class="var">last</span>.<span class="prop">nextCursor</span> }
+    )
+
+  <span class="kw">const</span> <span class="var">createProduct</span> <span class="op">=</span> <span class="var">trpc</span>.<span class="prop">products</span>.<span class="prop">create</span>.<span class="fn">useMutation</span>()
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      {<span class="var">isLoading</span> <span class="op">&amp;&amp;</span> <span class="tag">&lt;p&gt;</span>Loading...<span class="tag">&lt;/p&gt;</span>}
+      {<span class="var">data</span>?.<span class="prop">pages</span>.<span class="fn">flatMap</span>(<span class="var">p</span> <span class="op">=&gt;</span> <span class="var">p</span>.<span class="prop">data</span>).<span class="fn">map</span>(<span class="var">product</span> <span class="op">=&gt;</span> (
+        <span class="tag">&lt;div</span> <span class="attr">key</span>={product.id}<span class="tag">&gt;</span>
+          <span class="tag">&lt;h3&gt;</span>{product.name}<span class="tag">&lt;/h3&gt;</span>  <span class="cm">// ← TypeScript knows product.name exists</span>
+        <span class="tag">&lt;/div&gt;</span>
+      ))}
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() <span class="op">=&gt;</span> <span class="fn">fetchNextPage</span>()}<span class="tag">&gt;</span>Load more<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}</pre>
+
+  <div class="info-box">
+    <strong>💡 Type-safe end-to-end flow:</strong> Prisma generates types from your schema → tRPC infers them from your router → React components consume the inferred types. If you add a field to the Prisma schema, the tRPC response type updates automatically, and TypeScript highlights every component that might need to handle the new field. Zero manual type maintenance.
+  </div>
+</section>
+
+<!-- EXERCISES -->
+<div class="ex-divider">
+  <div class="ex-line"></div>
+  <div class="ex-label">⚡ Exercises</div>
+  <div class="ex-line"></div>
+</div>
+
+<section class="section" id="exercises">
+
+  <!-- EX 1 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">1</div>
+      <div class="runner-title">Zod Request Validator</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a Zod schema for the ShopCo order creation endpoint. Validate incoming requests, produce helpful error messages, and coerce types where appropriate.</div>
+      <textarea id="ta1">// Simulated Zod validation for POST /api/v1/orders
+const z = {
+  object: (shape) => ({
+    shape,
+    parse(data) {
+      const errors = {}
+      const result = {}
+      for (const [key, rule] of Object.entries(shape)) {
+        const val = data[key]
+        const ruleErrors = []
+        // Required check
+        if (rule._required && (val === undefined || val === null || val === ''))
+          ruleErrors.push('Required')
+        if (val !== undefined && val !== null && val !== '') {
+          if (rule._type === 'string' && typeof val !== 'string') ruleErrors.push('Must be a string')
+          if (rule._type === 'number' && (typeof val !== 'number' || isNaN(val))) ruleErrors.push('Must be a number')
+          if (rule._type === 'array' && !Array.isArray(val)) ruleErrors.push('Must be an array')
+          if (rule._min !== undefined && val < rule._min) ruleErrors.push(`Must be at least ${rule._min}`)
+          if (rule._max !== undefined && val > rule._max) ruleErrors.push(`Must be at most ${rule._max}`)
+          if (rule._minLen !== undefined && val.length < rule._minLen) ruleErrors.push(`Must have at least ${rule._minLen} items`)
+          if (rule._enum && !rule._enum.includes(val)) ruleErrors.push(`Must be one of: ${rule._enum.join(', ')}`)
+          if (rule._pattern && !rule._pattern.test(val)) ruleErrors.push(`Invalid format`)
+        }
+        if (ruleErrors.length) errors[key] = ruleErrors
+        else result[key] = val ?? rule._default
+      }
+      if (Object.keys(errors).length) {
+        const err = new Error('Validation failed')
+        err.errors = errors
+        throw err
+      }
+      return result
+    }
+  }),
+  string:  () => ({ _type:'string', _required:true, min(n){this._minLen=n;return this}, max(n){this._max=n;return this}, pattern(p){this._pattern=p;return this}, optional(){this._required=false;return this} }),
+  number:  () => ({ _type:'number', _required:true, min(n){this._min=n;return this}, max(n){this._max=n;return this}, optional(){this._required=false;return this} }),
+  array:   () => ({ _type:'array',  _required:true, min(n){this._minLen=n;return this}, optional(){this._required=false;return this} }),
+  enum:    (vals) => ({ _required:true, _enum:vals, optional(){this._required=false;return this} }),
+}
+
+const CreateOrderSchema = z.object({
+  items:      z.array().min(1),                    // at least 1 item
+  addressId:  z.string().pattern(/^c[a-z0-9]+$/),  // cuid format
+  couponCode: z.string().optional(),
+  notes:      z.string().optional(),
+})
+
+function validateRequest(schema, body) {
+  try {
+    const data = schema.parse(body)
+    return { success: true, data }
+  } catch (err) {
+    return { success: false, status: 400, error: 'Validation failed', details: err.errors }
+  }
+}
+
+// Test cases
+const tests = [
+  { label:'Valid order',         body: { items:[{variantId:'cv1',quantity:2}], addressId:'ckvp4r2z00001' } },
+  { label:'Empty items',         body: { items:[], addressId:'ckvp4r2z00001' } },
+  { label:'Missing addressId',   body: { items:[{variantId:'cv1',quantity:2}] } },
+  { label:'Bad addressId format',body: { items:[{variantId:'cv1'}], addressId:'not-a-cuid' } },
+  { label:'With optional coupon',body: { items:[{variantId:'cv1',quantity:1}], addressId:'ckvp4r2z00001', couponCode:'SAVE10' } },
+]
+
+tests.forEach(({ label, body }) => {
+  const result = validateRequest(CreateOrderSchema, body)
+  console.log(`${result.success ? '✓' : '✗'} ${label}`)
+  if (!result.success) {
+    Object.entries(result.details||{}).forEach(([field, errs]) =>
+      console.log(`  ${field}: ${errs.join(', ')}`)
+    )
+  }
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">2</div>
+      <div class="runner-title">Structured Error Handler</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build the ShopCo API error handler that maps different error types to the correct HTTP status codes and structured JSON responses.</div>
+      <textarea id="ta2">// Structured error handling system
+class AppError extends Error {
+  constructor(message, code, statusCode, details = null) {
+    super(message)
+    this.code = code
+    this.statusCode = statusCode
+    this.details = details
+  }
+}
+
+// Error factory functions
+const Errors = {
+  notFound:      (resource) => new AppError(`${resource} not found`, 'NOT_FOUND', 404),
+  unauthorized:  ()          => new AppError('Authentication required', 'UNAUTHORIZED', 401),
+  forbidden:     (action)    => new AppError(`Cannot ${action}`, 'FORBIDDEN', 403),
+  validation:    (errors)    => new AppError('Validation failed', 'VALIDATION_ERROR', 400, errors),
+  conflict:      (msg)       => new AppError(msg, 'CONFLICT', 409),
+  rateLimit:     ()          => new AppError('Too many requests', 'RATE_LIMITED', 429),
+  internal:      ()          => new AppError('Internal server error', 'INTERNAL_ERROR', 500),
+}
+
+// Universal error formatter
+function formatError(err) {
+  if (err instanceof AppError) {
+    return {
+      status: err.statusCode,
+      body: {
+        success: false,
+        error: { code: err.code, message: err.message, details: err.details }
+      }
+    }
+  }
+  // Prisma unique constraint
+  if (err?.code === 'P2002') {
+    return { status:409, body:{ success:false, error:{ code:'CONFLICT', message:`Duplicate ${err.meta?.target?.join(', ')}` } } }
+  }
+  // Prisma not found
+  if (err?.code === 'P2025') {
+    return { status:404, body:{ success:false, error:{ code:'NOT_FOUND', message:'Record not found' } } }
+  }
+  // Unknown
+  console.error('Unhandled error:', err)
+  return { status:500, body:{ success:false, error:{ code:'INTERNAL_ERROR', message:'Internal server error' } } }
+}
+
+// Simulate API handler scenarios
+const scenarios = [
+  { label:'Product not found',      err: Errors.notFound('Product') },
+  { label:'Not authenticated',      err: Errors.unauthorized() },
+  { label:'Customer tries admin',   err: Errors.forbidden('manage products') },
+  { label:'Invalid order input',    err: Errors.validation({ items:'Required', addressId:'Invalid format' }) },
+  { label:'Duplicate SKU',          err: Object.assign(new Error(), { code:'P2002', meta:{ target:['sku'] } }) },
+  { label:'Rate limit exceeded',    err: Errors.rateLimit() },
+  { label:'Unexpected crash',       err: new Error('Something exploded') },
+]
+
+scenarios.forEach(({ label, err }) => {
+  const { status, body } = formatError(err)
+  console.log(`[${status}] ${label}`)
+  console.log(`  code: ${body.error.code}`)
+  console.log(`  message: ${body.error.message}`)
+  if (body.error.details) console.log(`  details: ${JSON.stringify(body.error.details)}`)
+  console.log()
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">3</div>
+      <div class="runner-title">tRPC Procedure Simulator</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate how tRPC resolves procedures — routing the call, running middleware (auth checks), validating input, executing the handler, and returning typed output.</div>
+      <textarea id="ta3">// tRPC procedure simulation
+const HIERARCHY = ['customer','staff','admin','super_admin']
+
+function hasRole(userRole, required) {
+  return HIERARCHY.indexOf(userRole) >= HIERARCHY.indexOf(required)
+}
+
+class TRPCError extends Error {
+  constructor(code, message) { super(message||code); this.code = code }
+}
+
+// Build a tRPC-like procedure chain
+function procedure(middlewares = []) {
+  return {
+    use(mw) { return procedure([...middlewares, mw]) },
+    input(schema) {
+      return {
+        query(handler)    { return { type:'query',    middlewares, schema, handler } },
+        mutation(handler) { return { type:'mutation', middlewares, schema, handler } },
+      }
+    },
+    query(handler)    { return { type:'query',    middlewares, schema:null, handler } },
+    mutation(handler) { return { type:'mutation', middlewares, schema:null, handler } },
+  }
+}
+
+// Middleware
+const isAuthed = (ctx) => { if (!ctx.userId) throw new TRPCError('UNAUTHORIZED') }
+const isAdmin  = (ctx) => { if (!hasRole(ctx.role,'admin')) throw new TRPCError('FORBIDDEN') }
+
+// Router definition
+const productsRouter = {
+  list:   procedure().input({ limit:20 }).query(async ({ input, ctx }) =>
+    ({ items:[{id:'p1',name:'TrailRunner',price:189}], nextCursor:null })
+  ),
+  create: procedure().use(isAuthed).use(isAdmin)
+    .input({ name:'', basePrice:0, categoryId:'' })
+    .mutation(async ({ input, ctx }) => ({ id:`p_${Date.now()}`, ...input, createdBy:ctx.userId })),
+  myOrders: procedure().use(isAuthed)
+    .query(async ({ ctx }) => [{ id:'ord_1', userId:ctx.userId, total:189 }]),
+}
+
+// tRPC caller — resolves a procedure
+async function callProcedure(router, path, input, ctx) {
+  const proc = router[path]
+  if (!proc) throw new TRPCError('NOT_FOUND', `Procedure ${path} not found`)
+  // Run middleware chain
+  try {
+    for (const mw of proc.middlewares) mw(ctx)
+  } catch (err) {
+    return { ok:false, error:{ code:err.code, message:err.message } }
+  }
+  // Execute handler
+  try {
+    const result = await proc.handler({ input, ctx })
+    return { ok:true, result }
+  } catch (err) {
+    return { ok:false, error:{ code:err.code||'INTERNAL', message:err.message } }
+  }
+}
+
+// Simulate calls
+async function runTests() {
+  const sessions = {
+    anon:     { userId:null, role:'customer' },
+    customer: { userId:'usr_c', role:'customer' },
+    admin:    { userId:'usr_a', role:'admin' },
+  }
+
+  const calls = [
+    ['list',     {},                              'anon',     'List products (public)'],
+    ['create',   {name:'Trail Shoe',basePrice:199,categoryId:'c1'}, 'admin', 'Admin creates product'],
+    ['create',   {name:'Trail Shoe',basePrice:199,categoryId:'c1'}, 'customer', 'Customer tries create'],
+    ['create',   {name:'Trail Shoe',basePrice:199,categoryId:'c1'}, 'anon', 'Anon tries create'],
+    ['myOrders', {},                              'customer', 'Customer lists own orders'],
+    ['myOrders', {},                              'anon',     'Anon tries orders'],
+  ]
+
+  for (const [path, input, sessionName, label] of calls) {
+    const ctx = sessions[sessionName]
+    const res = await callProcedure(productsRouter, path, input, ctx)
+    if (res.ok) {
+      console.log(`✓ [${sessionName}] ${label}`)
+      console.log(`  Result: ${JSON.stringify(res.result).slice(0,70)}`)
+    } else {
+      console.log(`✗ [${sessionName}] ${label}`)
+      console.log(`  Error: ${res.error.code} — ${res.error.message}`)
+    }
+    console.log()
+  }
+}
+
+runTests()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">4</div>
+      <div class="runner-title">Rate Limiter (Sliding Window)</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Implement a sliding window rate limiter — the same algorithm Upstash Redis uses. Tracks requests per user per time window and returns retry-after on limit exceeded.</div>
+      <textarea id="ta4">// Sliding window rate limiter simulation
+class SlidingWindowLimiter {
+  constructor() {
+    this.windows = {} // userId -> [timestamps]
+  }
+
+  check(userId, { limit, windowMs }) {
+    const now = Date.now()
+    const windowStart = now - windowMs
+
+    // Init or prune old requests outside the window
+    if (!this.windows[userId]) this.windows[userId] = []
+    this.windows[userId] = this.windows[userId].filter(t => t > windowStart)
+
+    const current = this.windows[userId].length
+
+    if (current >= limit) {
+      const oldest = this.windows[userId][0]
+      const retryAfterMs = oldest + windowMs - now
+      return {
+        allowed: false,
+        current, limit,
+        retryAfterMs: Math.ceil(retryAfterMs),
+        retryAfterSec: Math.ceil(retryAfterMs / 1000),
+        headers: {
+          'X-RateLimit-Limit':     String(limit),
+          'X-RateLimit-Remaining': '0',
+          'Retry-After':           String(Math.ceil(retryAfterMs / 1000)),
+        }
+      }
+    }
+
+    // Allow — record this request
+    this.windows[userId].push(now)
+    return {
+      allowed: true,
+      current: current + 1, limit,
+      remaining: limit - current - 1,
+      headers: {
+        'X-RateLimit-Limit':     String(limit),
+        'X-RateLimit-Remaining': String(limit - current - 1),
+      }
+    }
+  }
+}
+
+// Different limits per user tier
+const LIMITS = {
+  anonymous:     { limit: 10, windowMs: 60_000 }, // 10/min
+  authenticated: { limit: 60, windowMs: 60_000 }, // 60/min
+  premium:       { limit: 300, windowMs: 60_000}, // 300/min
+}
+
+const limiter = new SlidingWindowLimiter()
+
+// Simulate 15 rapid requests from an anonymous user (limit=10)
+console.log('=== Anonymous user — limit 10/min ===')
+for (let i = 1; i <= 15; i++) {
+  const result = limiter.check('anon_ip_1.2.3.4', LIMITS.anonymous)
+  if (result.allowed) {
+    console.log(`  Request ${i}: ✓ allowed (${result.remaining} remaining)`)
+  } else {
+    console.log(`  Request ${i}: ✗ 429 Too Many Requests (retry after ${result.retryAfterSec}s)`)
+  }
+}
+
+// Authenticated user — higher limit
+console.log('\n=== Authenticated user — limit 60/min ===')
+for (let i = 1; i <= 65; i++) {
+  const result = limiter.check('usr_premium', LIMITS.authenticated)
+  if (i === 61 || i === 65 || i <= 3) {
+    const icon = result.allowed ? '✓' : '✗'
+    console.log(`  Request ${i}: ${icon} ${result.allowed ? `allowed (${result.remaining} left)` : `429 (retry ${result.retryAfterSec}s)`}`)
+  }
+  if (i === 4) console.log('  ...')
+}
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">5</div>
+      <div class="runner-title">API Response Normalizer</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a response normalizer that transforms raw Prisma output into consistent API responses — stripping internal fields, formatting decimals, adding computed fields, and handling pagination metadata.</div>
+      <textarea id="ta5">// API response normalizer — transforms Prisma → API shape
+const serializers = {
+  product(raw) {
+    return {
+      id:          raw.id,
+      name:        raw.name,
+      slug:        raw.slug,
+      description: raw.description,
+      price:       parseFloat(raw.basePrice), // Decimal → number
+      category:    raw.category ? { id: raw.category.id, name: raw.category.name } : null,
+      variants:    (raw.variants || []).map(v => ({
+        id:    v.id,
+        sku:   v.sku,
+        size:  v.size,
+        colour:v.colour,
+        price: parseFloat(raw.basePrice) + parseFloat(v.priceModifier || 0),
+        inStock: v.stock > 0,
+        stock: v.stock,
+      })),
+      reviewCount:  raw._count?.reviews ?? 0,
+      avgRating:    raw.reviews?.length
+        ? (raw.reviews.reduce((s, r) => s + r.rating, 0) / raw.reviews.length).toFixed(1)
+        : null,
+      createdAt:   raw.createdAt,
+      // Never expose: deletedAt, internal metadata
+    }
+  },
+
+  order(raw) {
+    return {
+      id:          raw.id,
+      status:      raw.status,
+      total:       parseFloat(raw.totalAmount),
+      itemCount:   raw.items?.length ?? 0,
+      items:       (raw.items || []).map(item => ({
+        variantId:  item.variantId,
+        productName:item.variant?.product?.name ?? 'Unknown',
+        sku:        item.variant?.sku ?? '',
+        quantity:   item.quantity,
+        unitPrice:  parseFloat(item.unitPrice),
+        subtotal:   parseFloat(item.unitPrice) * item.quantity,
+      })),
+      createdAt:   raw.createdAt,
+    }
+  },
+
+  paginated(items, serializer, nextCursor, hasNextPage) {
+    return {
+      data: items.map(item => serializers[serializer](item)),
+      pagination: { nextCursor, hasNextPage, count: items.length }
+    }
+  }
+}
+
+// Test with raw Prisma-like data
+const rawProduct = {
+  id: 'p1', name: 'TrailRunner Pro X', slug: 'trailrunner-pro-x',
+  description: 'Lightweight trail shoe for serious runners.',
+  basePrice: '189.99',    // Prisma Decimal is a string
+  deletedAt: null,        // should NOT appear in API response
+  _internalFlag: true,    // should NOT appear
+  category: { id: 'c1', name: 'Footwear', slug: 'footwear' },
+  variants: [
+    { id:'v1', sku:'TRX-BLK-M', size:'M', colour:'Black', priceModifier:'0.00', stock:5 },
+    { id:'v2', sku:'TRX-RED-M', size:'M', colour:'Red',   priceModifier:'10.00',stock:0 },
+  ],
+  reviews: [{ rating:5 },{ rating:4 },{ rating:5 }],
+  _count: { reviews: 3 },
+  createdAt: new Date('2024-01-15').toISOString(),
+}
+
+const rawOrder = {
+  id:'ord_1', status:'SHIPPED', totalAmount:'399.98',
+  items:[
+    { variantId:'v1', quantity:2, unitPrice:'189.99',
+      variant:{ sku:'TRX-BLK-M', product:{ name:'TrailRunner Pro X' } } },
+  ],
+  createdAt:new Date('2024-06-01').toISOString()
+}
+
+console.log('=== Serialized Product ===')
+console.log(JSON.stringify(serializers.product(rawProduct), null, 2))
+
+console.log('\n=== Serialized Order ===')
+console.log(JSON.stringify(serializers.order(rawOrder), null, 2))
+
+console.log('\n=== Paginated Response ===')
+const paginated = serializers.paginated([rawProduct], 'product', 'cursor_abc123', true)
+console.log(`Items: ${paginated.data.length}`)
+console.log(`Next cursor: ${paginated.pagination.nextCursor}`)
+console.log(`Has more: ${paginated.pagination.hasNextPage}`)
+console.log(`deletedAt exposed: ${'deletedAt' in paginated.data[0]}`)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">6</div>
+      <div class="runner-title">Full API Request Lifecycle</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate the complete ShopCo API request lifecycle: rate limit check → auth → Zod validation → business logic → response serialization → error handling. All in one unified pipeline.</div>
+      <textarea id="ta6">// Complete API request lifecycle simulation
+const HIERARCHY = ['customer','staff','admin','super_admin']
+
+// --- Infrastructure ---
+class RateLimiter {
+  constructor() { this.store = {} }
+  check(key, limit, windowMs) {
+    const now = Date.now()
+    if (!this.store[key]) this.store[key] = []
+    this.store[key] = this.store[key].filter(t => t > now - windowMs)
+    if (this.store[key].length >= limit) return { ok:false, retryAfter:60 }
+    this.store[key].push(now)
+    return { ok:true, remaining: limit - this.store[key].length }
+  }
+}
+const rateLimiter = new RateLimiter()
+
+// --- DB simulation ---
+const DB_PRODUCTS = [
+  { id:'p1', name:'TrailRunner Pro X', basePrice:'189.00', categoryId:'c1', deletedAt:null, stock:5 },
+  { id:'p2', name:'SpeedMax Elite',    basePrice:'229.00', categoryId:'c1', deletedAt:null, stock:0 },
+]
+
+// --- Pipeline ---
+async function handleRequest({ method, path, userId, role, body, query }) {
+  const log = []
+  const t0 = Date.now()
+
+  // 1. Rate limit
+  const rlKey = userId || 'anon'
+  const rlLimit = userId ? 60 : 10
+  const rl = rateLimiter.check(rlKey, rlLimit, 60000)
+  if (!rl.ok) {
+    log.push('Rate limit: ✗ exceeded')
+    return { status:429, body:{ error:'Too many requests' }, log }
+  }
+  log.push(`Rate limit: ✓ (${rl.remaining} remaining)`)
+
+  // 2. Auth check
+  const routeAuth = {
+    'GET /products':       'public',
+    'POST /products':      'admin',
+    'GET /orders':         'authed',
+    'POST /orders':        'authed',
+    'PATCH /orders/status':'staff',
+  }
+  const requiredAuth = routeAuth[`${method} ${path}`] || 'public'
+  if (requiredAuth !== 'public' && !userId) {
+    log.push('Auth: ✗ not authenticated')
+    return { status:401, body:{ error:'Unauthorized' }, log }
+  }
+  if (requiredAuth !== 'public' && requiredAuth !== 'authed') {
+    if (HIERARCHY.indexOf(role) < HIERARCHY.indexOf(requiredAuth)) {
+      log.push(`Auth: ✗ requires ${requiredAuth}, has ${role}`)
+      return { status:403, body:{ error:'Forbidden' }, log }
+    }
+  }
+  log.push(`Auth: ✓ ${requiredAuth} (${role||'public'})`)
+
+  // 3. Validate input
+  if (method === 'POST' && path === '/products') {
+    if (!body?.name || !body?.basePrice) {
+      log.push('Validation: ✗ missing name or basePrice')
+      return { status:400, body:{ error:'Validation failed', details:{ name:'Required', basePrice:'Required' } }, log }
+    }
+    if (typeof body.basePrice !== 'number' || body.basePrice <= 0) {
+      log.push('Validation: ✗ basePrice must be positive number')
+      return { status:400, body:{ error:'Validation failed', details:{ basePrice:'Must be positive number' } }, log }
+    }
+  }
+  log.push('Validation: ✓')
+
+  // 4. Business logic
+  let data
+  if (method === 'GET' && path === '/products') {
+    data = DB_PRODUCTS.filter(p => !p.deletedAt).map(p => ({
+      id:p.id, name:p.name, price:parseFloat(p.basePrice), inStock:p.stock>0
+    }))
+  } else if (method === 'POST' && path === '/products') {
+    const newProduct = { id:`p${DB_PRODUCTS.length+1}`, ...body, deletedAt:null, stock:0 }
+    DB_PRODUCTS.push(newProduct)
+    data = { id:newProduct.id, name:newProduct.name, price:body.basePrice }
+  } else if (method === 'GET' && path === '/orders') {
+    data = [{ id:'ord_1', userId, total:189, status:'PENDING' }]
+  }
+  log.push(`Handler: ✓ (${Date.now()-t0}ms)`)
+
+  return { status: method==='POST' ? 201 : 200, body:{ success:true, data }, log }
+}
+
+// Run scenarios
+async function runAll() {
+  const scenarios = [
+    { method:'GET',  path:'/products', userId:null,    role:null,      body:null,  label:'Public product list' },
+    { method:'POST', path:'/products', userId:null,    role:null,      body:{name:'X',basePrice:99}, label:'Anon create product' },
+    { method:'POST', path:'/products', userId:'u1',    role:'customer',body:{name:'X',basePrice:99}, label:'Customer create product' },
+    { method:'POST', path:'/products', userId:'u2',    role:'admin',   body:{name:'Ultra Shoe',basePrice:249}, label:'Admin create product' },
+    { method:'POST', path:'/products', userId:'u2',    role:'admin',   body:{name:'Bad',basePrice:-5}, label:'Admin bad price' },
+    { method:'GET',  path:'/orders',   userId:'u3',    role:'customer',body:null,  label:'Customer list orders' },
+  ]
+
+  for (const s of scenarios) {
+    const res = await handleRequest(s)
+    console.log(`\n[${s.method} ${s.path}] ${s.label}`)
+    s.log.forEach(l => console.log(`  ${l}`))
+    console.log(`  → ${res.status}: ${JSON.stringify(res.body).slice(0,80)}`)
+  }
+}
+
+runAll()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Q&A -->
+<section class="section" id="qa">
+  <div class="section-header">
+    <span class="section-badge">05</span>
+    <h2 class="section-title">Interview Q&amp;A</h2>
+  </div>
+
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">1. What is tRPC and how does it achieve end-to-end type safety?</div>
+    <div class="ans-text">tRPC is a TypeScript RPC framework — you define server-side procedures (queries and mutations) in routers, and call them from the client using a typed proxy. There's no code generation, no schema files, no REST conventions. TypeScript infers the procedure's input and output types at compile time. When you call <code>trpc.products.list.useQuery()</code>, TypeScript knows exactly what fields <code>data</code> contains. If you rename a server-side field, the client immediately shows a type error. This is only possible because both client and server share the same TypeScript project (monorepo).</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">2. When would you choose REST over tRPC for a new feature?</div>
+    <div class="ans-text">Choose REST when: third-party clients need to consume the API (tRPC clients must be TypeScript); you need CDN caching on GET endpoints (REST uses standard HTTP, tRPC usually uses POST); you're building a public developer API with OpenAPI docs; you need file uploads (multipart/form-data); or you're building webhooks (always REST). Choose tRPC when: the client is a TypeScript app you control in the same repo; you want React Query hooks auto-generated; you're building internal tools, admin dashboards, or anywhere rapid iteration and refactoring matters most.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">3. How does Zod's parse differ from safeParse?</div>
+    <div class="ans-text"><code>schema.parse(data)</code> throws a <code>ZodError</code> on invalid input — use this in try/catch and convert to a 400 response. <code>schema.safeParse(data)</code> never throws — returns <code>{ success: true, data }</code> or <code>{ success: false, error: ZodError }</code>. Use safeParse when you want to handle errors inline without try/catch: <code>const result = schema.safeParse(body); if (!result.success) return apiError(...)</code>. In tRPC, input validation via <code>.input(schema)</code> uses parse internally and converts ZodErrors to <code>TRPCError({ code: 'BAD_REQUEST' })</code> automatically.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">4. What is the sliding window rate limiting algorithm?</div>
+    <div class="ans-text">Sliding window tracks the timestamps of each request within a rolling time window. When a new request arrives, remove all timestamps older than <code>windowStart = now - windowMs</code>, then check if the remaining count is below the limit. If yes, add the new timestamp and allow; if no, return 429 with a Retry-After header. Compared to fixed windows (reset every minute), sliding window prevents burst attacks at the window boundary. Upstash Redis implements this efficiently using sorted sets. The key is per-user or per-IP to prevent one user from blocking others.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">5. How should you version an API and handle breaking changes?</div>
+    <div class="ans-text">URL versioning (<code>/api/v1/</code>) is the most practical: easy to route, visible in logs, easy for clients to target. When introducing breaking changes: (1) create <code>/api/v2/</code> with the new contract; (2) run v1 and v2 concurrently; (3) add <code>Deprecation: Tue, 01 Jan 2025 00:00:00 GMT</code> and <code>Sunset: Mon, 01 Jul 2025 00:00:00 GMT</code> headers to v1 responses; (4) communicate the sunset to clients; (5) remove v1 after the deadline. For tRPC (internal), versioning is less critical — just update the procedure and fix all clients simultaneously (TypeScript shows you everywhere that breaks).</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">6. What HTTP status codes should every API developer know?</div>
+    <div class="ans-text">2xx success: 200 (OK), 201 (Created), 204 (No Content — DELETE). 3xx redirect: 301 (permanent), 302 (temporary), 304 (Not Modified — cached). 4xx client errors: 400 (Bad Request — validation failed), 401 (Unauthorized — not authenticated), 403 (Forbidden — authenticated but not permitted), 404 (Not Found), 409 (Conflict — duplicate), 422 (Unprocessable Entity — semantic validation), 429 (Too Many Requests — rate limit). 5xx server errors: 500 (Internal Server Error), 502 (Bad Gateway), 503 (Service Unavailable). Key distinction: 401 means "please authenticate", 403 means "you are authenticated but not allowed".</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">7. How do you handle N+1 query problems in tRPC?</div>
+    <div class="ans-text">N+1 happens when you fetch N items then make N additional queries for each item's related data. Solutions: (1) <strong>Prisma include</strong> — <code>include: { variants: true, reviews: { take: 5 } }</code> does a JOIN in one query; (2) <strong>DataLoader</strong> — batches multiple individual lookups into one query; (3) <strong>Select carefully</strong> — don't include relations you don't need (use <code>select</code> instead of <code>include</code> for projections). In tRPC, the procedure is the right place to optimise: write the Prisma query that fetches exactly what the client needs, including all relations, in a single DB round-trip.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">8. What should you never expose in an API response?</div>
+    <div class="ans-text">Fields to always strip: (1) passwords (even hashed — no reason for clients to see this); (2) internal IDs or foreign keys not needed by the client; (3) <code>deletedAt</code> timestamps — soft-deleted records shouldn't be visible; (4) Prisma internal fields, database-specific metadata; (5) server-side secrets or API keys; (6) other users' personal data (PII) — never return full user objects in order lists; (7) full stack traces in production errors — only return an error code and message. Build explicit serialiser/DTO functions that whitelist fields rather than blacklisting — it's safer to add fields than to accidentally expose them.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">9. How do tRPC subscriptions work for real-time features?</div>
+    <div class="ans-text">tRPC supports subscriptions via WebSockets. Define a subscription procedure using <code>publicProc.subscription(() => observable(...))</code>. The client subscribes with <code>trpc.orders.onStatusChange.useSubscription({ orderId }, { onData: (data) => ... })</code>. The server pushes data whenever it emits to the observable. For ShopCo: subscribe to order status changes, live inventory updates, or admin notifications. Requires a WebSocket adapter in Next.js (use a standalone Express server or a custom WS server alongside Next). For simpler real-time needs, Server-Sent Events (SSE) via Vercel's streaming may be sufficient — Day 37 covers this in detail.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">10. What is the difference between a query and a mutation in tRPC?</div>
+    <div class="ans-text">Queries (<code>.query()</code>): read operations, use HTTP GET under the hood, can be cached by React Query, idempotent (calling multiple times gives same result). Mutations (<code>.mutation()</code>): write operations, use HTTP POST, not cached, may have side effects (create/update/delete data, send emails, charge payments). This mirrors REST's GET vs POST/PATCH/DELETE. In React: use <code>useQuery</code> for queries (auto-fetches on mount, refetches on invalidation) and <code>useMutation</code> for mutations (manually triggered with <code>mutate()</code>). Always invalidate related queries after a mutation: <code>utils.products.list.invalidate()</code> to refresh the cache.</div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section class="section" id="checklist">
+  <div class="section-header">
+    <span class="section-badge">06</span>
+    <h2 class="section-title">Night Review Checklist</h2>
+  </div>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain how tRPC achieves end-to-end type safety without codegen</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use REST vs tRPC for different API scenarios</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a Next.js App Router route handler with Zod validation</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand tRPC context, middleware (isAuthed, isAdmin), and procedure types</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can set up a tRPC router with public, authed, and admin procedures</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between .query() and .mutation() in tRPC</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the sliding window rate limiting algorithm</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can map error types to correct HTTP status codes (400/401/403/404/409/429/500)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built the full API lifecycle exercise and traced every layer</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know what fields to never expose in API responses</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand API versioning and the sunset pattern</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to prevent N+1 queries in tRPC using Prisma include/select</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built the Zod validator and structured error handler exercises</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can answer all 10 interview questions confidently</div></div>
+  </div>
+  <div class="tomorrow-box">
+    <h4>🌅 Tomorrow — Day 37: Real-time Features</h4>
+    <p>Day 37 brings ShopCo to life with real-time updates — live order status tracking, admin inventory alerts, and a live activity feed. You'll implement Server-Sent Events (SSE) for one-way streaming from server to client, WebSockets with Pusher for bidirectional communication, and optimistic UI updates so the interface responds instantly before the server confirms. You'll also build the real-time infrastructure for the admin dashboard — see new orders appear live without refreshing. Prepare by reviewing the API layer you just built — tomorrow's real-time features hook directly into the order and product routes.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-btns">
+    <button class="footer-btn" onclick="navigateTo('day35_data_modeling.html',35)">← Day 35: Data Modeling</button>
+    <button class="footer-btn primary" onclick="navigateTo('day37_realtime_features.html',37)">Day 37: Real-time →</button>
+  </div>
+  <div style="margin-top:16px">
+    <div class="week-prog-label">Week 6 Progress — 4 of 7 days</div>
+    <div class="week-prog-bar"><div class="week-prog-fill" style="width:57%"></div></div>
+  </div>
+  <div style="margin-top:16px;font-size:11px;color:var(--hint)">ShopCo Course · Day 36 of 56 · API Layer</div>
+</footer>
+
+<script>
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_arrays_objects.html"},
+  {num:3,file:"day3_functions_async.html"},
+  {num:4,file:"day4_error_handling.html"},
+  {num:5,file:"day5_dom_events.html"},
+  {num:6,file:"day6_es6_modules.html"},
+  {num:7,file:"day7_week1_review.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design_rest.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html"},
+  {num:28,file:"day28_error_monitoring.html"},
+  {num:29,file:"day29_genai_vercel_ai_sdk.html"},
+  {num:30,file:"day30_rag_embeddings.html"},
+  {num:31,file:"day31_ai_agents_tools.html"},
+  {num:32,file:"day32_week5_review.html"},
+  {num:33,file:"day33_project_setup.html"},
+  {num:34,file:"day34_auth_roles.html"},
+  {num:35,file:"day35_data_modeling.html"},
+  {num:36,file:"day36_api_layer.html",current:true},
+  {num:37,file:"day37_realtime_features.html"},
+  {num:38,file:"day38_file_uploads.html"},
+  {num:39,file:"day39_week6_review.html"},
+  {num:40,file:"day40_stripe_payments.html"},
+  {num:41,file:"day41_email_notifications.html"},
+  {num:42,file:"day42_search.html"},
+  {num:43,file:"day43_advanced_rag.html"},
+  {num:44,file:"day44_ai_pipelines.html"},
+  {num:45,file:"day45_analytics.html"},
+  {num:46,file:"day46_week7_review.html"},
+  {num:47,file:"day47_accessibility.html"},
+  {num:48,file:"day48_i18n_l10n.html"},
+  {num:49,file:"day49_advanced_testing.html"},
+  {num:50,file:"day50_devops_cicd.html"},
+  {num:51,file:"day51_portfolio_project_1.html"},
+  {num:52,file:"day52_portfolio_project_2.html"},
+  {num:53,file:"day53_resume_github.html"},
+  {num:54,file:"day54_interview_prep.html"},
+  {num:55,file:"day55_mock_interviews.html"},
+  {num:56,file:"day56_graduation.html"},
+]
+const CURRENT = 36
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_arrays_objects.html",
+  "day3_functions_async.html","day5_dom_events.html","day6_es6_modules.html",
+  "day7_week1_review.html","day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html","day12_context_global_state.html",
+  "day13_week2_review.html","day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html","day18_tailwind_css.html",
+  "day19_week3_review.html","day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html","day24_api_design_rest.html",
+  "day25_week4_review.html","day26_performance.html","day27_testing.html",
+  "day28_error_monitoring.html","day29_genai_vercel_ai_sdk.html",
+  "day30_rag_embeddings.html","day31_ai_agents_tools.html","day32_week5_review.html",
+  "day33_project_setup.html","day34_auth_roles.html","day35_data_modeling.html",
+  "day36_api_layer.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast('Day '+n+' coming soon!')
+}
+function showToast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3000)
+}
+const dotsEl=document.getElementById('day-dots')
+DAY_PLAN.forEach(d=>{
+  const btn=document.createElement('button')
+  btn.className='ddot'+(d.current?' current':AVAILABLE.has(d.file)?' done available':' available')
+  btn.title='Day '+d.num
+  btn.onclick=()=>navigateTo(d.file,d.num)
+  dotsEl.appendChild(btn)
+})
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea')
+  const out=wrap.querySelector('.output-box'),logs=[]
+  const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x,null,2):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{
+    const result=new Function(ta.value)()
+    if(result&&typeof result.then==='function'){
+      out.textContent='Running...'
+      result.then(()=>{out.textContent=logs.length?logs.join('\n'):'(no output)'})
+            .catch(e=>{out.classList.add('err');out.textContent='✗ '+e.message})
+    }else{out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  }catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+const secs=document.querySelectorAll('.section')
+const links=document.querySelectorAll('.nav-links a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Day 32 — Week 5 Review | ShopCo Course</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --accent:#4ade80;--accent-dim:rgba(74,222,128,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;height:52px}
+.nav-brand{font-weight:700;font-size:14px;color:var(--accent);white-space:nowrap;margin-right:24px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:6px 12px;border-radius:6px;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{color:var(--accent);background:var(--accent-dim)}
+.week-banner{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
+.week-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(74,222,128,0.3)}
+.week-desc{font-size:12px;color:var(--muted)}
+.day-nav{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px}
+.day-nav-title{font-size:14px;font-weight:700;color:var(--text);margin-right:8px}
+.day-dots{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.ddot{width:10px;height:10px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .2s;border:none;padding:0}
+.ddot.done{background:var(--green)}
+.ddot.current{background:var(--accent);box-shadow:0 0 8px rgba(74,222,128,0.5)}
+.ddot.available:hover{background:var(--muted);transform:scale(1.2)}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hero{padding:64px 24px 48px;max-width:900px;margin:0 auto;text-align:center}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:20px}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin:0 auto 28px}
+.topic-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:36px}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+.pill.accent{background:var(--accent-dim);border-color:rgba(74,222,128,0.3);color:var(--accent)}
+.stats-row{display:flex;border:1px solid var(--border2);border-radius:12px;overflow:hidden;max-width:500px;margin:0 auto}
+.stat{flex:1;padding:16px 8px;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+.section{padding:48px 24px;max-width:1000px;margin:0 auto}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.section-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(74,222,128,0.2)}
+.section-title{font-size:22px;font-weight:700}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.topic-card:hover{border-color:var(--accent);background:var(--surface2)}
+.topic-card.done{border-color:rgba(74,222,128,0.4);background:var(--green-dim)}
+.topic-icon{font-size:24px;margin-bottom:10px}
+.topic-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.topic-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.progress-label{font-size:14px;font-weight:600}
+.pct{font-size:14px;font-weight:700;color:var(--accent)}
+.prog-bar{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.topic-dots{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tdot{width:28px;height:28px;border-radius:6px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.tdot.done{background:var(--accent-dim);border-color:rgba(74,222,128,0.4);color:var(--accent)}
+/* WEEK RECAP CARDS */
+.recap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:28px}
+.recap-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;position:relative;overflow:hidden}
+.recap-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.recap-card.d26::before{background:#06b6d4}
+.recap-card.d27::before{background:#22c55e}
+.recap-card.d28::before{background:#7c5cbf}
+.recap-card.d29::before{background:#8b5cf6}
+.recap-card.d30::before{background:#2dd4bf}
+.recap-card.d31::before{background:#f59e0b}
+.recap-day{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.recap-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px}
+.recap-points{list-style:none;padding:0}
+.recap-points li{font-size:12px;color:var(--muted);padding:2px 0;padding-left:14px;position:relative;line-height:1.5}
+.recap-points li::before{content:'→';position:absolute;left:0;color:var(--accent);font-size:10px;top:3px}
+/* PROJECT SPEC */
+.project-header{background:linear-gradient(135deg,rgba(74,222,128,0.08),rgba(45,212,191,0.05));border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:24px;margin-bottom:20px}
+.project-title{font-size:20px;font-weight:800;color:var(--accent);margin-bottom:8px}
+.project-sub{font-size:13px;color:var(--muted);line-height:1.7}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:20px 0}
+.feature-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px}
+.feature-card h4{font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.feature-card ul{list-style:none;padding:0}
+.feature-card ul li{font-size:11px;color:var(--muted);padding:2px 0;padding-left:12px;position:relative}
+.feature-card ul li::before{content:'·';position:absolute;left:0;color:var(--accent)}
+/* CODE */
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7}
+.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#86efac}.num{color:#f9a8d4}.fn{color:#93c5fd}
+.cm{color:#3d3d55;font-style:italic}.var{color:#5eead4}.op{color:#fcd34d}
+.prop{color:#fbbf24}.ty{color:#38bdf8}.tag{color:#fb7185}.attr{color:#fbbf24}
+/* ARCHITECTURE */
+.arch-box{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:20px;margin:16px 0}
+.arch-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.arch-row:last-child{border-bottom:none}
+.arch-layer{font-size:11px;font-weight:700;color:var(--muted);min-width:100px;text-transform:uppercase;letter-spacing:.5px}
+.arch-items{display:flex;gap:8px;flex-wrap:wrap}
+.arch-tag{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600}
+.at-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.at-teal{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,0.2)}
+.at-purple{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.2)}
+.at-amber{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.at-coral{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.at-blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(96,165,250,0.2)}
+/* EXERCISES */
+.ex-divider{padding:20px 24px;max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.ex-line{flex:1;height:1px;background:var(--border)}
+.ex-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.runner-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.runner-num{width:24px;height:24px;border-radius:6px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid rgba(74,222,128,0.3)}
+.runner-title{font-size:13px;font-weight:600;flex:1}
+.diff-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.diff-b{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.diff-i{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.diff-a{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.runner-body{padding:16px}
+.runner-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;min-height:130px;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent)}
+.run-btn{margin-top:10px;padding:8px 20px;border-radius:7px;border:none;background:var(--accent);color:#000;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.run-btn:hover{background:#22c55e;transform:translateY(-1px)}
+.output-box{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);min-height:48px;white-space:pre-wrap;line-height:1.6}
+.output-box.err{color:var(--coral)}
+/* Q&A */
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.qa-item:hover{border-color:var(--border2)}
+.qa-q{padding:16px 20px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.qa-q::after{content:'▸';color:var(--muted);transition:transform .25s;flex-shrink:0}
+.qa-item.open .qa-q::after{transform:rotate(90deg);color:var(--accent)}
+.qa-item.open{border-color:rgba(74,222,128,0.3)}
+.ans-text{display:none;padding:0 20px 16px;font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border)}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:4px;color:var(--teal)}
+.qa-item.open .ans-text{display:block}
+/* CHECKLIST */
+.checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-bottom:20px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s}
+.cl-item:hover{border-color:var(--border2)}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s}
+.cl-box.checked{background:var(--accent);border-color:var(--accent)}
+.cl-box.checked::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.cl-text{font-size:12px;color:var(--text);line-height:1.5}
+.cl-text.checked{color:var(--muted);text-decoration:line-through}
+.tomorrow-box{background:var(--surface);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:20px;margin-top:16px}
+.tomorrow-box h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.tomorrow-box p{font-size:13px;color:var(--muted);line-height:1.7}
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:24px;text-align:center}
+.footer-btns{display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.footer-btn{padding:10px 24px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.footer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.footer-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.footer-btn.primary:hover{background:#22c55e}
+.week-prog-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.week-prog-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;max-width:300px;margin:0 auto}
+.week-prog-fill{height:100%;background:var(--accent);border-radius:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.info-box{background:var(--accent-dim);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.week5-summary{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;margin-bottom:24px}
+.w5-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+@media(max-width:600px){.w5-grid{grid-template-columns:1fr}}
+.w5-item{text-align:center;padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+.w5-icon{font-size:28px;margin-bottom:8px}
+.w5-name{font-size:12px;font-weight:700;color:var(--text)}
+.w5-day{font-size:11px;color:var(--muted);margin-top:3px}
+.test-suite{background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:16px 0}
+.test-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px}
+.test-row:last-child{border-bottom:none}
+.test-icon{font-size:14px;width:20px;text-align:center}
+.test-name{flex:1;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text)}
+.test-type{font-size:10px;padding:2px 8px;border-radius:4px}
+.tt-unit{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.tt-int{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(96,165,250,0.2)}
+.tt-e2e{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.2)}
+.test-ms{font-size:11px;color:var(--muted);min-width:50px;text-align:right}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 32 · Week 5 Review</div>
+  <div class="nav-links">
+    <a href="#topics">Topics</a>
+    <a href="#recap">Week Recap</a>
+    <a href="#project">Project</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#qa">Interview</a>
+    <a href="#checklist">Review</a>
+  </div>
+</nav>
+
+<!-- WEEK BANNER -->
+<div class="week-banner">
+  <span class="week-badge">Week 5 · FINALE</span>
+  <span class="week-desc">Testing & AI Integration — bringing it all together in ShopCo AI Suite</span>
+</div>
+
+<!-- DAY NAV -->
+<div class="day-nav">
+  <span class="day-nav-title">Day 32 — Week 5 Review</span>
+  <div class="day-dots" id="day-dots"></div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="navigateTo('day31_ai_agents_tools.html',31)">← Prev</button>
+    <button class="nav-btn" onclick="navigateTo('day33_project_setup.html',33)">Next →</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Week 5 · Day 32 of 56</div>
+  <h1>Week 5 <span>Review</span></h1>
+  <p class="hero-sub">Consolidate 7 days of testing, error monitoring, and AI integration by building the ShopCo AI Suite — a complete, production-ready AI assistant with semantic search, agents, and full test coverage.</p>
+  <div class="topic-pills">
+    <span class="pill accent">Week 5 Recap</span>
+    <span class="pill accent">ShopCo AI Suite</span>
+    <span class="pill accent">Integration Patterns</span>
+    <span class="pill">Vitest + RTL</span>
+    <span class="pill">Playwright E2E</span>
+    <span class="pill">RAG Pipeline</span>
+    <span class="pill">AI Agents</span>
+    <span class="pill">Sentry Monitoring</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">7</div><div class="stat-l">Days Covered</div></div>
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Exercises</div></div>
+    <div class="stat"><div class="stat-n">10</div><div class="stat-l">Q&amp;As</div></div>
+    <div class="stat"><div class="stat-n">8h</div><div class="stat-l">Study</div></div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<section class="section" id="topics">
+  <div class="section-header">
+    <span class="section-badge">01</span>
+    <h2 class="section-title">Today's Topics</h2>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label">Day Progress</span>
+      <span class="pct" id="pct-label">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="topic-dots" id="tdots">
+      <div class="tdot" onclick="markDone(this)" title="Week Recap">R</div>
+      <div class="tdot" onclick="markDone(this)" title="Project Spec">P</div>
+      <div class="tdot" onclick="markDone(this)" title="Architecture">A</div>
+      <div class="tdot" onclick="markDone(this)" title="Testing Strategy">T</div>
+      <div class="tdot" onclick="markDone(this)" title="AI Integration">I</div>
+      <div class="tdot" onclick="markDone(this)" title="Error Monitoring">E</div>
+      <div class="tdot" onclick="markDone(this)" title="Exercises">X</div>
+      <div class="tdot" onclick="markDone(this)" title="Interview Prep">Q</div>
+    </div>
+  </div>
+  <div class="topics-grid">
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📋</div>
+      <div class="topic-name">Week 5 Recap</div>
+      <div class="topic-sub">Key concepts from Days 26–31 consolidated into mental models</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🏗️</div>
+      <div class="topic-name">ShopCo AI Suite</div>
+      <div class="topic-sub">Project spec: semantic search + agent + monitoring in one app</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🧱</div>
+      <div class="topic-name">Full-Stack Architecture</div>
+      <div class="topic-sub">How all Week 5 systems connect in the final ShopCo stack</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🧪</div>
+      <div class="topic-name">Testing Strategy</div>
+      <div class="topic-sub">Unit → integration → E2E pyramid for AI-powered features</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔗</div>
+      <div class="topic-name">Integration Patterns</div>
+      <div class="topic-sub">Wiring RAG + Agents + Sentry + CI/CD into one coherent system</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🎯</div>
+      <div class="topic-name">Common Pitfalls</div>
+      <div class="topic-sub">Mistakes to avoid when combining testing and AI in production</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📊</div>
+      <div class="topic-name">Performance Checklist</div>
+      <div class="topic-sub">Web Vitals, bundle size, and AI latency targets for ShopCo</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🚀</div>
+      <div class="topic-name">Week 6 Preview</div>
+      <div class="topic-sub">Full-stack project build: monorepo, tRPC, real-time, file uploads</div>
+    </div>
+  </div>
+</section>
+
+<!-- WEEK RECAP -->
+<section class="section" id="recap">
+  <div class="section-header">
+    <span class="section-badge">02</span>
+    <h2 class="section-title">Week 5 Recap — Days 26–31</h2>
+  </div>
+
+  <div class="week5-summary">
+    <div style="font-size:15px;font-weight:700;margin-bottom:6px">What you built this week</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.7">Started with performance fundamentals, added bulletproof testing, plugged in error monitoring, then built three layers of AI: the Vercel AI SDK for streaming, RAG embeddings for semantic search, and full multi-step agents. Every piece integrates into ShopCo.</div>
+    <div class="w5-grid">
+      <div class="w5-item"><div class="w5-icon">⚡</div><div class="w5-name">Performance</div><div class="w5-day">Day 26</div></div>
+      <div class="w5-item"><div class="w5-icon">🧪</div><div class="w5-name">Testing</div><div class="w5-day">Day 27</div></div>
+      <div class="w5-item"><div class="w5-icon">🔭</div><div class="w5-name">Sentry</div><div class="w5-day">Day 28</div></div>
+      <div class="w5-item"><div class="w5-icon">🤖</div><div class="w5-name">Vercel AI SDK</div><div class="w5-day">Day 29</div></div>
+      <div class="w5-item"><div class="w5-icon">📐</div><div class="w5-name">RAG & Embeddings</div><div class="w5-day">Day 30</div></div>
+      <div class="w5-item"><div class="w5-icon">🔧</div><div class="w5-name">AI Agents</div><div class="w5-day">Day 31</div></div>
+    </div>
+  </div>
+
+  <div class="recap-grid">
+    <div class="recap-card d26">
+      <div class="recap-day">Day 26</div>
+      <div class="recap-title">⚡ Performance</div>
+      <ul class="recap-points">
+        <li>Core Web Vitals: LCP, FID, CLS targets</li>
+        <li>next/image, font optimization, lazy loading</li>
+        <li>Bundle analysis with @next/bundle-analyzer</li>
+        <li>Caching: SWR, React Query, HTTP headers</li>
+        <li>Edge runtime for low-latency AI routes</li>
+      </ul>
+    </div>
+    <div class="recap-card d27">
+      <div class="recap-day">Day 27</div>
+      <div class="recap-title">🧪 Testing</div>
+      <ul class="recap-points">
+        <li>Vitest for unit & component tests</li>
+        <li>React Testing Library: user-centric queries</li>
+        <li>MSW for mocking fetch/API calls</li>
+        <li>Playwright for E2E browser automation</li>
+        <li>GitHub Actions CI on every push</li>
+      </ul>
+    </div>
+    <div class="recap-card d28">
+      <div class="recap-day">Day 28</div>
+      <div class="recap-title">🔭 Error Monitoring</div>
+      <ul class="recap-points">
+        <li>Sentry setup: DSN, source maps, releases</li>
+        <li>captureException with structured context</li>
+        <li>Breadcrumbs for debugging user journeys</li>
+        <li>Performance tracing with spans</li>
+        <li>Alerting rules and issue triage workflow</li>
+      </ul>
+    </div>
+    <div class="recap-card d29">
+      <div class="recap-day">Day 29</div>
+      <div class="recap-title">🤖 Vercel AI SDK</div>
+      <ul class="recap-points">
+        <li>generateText for one-shot completions</li>
+        <li>streamText for streaming chat responses</li>
+        <li>useChat hook for React frontend</li>
+        <li>generateObject for structured JSON output</li>
+        <li>system prompts and message history</li>
+      </ul>
+    </div>
+    <div class="recap-card d30">
+      <div class="recap-day">Day 30</div>
+      <div class="recap-title">📐 RAG & Embeddings</div>
+      <ul class="recap-points">
+        <li>text-embedding-3-small: 1536-dim vectors</li>
+        <li>pgvector + HNSW index in Prisma</li>
+        <li>Cosine similarity with &lt;=&gt; operator</li>
+        <li>Chunk → Embed → Store → Retrieve pipeline</li>
+        <li>Hybrid search: vector + BM25 + RRF fusion</li>
+      </ul>
+    </div>
+    <div class="recap-card d31">
+      <div class="recap-day">Day 31</div>
+      <div class="recap-title">🔧 AI Agents & Tools</div>
+      <ul class="recap-points">
+        <li>Tool definitions with Zod schemas</li>
+        <li>ReAct loop: Reason → Act → Observe</li>
+        <li>maxSteps to prevent infinite loops</li>
+        <li>Parallel tool calls with Promise.all</li>
+        <li>Human-in-the-loop for write operations</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECT -->
+<section class="section" id="project">
+  <div class="section-header">
+    <span class="section-badge">03</span>
+    <h2 class="section-title">Project: ShopCo AI Suite</h2>
+  </div>
+
+  <div class="project-header">
+    <div class="project-title">🛍️ ShopCo AI Suite — Week 5 Capstone</div>
+    <div class="project-sub">A production-ready AI layer on top of ShopCo with three integrated features: (1) semantic product search powered by pgvector embeddings, (2) a multi-step shopping agent that can search, compare, and recommend, and (3) full observability with Sentry error tracking and Playwright E2E tests that verify AI responses are relevant and don't hallucinate product data.</div>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>🔍 Semantic Search</h4>
+      <ul>
+        <li>Embed all products on import</li>
+        <li>Vector similarity via pgvector</li>
+        <li>Hybrid search with keyword fallback</li>
+        <li>Search results page with similarity score</li>
+        <li>Re-embed on product update webhook</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>🤖 Shopping Agent</h4>
+      <ul>
+        <li>4 tools: search, stock, reviews, cart</li>
+        <li>Streaming responses via useChat</li>
+        <li>Tool call progress shown in UI</li>
+        <li>Confirmation gate before addToCart</li>
+        <li>maxSteps=5 safety limit</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>🧪 Test Suite</h4>
+      <ul>
+        <li>Unit: embed(), cosineSimilarity(), tools</li>
+        <li>Integration: RAG pipeline with MSW mocks</li>
+        <li>E2E: Playwright chat flow tests</li>
+        <li>Agent eval: assert product relevance</li>
+        <li>CI: GitHub Actions on every PR</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>🔭 Observability</h4>
+      <ul>
+        <li>Sentry on every API route</li>
+        <li>Breadcrumbs: query → embed → retrieve</li>
+        <li>Custom spans for AI latency tracking</li>
+        <li>Alert if embedding pipeline fails</li>
+        <li>Error rate dashboard per feature</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>🎯 Week 5 Integration principle:</strong> Each system from this week is a layer — Performance is the foundation, Testing ensures correctness, Sentry catches what slips through, and the AI features (SDK → RAG → Agents) build on each other. The agent calls the RAG search tool. The RAG pipeline is monitored by Sentry. The whole flow is tested by Playwright. Everything connects.
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="section" id="architecture">
+  <div class="section-header">
+    <span class="section-badge">04</span>
+    <h2 class="section-title">Full-Stack Architecture</h2>
+  </div>
+
+  <div class="arch-box">
+    <div class="arch-row">
+      <div class="arch-layer">Frontend</div>
+      <div class="arch-items">
+        <span class="arch-tag at-blue">Next.js App Router</span>
+        <span class="arch-tag at-blue">useChat hook</span>
+        <span class="arch-tag at-blue">Tool call UI</span>
+        <span class="arch-tag at-blue">Semantic search page</span>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-layer">AI Routes</div>
+      <div class="arch-items">
+        <span class="arch-tag at-amber">/api/chat (agent)</span>
+        <span class="arch-tag at-amber">/api/search (RAG)</span>
+        <span class="arch-tag at-amber">/api/embed (pipeline)</span>
+        <span class="arch-tag at-amber">streamText + tools</span>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-layer">AI Layer</div>
+      <div class="arch-items">
+        <span class="arch-tag at-purple">Vercel AI SDK</span>
+        <span class="arch-tag at-purple">OpenAI gpt-4o</span>
+        <span class="arch-tag at-purple">text-embedding-3-small</span>
+        <span class="arch-tag at-purple">generateObject</span>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-layer">Data</div>
+      <div class="arch-items">
+        <span class="arch-tag at-teal">Prisma ORM</span>
+        <span class="arch-tag at-teal">pgvector (HNSW)</span>
+        <span class="arch-tag at-teal">PostgreSQL</span>
+        <span class="arch-tag at-teal">Redis (rate limit)</span>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-layer">Observability</div>
+      <div class="arch-items">
+        <span class="arch-tag at-coral">Sentry errors</span>
+        <span class="arch-tag at-coral">AI latency spans</span>
+        <span class="arch-tag at-coral">Breadcrumbs</span>
+        <span class="arch-tag at-coral">Structured logging</span>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-layer">Testing</div>
+      <div class="arch-items">
+        <span class="arch-tag at-green">Vitest units</span>
+        <span class="arch-tag at-green">RTL components</span>
+        <span class="arch-tag at-green">MSW mocks</span>
+        <span class="arch-tag at-green">Playwright E2E</span>
+        <span class="arch-tag at-green">GitHub Actions CI</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;font-weight:700;margin:28px 0 12px">Simulated Test Suite for ShopCo AI Suite</h3>
+  <div class="test-suite">
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">embed() returns 1536-dim vector</span><span class="test-type tt-unit">unit</span><span class="test-ms">2ms</span></div>
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">cosineSimilarity(a, b) range 0–1</span><span class="test-type tt-unit">unit</span><span class="test-ms">1ms</span></div>
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">chunkProduct() includes all fields</span><span class="test-type tt-unit">unit</span><span class="test-ms">1ms</span></div>
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">validateToolDefinition() rejects bad tools</span><span class="test-type tt-unit">unit</span><span class="test-ms">1ms</span></div>
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">executeToolCall() handles unknown tool</span><span class="test-type tt-unit">unit</span><span class="test-ms">2ms</span></div>
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">POST /api/search returns ranked products</span><span class="test-type tt-int">integration</span><span class="test-ms">45ms</span></div>
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">RAG context builder respects token budget</span><span class="test-type tt-int">integration</span><span class="test-ms">12ms</span></div>
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">Agent stops at maxSteps=5</span><span class="test-type tt-int">integration</span><span class="test-ms">89ms</span></div>
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">Hybrid RRF returns merged results</span><span class="test-type tt-int">integration</span><span class="test-ms">18ms</span></div>
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">Chat flow: user asks → agent responds with product</span><span class="test-type tt-e2e">e2e</span><span class="test-ms">1.2s</span></div>
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">Agent never adds to cart without confirmation</span><span class="test-type tt-e2e">e2e</span><span class="test-ms">1.8s</span></div>
+    <div class="test-row"><span class="test-icon">✅</span><span class="test-name">Search results match query intent (eval)</span><span class="test-type tt-e2e">e2e</span><span class="test-ms">2.4s</span></div>
+  </div>
+
+  <div class="code-label" style="margin-top:24px">E2E test: Playwright verifying the AI chat flow</div>
+  <pre><span class="kw">import</span> { test, expect } <span class="kw">from</span> <span class="str">'@playwright/test'</span>
+
+test.<span class="fn">describe</span>(<span class="str">'ShopCo AI Chat'</span>, () <span class="op">=&gt;</span> {
+  test(<span class="str">'agent finds in-stock product for trail query'</span>, <span class="kw">async</span> ({ <span class="var">page</span> }) <span class="op">=&gt;</span> {
+    <span class="kw">await</span> <span class="var">page</span>.<span class="fn">goto</span>(<span class="str">'/chat'</span>)
+
+    <span class="cm">// User asks for trail shoes</span>
+    <span class="kw">await</span> <span class="var">page</span>.<span class="fn">fill</span>(<span class="str">'[data-testid="chat-input"]'</span>,
+      <span class="str">'Find me trail running shoes under $200'</span>)
+    <span class="kw">await</span> <span class="var">page</span>.<span class="fn">keyboard</span>.<span class="fn">press</span>(<span class="str">'Enter'</span>)
+
+    <span class="cm">// Wait for agent tool calls to resolve</span>
+    <span class="kw">await</span> <span class="var">page</span>.<span class="fn">waitForSelector</span>(<span class="str">'[data-testid="tool-call-done"]'</span>)
+
+    <span class="cm">// Assert response contains relevant product</span>
+    <span class="kw">const</span> <span class="var">response</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">page</span>.<span class="fn">textContent</span>(<span class="str">'[data-testid="agent-message"]'</span>)
+    <span class="var">expect</span>(<span class="var">response</span>).<span class="fn">toContain</span>(<span class="str">'TrailRunner'</span>) <span class="cm">// must mention a real product</span>
+    <span class="var">expect</span>(<span class="var">response</span>).<span class="fn">not</span>.<span class="fn">toContain</span>(<span class="str">'$500'</span>) <span class="cm">// must respect $200 budget</span>
+
+    <span class="cm">// Verify cart button NOT auto-triggered</span>
+    <span class="kw">await</span> <span class="var">expect</span>(<span class="var">page</span>.<span class="fn">locator</span>(<span class="str">'[data-testid="order-confirm"]'</span>))
+      .<span class="fn">not</span>.<span class="fn">toBeVisible</span>()
+  })
+
+  test(<span class="str">'out-of-stock products are flagged correctly'</span>, <span class="kw">async</span> ({ <span class="var">page</span> }) <span class="op">=&gt;</span> {
+    <span class="kw">await</span> <span class="var">page</span>.<span class="fn">goto</span>(<span class="str">'/chat'</span>)
+    <span class="kw">await</span> <span class="var">page</span>.<span class="fn">fill</span>(<span class="str">'[data-testid="chat-input"]'</span>, <span class="str">'I want SpeedMax Elite'</span>)
+    <span class="kw">await</span> <span class="var">page</span>.<span class="fn">keyboard</span>.<span class="fn">press</span>(<span class="str">'Enter'</span>)
+    <span class="kw">await</span> <span class="var">page</span>.<span class="fn">waitForSelector</span>(<span class="str">'[data-testid="agent-message"]'</span>)
+    <span class="kw">const</span> <span class="var">resp</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">page</span>.<span class="fn">textContent</span>(<span class="str">'[data-testid="agent-message"]'</span>)
+    <span class="var">expect</span>(<span class="var">resp</span>.<span class="fn">toLowerCase</span>()).<span class="fn">toMatch</span>(<span class="str">/out of stock|unavailable|not available/</span>)
+  })
+})</pre>
+</section>
+
+<!-- EXERCISES -->
+<div class="ex-divider">
+  <div class="ex-line"></div>
+  <div class="ex-label">⚡ Exercises</div>
+  <div class="ex-line"></div>
+</div>
+
+<section class="section" id="exercises">
+
+  <!-- EX 1 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">1</div>
+      <div class="runner-title">Week 5 Concept Self-Test</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Answer the quiz questions by filling in the blank variables. Tests your retention of Week 5 core concepts — run to see your score.</div>
+      <textarea id="ta1">// Week 5 Self-Test — fill in the correct answers
+const answers = {
+  // Q1: What CSS property measures layout shift? (Core Web Vitals)
+  q1_cwv_layout_shift: "CLS",
+
+  // Q2: What function in Vitest creates a mock? (Testing)
+  q2_vitest_mock: "vi.fn()",
+
+  // Q3: What Sentry function captures a caught error manually?
+  q3_sentry_capture: "Sentry.captureException()",
+
+  // Q4: What Vercel AI SDK hook handles streaming chat in React?
+  q4_ai_hook: "useChat",
+
+  // Q5: What pgvector operator computes cosine distance?
+  q5_vector_operator: "<=>",
+
+  // Q6: What pattern does an AI agent follow? (3-word answer)
+  q6_agent_pattern: "ReAct",
+
+  // Q7: What is the max recommended chunk size for embeddings? (tokens)
+  q7_chunk_size: 512,
+
+  // Q8: What property prevents agents from looping forever?
+  q8_safety_prop: "maxSteps",
+}
+
+// Scoring engine
+const CORRECT = {
+  q1_cwv_layout_shift: "CLS",
+  q2_vitest_mock: "vi.fn()",
+  q3_sentry_capture: "Sentry.captureException()",
+  q4_ai_hook: "useChat",
+  q5_vector_operator: "<=>",
+  q6_agent_pattern: "ReAct",
+  q7_chunk_size: 512,
+  q8_safety_prop: "maxSteps",
+}
+
+let score = 0
+console.log("=== Week 5 Self-Test Results ===\n")
+Object.entries(CORRECT).forEach(([key, expected]) => {
+  const got = answers[key]
+  const correct = String(got).trim() === String(expected).trim()
+  if (correct) score++
+  console.log(`${correct ? '✓' : '✗'} ${key.replace(/_/g,' ')}: ${correct ? 'Correct' : `Expected "${expected}", got "${got}"`}`)
+})
+console.log(`\nScore: ${score}/${Object.keys(CORRECT).length}`)
+console.log(score === 8 ? '🎉 Perfect! You nailed Week 5.' : score >= 6 ? '👍 Good — review the ones you missed.' : '📖 Revisit the daily files before moving on.')
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">2</div>
+      <div class="runner-title">Mini RAG Pipeline (End-to-End)</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build the complete RAG pipeline in one function: chunk products → (mock) embed → store → retrieve by query → format context for the LLM. Everything from Day 30 in one flow.</div>
+      <textarea id="ta2">// Complete mini-RAG: chunk → embed → store → retrieve → format
+const PRODUCTS = [
+  { id:'p1', name:'TrailRunner Pro X', price:189, desc:'Lightweight trail shoe with carbon fiber plate', cat:'Footwear' },
+  { id:'p2', name:'ArcticShell Jacket', price:349, desc:'Waterproof jacket rated -20C with pit zips', cat:'Outerwear' },
+  { id:'p3', name:'SpeedMax Elite', price:229, desc:'Road racing shoe for marathons with nitrogen foam', cat:'Footwear' },
+  { id:'p4', name:'HydroTrail 20L', price:89, desc:'Hydration pack for trail running with 2L bladder', cat:'Bags' },
+]
+
+// Step 1: Chunk
+function chunkProduct(p) {
+  return { id:`chunk_${p.id}`, productId:p.id,
+    content:`${p.name} (${p.cat}, $${p.price}): ${p.desc}` }
+}
+
+// Step 2: Mock embed — bag-of-words on key terms
+const VOCAB = ['trail','run','shoe','jacket','waterproof','road','marathon','hydration','pack','carbon','foam','warm']
+function mockEmbed(text) {
+  const t = text.toLowerCase()
+  return VOCAB.map(w => t.includes(w) ? 1 : 0)
+}
+
+// Step 3: Store
+const vectorStore = PRODUCTS.map(p => {
+  const chunk = chunkProduct(p)
+  return { ...chunk, vector: mockEmbed(chunk.content) }
+})
+
+// Step 4: Retrieve — cosine similarity search
+function cosineSim(a, b) {
+  const dot = a.reduce((s,v,i) => s + v*b[i], 0)
+  const magA = Math.sqrt(a.reduce((s,v) => s+v*v, 0)) || 1
+  const magB = Math.sqrt(b.reduce((s,v) => s+v*v, 0)) || 1
+  return dot / (magA * magB)
+}
+
+function retrieve(query, k=3) {
+  const qVec = mockEmbed(query)
+  return vectorStore
+    .map(doc => ({ ...doc, score: cosineSim(qVec, doc.vector) }))
+    .sort((a,b) => b.score - a.score)
+    .slice(0, k)
+}
+
+// Step 5: Format context for LLM
+function buildContext(query) {
+  const results = retrieve(query)
+  const context = results.map(r => `[${r.content}] (score: ${r.score.toFixed(2)})`).join('\n')
+  return `SYSTEM: You are ShopCo assistant. Use ONLY these products:\n${context}\n\nUSER: ${query}`
+}
+
+// Run it
+const query = 'trail running gear'
+console.log('=== Full RAG Pipeline Demo ===')
+console.log(`Query: "${query}"\n`)
+console.log('Retrieved chunks:')
+retrieve(query).forEach((r,i) => console.log(`  ${i+1}. [${r.score.toFixed(2)}] ${r.content}`))
+console.log('\nFormatted prompt for LLM:')
+console.log(buildContext(query))
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">3</div>
+      <div class="runner-title">Vitest-Style Unit Test Runner</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a mini test runner that simulates Vitest's describe/test/expect API. Then write unit tests for the core ShopCo AI utilities from Week 5.</div>
+      <textarea id="ta3">// Mini test runner (simulates Vitest describe/test/expect)
+const results = []
+let currentSuite = ''
+
+function describe(name, fn) { currentSuite = name; fn() }
+function test(name, fn) {
+  try { fn(); results.push({ suite: currentSuite, name, pass: true }) }
+  catch(e) { results.push({ suite: currentSuite, name, pass: false, error: e.message }) }
+}
+const expect = (val) => ({
+  toBe: (exp) => { if (val !== exp) throw new Error(`Expected ${JSON.stringify(exp)}, got ${JSON.stringify(val)}`) },
+  toEqual: (exp) => { if (JSON.stringify(val) !== JSON.stringify(exp)) throw new Error(`Expected ${JSON.stringify(exp)}`) },
+  toBeGreaterThan: (n) => { if (!(val > n)) throw new Error(`Expected ${val} > ${n}`) },
+  toBeLessThanOrEqual: (n) => { if (!(val <= n)) throw new Error(`Expected ${val} <= ${n}`) },
+  toHaveLength: (n) => { if (val.length !== n) throw new Error(`Expected length ${n}, got ${val.length}`) },
+  toContain: (s) => { if (!val.includes(s)) throw new Error(`Expected to contain "${s}"`) },
+  not: { toBe: (exp) => { if (val === exp) throw new Error(`Expected not to be ${JSON.stringify(exp)}`) } }
+})
+
+// ── System Under Test ──────────────────────────────────────
+function cosineSimilarity(a, b) {
+  const dot = a.reduce((s,v,i) => s+v*b[i], 0)
+  const mA = Math.sqrt(a.reduce((s,v)=>s+v*v,0))
+  const mB = Math.sqrt(b.reduce((s,v)=>s+v*v,0))
+  return dot / (mA * mB)
+}
+function chunkProduct(p) {
+  return { id:`chunk_${p.id}`, content:`${p.name}. ${p.desc}. Category: ${p.cat}` }
+}
+function validateTool(t) {
+  return t.name?.length > 0 && t.description?.length >= 10 && t.parameters?.type === 'object'
+}
+
+// ── Tests ──────────────────────────────────────────────────
+describe('cosineSimilarity', () => {
+  test('identical vectors return 1', () => {
+    expect(Math.round(cosineSimilarity([1,0,1],[1,0,1]))).toBe(1)
+  })
+  test('orthogonal vectors return 0', () => {
+    expect(cosineSimilarity([1,0],[0,1])).toBe(0)
+  })
+  test('result is between 0 and 1', () => {
+    const sim = cosineSimilarity([0.8,0.1,0.5],[0.7,0.2,0.4])
+    expect(sim).toBeGreaterThan(0)
+    expect(sim).toBeLessThanOrEqual(1)
+  })
+})
+describe('chunkProduct', () => {
+  const p = { id:'p1', name:'TrailRunner', desc:'Great shoe', cat:'Footwear' }
+  test('chunk id is prefixed', () => { expect(chunkProduct(p).id).toBe('chunk_p1') })
+  test('content includes name', () => { expect(chunkProduct(p).content).toContain('TrailRunner') })
+  test('content includes category', () => { expect(chunkProduct(p).content).toContain('Footwear') })
+})
+describe('validateTool', () => {
+  test('valid tool passes', () => {
+    expect(validateTool({ name:'search', description:'Search products by query in ShopCo', parameters:{type:'object'} })).toBe(true)
+  })
+  test('short description fails', () => {
+    expect(validateTool({ name:'s', description:'get', parameters:{type:'object'} })).toBe(false)
+  })
+})
+
+// Report
+const pass = results.filter(r=>r.pass).length
+const fail = results.filter(r=>!r.pass).length
+console.log(`\n${pass + fail} tests · ${pass} passed · ${fail} failed\n`)
+let suite = ''
+results.forEach(r => {
+  if (r.suite !== suite) { suite = r.suite; console.log(`\n${suite}`) }
+  console.log(`  ${r.pass ? '✓' : '✗'} ${r.name}${r.error ? ' — ' + r.error : ''}`)
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">4</div>
+      <div class="runner-title">Sentry Breadcrumb Recorder</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate Sentry breadcrumb recording for the entire ShopCo AI request lifecycle — from user query to agent response. Useful for debugging AI failures in production.</div>
+      <textarea id="ta4">// Simulate Sentry breadcrumb trail for ShopCo AI request
+class SentrySimulator {
+  constructor() { this.breadcrumbs = []; this.context = {} }
+  addBreadcrumb({ category, message, level='info', data={} }) {
+    this.breadcrumbs.push({ ts: new Date().toISOString(), category, message, level, data })
+  }
+  setContext(key, data) { this.context[key] = data }
+  captureException(err, extras={}) {
+    console.log(`\n🔴 SENTRY EVENT CAPTURED`)
+    console.log(`Error: ${err.message}`)
+    console.log(`Context: ${JSON.stringify(this.context)}`)
+    console.log(`Breadcrumbs (${this.breadcrumbs.length}):`)
+    this.breadcrumbs.forEach((b,i) =>
+      console.log(`  ${i+1}. [${b.level}] ${b.category}: ${b.message} ${Object.keys(b.data).length?JSON.stringify(b.data):''}`)
+    )
+  }
+}
+
+const Sentry = new SentrySimulator()
+
+// Simulate a full ShopCo AI request with Sentry instrumentation
+async function shopCoAIRequest(userQuery) {
+  Sentry.setContext('request', { query: userQuery, timestamp: Date.now() })
+
+  // 1. Receive query
+  Sentry.addBreadcrumb({ category:'chat', message:'User query received', data:{ query: userQuery } })
+
+  // 2. Embed query
+  Sentry.addBreadcrumb({ category:'ai', message:'Embedding user query', data:{ model:'text-embedding-3-small' } })
+  await new Promise(r => setTimeout(r, 20)) // simulate 20ms embed
+  Sentry.addBreadcrumb({ category:'ai', message:'Query embedded', data:{ dims:1536, latency_ms:20 } })
+
+  // 3. Vector search
+  Sentry.addBreadcrumb({ category:'db', message:'pgvector similarity search', data:{ k:5, operator:'<=>' } })
+  const results = [{ id:'p1', score:0.94 }, { id:'p2', score:0.81 }]
+  Sentry.addBreadcrumb({ category:'db', message:'Search complete', data:{ results_count:results.length, top_score:0.94 } })
+
+  // 4. Agent tool call
+  Sentry.addBreadcrumb({ category:'agent', message:'Tool call: checkInventory', data:{ productId:'p1' } })
+  Sentry.addBreadcrumb({ category:'agent', message:'Tool result: in stock', data:{ quantity:12 } })
+
+  // 5. Simulate an error
+  Sentry.addBreadcrumb({ category:'agent', message:'Tool call: checkInventory', data:{ productId:'p2' }, level:'warning' })
+
+  try {
+    throw new Error('Inventory service timeout after 5000ms')
+  } catch(e) {
+    Sentry.addBreadcrumb({ category:'error', message:'Tool execution failed', level:'error', data:{ tool:'checkInventory', productId:'p2' } })
+    Sentry.captureException(e)
+    return
+  }
+}
+
+shopCoAIRequest('Find trail shoes and check stock')
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">5</div>
+      <div class="runner-title">AI Feature Performance Profiler</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a performance profiler that measures each stage of the ShopCo AI pipeline: embed, retrieve, agent loop, and total latency. Identifies bottlenecks and compares against targets.</div>
+      <textarea id="ta5">// AI Pipeline Performance Profiler
+class AIProfiler {
+  constructor() { this.spans = [] }
+
+  async measure(name, fn, target_ms) {
+    const start = performance.now()
+    const result = await fn()
+    const duration = Math.round(performance.now() - start)
+    const status = duration <= target_ms ? 'pass' : duration <= target_ms * 1.5 ? 'warn' : 'fail'
+    this.spans.push({ name, duration, target_ms, status })
+    return result
+  }
+
+  report() {
+    console.log('=== ShopCo AI Pipeline Performance Report ===\n')
+    const total = this.spans.reduce((s,sp) => s + sp.duration, 0)
+    this.spans.forEach(sp => {
+      const bar = '█'.repeat(Math.min(Math.round(sp.duration/5), 30))
+      const icon = sp.status === 'pass' ? '✓' : sp.status === 'warn' ? '⚠' : '✗'
+      const pct = Math.round((sp.duration / total) * 100)
+      console.log(`${icon} ${sp.name.padEnd(24)} ${String(sp.duration+'ms').padStart(6)} / ${sp.target_ms}ms target  ${bar} (${pct}%)`)
+    })
+    console.log(`\nTotal: ${total}ms`)
+    const allPass = this.spans.every(s => s.status === 'pass')
+    const hasWarn = this.spans.some(s => s.status === 'warn')
+    const hasFail = this.spans.some(s => s.status === 'fail')
+    if (allPass) console.log('✅ All stages within target latency')
+    else if (hasFail) console.log('❌ Some stages exceed target — investigate bottlenecks')
+    else if (hasWarn) console.log('⚠ Some stages are close to limits — monitor in production')
+
+    // Recommendations
+    const slowest = [...this.spans].sort((a,b) => b.duration - a.duration)[0]
+    console.log(`\n💡 Slowest: ${slowest.name} (${slowest.duration}ms) — focus optimization here`)
+  }
+}
+
+async function mockDelay(ms) { return new Promise(r => setTimeout(r, ms)) }
+
+async function runProfiledPipeline() {
+  const profiler = new AIProfiler()
+
+  // Stage 1: Embed user query
+  await profiler.measure('Query embedding', async () => {
+    await mockDelay(22) // realistic: ~20-30ms
+    return Array(1536).fill(0.1)
+  }, 50) // target: <50ms
+
+  // Stage 2: pgvector similarity search
+  await profiler.measure('Vector search (HNSW)', async () => {
+    await mockDelay(8) // fast with HNSW index
+    return [{ id:'p1', score:0.94 }, { id:'p2', score:0.81 }]
+  }, 20) // target: <20ms
+
+  // Stage 3: Agent - tool call 1 (inventory)
+  await profiler.measure('Agent: checkInventory', async () => {
+    await mockDelay(31) // DB query
+    return { inStock: true, quantity: 12 }
+  }, 30) // target: <30ms — this will warn!
+
+  // Stage 4: Agent - tool call 2 (reviews)
+  await profiler.measure('Agent: getReviews', async () => {
+    await mockDelay(25)
+    return [{ rating:4.8, count:124 }]
+  }, 30) // target: <30ms
+
+  // Stage 5: LLM generation (streaming, first token)
+  await profiler.measure('LLM time-to-first-token', async () => {
+    await mockDelay(180) // realistic for GPT-4o-mini
+  }, 500) // target: <500ms
+
+  profiler.report()
+}
+
+runProfiledPipeline()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">6</div>
+      <div class="runner-title">Complete ShopCo AI Suite Integration</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">The Week 5 capstone: wire together all systems — RAG retrieval, agent ReAct loop, Sentry monitoring, performance tracking, and structured output — in one integrated simulation.</div>
+      <textarea id="ta6">// ShopCo AI Suite — Full Integration Simulation
+const CATALOG = [
+  { id:'p1', name:'TrailRunner Pro X', price:189, cat:'Footwear', inStock:true, rating:4.8,
+    tags:'trail run shoe lightweight carbon' },
+  { id:'p2', name:'SpeedMax Elite', price:229, cat:'Footwear', inStock:false, rating:4.7,
+    tags:'road run marathon fast' },
+  { id:'p3', name:'ArcticShell Jacket', price:349, cat:'Outerwear', inStock:true, rating:4.6,
+    tags:'waterproof warm winter outdoor' },
+  { id:'p4', name:'HydroTrail 20L', price:89, cat:'Bags', inStock:true, rating:4.5,
+    tags:'hydration pack trail run' },
+]
+
+// --- RAG Layer ---
+function mockEmbed(text) {
+  const vocab = ['trail','run','shoe','jacket','warm','water','pack','hydration','carbon','road']
+  return vocab.map(w => text.toLowerCase().includes(w) ? 1 : 0)
+}
+function retrieve(query, k=3) {
+  const q = mockEmbed(query)
+  return CATALOG
+    .map(p => ({ ...p, score: (() => {
+      const d = mockEmbed(p.tags)
+      const dot = q.reduce((s,v,i)=>s+v*d[i],0)
+      const mQ = Math.sqrt(q.reduce((s,v)=>s+v*v,0))||1
+      const mD = Math.sqrt(d.reduce((s,v)=>s+v*v,0))||1
+      return dot/(mQ*mD)
+    })()}))
+    .sort((a,b)=>b.score-a.score).slice(0,k)
+}
+
+// --- Agent Tools ---
+const tools = {
+  searchProducts: ({ query }) => retrieve(query, 3),
+  checkInventory: ({ id }) => {
+    const p = CATALOG.find(x=>x.id===id)
+    return p ? { inStock:p.inStock, stock: p.inStock ? Math.floor(Math.random()*20)+1 : 0 } : { error:'not found' }
+  },
+  getStructuredRecommendation: ({ products, budget }) => {
+    const affordable = products.filter(p => p.price <= budget && p.inStock)
+    if (!affordable.length) return { winner:null, reason:'No in-stock products within budget' }
+    const best = affordable.sort((a,b)=>b.rating-a.rating)[0]
+    return { winner:best.id, name:best.name, price:best.price, rating:best.rating,
+      reason:`Best rated in-stock option at $${best.price}, within $${budget} budget` }
+  }
+}
+
+// --- Sentry (simplified) ---
+const breadcrumbs = []
+const addBC = (msg, data={}) => breadcrumbs.push({ msg, data })
+
+// --- Full Agent Run ---
+async function runShopCoSuite(userQuery, budget) {
+  const t0 = Date.now()
+  console.log(`🛍️  ShopCo AI Suite`)
+  console.log(`Query: "${userQuery}" | Budget: $${budget}\n`)
+  addBC('Query received', { query: userQuery, budget })
+
+  // Step 1: RAG search
+  addBC('RAG search started')
+  const products = tools.searchProducts({ query: userQuery })
+  addBC('RAG complete', { count: products.length, top: products[0]?.name })
+  console.log(`Step 1 [RAG] Found: ${products.map(p=>`${p.name}(${(p.score*100).toFixed(0)}%)`).join(', ')}`)
+
+  // Step 2: Check inventory for top results (parallel)
+  addBC('Checking inventory for top products')
+  const withStock = products.map(p => ({
+    ...p, ...tools.checkInventory({ id: p.id })
+  }))
+  console.log(`Step 2 [Inventory] In stock: ${withStock.filter(p=>p.inStock).map(p=>p.name).join(', ')||'none'}`)
+
+  // Step 3: Structured recommendation
+  addBC('Generating structured recommendation')
+  const rec = tools.getStructuredRecommendation({ products: withStock, budget })
+  console.log(`Step 3 [Recommend] Winner: ${rec.winner ? rec.name : 'None'}`)
+
+  // Final output
+  const latency = Date.now() - t0
+  console.log('\n' + '═'.repeat(48))
+  console.log('🤖 ShopCo Agent Response:')
+  if (rec.winner) {
+    console.log(`  ✅ ${rec.name} — $${rec.price} ⭐${rec.rating}`)
+    console.log(`  ${rec.reason}`)
+  } else {
+    console.log(`  ❌ ${rec.reason}`)
+  }
+  console.log(`\nPipeline: ${breadcrumbs.length} steps | Latency: ${latency}ms`)
+  console.log(`Sentry breadcrumbs: ${breadcrumbs.map(b=>b.msg).join(' → ')}`)
+}
+
+runShopCoSuite('trail running gear', 200)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Q&A -->
+<section class="section" id="qa">
+  <div class="section-header">
+    <span class="section-badge">05</span>
+    <h2 class="section-title">Interview Q&amp;A — Week 5 Mixed</h2>
+  </div>
+
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">1. How do you test AI-powered features that produce non-deterministic output?</div>
+    <div class="ans-text">Use determinism at the boundary: mock the LLM/embedding API in unit and integration tests so results are fixed. For E2E tests, use semantic assertions instead of exact string matching — assert "the response mentions a product from the catalog" rather than an exact phrase. Use eval frameworks (RAGAS, custom scripts) on a golden dataset to measure quality metrics (relevance, faithfulness, groundedness) over time. Set alert thresholds: if average relevance drops below 0.8 in evals, block the deploy.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">2. What Core Web Vital is most affected by streaming AI responses?</div>
+    <div class="ans-text">Primarily <strong>Interaction to Next Paint (INP)</strong> — if you block the UI waiting for a full AI response, interactions feel sluggish. Use streaming (<code>streamText</code> + <code>useChat</code>) so text renders progressively, keeping INP low. <strong>CLS (Cumulative Layout Shift)</strong> is also affected if the message container resizes as streaming text arrives — use fixed-height containers or reserve space upfront. LCP is less affected since the chat interface is already loaded before the user interacts.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">3. How do you implement rate limiting for an AI agent endpoint?</div>
+    <div class="ans-text">Three layers: (1) <strong>Middleware rate limiting</strong> — use Upstash Redis with a sliding window, e.g. 10 agent requests per user per minute; (2) <strong>Token budget</strong> — track cumulative tokens per user per day in Redis, reject when over limit; (3) <strong>maxSteps</strong> — cap per-request agent loops at 5 steps to bound per-request token usage. Return 429 with a Retry-After header. Log all rate limit hits to Sentry for capacity planning. Consider separate limits for authenticated users vs anonymous.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">4. Explain the difference between Vitest's vi.mock() and MSW for API mocking.</div>
+    <div class="ans-text"><code>vi.mock()</code> replaces a module's exports at the Node.js import level — ideal for mocking internal functions like <code>prisma.product.findMany()</code>, OpenAI client methods, or utility functions. MSW (Mock Service Worker) intercepts real HTTP requests at the network layer — ideal for testing code that calls <code>fetch()</code> and for ensuring your API client code is correct. Use <code>vi.mock()</code> when you own the called code; use MSW when you're testing through an HTTP boundary. For AI tests: mock the OpenAI SDK with <code>vi.mock()</code> in unit tests, use MSW to mock <code>/api/chat</code> in component tests.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">5. How would you debug a RAG system that returns irrelevant products?</div>
+    <div class="ans-text">Systematic debugging: (1) <strong>Inspect embeddings</strong> — log the query vector and check if similar products have similar vectors (cosine similarity > 0.8 for clearly related items); (2) <strong>Check chunking</strong> — are product descriptions comprehensive? Missing category/price/tags reduces relevance; (3) <strong>Verify index</strong> — run <code>EXPLAIN ANALYZE</code> to confirm the HNSW index is being used; (4) <strong>Test retrieval</strong> — query pgvector directly with known good inputs and verify top-K results; (5) <strong>Check model mismatch</strong> — ensure you embed queries and documents with the same model and same preprocessing (trimming, case).</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">6. What is the testing pyramid and how does it apply to AI features?</div>
+    <div class="ans-text">The pyramid: many unit tests (fast, cheap) → fewer integration tests → fewest E2E tests (slow, expensive). For AI: <strong>Unit</strong> — test embedding functions, cosine similarity, chunking, tool definitions, tool executors in isolation. <strong>Integration</strong> — test the RAG pipeline with mocked embeddings, test the agent loop with a scripted fake LLM. <strong>E2E</strong> — Playwright tests that exercise the full stack including the real LLM (run nightly, not on every PR, because they're slow and cost money). The key insight: mock the LLM at the lowest possible level to keep most tests fast and deterministic.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">7. How do you handle Sentry alert fatigue for AI errors?</div>
+    <div class="ans-text">Alert fatigue happens when too many low-severity errors trigger alerts. Fix with: (1) <strong>Fingerprinting</strong> — group similar AI errors (e.g. all "rate limit" errors become one Sentry issue, not thousands); (2) <strong>Severity tiers</strong> — only alert on errors that affect user experience (agent fails to respond), not transient tool errors the agent recovered from; (3) <strong>Error sampling</strong> — in production, sample LLM errors at 10% if they're known flaky, 100% for unknown errors; (4) <strong>Alert on rate, not count</strong> — "error rate > 5% of requests" is more useful than "100 errors in last hour".</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">8. What's the difference between an AI agent and a simple chatbot?</div>
+    <div class="ans-text">A chatbot generates text from conversation history — it can only say things, not do things. An agent has <strong>tools</strong> (functions it can call), <strong>memory</strong> (the message history grows with each tool result), and <strong>autonomy</strong> (it decides what to do next based on observations). An agent can search your database, check inventory, compare options, and add items to a cart — all in one conversation turn, without the user specifying each step. The ReAct loop (Reason → Act → Observe → repeat) is what gives agents their autonomous behaviour.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">9. How do you measure the ROI of adding AI features to ShopCo?</div>
+    <div class="ans-text">Key metrics: (1) <strong>Conversion lift</strong> — A/B test: do users who interact with the AI agent buy more? (2) <strong>Search satisfaction</strong> — compare click-through rate on semantic search results vs keyword search; (3) <strong>Support deflection</strong> — how many customer support tickets does the AI answer correctly, reducing human workload? (4) <strong>Session depth</strong> — do AI users view more products per session? (5) <strong>Cost per interaction</strong> — track token costs per user session and ensure LTV > CAC + AI cost. Use PostHog or Amplitude to track these. Good AI features show positive ROI within 30–60 days of launch.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">10. Summarise Week 5 — what's the most important thing you learned?</div>
+    <div class="ans-text">Week 5 showed that <strong>AI features are just software features</strong> — they need the same engineering discipline as any other system: testing (don't skip it because outputs are fuzzy), monitoring (Sentry catches AI failures just like regular bugs), and performance profiling (embedding latency, vector search speed, and LLM time-to-first-token all matter). The key architectural insight: RAG + Agents are complementary — RAG gives the agent accurate, up-to-date knowledge; the agent decides what to do with it. Together they produce a system that actually helps users rather than hallucinating answers.</div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section class="section" id="checklist">
+  <div class="section-header">
+    <span class="section-badge">06</span>
+    <h2 class="section-title">Night Review Checklist</h2>
+  </div>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can summarise Days 26–31 in 2 sentences each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand how Performance, Testing, Sentry, and AI connect in ShopCo</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can describe the ShopCo AI Suite architecture from memory</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to test non-deterministic AI features (mocks + evals)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed the Week 5 self-test and scored at least 6/8</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built the full RAG pipeline exercise end-to-end</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built and ran unit tests in the Vitest-style runner</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand how Sentry breadcrumbs trace an AI request lifecycle</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can identify pipeline bottlenecks using the performance profiler</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed the full integration exercise and traced every step</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the testing pyramid applied to AI features</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to rate-limit an AI agent endpoint</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can articulate the difference between a chatbot and an AI agent</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I'm ready to start Week 6 — Full-Stack Project Build</div></div>
+  </div>
+  <div class="tomorrow-box">
+    <h4>🚀 Next — Week 6: Full-Stack Project Build</h4>
+    <p>Week 6 is all about building a production-grade full-stack application from scratch. Day 33 starts with project architecture — monorepo setup with Turborepo, CI/CD pipeline with GitHub Actions, and making all the architectural decisions upfront that save weeks of pain later. You'll design the folder structure, pick the tech stack, wire up preview deployments, and write the first ADR (Architecture Decision Record). Prepare by thinking about what kind of SaaS product you'd want to build — you'll be using it as your Week 6 project.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-btns">
+    <button class="footer-btn" onclick="navigateTo('day31_ai_agents_tools.html',31)">← Day 31: AI Agents</button>
+    <button class="footer-btn primary" onclick="navigateTo('day33_project_setup.html',33)">Week 6: Day 33 →</button>
+  </div>
+  <div class="week-prog">
+    <div class="week-prog-label">Week 5 Complete — 7 of 7 days ✓</div>
+    <div class="week-prog-bar"><div class="week-prog-fill" style="width:100%"></div></div>
+  </div>
+  <div style="margin-top:16px;font-size:11px;color:var(--hint)">ShopCo Course · Day 32 of 56 · Week 5 Review</div>
+</footer>
+
+<script>
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_arrays_objects.html"},
+  {num:3,file:"day3_functions_async.html"},
+  {num:4,file:"day4_error_handling.html"},
+  {num:5,file:"day5_dom_events.html"},
+  {num:6,file:"day6_es6_modules.html"},
+  {num:7,file:"day7_week1_review.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design_rest.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html"},
+  {num:28,file:"day28_error_monitoring.html"},
+  {num:29,file:"day29_genai_vercel_ai_sdk.html"},
+  {num:30,file:"day30_rag_embeddings.html"},
+  {num:31,file:"day31_ai_agents_tools.html"},
+  {num:32,file:"day32_week5_review.html",current:true},
+  {num:33,file:"day33_project_setup.html"},
+  {num:34,file:"day34_auth_roles.html"},
+  {num:35,file:"day35_data_modeling.html"},
+  {num:36,file:"day36_api_layer.html"},
+  {num:37,file:"day37_realtime_features.html"},
+  {num:38,file:"day38_file_uploads.html"},
+  {num:39,file:"day39_week6_review.html"},
+  {num:40,file:"day40_stripe_payments.html"},
+  {num:41,file:"day41_email_notifications.html"},
+  {num:42,file:"day42_search.html"},
+  {num:43,file:"day43_advanced_rag.html"},
+  {num:44,file:"day44_ai_pipelines.html"},
+  {num:45,file:"day45_analytics.html"},
+  {num:46,file:"day46_week7_review.html"},
+  {num:47,file:"day47_accessibility.html"},
+  {num:48,file:"day48_i18n_l10n.html"},
+  {num:49,file:"day49_advanced_testing.html"},
+  {num:50,file:"day50_devops_cicd.html"},
+  {num:51,file:"day51_portfolio_project_1.html"},
+  {num:52,file:"day52_portfolio_project_2.html"},
+  {num:53,file:"day53_resume_github.html"},
+  {num:54,file:"day54_interview_prep.html"},
+  {num:55,file:"day55_mock_interviews.html"},
+  {num:56,file:"day56_graduation.html"},
+]
+const CURRENT = 32
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_arrays_objects.html",
+  "day3_functions_async.html","day5_dom_events.html","day6_es6_modules.html",
+  "day7_week1_review.html","day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html","day12_context_global_state.html",
+  "day13_week2_review.html","day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html","day18_tailwind_css.html",
+  "day19_week3_review.html","day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html","day24_api_design_rest.html",
+  "day25_week4_review.html","day26_performance.html","day27_testing.html",
+  "day28_error_monitoring.html","day29_genai_vercel_ai_sdk.html",
+  "day30_rag_embeddings.html","day31_ai_agents_tools.html","day32_week5_review.html",
+])
+
+function navigateTo(file, n) {
+  if (AVAILABLE.has(file)) window.location.href = file
+  else showToast('Day ' + n + ' coming soon!')
+}
+function showToast(msg) {
+  const t = document.createElement('div'); t.className='toast'; t.textContent=msg
+  document.body.appendChild(t); setTimeout(()=>t.remove(),3000)
+}
+const dotsEl = document.getElementById('day-dots')
+DAY_PLAN.forEach(d => {
+  const btn = document.createElement('button')
+  btn.className = 'ddot'+(d.current?' current':AVAILABLE.has(d.file)?' done available':' available')
+  btn.title = 'Day '+d.num
+  btn.onclick = () => navigateTo(d.file, d.num)
+  dotsEl.appendChild(btn)
+})
+function runCode(btn) {
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea')
+  const out=wrap.querySelector('.output-box'),logs=[]
+  const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x,null,2):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try {
+    const fn=new Function(ta.value)
+    const result=fn()
+    if(result&&typeof result.then==='function'){
+      out.textContent='Running async...'
+      result.then(()=>{out.textContent=logs.length?logs.join('\n'):'(no output)'})
+            .catch(e=>{out.classList.add('err');out.textContent='✗ '+e.message})
+    } else { out.textContent=logs.length?logs.join('\n'):'(no output)' }
+  } catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+const secs=document.querySelectorAll('.section')
+const links=document.querySelectorAll('.nav-links a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

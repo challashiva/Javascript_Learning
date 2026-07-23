@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Day 33 — Project Setup | ShopCo Course</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --accent:#60a5fa;--accent-dim:rgba(96,165,250,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;height:52px}
+.nav-brand{font-weight:700;font-size:14px;color:var(--accent);white-space:nowrap;margin-right:24px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:6px 12px;border-radius:6px;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{color:var(--accent);background:var(--accent-dim)}
+.week-banner{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
+.week-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(96,165,250,0.25)}
+.week-desc{font-size:12px;color:var(--muted)}
+.day-nav{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px}
+.day-nav-title{font-size:14px;font-weight:700;color:var(--text);margin-right:8px}
+.day-dots{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.ddot{width:10px;height:10px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .2s;border:none;padding:0}
+.ddot.done{background:var(--green)}
+.ddot.current{background:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.5)}
+.ddot.available:hover{background:var(--muted);transform:scale(1.2)}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hero{padding:64px 24px 48px;max-width:900px;margin:0 auto;text-align:center}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:20px}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin:0 auto 28px}
+.topic-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:36px}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+.pill.accent{background:var(--accent-dim);border-color:rgba(96,165,250,0.3);color:var(--accent)}
+.stats-row{display:flex;border:1px solid var(--border2);border-radius:12px;overflow:hidden;max-width:500px;margin:0 auto}
+.stat{flex:1;padding:16px 8px;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+.section{padding:48px 24px;max-width:1000px;margin:0 auto}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.section-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(96,165,250,0.2)}
+.section-title{font-size:22px;font-weight:700}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.topic-card:hover{border-color:var(--accent);background:var(--surface2)}
+.topic-card.done{border-color:rgba(74,222,128,0.3);background:var(--green-dim)}
+.topic-icon{font-size:24px;margin-bottom:10px}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.topic-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.progress-label{font-size:14px;font-weight:600}
+.pct{font-size:14px;font-weight:700;color:var(--accent)}
+.prog-bar{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.topic-dots{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tdot{width:28px;height:28px;border-radius:6px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.tdot.done{background:var(--accent-dim);border-color:rgba(96,165,250,0.4);color:var(--accent)}
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.concept-card h3{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.concept-card p{font-size:13px;color:var(--muted);line-height:1.7}
+.concept-card code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:4px;color:var(--teal)}
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7}
+.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#86efac}.num{color:#f9a8d4}.fn{color:#93c5fd}
+.cm{color:#3d3d55;font-style:italic}.var{color:#5eead4}.op{color:#fcd34d}
+.prop{color:#fbbf24}.ty{color:#38bdf8}.tag{color:#fb7185}.attr{color:#fbbf24}
+.compare-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.compare-table th{background:var(--surface3);padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border2)}
+.compare-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--surface2)}
+.tag-g{color:var(--green);font-size:11px;font-weight:600}
+.tag-a{color:var(--amber);font-size:11px;font-weight:600}
+.tag-c{color:var(--coral);font-size:11px;font-weight:600}
+.ex-divider{padding:20px 24px;max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.ex-line{flex:1;height:1px;background:var(--border)}
+.ex-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.runner-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.runner-num{width:24px;height:24px;border-radius:6px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid rgba(96,165,250,0.3)}
+.runner-title{font-size:13px;font-weight:600;flex:1}
+.diff-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.diff-b{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.diff-i{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.diff-a{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.runner-body{padding:16px}
+.runner-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;min-height:130px;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent)}
+.run-btn{margin-top:10px;padding:8px 20px;border-radius:7px;border:none;background:var(--accent);color:#000;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.run-btn:hover{background:#3b82f6;transform:translateY(-1px)}
+.output-box{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);min-height:48px;white-space:pre-wrap;line-height:1.6}
+.output-box.err{color:var(--coral)}
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.qa-item:hover{border-color:var(--border2)}
+.qa-q{padding:16px 20px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.qa-q::after{content:'▸';color:var(--muted);transition:transform .25s;flex-shrink:0}
+.qa-item.open .qa-q::after{transform:rotate(90deg);color:var(--accent)}
+.qa-item.open{border-color:rgba(96,165,250,0.3)}
+.ans-text{display:none;padding:0 20px 16px;font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border)}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:4px;color:var(--teal)}
+.qa-item.open .ans-text{display:block}
+.checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-bottom:20px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s}
+.cl-item:hover{border-color:var(--border2)}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s}
+.cl-box.checked{background:var(--accent);border-color:var(--accent)}
+.cl-box.checked::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.cl-text{font-size:12px;color:var(--text);line-height:1.5}
+.cl-text.checked{color:var(--muted);text-decoration:line-through}
+.tomorrow-box{background:var(--surface);border:1px solid rgba(96,165,250,0.2);border-radius:10px;padding:20px;margin-top:16px}
+.tomorrow-box h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.tomorrow-box p{font-size:13px;color:var(--muted);line-height:1.7}
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:24px;text-align:center}
+.footer-btns{display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.footer-btn{padding:10px 24px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.footer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.footer-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.footer-btn.primary:hover{background:#3b82f6}
+.week-prog-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.week-prog-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;max-width:300px;margin:0 auto}
+.week-prog-fill{height:100%;background:var(--accent);border-radius:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.info-box{background:var(--accent-dim);border:1px solid rgba(96,165,250,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.warn-box{background:var(--amber-dim);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+/* folder tree */
+.tree{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.9;overflow-x:auto}
+.tree-dir{color:var(--accent)}
+.tree-file{color:var(--text)}
+.tree-comment{color:var(--hint);font-style:italic}
+/* pipeline diagram */
+.pipeline{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0}
+.pipe-step{display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface)}
+.pipe-step:last-child{border-bottom:none}
+.pipe-step:hover{background:var(--surface2)}
+.pipe-icon{font-size:20px;width:32px;text-align:center;flex-shrink:0}
+.pipe-name{font-size:13px;font-weight:600;min-width:160px}
+.pipe-desc{font-size:12px;color:var(--muted);flex:1}
+.pipe-tag{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap}
+.pt-push{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(96,165,250,0.2)}
+.pt-auto{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.pt-gate{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.pt-deploy{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.2)}
+/* adr */
+.adr-box{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:20px;margin:16px 0}
+.adr-title{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.adr-meta{font-size:11px;color:var(--muted);margin-bottom:14px;font-family:'JetBrains Mono',monospace}
+.adr-section{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px}
+.adr-body{font-size:13px;color:var(--text);line-height:1.7}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 33 · Project Setup</div>
+  <div class="nav-links">
+    <a href="#topics">Topics</a>
+    <a href="#concepts">Concepts</a>
+    <a href="#monorepo">Monorepo</a>
+    <a href="#cicd">CI/CD</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#qa">Interview</a>
+    <a href="#checklist">Review</a>
+  </div>
+</nav>
+
+<!-- WEEK BANNER -->
+<div class="week-banner">
+  <span class="week-badge">Week 6</span>
+  <span class="week-desc">Full-Stack Project Build — architecture decisions that save weeks of pain</span>
+</div>
+
+<!-- DAY NAV -->
+<div class="day-nav">
+  <span class="day-nav-title">Day 33 — Project Setup</span>
+  <div class="day-dots" id="day-dots"></div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="navigateTo('day32_week5_review.html',32)">← Prev</button>
+    <button class="nav-btn" onclick="navigateTo('day34_auth_roles.html',34)">Next →</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Week 6 · Day 33 of 56</div>
+  <h1>Project <span>Setup</span></h1>
+  <p class="hero-sub">The decisions you make on Day 1 of a project echo for months. Learn monorepo architecture, CI/CD pipelines, and ADRs — the foundations that let your team ship fast without breaking things.</p>
+  <div class="topic-pills">
+    <span class="pill accent">Monorepo</span>
+    <span class="pill accent">Turborepo</span>
+    <span class="pill accent">CI/CD Pipeline</span>
+    <span class="pill">GitHub Actions</span>
+    <span class="pill">ADRs</span>
+    <span class="pill">Preview Deploys</span>
+    <span class="pill">Environment Strategy</span>
+    <span class="pill">Project Structure</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">8</div><div class="stat-l">Topics</div></div>
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Exercises</div></div>
+    <div class="stat"><div class="stat-n">10</div><div class="stat-l">Q&amp;As</div></div>
+    <div class="stat"><div class="stat-n">6h</div><div class="stat-l">Study</div></div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<section class="section" id="topics">
+  <div class="section-header">
+    <span class="section-badge">01</span>
+    <h2 class="section-title">Today's Topics</h2>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label">Day Progress</span>
+      <span class="pct" id="pct-label">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="topic-dots" id="tdots">
+      <div class="tdot" onclick="markDone(this)" title="Monorepo">M</div>
+      <div class="tdot" onclick="markDone(this)" title="Turborepo">T</div>
+      <div class="tdot" onclick="markDone(this)" title="CI/CD">C</div>
+      <div class="tdot" onclick="markDone(this)" title="Preview Deploys">P</div>
+      <div class="tdot" onclick="markDone(this)" title="Env Strategy">E</div>
+      <div class="tdot" onclick="markDone(this)" title="ADRs">A</div>
+      <div class="tdot" onclick="markDone(this)" title="Folder Structure">F</div>
+      <div class="tdot" onclick="markDone(this)" title="Exercises">X</div>
+    </div>
+  </div>
+  <div class="topics-grid">
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🏗️</div>
+      <div class="topic-name">Monorepo vs Polyrepo</div>
+      <div class="topic-sub">When to use a monorepo, tradeoffs, and how large teams manage it</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">⚡</div>
+      <div class="topic-name">Turborepo</div>
+      <div class="topic-sub">Caching, pipelines, and parallel task execution across workspaces</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔄</div>
+      <div class="topic-name">CI/CD Pipeline</div>
+      <div class="topic-sub">GitHub Actions: lint → test → build → preview → production deploy</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">👁️</div>
+      <div class="topic-name">Preview Deployments</div>
+      <div class="topic-sub">Per-PR preview URLs with Vercel, isolated databases, and link sharing</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔐</div>
+      <div class="topic-name">Environment Strategy</div>
+      <div class="topic-sub">dev / preview / staging / production — secrets, databases, and feature flags</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📝</div>
+      <div class="topic-name">ADRs</div>
+      <div class="topic-sub">Architecture Decision Records — documenting the why behind every major choice</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📁</div>
+      <div class="topic-name">Folder Structure</div>
+      <div class="topic-sub">Feature-first vs layer-first, colocation, and barrel exports</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📦</div>
+      <div class="topic-name">Shared Packages</div>
+      <div class="topic-sub">UI library, shared types, config packages reused across apps</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPTS -->
+<section class="section" id="concepts">
+  <div class="section-header">
+    <span class="section-badge">02</span>
+    <h2 class="section-title">Core Concepts</h2>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <h3>🏗️ Why Monorepo?</h3>
+      <p>A monorepo holds multiple projects (web app, API, shared packages, docs) in one repository. Benefits: atomic commits across packages, shared tooling, easy code sharing, one PR for cross-cutting changes. Tradeoff: slower CI if not set up properly — Turborepo caching fixes this. At ShopCo scale, a monorepo with <code>apps/web</code>, <code>apps/api</code>, <code>packages/ui</code>, <code>packages/db</code> is ideal.</p>
+    </div>
+    <div class="concept-card">
+      <h3>⚡ Turborepo Caching</h3>
+      <p>Turborepo hashes each task's inputs (source files, env vars, dependencies). If inputs haven't changed since last run, it replays the cached output instantly — no re-running tests or builds. Remote caching (Vercel's cache server) means your CI machine shares the cache with your local machine. A cold build that takes 3 minutes becomes a 2-second cache hit on the next run.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🔄 CI/CD Philosophy</h3>
+      <p><strong>CI</strong> (Continuous Integration): every push runs lint, typecheck, tests automatically. Catches bugs before they reach main. <strong>CD</strong> (Continuous Deployment): every merge to main automatically deploys to production (or staging first). The goal: make deploying so cheap and fast that you do it dozens of times per day, making each deploy tiny and low-risk.</p>
+    </div>
+    <div class="concept-card">
+      <h3>👁️ Preview Deploys</h3>
+      <p>Every PR automatically gets a unique URL (e.g. <code>shopco-pr-42.vercel.app</code>). Reviewers click the link to test the actual running app — no local setup needed. Vercel connects to your PR via GitHub integration. For database-dependent features, use branch databases (Neon branching or PlanetScale) to give each preview its own isolated data.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🔐 Environment Strategy</h3>
+      <p>Four environments: <strong>dev</strong> (local, hot reload, mock services), <strong>preview</strong> (per-PR, real infra, test data), <strong>staging</strong> (mirrors production, final QA), <strong>production</strong> (real users, real data). Each needs its own <code>.env</code> file, database, and Sentry project. Never use production credentials in dev — a bad migration can destroy real user data.</p>
+    </div>
+    <div class="concept-card">
+      <h3>📝 ADRs (Architecture Decision Records)</h3>
+      <p>Short documents that record <em>why</em> a technical decision was made: context, options considered, decision, and consequences. Stored as markdown in <code>docs/adr/</code>. Invaluable when a team member asks "why do we use X instead of Y?" six months later. The template: <strong>Title, Status, Context, Decision, Consequences</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MONOREPO -->
+<section class="section" id="monorepo">
+  <div class="section-header">
+    <span class="section-badge">03</span>
+    <h2 class="section-title">Monorepo Structure with Turborepo</h2>
+  </div>
+
+  <div class="code-label">ShopCo monorepo — folder structure</div>
+  <div class="tree">
+<span class="tree-dir">shopco/</span>
+├── <span class="tree-dir">apps/</span>
+│   ├── <span class="tree-dir">web/</span>           <span class="tree-comment"># Next.js main app (customer-facing)</span>
+│   ├── <span class="tree-dir">admin/</span>         <span class="tree-comment"># Next.js admin dashboard</span>
+│   └── <span class="tree-dir">api/</span>           <span class="tree-comment"># Standalone API (optional — or use Next.js routes)</span>
+├── <span class="tree-dir">packages/</span>
+│   ├── <span class="tree-dir">ui/</span>            <span class="tree-comment"># Shared React component library (Button, Card, Modal…)</span>
+│   ├── <span class="tree-dir">db/</span>            <span class="tree-comment"># Prisma schema, client, migrations</span>
+│   ├── <span class="tree-dir">types/</span>         <span class="tree-comment"># Shared TypeScript types and Zod schemas</span>
+│   ├── <span class="tree-dir">config/</span>        <span class="tree-comment"># ESLint, Tailwind, tsconfig presets</span>
+│   └── <span class="tree-dir">utils/</span>         <span class="tree-comment"># Pure utility functions (formatPrice, slugify…)</span>
+├── <span class="tree-dir">docs/</span>
+│   └── <span class="tree-dir">adr/</span>           <span class="tree-comment"># Architecture Decision Records</span>
+├── <span class="tree-file">turbo.json</span>         <span class="tree-comment"># Turborepo pipeline config</span>
+├── <span class="tree-file">package.json</span>       <span class="tree-comment"># Root workspace — npm workspaces</span>
+└── <span class="tree-file">.github/workflows/</span> <span class="tree-comment"># CI/CD pipelines</span>
+  </div>
+
+  <div class="code-label">turbo.json — pipeline and caching config</div>
+  <pre>{
+  <span class="str">"$schema"</span>: <span class="str">"https://turbo.build/schema.json"</span>,
+  <span class="str">"globalDependencies"</span>: [<span class="str">"**/.env.*local"</span>],
+  <span class="str">"pipeline"</span>: {
+    <span class="str">"build"</span>: {
+      <span class="str">"dependsOn"</span>: [<span class="str">"^build"</span>],   <span class="cm">// build deps first (^)</span>
+      <span class="str">"outputs"</span>: [<span class="str">".next/**"</span>, <span class="str">"dist/**"</span>],
+      <span class="str">"cache"</span>: <span class="kw">true</span>
+    },
+    <span class="str">"test"</span>: {
+      <span class="str">"dependsOn"</span>: [<span class="str">"^build"</span>],
+      <span class="str">"outputs"</span>: [<span class="str">"coverage/**"</span>],
+      <span class="str">"cache"</span>: <span class="kw">true</span>
+    },
+    <span class="str">"lint"</span>: {
+      <span class="str">"outputs"</span>: [],
+      <span class="str">"cache"</span>: <span class="kw">true</span>
+    },
+    <span class="str">"typecheck"</span>: {
+      <span class="str">"outputs"</span>: [],
+      <span class="str">"cache"</span>: <span class="kw">true</span>
+    },
+    <span class="str">"dev"</span>: {
+      <span class="str">"cache"</span>: <span class="kw">false</span>,       <span class="cm">// never cache dev servers</span>
+      <span class="str">"persistent"</span>: <span class="kw">true</span>   <span class="cm">// long-running process</span>
+    }
+  }
+}</pre>
+
+  <div class="code-label">package.json — root workspace config</div>
+  <pre>{
+  <span class="str">"name"</span>: <span class="str">"shopco"</span>,
+  <span class="str">"private"</span>: <span class="kw">true</span>,
+  <span class="str">"workspaces"</span>: [<span class="str">"apps/*"</span>, <span class="str">"packages/*"</span>],
+  <span class="str">"scripts"</span>: {
+    <span class="str">"dev"</span>:       <span class="str">"turbo run dev"</span>,
+    <span class="str">"build"</span>:     <span class="str">"turbo run build"</span>,
+    <span class="str">"test"</span>:      <span class="str">"turbo run test"</span>,
+    <span class="str">"lint"</span>:      <span class="str">"turbo run lint"</span>,
+    <span class="str">"typecheck"</span>: <span class="str">"turbo run typecheck"</span>,
+    <span class="str">"clean"</span>:     <span class="str">"turbo run clean && rm -rf node_modules"</span>
+  },
+  <span class="str">"devDependencies"</span>: {
+    <span class="str">"turbo"</span>: <span class="str">"^2.0.0"</span>
+  }
+}</pre>
+
+  <h3 style="font-size:16px;font-weight:700;margin:28px 0 12px">Monorepo vs Polyrepo Comparison</h3>
+  <table class="compare-table">
+    <thead><tr><th>Factor</th><th>Monorepo</th><th>Polyrepo</th></tr></thead>
+    <tbody>
+      <tr><td>Code sharing</td><td class="tag-g">Trivial — import from packages/*</td><td class="tag-c">Requires npm publish or git submodules</td></tr>
+      <tr><td>Cross-cutting changes</td><td class="tag-g">One PR, one review</td><td class="tag-c">Multiple PRs, coordination overhead</td></tr>
+      <tr><td>CI speed</td><td class="tag-a">Slower (all code in one place) — fix with Turborepo caching</td><td class="tag-g">Fast (only affected repo runs CI)</td></tr>
+      <tr><td>Access control</td><td class="tag-a">Coarse-grained (whole repo)</td><td class="tag-g">Per-repo permissions</td></tr>
+      <tr><td>Dependency management</td><td class="tag-g">Single lockfile, no version conflicts</td><td class="tag-c">Version drift between repos</td></tr>
+      <tr><td>Onboarding</td><td class="tag-g">Clone one repo, run one command</td><td class="tag-c">Clone N repos, wire together</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- CI/CD -->
+<section class="section" id="cicd">
+  <div class="section-header">
+    <span class="section-badge">04</span>
+    <h2 class="section-title">CI/CD Pipeline</h2>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;margin-bottom:14px">The ShopCo Pipeline — Every PR</h3>
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-icon">📤</div>
+      <div class="pipe-name">Push / PR opened</div>
+      <div class="pipe-desc">Developer pushes branch or opens a pull request</div>
+      <div class="pipe-tag pt-push">trigger</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-icon">🔍</div>
+      <div class="pipe-name">Lint + Typecheck</div>
+      <div class="pipe-desc">ESLint, TypeScript — fast fail in ~30s, cached by Turborepo</div>
+      <div class="pipe-tag pt-auto">automated</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-icon">🧪</div>
+      <div class="pipe-name">Unit + Integration Tests</div>
+      <div class="pipe-desc">Vitest runs all tests, uploads coverage report</div>
+      <div class="pipe-tag pt-auto">automated</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-icon">🏗️</div>
+      <div class="pipe-name">Build</div>
+      <div class="pipe-desc">Next.js build — cached if no source changes</div>
+      <div class="pipe-tag pt-auto">automated</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-icon">👁️</div>
+      <div class="pipe-name">Preview Deploy</div>
+      <div class="pipe-desc">Vercel deploys to unique PR URL, posts link to PR</div>
+      <div class="pipe-tag pt-auto">automated</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-icon">🎭</div>
+      <div class="pipe-name">E2E Tests</div>
+      <div class="pipe-desc">Playwright runs against the preview URL</div>
+      <div class="pipe-tag pt-auto">automated</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-icon">✅</div>
+      <div class="pipe-name">Code Review</div>
+      <div class="pipe-desc">Human review — required before merge to main</div>
+      <div class="pipe-tag pt-gate">gate</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-icon">🚀</div>
+      <div class="pipe-name">Deploy to Production</div>
+      <div class="pipe-desc">Merge to main → Vercel auto-deploys production</div>
+      <div class="pipe-tag pt-deploy">deploy</div>
+    </div>
+  </div>
+
+  <div class="code-label" style="margin-top:24px">.github/workflows/ci.yml — full CI pipeline</div>
+  <pre><span class="prop">name</span>: CI
+
+<span class="prop">on</span>:
+  <span class="prop">push</span>:
+    <span class="prop">branches</span>: [main]
+  <span class="prop">pull_request</span>:
+    <span class="prop">branches</span>: [main]
+
+<span class="prop">jobs</span>:
+  <span class="prop">ci</span>:
+    <span class="prop">runs-on</span>: ubuntu-latest
+    <span class="prop">steps</span>:
+      - <span class="prop">uses</span>: actions/checkout@v4
+        <span class="prop">with</span>:
+          <span class="prop">fetch-depth</span>: <span class="num">2</span>  <span class="cm"># needed for Turborepo affected detection</span>
+
+      - <span class="prop">uses</span>: actions/setup-node@v4
+        <span class="prop">with</span>:
+          <span class="prop">node-version</span>: <span class="str">'20'</span>
+          <span class="prop">cache</span>: <span class="str">'npm'</span>
+
+      - <span class="prop">name</span>: Install dependencies
+        <span class="prop">run</span>: npm ci
+
+      - <span class="prop">name</span>: Setup Turborepo remote cache
+        <span class="prop">uses</span>: dtinth/setup-github-actions-caching-for-turbo@v1
+
+      - <span class="prop">name</span>: Lint
+        <span class="prop">run</span>: npx turbo lint
+
+      - <span class="prop">name</span>: Typecheck
+        <span class="prop">run</span>: npx turbo typecheck
+
+      - <span class="prop">name</span>: Test
+        <span class="prop">run</span>: npx turbo test
+        <span class="prop">env</span>:
+          <span class="prop">DATABASE_URL</span>: <span class="var">${{ secrets.TEST_DATABASE_URL }}</span>
+
+      - <span class="prop">name</span>: Build
+        <span class="prop">run</span>: npx turbo build
+        <span class="prop">env</span>:
+          <span class="prop">TURBO_TOKEN</span>:  <span class="var">${{ secrets.TURBO_TOKEN }}</span>
+          <span class="prop">TURBO_TEAM</span>:   <span class="var">${{ vars.TURBO_TEAM }}</span>
+
+      - <span class="prop">name</span>: Upload coverage
+        <span class="prop">uses</span>: codecov/codecov-action@v4
+        <span class="prop">if</span>: always()
+        <span class="prop">with</span>:
+          <span class="prop">token</span>: <span class="var">${{ secrets.CODECOV_TOKEN }}</span></pre>
+
+  <div class="adr-box">
+    <div class="adr-title">ADR-001: Use Turborepo for monorepo task orchestration</div>
+    <div class="adr-meta">Status: Accepted | Date: 2024-01-15 | Author: @team</div>
+    <div class="adr-section">Context</div>
+    <div class="adr-body">ShopCo has grown to include a customer web app, admin dashboard, and several shared packages. Running lint/test/build across all packages sequentially takes 8+ minutes in CI. We need a solution that handles task dependencies and caches results.</div>
+    <div class="adr-section">Decision</div>
+    <div class="adr-body">Use Turborepo with remote caching via Vercel. Configure pipeline dependencies so shared packages build before apps. Enable remote cache sharing between CI and local dev machines.</div>
+    <div class="adr-section">Consequences</div>
+    <div class="adr-body">✓ CI time reduced from 8min to 45s on cache hits. ✓ Developers get fast feedback locally. ✗ Requires TURBO_TOKEN secret setup. ✗ Learning curve for new team members.</div>
+  </div>
+
+  <div class="warn-box">
+    <strong style="color:var(--amber)">⚠ Environment variable pitfalls:</strong><br/>
+    Never commit <code>.env</code> files. Use <code>.env.example</code> with placeholder values. In Next.js, prefix with <code>NEXT_PUBLIC_</code> only for values safe to expose to the browser — everything else stays server-side. Rotate secrets immediately if they're accidentally committed — don't just delete the commit, the git history still has it.
+  </div>
+</section>
+
+<!-- EXERCISES -->
+<div class="ex-divider">
+  <div class="ex-line"></div>
+  <div class="ex-label">⚡ Exercises</div>
+  <div class="ex-line"></div>
+</div>
+
+<section class="section" id="exercises">
+
+  <!-- EX 1 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">1</div>
+      <div class="runner-title">Monorepo Dependency Graph</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Model the ShopCo monorepo as a dependency graph and determine the correct build order. Turborepo does this automatically — understand what it's doing under the hood.</div>
+      <textarea id="ta1">// ShopCo monorepo packages and their dependencies
+const packages = {
+  '@shopco/utils':   { deps: [] },                          // no deps — build first
+  '@shopco/types':   { deps: [] },                          // no deps
+  '@shopco/config':  { deps: [] },                          // no deps
+  '@shopco/db':      { deps: ['@shopco/types'] },           // needs types
+  '@shopco/ui':      { deps: ['@shopco/utils', '@shopco/config'] },
+  'apps/web':        { deps: ['@shopco/ui', '@shopco/db', '@shopco/types'] },
+  'apps/admin':      { deps: ['@shopco/ui', '@shopco/db', '@shopco/types'] },
+}
+
+// Topological sort (Kahn's algorithm) — determines build order
+function buildOrder(graph) {
+  const inDegree = {}
+  const adjList = {}
+  Object.keys(graph).forEach(node => { inDegree[node] = 0; adjList[node] = [] })
+  Object.entries(graph).forEach(([node, { deps }]) => {
+    deps.forEach(dep => {
+      adjList[dep].push(node)
+      inDegree[node]++
+    })
+  })
+  const queue = Object.keys(inDegree).filter(n => inDegree[n] === 0)
+  const order = []
+  const levels = [] // parallel groups
+  while (queue.length) {
+    const levelNodes = [...queue]
+    levels.push(levelNodes)
+    order.push(...levelNodes)
+    queue.length = 0
+    levelNodes.forEach(node => {
+      adjList[node].forEach(next => {
+        inDegree[next]--
+        if (inDegree[next] === 0) queue.push(next)
+      })
+    })
+  }
+  return { order, levels, hasCycle: order.length !== Object.keys(graph).length }
+}
+
+const result = buildOrder(packages)
+console.log('=== Turborepo Build Order ===\n')
+result.levels.forEach((level, i) => {
+  console.log(`Level ${i + 1} (parallel): ${level.join(', ')}`)
+})
+console.log('\nFull order:', result.order.join(' → '))
+console.log('Cycle detected:', result.hasCycle)
+console.log('\nWhy this matters: Turborepo runs Level 1 in parallel,')
+console.log('waits for all to finish, then Level 2 in parallel, etc.')
+console.log(`Total serial steps: ${result.levels.length} (not ${result.order.length})`)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">2</div>
+      <div class="runner-title">Turborepo Cache Simulator</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate how Turborepo decides whether to use a cached result or re-run a task. It hashes source files + env vars + dependencies — if the hash matches the last run, replay the cache.</div>
+      <textarea id="ta2">// Simulate Turborepo's cache hit/miss logic
+function hashInputs(inputs) {
+  // Simple string hash (Turborepo uses SHA-256 in reality)
+  const str = JSON.stringify(inputs)
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i)
+    hash |= 0
+  }
+  return Math.abs(hash).toString(16)
+}
+
+class TurboCache {
+  constructor() { this.store = {} }
+
+  check(task, inputs) {
+    const key = `${task}:${hashInputs(inputs)}`
+    return { hit: !!this.store[key], key, cached: this.store[key] }
+  }
+
+  save(task, inputs, output) {
+    const key = `${task}:${hashInputs(inputs)}`
+    this.store[key] = { output, savedAt: new Date().toISOString() }
+    return key
+  }
+}
+
+function runWithCache(cache, task, inputs, executeFn) {
+  const { hit, key, cached } = cache.check(task, inputs)
+  if (hit) {
+    console.log(`  ⚡ CACHE HIT  [${task}] — replaying output (0ms)`)
+    console.log(`     key: ${key}`)
+    return cached.output
+  }
+  const start = Date.now()
+  const output = executeFn()
+  const duration = Date.now() - start
+  cache.save(task, inputs, output)
+  console.log(`  🔨 CACHE MISS [${task}] — ran in ${duration}ms, saved to cache`)
+  console.log(`     key: ${key}`)
+  return output
+}
+
+const cache = new TurboCache()
+
+// Simulated file states
+const run1 = { sourceFiles: { 'src/index.ts': 'v1', 'src/utils.ts': 'v1' }, envVars: { NODE_ENV: 'test' } }
+const run2 = { sourceFiles: { 'src/index.ts': 'v1', 'src/utils.ts': 'v1' }, envVars: { NODE_ENV: 'test' } }
+const run3 = { sourceFiles: { 'src/index.ts': 'v2', 'src/utils.ts': 'v1' }, envVars: { NODE_ENV: 'test' } }
+
+console.log('=== Run 1 (cold start) ===')
+runWithCache(cache, '@shopco/utils:build', run1, () => ({ dist: 'built-output-v1' }))
+runWithCache(cache, '@shopco/utils:test', run1, () => ({ passed: 24 }))
+
+console.log('\n=== Run 2 (same files — cache hits!) ===')
+runWithCache(cache, '@shopco/utils:build', run2, () => ({ dist: 'built-output-v1' }))
+runWithCache(cache, '@shopco/utils:test', run2, () => ({ passed: 24 }))
+
+console.log('\n=== Run 3 (index.ts changed — cache miss for build) ===')
+runWithCache(cache, '@shopco/utils:build', run3, () => ({ dist: 'built-output-v2' }))
+runWithCache(cache, '@shopco/utils:test', run3, () => ({ passed: 24 }))
+
+console.log('\n📊 Cache store size:', Object.keys(cache.store).length, 'entries')
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">3</div>
+      <div class="runner-title">GitHub Actions Workflow Validator</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a validator that checks CI/CD workflow configs for common mistakes — missing secret references, wrong branch filters, missing required steps, etc.</div>
+      <textarea id="ta3">// Validate a GitHub Actions workflow config
+function validateWorkflow(workflow) {
+  const issues = []
+  const warnings = []
+
+  // Check trigger
+  if (!workflow.on) {
+    issues.push('Missing "on" trigger — workflow will never run')
+  } else {
+    if (!workflow.on.pull_request) warnings.push('No pull_request trigger — PRs won\'t run CI')
+    if (!workflow.on.push) warnings.push('No push trigger — merges to main won\'t trigger deploy')
+  }
+
+  // Check jobs
+  if (!workflow.jobs || Object.keys(workflow.jobs).length === 0) {
+    issues.push('No jobs defined')
+    return { valid: false, issues, warnings }
+  }
+
+  Object.entries(workflow.jobs).forEach(([jobName, job]) => {
+    if (!job['runs-on']) issues.push(`Job "${jobName}" missing runs-on`)
+    if (!job.steps || job.steps.length === 0) {
+      issues.push(`Job "${jobName}" has no steps`)
+      return
+    }
+    // Check for checkout step
+    const hasCheckout = job.steps.some(s => s.uses?.includes('checkout'))
+    if (!hasCheckout) issues.push(`Job "${jobName}" missing actions/checkout step`)
+    // Check for node setup
+    const hasNode = job.steps.some(s => s.uses?.includes('setup-node') || s.run?.includes('node'))
+    if (!hasNode) warnings.push(`Job "${jobName}" may be missing Node.js setup`)
+    // Check for hardcoded secrets
+    job.steps.forEach(step => {
+      const str = JSON.stringify(step)
+      if (str.includes('sk-') || str.match(/[A-Z0-9]{32,}/)) {
+        issues.push(`Job "${jobName}" may have hardcoded secret — use \${{ secrets.NAME }}`)
+      }
+    })
+    // Check npm install before turbo
+    const stepNames = job.steps.map(s => s.run || s.name || '')
+    const turboIdx = stepNames.findIndex(s => s.includes('turbo'))
+    const installIdx = stepNames.findIndex(s => s.includes('npm ci') || s.includes('npm install'))
+    if (turboIdx !== -1 && installIdx === -1) issues.push(`Job "${jobName}" runs turbo without npm install`)
+    if (turboIdx !== -1 && installIdx > turboIdx) issues.push(`Job "${jobName}" install step comes after turbo`)
+  })
+
+  return { valid: issues.length === 0, issues, warnings }
+}
+
+// Test with a good config
+const goodWorkflow = {
+  on: { push: { branches: ['main'] }, pull_request: { branches: ['main'] } },
+  jobs: {
+    ci: {
+      'runs-on': 'ubuntu-latest',
+      steps: [
+        { uses: 'actions/checkout@v4' },
+        { uses: 'actions/setup-node@v4', with: { 'node-version': '20' } },
+        { name: 'Install', run: 'npm ci' },
+        { name: 'Test', run: 'npx turbo test' },
+      ]
+    }
+  }
+}
+
+// Test with a bad config
+const badWorkflow = {
+  on: { push: {} },
+  jobs: {
+    ci: {
+      'runs-on': 'ubuntu-latest',
+      steps: [
+        { name: 'Run turbo', run: 'npx turbo test' }, // no checkout, no install, turbo before install
+        { name: 'Deploy', env: { API_KEY: 'sk-hardcoded-secret-abc123' } } // hardcoded secret!
+      ]
+    }
+  }
+}
+
+console.log('=== Good Workflow ===')
+const r1 = validateWorkflow(goodWorkflow)
+console.log(`Valid: ${r1.valid}`)
+if (r1.warnings.length) r1.warnings.forEach(w => console.log(`  ⚠ ${w}`))
+if (r1.issues.length) r1.issues.forEach(e => console.log(`  ✗ ${e}`))
+if (r1.valid) console.log('  ✓ All checks passed!')
+
+console.log('\n=== Bad Workflow ===')
+const r2 = validateWorkflow(badWorkflow)
+console.log(`Valid: ${r2.valid}`)
+r2.warnings.forEach(w => console.log(`  ⚠ ${w}`))
+r2.issues.forEach(e => console.log(`  ✗ ${e}`))
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">4</div>
+      <div class="runner-title">ADR Generator for ShopCo</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a function that generates properly formatted Architecture Decision Records from structured input. ADRs are markdown files stored in docs/adr/ — automate their creation.</div>
+      <textarea id="ta4">function generateADR({ number, title, status, context, options, decision, consequences }) {
+  const pad = n => String(n).padStart(3, '0')
+  const date = new Date().toISOString().split('T')[0]
+  const optionsSection = options.map((o, i) =>
+    `**Option ${i+1}: ${o.name}**\n- Pros: ${o.pros.join(', ')}\n- Cons: ${o.cons.join(', ')}`
+  ).join('\n\n')
+
+  return `# ADR-${pad(number)}: ${title}
+
+**Status:** ${status}
+**Date:** ${date}
+**File:** docs/adr/${pad(number)}-${title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}.md
+
+---
+
+## Context
+
+${context}
+
+## Options Considered
+
+${optionsSection}
+
+## Decision
+
+${decision}
+
+## Consequences
+
+### Positive
+${consequences.positive.map(c => `- ✓ ${c}`).join('\n')}
+
+### Negative
+${consequences.negative.map(c => `- ✗ ${c}`).join('\n')}
+
+---
+*This ADR was recorded to preserve institutional knowledge. Questions? Ask in #engineering-decisions*`
+}
+
+// Generate a real ShopCo ADR
+const adr = generateADR({
+  number: 2,
+  title: 'Use Neon for serverless PostgreSQL',
+  status: 'Accepted',
+  context: 'ShopCo needs a PostgreSQL database that works well with Vercel\'s serverless environment. Traditional Postgres connections are limited by connection pool size and don\'t scale with serverless functions that can spin up hundreds of instances simultaneously.',
+  options: [
+    {
+      name: 'Neon (serverless Postgres)',
+      pros: ['HTTP-based connections (no pool exhaustion)', 'Database branching for PRs', 'Generous free tier', 'pgvector support'],
+      cons: ['Vendor lock-in', 'Cold start latency', 'Less control than self-hosted']
+    },
+    {
+      name: 'PlanetScale (MySQL)',
+      pros: ['Excellent branching workflow', 'Fast at scale', 'Prisma support'],
+      cons: ['MySQL not Postgres', 'No pgvector for AI features', 'Foreign keys disabled']
+    },
+    {
+      name: 'Supabase',
+      pros: ['Full Postgres', 'Auth included', 'Realtime subscriptions'],
+      cons: ['Larger bundle if using JS client', 'Auth conflicts with Clerk', 'Overkill for our needs']
+    }
+  ],
+  decision: 'Use Neon for serverless PostgreSQL. The HTTP-based connection pooling solves our serverless scaling problem, database branching gives each PR its own isolated database matching our preview deploy workflow, and pgvector support is critical for our Week 5 AI features.',
+  consequences: {
+    positive: ['No connection pool exhaustion in serverless', 'Per-PR database branches for safe testing', 'pgvector works out of the box', 'Database branches match Vercel preview deploys'],
+    negative: ['Neon-specific connection string format required', 'Cold start adds ~100ms on first connection', 'Team needs to learn branch management workflow']
+  }
+})
+
+console.log(adr)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">5</div>
+      <div class="runner-title">Environment Config Validator</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a type-safe environment variable validator (like T3 env) that validates all required env vars at startup, distinguishes server/client vars, and fails fast with helpful error messages.</div>
+      <textarea id="ta5">// Type-safe env validator — simulates @t3-oss/env-nextjs
+function createEnv({ server, client, runtimeEnv }) {
+  const errors = []
+  const result = { server: {}, client: {} }
+
+  // Validate server vars
+  Object.entries(server).forEach(([key, schema]) => {
+    const val = runtimeEnv[key]
+    if (schema.required && !val) {
+      errors.push(`Missing server env var: ${key}`)
+      return
+    }
+    if (val) {
+      if (schema.type === 'url' && !val.startsWith('http')) {
+        errors.push(`${key} must be a valid URL, got: ${val.slice(0, 20)}...`)
+      }
+      if (schema.type === 'number' && isNaN(Number(val))) {
+        errors.push(`${key} must be a number, got: ${val}`)
+      }
+      if (schema.pattern && !new RegExp(schema.pattern).test(val)) {
+        errors.push(`${key} does not match required pattern ${schema.pattern}`)
+      }
+      if (schema.enum && !schema.enum.includes(val)) {
+        errors.push(`${key} must be one of: ${schema.enum.join(', ')}`)
+      }
+      result.server[key] = schema.type === 'number' ? Number(val) : val
+    } else if (schema.default !== undefined) {
+      result.server[key] = schema.default
+    }
+  })
+
+  // Validate client vars (must be NEXT_PUBLIC_)
+  Object.entries(client).forEach(([key, schema]) => {
+    if (!key.startsWith('NEXT_PUBLIC_')) {
+      errors.push(`Client env var "${key}" must start with NEXT_PUBLIC_`)
+      return
+    }
+    const val = runtimeEnv[key]
+    if (schema.required && !val) {
+      errors.push(`Missing client env var: ${key}`)
+      return
+    }
+    if (val) result.client[key] = val
+  })
+
+  if (errors.length > 0) {
+    console.log('❌ Invalid environment configuration:\n')
+    errors.forEach(e => console.log(`  • ${e}`))
+    console.log('\nFix these before starting the app.')
+    return null
+  }
+  return result
+}
+
+// Simulate production env (all good)
+const prodEnv = createEnv({
+  server: {
+    DATABASE_URL:     { type:'url', required:true },
+    OPENAI_API_KEY:   { pattern:'^sk-', required:true },
+    NODE_ENV:         { enum:['development','test','production'], default:'production' },
+    PORT:             { type:'number', default:'3000' },
+    SENTRY_DSN:       { type:'url', required:false },
+  },
+  client: {
+    NEXT_PUBLIC_APP_URL:    { required:true },
+    NEXT_PUBLIC_CLERK_KEY:  { required:true },
+  },
+  runtimeEnv: {
+    DATABASE_URL:           'postgresql://neon.tech/shopco',
+    OPENAI_API_KEY:         'sk-abc123def456',
+    NODE_ENV:               'production',
+    PORT:                   '3000',
+    NEXT_PUBLIC_APP_URL:    'https://shopco.vercel.app',
+    NEXT_PUBLIC_CLERK_KEY:  'pk_live_abc',
+  }
+})
+if (prodEnv) {
+  console.log('✅ Production env validated:')
+  console.log('  Server vars:', Object.keys(prodEnv.server).join(', '))
+  console.log('  Client vars:', Object.keys(prodEnv.client).join(', '))
+  console.log('  PORT (coerced to number):', typeof prodEnv.server.PORT, prodEnv.server.PORT)
+}
+
+// Simulate bad env
+console.log('\n--- Bad env ---')
+createEnv({
+  server: {
+    DATABASE_URL:   { type:'url', required:true },
+    OPENAI_API_KEY: { pattern:'^sk-', required:true },
+    NODE_ENV:       { enum:['development','test','production'] },
+  },
+  client: { APP_URL: { required:true } }, // missing NEXT_PUBLIC_ prefix
+  runtimeEnv: {
+    DATABASE_URL:   'not-a-url',       // invalid
+    OPENAI_API_KEY: 'wrong-prefix',    // wrong pattern
+    // NODE_ENV missing — uses no default
+    APP_URL:        'https://shopco.vercel.app',
+  }
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">6</div>
+      <div class="runner-title">CI Pipeline Cost & Time Optimizer</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate a CI pipeline analyser that calculates total run time, identifies bottlenecks, suggests parallelization opportunities, and estimates GitHub Actions cost per month.</div>
+      <textarea id="ta6">// CI Pipeline Optimizer
+const GITHUB_ACTIONS_COST_PER_MIN = 0.008 // $0.008/min for ubuntu-latest
+
+const pipeline = [
+  { name:'Checkout',        duration:8,   parallelGroup:1, cacheable:false },
+  { name:'npm ci',          duration:45,  parallelGroup:1, cacheable:true,  cacheHitTime:5 },
+  { name:'Lint',            duration:18,  parallelGroup:2, cacheable:true,  cacheHitTime:2 },
+  { name:'Typecheck',       duration:22,  parallelGroup:2, cacheable:true,  cacheHitTime:2 },
+  { name:'Unit tests',      duration:35,  parallelGroup:2, cacheable:true,  cacheHitTime:4 },
+  { name:'Build',           duration:90,  parallelGroup:3, cacheable:true,  cacheHitTime:3 },
+  { name:'Preview deploy',  duration:40,  parallelGroup:4, cacheable:false },
+  { name:'E2E tests',       duration:120, parallelGroup:5, cacheable:false },
+]
+
+const DEPLOYS_PER_MONTH = 80 // realistic for active team
+
+function analyzePipeline(steps, cacheHitRate = 0.7) {
+  // Group by parallel groups
+  const groups = {}
+  steps.forEach(s => {
+    if (!groups[s.parallelGroup]) groups[s.parallelGroup] = []
+    groups[s.parallelGroup].push(s)
+  })
+
+  let totalSerial = 0
+  let totalWithCache = 0
+  let totalParallel = 0
+
+  console.log('=== ShopCo CI Pipeline Analysis ===\n')
+  console.log('Step breakdown:')
+
+  Object.entries(groups).forEach(([gNum, gSteps]) => {
+    const maxDuration = Math.max(...gSteps.map(s => s.duration))
+    const avgCacheDuration = gSteps.reduce((sum, s) => {
+      const eff = s.cacheable ? s.duration * (1 - cacheHitRate) + (s.cacheHitTime || 0) * cacheHitRate : s.duration
+      return sum + eff
+    }, 0) / gSteps.length
+
+    totalSerial += gSteps.reduce((s, x) => s + x.duration, 0)
+    totalParallel += maxDuration
+    totalWithCache += Math.max(...gSteps.map(s => {
+      if (!s.cacheable) return s.duration
+      return s.duration * (1 - cacheHitRate) + (s.cacheHitTime || 0) * cacheHitRate
+    }))
+
+    const label = gSteps.length > 1 ? `[parallel ×${gSteps.length}]` : '[sequential]'
+    console.log(`  Group ${gNum} ${label}: ${gSteps.map(s => s.name).join(' + ')} → ${maxDuration}s`)
+  })
+
+  const monthlyMins = (totalWithCache / 60) * DEPLOYS_PER_MONTH
+  const monthlyCost = (monthlyMins * GITHUB_ACTIONS_COST_PER_MIN).toFixed(2)
+  const savings = ((totalSerial - totalWithCache) / totalSerial * 100).toFixed(0)
+
+  console.log('\n=== Summary ===')
+  console.log(`Serial time (no parallelism):  ${totalSerial}s`)
+  console.log(`Parallel time (no cache):      ${totalParallel}s`)
+  console.log(`Effective time (${(cacheHitRate*100).toFixed(0)}% cache rate): ${Math.round(totalWithCache)}s`)
+  console.log(`Savings vs serial:             ${savings}%`)
+  console.log(`\nAt ${DEPLOYS_PER_MONTH} deploys/month:`)
+  console.log(`  Total CI minutes: ${monthlyMins.toFixed(0)} min/month`)
+  console.log(`  Estimated cost:   $${monthlyCost}/month`)
+  console.log('\n=== Optimization Opportunities ===')
+  const slowest = [...steps].sort((a,b) => b.duration - a.duration)[0]
+  console.log(`  1. Slowest step: "${slowest.name}" (${slowest.duration}s) — investigate splitting or caching`)
+  const uncacheable = steps.filter(s => !s.cacheable && s.duration > 30)
+  if (uncacheable.length) console.log(`  2. Long uncacheable steps: ${uncacheable.map(s=>s.name).join(', ')} — can these be parallelized?`)
+  console.log(`  3. E2E tests run after every push — consider running only on PR to main`)
+}
+
+analyzePipeline(pipeline, 0.7)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Q&A -->
+<section class="section" id="qa">
+  <div class="section-header">
+    <span class="section-badge">05</span>
+    <h2 class="section-title">Interview Q&amp;A</h2>
+  </div>
+
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">1. When would you choose a monorepo over separate repositories?</div>
+    <div class="ans-text">Choose monorepo when: packages share code frequently, teams work across multiple packages simultaneously, you want atomic changes (one PR changes the API contract and updates the consuming app together), or you need consistent tooling/versions. Stick with polyrepo when: teams have very different tech stacks, strict access controls per project are required, or projects are genuinely independent products with no shared code. Most SaaS products with a web app, admin dashboard, and shared types are monorepo candidates.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">2. How does Turborepo's caching work and what are its limits?</div>
+    <div class="ans-text">Turborepo creates a hash from: source files (via glob patterns in <code>inputs</code>), env variables listed in <code>globalEnv</code> or task <code>env</code>, and the task configuration itself. If the hash matches a previous run, it replays the cached stdout/stderr and restores output files. Limits: (1) cache is only valid if your task is deterministic (same inputs → same outputs), (2) you must declare all <code>outputs</code> for file restoration to work, (3) remote cache requires a server (Vercel's is free for hobby, paid for teams), (4) E2E tests that hit real services shouldn't be cached since external state changes.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">3. What is an ADR and why is it important?</div>
+    <div class="ans-text">An Architecture Decision Record documents a significant technical decision: the context (why does this need a decision?), options considered, the decision made, and the consequences (good and bad). They're important because: (1) they prevent relitigating decisions — "why do we use X?" is answered by ADR-003; (2) they help new team members understand the codebase's reasoning, not just its structure; (3) they capture the tradeoffs, so if circumstances change (e.g. a vendor shuts down), you know what to reconsider; (4) they create accountability and thoughtfulness in architectural decisions.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">4. What is the difference between CI and CD, and where does the gate go?</div>
+    <div class="ans-text">CI (Continuous Integration): every code push triggers automated checks (lint, test, build) that integrate code safely. The goal is fast feedback — know within minutes if a change breaks anything. CD (Continuous Deployment): automatically deploying passing code to environments. The gate between CI and CD is typically: (1) all CI checks pass, (2) code review approved (human gate), (3) optionally: staging environment verification. For ShopCo, every PR gets CI + preview deploy; merging to main triggers automatic production deploy. Some teams require a manual "promote to production" button for higher-risk deploys.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">5. How do you manage secrets across dev, preview, staging, and production?</div>
+    <div class="ans-text">Each environment gets its own secret set, never shared. In development: <code>.env.local</code> (git-ignored, shared via secure channel like 1Password). In preview and production: Vercel environment variables per environment scope. In CI: GitHub Actions secrets, referenced as <code>${{ secrets.NAME }}</code> — never hardcoded. Rotation: use separate API keys per environment so rotating production doesn't affect dev. For team onboarding: maintain a <code>.env.example</code> with all variable names and placeholder values (no real secrets) — commit this file.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">6. What is feature-first folder structure and when do you use it?</div>
+    <div class="ans-text">Feature-first (also called "vertical slices"): group files by the feature they belong to — <code>features/cart/</code> contains the cart's components, hooks, API calls, and types together. Layer-first: group by technical role — <code>components/</code>, <code>hooks/</code>, <code>api/</code> at the top level. Feature-first wins for larger apps: related files change together, new developers can understand a feature by looking at one folder, and deleting a feature is clean (delete the folder). Layer-first is fine for small apps. In Next.js App Router, the route structure already nudges you toward feature-first with co-located <code>page.tsx</code>, <code>loading.tsx</code>, and <code>error.tsx</code> per route.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">7. How would you set up database branching for preview deployments?</div>
+    <div class="ans-text">With Neon (serverless Postgres): each PR creates a database branch from main using the Neon API or GitHub Action — <code>neon branches create --parent main --name pr-42</code>. The preview deploy's <code>DATABASE_URL</code> points to the branch. Migrations run against the branch, not main. When the PR merges, the branch is deleted. This gives each preview a real database with production-like schema and test data, without risking main's data. Neon branching is fast (~1s) and copy-on-write, so branches don't duplicate data. The Vercel integration can automate this with the Neon + Vercel integration.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">8. What shared packages would you create for a Next.js monorepo?</div>
+    <div class="ans-text">Essential packages: (1) <code>@shopco/ui</code> — shared React components, used by web and admin apps; (2) <code>@shopco/db</code> — Prisma client and schema, imported wherever DB access is needed; (3) <code>@shopco/types</code> — shared TypeScript types and Zod schemas, shared between frontend and backend; (4) <code>@shopco/config</code> — shared ESLint, TypeScript, and Tailwind configs to avoid duplication; (5) <code>@shopco/utils</code> — pure utility functions (formatting, validation) with no framework dependencies. Key rule: packages should have no circular dependencies and clear ownership.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">9. How do you keep CI fast as the codebase grows?</div>
+    <div class="ans-text">Tactics: (1) <strong>Turborepo affected detection</strong> — only run tasks in packages that changed or depend on changed packages; (2) <strong>Remote caching</strong> — share build/test cache across all machines; (3) <strong>Parallelise</strong> — run lint, typecheck, and unit tests simultaneously; (4) <strong>Split slow tests</strong> — run unit tests on every commit, E2E only on PRs to main; (5) <strong>Matrix builds</strong> — GitHub Actions matrix strategy to split a large test suite across multiple runners; (6) <strong>Shallow clone</strong> — <code>fetch-depth: 2</code> in checkout action; (7) <strong>Cache npm</strong> — use <code>actions/setup-node</code> with cache: 'npm' to avoid re-downloading packages.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">10. What makes a good project README for a new team member?</div>
+    <div class="ans-text">A great README answers these questions in order: (1) What is this project? (1–2 sentences); (2) How do I run it locally? (exact commands, not "install dependencies"); (3) What are the key environment variables? (link to .env.example); (4) What's the folder structure and why? (brief explanation of key directories); (5) How do I run tests?; (6) How do I deploy?; (7) Where are the ADRs? (link to docs/adr/). Avoid: outdated info (worse than no docs), explaining what the code does instead of how to use it, and walls of text. Keep it short and link to deeper docs for details.</div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section class="section" id="checklist">
+  <div class="section-header">
+    <span class="section-badge">06</span>
+    <h2 class="section-title">Night Review Checklist</h2>
+  </div>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand monorepo tradeoffs and know when to use one</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how Turborepo caches tasks and what inputs affect the hash</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can describe the ShopCo folder structure and why each package exists</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a turbo.json pipeline with correct dependsOn and outputs</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the full CI/CD pipeline: push → lint → test → build → preview → prod</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a GitHub Actions workflow for a Next.js monorepo</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the four environments (dev/preview/staging/prod) and how secrets are managed</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write an ADR using the Title/Status/Context/Decision/Consequences template</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built the dependency graph exercise and understood topological sort</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built the cache simulator and understood when cache hits vs misses occur</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand feature-first vs layer-first folder structure</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how database branching works with preview deploys (Neon)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can identify CI bottlenecks and suggest optimisations</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can answer all 10 interview questions confidently</div></div>
+  </div>
+  <div class="tomorrow-box">
+    <h4>🌅 Tomorrow — Day 34: Auth & Roles</h4>
+    <p>Day 34 goes deep on multi-role authentication for ShopCo's full-stack project. You'll build on Clerk from Day 22 but push further: org workspaces (a customer can belong to multiple organisations), role-based access control with custom claims, server-side auth checks in Next.js middleware, and protected API routes that enforce roles. You'll model the permission system (customer, staff, admin, super-admin) and implement it end-to-end. Prepare by reviewing Clerk's organisation features and thinking about what permissions each ShopCo role should have.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-btns">
+    <button class="footer-btn" onclick="navigateTo('day32_week5_review.html',32)">← Day 32: Week 5 Review</button>
+    <button class="footer-btn primary" onclick="navigateTo('day34_auth_roles.html',34)">Day 34: Auth & Roles →</button>
+  </div>
+  <div style="margin-top:16px">
+    <div class="week-prog-label">Week 6 Progress — 1 of 7 days</div>
+    <div class="week-prog-bar"><div class="week-prog-fill" style="width:14%"></div></div>
+  </div>
+  <div style="margin-top:16px;font-size:11px;color:var(--hint)">ShopCo Course · Day 33 of 56 · Project Setup</div>
+</footer>
+
+<script>
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_arrays_objects.html"},
+  {num:3,file:"day3_functions_async.html"},
+  {num:4,file:"day4_error_handling.html"},
+  {num:5,file:"day5_dom_events.html"},
+  {num:6,file:"day6_es6_modules.html"},
+  {num:7,file:"day7_week1_review.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design_rest.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html"},
+  {num:28,file:"day28_error_monitoring.html"},
+  {num:29,file:"day29_genai_vercel_ai_sdk.html"},
+  {num:30,file:"day30_rag_embeddings.html"},
+  {num:31,file:"day31_ai_agents_tools.html"},
+  {num:32,file:"day32_week5_review.html"},
+  {num:33,file:"day33_project_setup.html",current:true},
+  {num:34,file:"day34_auth_roles.html"},
+  {num:35,file:"day35_data_modeling.html"},
+  {num:36,file:"day36_api_layer.html"},
+  {num:37,file:"day37_realtime_features.html"},
+  {num:38,file:"day38_file_uploads.html"},
+  {num:39,file:"day39_week6_review.html"},
+  {num:40,file:"day40_stripe_payments.html"},
+  {num:41,file:"day41_email_notifications.html"},
+  {num:42,file:"day42_search.html"},
+  {num:43,file:"day43_advanced_rag.html"},
+  {num:44,file:"day44_ai_pipelines.html"},
+  {num:45,file:"day45_analytics.html"},
+  {num:46,file:"day46_week7_review.html"},
+  {num:47,file:"day47_accessibility.html"},
+  {num:48,file:"day48_i18n_l10n.html"},
+  {num:49,file:"day49_advanced_testing.html"},
+  {num:50,file:"day50_devops_cicd.html"},
+  {num:51,file:"day51_portfolio_project_1.html"},
+  {num:52,file:"day52_portfolio_project_2.html"},
+  {num:53,file:"day53_resume_github.html"},
+  {num:54,file:"day54_interview_prep.html"},
+  {num:55,file:"day55_mock_interviews.html"},
+  {num:56,file:"day56_graduation.html"},
+]
+const CURRENT = 33
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_arrays_objects.html",
+  "day3_functions_async.html","day5_dom_events.html","day6_es6_modules.html",
+  "day7_week1_review.html","day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html","day12_context_global_state.html",
+  "day13_week2_review.html","day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html","day18_tailwind_css.html",
+  "day19_week3_review.html","day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html","day24_api_design_rest.html",
+  "day25_week4_review.html","day26_performance.html","day27_testing.html",
+  "day28_error_monitoring.html","day29_genai_vercel_ai_sdk.html",
+  "day30_rag_embeddings.html","day31_ai_agents_tools.html","day32_week5_review.html",
+  "day33_project_setup.html",
+])
+
+function navigateTo(file, n) {
+  if (AVAILABLE.has(file)) window.location.href = file
+  else showToast('Day ' + n + ' coming soon!')
+}
+function showToast(msg) {
+  const t = document.createElement('div'); t.className='toast'; t.textContent=msg
+  document.body.appendChild(t); setTimeout(()=>t.remove(),3000)
+}
+const dotsEl = document.getElementById('day-dots')
+DAY_PLAN.forEach(d => {
+  const btn = document.createElement('button')
+  btn.className='ddot'+(d.current?' current':AVAILABLE.has(d.file)?' done available':' available')
+  btn.title='Day '+d.num
+  btn.onclick=()=>navigateTo(d.file, d.num)
+  dotsEl.appendChild(btn)
+})
+function runCode(btn) {
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea')
+  const out=wrap.querySelector('.output-box'),logs=[]
+  const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x,null,2):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try {
+    const result=new Function(ta.value)()
+    if(result&&typeof result.then==='function'){
+      out.textContent='Running...'
+      result.then(()=>{out.textContent=logs.length?logs.join('\n'):'(no output)'})
+            .catch(e=>{out.classList.add('err');out.textContent='✗ '+e.message})
+    } else { out.textContent=logs.length?logs.join('\n'):'(no output)' }
+  } catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+const secs=document.querySelectorAll('.section')
+const links=document.querySelectorAll('.nav-links a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

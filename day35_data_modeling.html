@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Day 35 — Data Modeling | ShopCo Course</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --accent:#60a5fa;--accent-dim:rgba(96,165,250,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;height:52px}
+.nav-brand{font-weight:700;font-size:14px;color:var(--accent);white-space:nowrap;margin-right:24px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:6px 12px;border-radius:6px;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{color:var(--accent);background:var(--accent-dim)}
+.week-banner{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
+.week-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(96,165,250,0.25)}
+.week-desc{font-size:12px;color:var(--muted)}
+.day-nav{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px}
+.day-nav-title{font-size:14px;font-weight:700;color:var(--text);margin-right:8px}
+.day-dots{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.ddot{width:10px;height:10px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .2s;border:none;padding:0}
+.ddot.done{background:var(--green)}
+.ddot.current{background:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.5)}
+.ddot.available:hover{background:var(--muted);transform:scale(1.2)}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hero{padding:64px 24px 48px;max-width:900px;margin:0 auto;text-align:center}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:20px}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin:0 auto 28px}
+.topic-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:36px}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+.pill.accent{background:var(--accent-dim);border-color:rgba(96,165,250,0.3);color:var(--accent)}
+.stats-row{display:flex;border:1px solid var(--border2);border-radius:12px;overflow:hidden;max-width:500px;margin:0 auto}
+.stat{flex:1;padding:16px 8px;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+.section{padding:48px 24px;max-width:1000px;margin:0 auto}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.section-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(96,165,250,0.2)}
+.section-title{font-size:22px;font-weight:700}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.topic-card:hover{border-color:var(--accent);background:var(--surface2)}
+.topic-card.done{border-color:rgba(74,222,128,0.3);background:var(--green-dim)}
+.topic-icon{font-size:24px;margin-bottom:10px}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.topic-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.progress-label{font-size:14px;font-weight:600}
+.pct{font-size:14px;font-weight:700;color:var(--accent)}
+.prog-bar{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.topic-dots{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tdot{width:28px;height:28px;border-radius:6px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.tdot.done{background:var(--accent-dim);border-color:rgba(96,165,250,0.4);color:var(--accent)}
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.concept-card h3{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.concept-card p{font-size:13px;color:var(--muted);line-height:1.7}
+.concept-card code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:4px;color:var(--teal)}
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7}
+.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#86efac}.num{color:#f9a8d4}.fn{color:#93c5fd}
+.cm{color:#3d3d55;font-style:italic}.var{color:#5eead4}.op{color:#fcd34d}
+.prop{color:#fbbf24}.ty{color:#38bdf8}.tag{color:#fb7185}.attr{color:#fbbf24}
+.compare-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.compare-table th{background:var(--surface3);padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border2)}
+.compare-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--surface2)}
+.tag-g{color:var(--green);font-size:11px;font-weight:600}
+.tag-a{color:var(--amber);font-size:11px;font-weight:600}
+.tag-c{color:var(--coral);font-size:11px;font-weight:600}
+.ex-divider{padding:20px 24px;max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.ex-line{flex:1;height:1px;background:var(--border)}
+.ex-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.runner-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.runner-num{width:24px;height:24px;border-radius:6px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid rgba(96,165,250,0.3)}
+.runner-title{font-size:13px;font-weight:600;flex:1}
+.diff-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.diff-b{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.diff-i{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.diff-a{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.runner-body{padding:16px}
+.runner-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;min-height:130px;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent)}
+.run-btn{margin-top:10px;padding:8px 20px;border-radius:7px;border:none;background:var(--accent);color:#000;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.run-btn:hover{background:#3b82f6;transform:translateY(-1px)}
+.output-box{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);min-height:48px;white-space:pre-wrap;line-height:1.6}
+.output-box.err{color:var(--coral)}
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.qa-item:hover{border-color:var(--border2)}
+.qa-q{padding:16px 20px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.qa-q::after{content:'▸';color:var(--muted);transition:transform .25s;flex-shrink:0}
+.qa-item.open .qa-q::after{transform:rotate(90deg);color:var(--accent)}
+.qa-item.open{border-color:rgba(96,165,250,0.3)}
+.ans-text{display:none;padding:0 20px 16px;font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border)}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:4px;color:var(--teal)}
+.qa-item.open .ans-text{display:block}
+.checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-bottom:20px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s}
+.cl-item:hover{border-color:var(--border2)}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s}
+.cl-box.checked{background:var(--accent);border-color:var(--accent)}
+.cl-box.checked::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.cl-text{font-size:12px;color:var(--text);line-height:1.5}
+.cl-text.checked{color:var(--muted);text-decoration:line-through}
+.tomorrow-box{background:var(--surface);border:1px solid rgba(96,165,250,0.2);border-radius:10px;padding:20px;margin-top:16px}
+.tomorrow-box h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.tomorrow-box p{font-size:13px;color:var(--muted);line-height:1.7}
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:24px;text-align:center}
+.footer-btns{display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.footer-btn{padding:10px 24px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.footer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.footer-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.footer-btn.primary:hover{background:#3b82f6}
+.week-prog-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.week-prog-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;max-width:300px;margin:0 auto}
+.week-prog-fill{height:100%;background:var(--accent);border-radius:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.info-box{background:var(--accent-dim);border:1px solid rgba(96,165,250,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.warn-box{background:var(--amber-dim);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+/* ERD diagram */
+.erd{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:16px 0}
+.erd-table{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;overflow:hidden}
+.erd-header{background:var(--accent-dim);border-bottom:1px solid rgba(96,165,250,0.2);padding:8px 12px;font-size:12px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:6px}
+.erd-row{padding:5px 12px;font-size:11px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--border);color:var(--muted);display:flex;gap:8px;align-items:center}
+.erd-row:last-child{border-bottom:none}
+.erd-pk{color:var(--amber);font-size:9px;font-weight:700;min-width:14px}
+.erd-fk{color:var(--teal);font-size:9px;font-weight:700;min-width:14px}
+.erd-field{color:var(--text)}
+.erd-type{color:var(--hint);margin-left:auto;font-size:10px}
+/* migration step */
+.mig-list{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0}
+.mig-step{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--surface)}
+.mig-step:last-child{border-bottom:none}
+.mig-step:hover{background:var(--surface2)}
+.mig-num{width:24px;height:24px;border-radius:50%;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mig-name{font-size:13px;font-weight:600;flex:1}
+.mig-desc{font-size:12px;color:var(--muted)}
+.mig-risk{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap}
+.mr-low{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.mr-med{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.mr-high{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 35 · Data Modeling</div>
+  <div class="nav-links">
+    <a href="#topics">Topics</a>
+    <a href="#concepts">Concepts</a>
+    <a href="#schema">Schema</a>
+    <a href="#migrations">Migrations</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#qa">Interview</a>
+    <a href="#checklist">Review</a>
+  </div>
+</nav>
+
+<!-- WEEK BANNER -->
+<div class="week-banner">
+  <span class="week-badge">Week 6</span>
+  <span class="week-desc">Full-Stack Project Build — designing the data that powers ShopCo</span>
+</div>
+
+<!-- DAY NAV -->
+<div class="day-nav">
+  <span class="day-nav-title">Day 35 — Data Modeling</span>
+  <div class="day-dots" id="day-dots"></div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="navigateTo('day34_auth_roles.html',34)">← Prev</button>
+    <button class="nav-btn" onclick="navigateTo('day36_api_layer.html',36)">Next →</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Week 6 · Day 35 of 56</div>
+  <h1>Data <span>Modeling</span></h1>
+  <p class="hero-sub">Design the complete ShopCo database schema — product variants, polymorphic relations, soft deletes, audit trails — and master zero-downtime migration strategies with Prisma.</p>
+  <div class="topic-pills">
+    <span class="pill accent">Prisma Schema</span>
+    <span class="pill accent">Relations</span>
+    <span class="pill accent">Migrations</span>
+    <span class="pill">Soft Deletes</span>
+    <span class="pill">Audit Trail</span>
+    <span class="pill">Composite Keys</span>
+    <span class="pill">Indexes</span>
+    <span class="pill">Cursor Pagination</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">8</div><div class="stat-l">Topics</div></div>
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Exercises</div></div>
+    <div class="stat"><div class="stat-n">10</div><div class="stat-l">Q&amp;As</div></div>
+    <div class="stat"><div class="stat-n">6h</div><div class="stat-l">Study</div></div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<section class="section" id="topics">
+  <div class="section-header">
+    <span class="section-badge">01</span>
+    <h2 class="section-title">Today's Topics</h2>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label">Day Progress</span>
+      <span class="pct" id="pct-label">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="topic-dots" id="tdots">
+      <div class="tdot" onclick="markDone(this)" title="Relations">R</div>
+      <div class="tdot" onclick="markDone(this)" title="Variants">V</div>
+      <div class="tdot" onclick="markDone(this)" title="Soft Deletes">S</div>
+      <div class="tdot" onclick="markDone(this)" title="Audit Trail">A</div>
+      <div class="tdot" onclick="markDone(this)" title="Indexes">I</div>
+      <div class="tdot" onclick="markDone(this)" title="Migrations">M</div>
+      <div class="tdot" onclick="markDone(this)" title="Pagination">P</div>
+      <div class="tdot" onclick="markDone(this)" title="Exercises">X</div>
+    </div>
+  </div>
+  <div class="topics-grid">
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔗</div>
+      <div class="topic-name">Relation Types</div>
+      <div class="topic-sub">1:1, 1:N, M:N — when to use each, Prisma syntax for all three</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🎨</div>
+      <div class="topic-name">Product Variants</div>
+      <div class="topic-sub">Modeling size/colour combinations with separate inventory per SKU</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🗑️</div>
+      <div class="topic-name">Soft Deletes</div>
+      <div class="topic-sub">deletedAt timestamp — keep data for audit, filter in all queries</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📋</div>
+      <div class="topic-name">Audit Trail</div>
+      <div class="topic-sub">Tracking who changed what and when across the ShopCo system</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">⚡</div>
+      <div class="topic-name">Indexes & Performance</div>
+      <div class="topic-sub">Composite indexes, partial indexes, and understanding query plans</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🚀</div>
+      <div class="topic-name">Zero-Downtime Migrations</div>
+      <div class="topic-sub">Expand/contract pattern — safe schema changes in production</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📄</div>
+      <div class="topic-name">Cursor Pagination</div>
+      <div class="topic-sub">Stable, performant pagination using opaque cursors instead of OFFSET</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔑</div>
+      <div class="topic-name">Composite Keys</div>
+      <div class="topic-sub">@@unique, @@index, compound primary keys for junction tables</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPTS -->
+<section class="section" id="concepts">
+  <div class="section-header">
+    <span class="section-badge">02</span>
+    <h2 class="section-title">Core Concepts</h2>
+  </div>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <h3>🔗 Relation Design Principles</h3>
+      <p>Choose relations based on cardinality and ownership. <strong>1:1</strong> (User → Profile): separate table when optional or large. <strong>1:N</strong> (Product → Reviews): foreign key on the "many" side. <strong>M:N</strong> (Order → Products): always use an explicit junction table (<code>OrderItem</code>) with extra fields (quantity, price at time of purchase). Never store arrays of IDs in a column — that's a sign you need a M:N relation.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🗑️ Soft Deletes</h3>
+      <p>Instead of <code>DELETE FROM products WHERE id = $1</code>, set <code>deletedAt = NOW()</code>. Benefits: audit trail, undo capability, referential integrity (orders still reference the deleted product). Always add <code>WHERE deletedAt IS NULL</code> to every query — use Prisma middleware to do this automatically. Add a partial index: <code>CREATE INDEX ON products WHERE deleted_at IS NULL</code> to keep queries fast.</p>
+    </div>
+    <div class="concept-card">
+      <h3>📋 Audit Trail</h3>
+      <p>Record every significant change: who (userId), what (table + recordId + field), when (timestamp), old value, new value. Two approaches: (1) <strong>Application-level</strong>: Prisma middleware writes to an <code>AuditLog</code> table before/after every mutation; (2) <strong>Database-level</strong>: Postgres triggers + temporal tables. Application-level is more portable and lets you add context (userId from session). Critical for GDPR compliance and debugging production incidents.</p>
+    </div>
+    <div class="concept-card">
+      <h3>⚡ Index Strategy</h3>
+      <p>Indexes speed up reads but slow writes — add only what your queries need. Always index: foreign keys, columns in WHERE clauses, columns in ORDER BY. Composite indexes: order matters — <code>(userId, createdAt)</code> helps <code>WHERE userId = ? ORDER BY createdAt</code> but not <code>WHERE createdAt = ?</code>. Partial indexes for filtered queries: <code>WHERE deletedAt IS NULL</code>. Use <code>EXPLAIN ANALYZE</code> to verify index usage.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🚀 Expand/Contract Pattern</h3>
+      <p>Zero-downtime schema changes in 3 phases: (1) <strong>Expand</strong>: add new column as nullable, deploy code that writes to both old and new column; (2) <strong>Backfill</strong>: migrate existing data to new column; (3) <strong>Contract</strong>: make new column required, drop old column, deploy code that only uses new column. Never make a breaking migration (rename/delete column) in a single deploy — old code still running will crash.</p>
+    </div>
+    <div class="concept-card">
+      <h3>📄 Cursor vs Offset Pagination</h3>
+      <p>Offset (<code>SKIP 100 TAKE 20</code>) is unstable — inserting a row shifts everything, causing duplicates or missed items. Slow on large tables: DB must count 100 rows to skip. <strong>Cursor pagination</strong>: encode the last item's ID (or composite key) as a cursor, then <code>WHERE id &gt; $cursor ORDER BY id TAKE 20</code>. Stable, uses index efficiently, works at any scale. Tradeoff: no jumping to arbitrary pages.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SCHEMA -->
+<section class="section" id="schema">
+  <div class="section-header">
+    <span class="section-badge">03</span>
+    <h2 class="section-title">ShopCo Schema Design</h2>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;margin-bottom:14px">Entity Relationship Diagram</h3>
+  <div class="erd">
+    <div class="erd-table">
+      <div class="erd-header">🛍️ Product</div>
+      <div class="erd-row"><span class="erd-pk">PK</span><span class="erd-field">id</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">name</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">slug</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">description</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">basePrice</span><span class="erd-type">Decimal</span></div>
+      <div class="erd-row"><span class="erd-fk">FK</span><span class="erd-field">categoryId</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">deletedAt</span><span class="erd-type">DateTime?</span></div>
+    </div>
+    <div class="erd-table">
+      <div class="erd-header">🎨 ProductVariant</div>
+      <div class="erd-row"><span class="erd-pk">PK</span><span class="erd-field">id</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-fk">FK</span><span class="erd-field">productId</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">sku</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">size</span><span class="erd-type">String?</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">colour</span><span class="erd-type">String?</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">priceModifier</span><span class="erd-type">Decimal</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">stock</span><span class="erd-type">Int</span></div>
+    </div>
+    <div class="erd-table">
+      <div class="erd-header">📦 Order</div>
+      <div class="erd-row"><span class="erd-pk">PK</span><span class="erd-field">id</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-fk">FK</span><span class="erd-field">userId</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">status</span><span class="erd-type">OrderStatus</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">totalAmount</span><span class="erd-type">Decimal</span></div>
+      <div class="erd-row"><span class="erd-fk">FK</span><span class="erd-field">addressId</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">createdAt</span><span class="erd-type">DateTime</span></div>
+    </div>
+    <div class="erd-table">
+      <div class="erd-header">🧾 OrderItem</div>
+      <div class="erd-row"><span class="erd-pk">PK</span><span class="erd-field">id</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-fk">FK</span><span class="erd-field">orderId</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-fk">FK</span><span class="erd-field">variantId</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">quantity</span><span class="erd-type">Int</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">unitPrice</span><span class="erd-type">Decimal</span></div>
+    </div>
+    <div class="erd-table">
+      <div class="erd-header">⭐ Review</div>
+      <div class="erd-row"><span class="erd-pk">PK</span><span class="erd-field">id</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-fk">FK</span><span class="erd-field">productId</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-fk">FK</span><span class="erd-field">userId</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">rating</span><span class="erd-type">Int</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">comment</span><span class="erd-type">String?</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">verified</span><span class="erd-type">Boolean</span></div>
+    </div>
+    <div class="erd-table">
+      <div class="erd-header">📝 AuditLog</div>
+      <div class="erd-row"><span class="erd-pk">PK</span><span class="erd-field">id</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">userId</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">action</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">table</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">recordId</span><span class="erd-type">String</span></div>
+      <div class="erd-row"><span class="erd-pk"></span><span class="erd-field">changes</span><span class="erd-type">Json</span></div>
+    </div>
+  </div>
+
+  <div class="code-label" style="margin-top:24px">schema.prisma — complete ShopCo data model</div>
+  <pre><span class="kw">generator</span> client {
+  provider = <span class="str">"prisma-client-js"</span>
+  previewFeatures = [<span class="str">"postgresqlExtensions"</span>]
+}
+
+<span class="kw">datasource</span> db {
+  provider   = <span class="str">"postgresql"</span>
+  url        = <span class="prop">env</span>(<span class="str">"DATABASE_URL"</span>)
+  extensions = [vector, pg_trgm]  <span class="cm">// pgvector + trigram search</span>
+}
+
+<span class="kw">enum</span> <span class="ty">OrderStatus</span> {
+  PENDING PROCESSING SHIPPED DELIVERED CANCELLED REFUNDED
+}
+
+<span class="kw">model</span> <span class="ty">Category</span> {
+  id       <span class="ty">String</span>    <span class="prop">@id</span> <span class="prop">@default</span>(<span class="fn">cuid</span>())
+  name     <span class="ty">String</span>    <span class="prop">@unique</span>
+  slug     <span class="ty">String</span>    <span class="prop">@unique</span>
+  parentId <span class="ty">String</span>?
+  parent   <span class="ty">Category</span>? <span class="prop">@relation</span>(<span class="str">"CategoryTree"</span>, fields:[parentId], references:[id])
+  children <span class="ty">Category</span>[] <span class="prop">@relation</span>(<span class="str">"CategoryTree"</span>)
+  products <span class="ty">Product</span>[]
+}
+
+<span class="kw">model</span> <span class="ty">Product</span> {
+  id          <span class="ty">String</span>    <span class="prop">@id</span> <span class="prop">@default</span>(<span class="fn">cuid</span>())
+  name        <span class="ty">String</span>
+  slug        <span class="ty">String</span>    <span class="prop">@unique</span>
+  description <span class="ty">String</span>
+  basePrice   <span class="ty">Decimal</span>   <span class="prop">@db.Decimal</span>(<span class="num">10</span>,<span class="num">2</span>)
+  categoryId  <span class="ty">String</span>
+  category    <span class="ty">Category</span>  <span class="prop">@relation</span>(fields:[categoryId], references:[id])
+  variants    <span class="ty">ProductVariant</span>[]
+  images      <span class="ty">ProductImage</span>[]
+  reviews     <span class="ty">Review</span>[]
+  embedding   <span class="ty">Unsupported</span>(<span class="str">"vector(1536)"</span>)?
+  deletedAt   <span class="ty">DateTime</span>? <span class="cm">// soft delete</span>
+  createdAt   <span class="ty">DateTime</span>  <span class="prop">@default</span>(<span class="fn">now</span>())
+  updatedAt   <span class="ty">DateTime</span>  <span class="prop">@updatedAt</span>
+
+  <span class="prop">@@index</span>([categoryId])
+  <span class="prop">@@index</span>([deletedAt])  <span class="cm">// partial index in migration.sql</span>
+  <span class="prop">@@index</span>([slug])
+}
+
+<span class="kw">model</span> <span class="ty">ProductVariant</span> {
+  id            <span class="ty">String</span>   <span class="prop">@id</span> <span class="prop">@default</span>(<span class="fn">cuid</span>())
+  productId     <span class="ty">String</span>
+  product       <span class="ty">Product</span>  <span class="prop">@relation</span>(fields:[productId], references:[id])
+  sku           <span class="ty">String</span>   <span class="prop">@unique</span>
+  size          <span class="ty">String</span>?
+  colour        <span class="ty">String</span>?
+  priceModifier <span class="ty">Decimal</span>  <span class="prop">@default</span>(<span class="num">0</span>) <span class="prop">@db.Decimal</span>(<span class="num">10</span>,<span class="num">2</span>)
+  stock         <span class="ty">Int</span>      <span class="prop">@default</span>(<span class="num">0</span>)
+  orderItems    <span class="ty">OrderItem</span>[]
+
+  <span class="prop">@@unique</span>([productId, size, colour])  <span class="cm">// no duplicate variant combinations</span>
+  <span class="prop">@@index</span>([productId])
+}
+
+<span class="kw">model</span> <span class="ty">Order</span> {
+  id          <span class="ty">String</span>      <span class="prop">@id</span> <span class="prop">@default</span>(<span class="fn">cuid</span>())
+  userId      <span class="ty">String</span>
+  status      <span class="ty">OrderStatus</span> <span class="prop">@default</span>(PENDING)
+  totalAmount <span class="ty">Decimal</span>     <span class="prop">@db.Decimal</span>(<span class="num">10</span>,<span class="num">2</span>)
+  addressId   <span class="ty">String</span>
+  address     <span class="ty">Address</span>     <span class="prop">@relation</span>(fields:[addressId], references:[id])
+  items       <span class="ty">OrderItem</span>[]
+  createdAt   <span class="ty">DateTime</span>    <span class="prop">@default</span>(<span class="fn">now</span>())
+  updatedAt   <span class="ty">DateTime</span>    <span class="prop">@updatedAt</span>
+
+  <span class="prop">@@index</span>([userId, createdAt])  <span class="cm">// composite: list user's orders sorted</span>
+  <span class="prop">@@index</span>([status])
+}
+
+<span class="kw">model</span> <span class="ty">OrderItem</span> {
+  id        <span class="ty">String</span>         <span class="prop">@id</span> <span class="prop">@default</span>(<span class="fn">cuid</span>())
+  orderId   <span class="ty">String</span>
+  order     <span class="ty">Order</span>          <span class="prop">@relation</span>(fields:[orderId], references:[id])
+  variantId <span class="ty">String</span>
+  variant   <span class="ty">ProductVariant</span> <span class="prop">@relation</span>(fields:[variantId], references:[id])
+  quantity  <span class="ty">Int</span>
+  unitPrice <span class="ty">Decimal</span>        <span class="prop">@db.Decimal</span>(<span class="num">10</span>,<span class="num">2</span>) <span class="cm">// price AT TIME OF PURCHASE</span>
+
+  <span class="prop">@@unique</span>([orderId, variantId])
+}
+
+<span class="kw">model</span> <span class="ty">Review</span> {
+  id        <span class="ty">String</span>   <span class="prop">@id</span> <span class="prop">@default</span>(<span class="fn">cuid</span>())
+  productId <span class="ty">String</span>
+  product   <span class="ty">Product</span>  <span class="prop">@relation</span>(fields:[productId], references:[id])
+  userId    <span class="ty">String</span>
+  rating    <span class="ty">Int</span>      <span class="cm">// 1-5, enforced at app layer</span>
+  comment   <span class="ty">String</span>?
+  verified  <span class="ty">Boolean</span>  <span class="prop">@default</span>(<span class="kw">false</span>) <span class="cm">// verified purchase</span>
+  createdAt <span class="ty">DateTime</span> <span class="prop">@default</span>(<span class="fn">now</span>())
+
+  <span class="prop">@@unique</span>([productId, userId])  <span class="cm">// one review per user per product</span>
+  <span class="prop">@@index</span>([productId, rating])
+}
+
+<span class="kw">model</span> <span class="ty">AuditLog</span> {
+  id        <span class="ty">String</span>   <span class="prop">@id</span> <span class="prop">@default</span>(<span class="fn">cuid</span>())
+  userId    <span class="ty">String</span>
+  action    <span class="ty">String</span>   <span class="cm">// CREATE | UPDATE | DELETE</span>
+  table     <span class="ty">String</span>
+  recordId  <span class="ty">String</span>
+  changes   <span class="ty">Json</span>     <span class="cm">// { field: { before, after } }</span>
+  createdAt <span class="ty">DateTime</span> <span class="prop">@default</span>(<span class="fn">now</span>())
+
+  <span class="prop">@@index</span>([table, recordId])
+  <span class="prop">@@index</span>([userId, createdAt])
+}</pre>
+</section>
+
+<!-- MIGRATIONS -->
+<section class="section" id="migrations">
+  <div class="section-header">
+    <span class="section-badge">04</span>
+    <h2 class="section-title">Migration Strategy</h2>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;margin-bottom:14px">Zero-Downtime Migration Steps</h3>
+  <div class="mig-list">
+    <div class="mig-step"><div class="mig-num">1</div><div class="mig-name">Add nullable column</div><div class="mig-desc">ALTER TABLE ADD COLUMN new_field VARCHAR NULL — safe, no lock</div><div class="mig-risk mr-low">safe</div></div>
+    <div class="mig-step"><div class="mig-num">2</div><div class="mig-name">Deploy code writing to both</div><div class="mig-desc">New code writes to old_field AND new_field simultaneously</div><div class="mig-risk mr-low">safe</div></div>
+    <div class="mig-step"><div class="mig-num">3</div><div class="mig-name">Backfill existing rows</div><div class="mig-desc">UPDATE in batches of 1000 to avoid locking entire table</div><div class="mig-risk mr-med">medium</div></div>
+    <div class="mig-step"><div class="mig-num">4</div><div class="mig-name">Add NOT NULL constraint</div><div class="mig-desc">ALTER TABLE ALTER COLUMN new_field SET NOT NULL — requires backfill complete</div><div class="mig-risk mr-med">medium</div></div>
+    <div class="mig-step"><div class="mig-num">5</div><div class="mig-name">Deploy code reading new column</div><div class="mig-desc">Switch reads from old_field to new_field</div><div class="mig-risk mr-low">safe</div></div>
+    <div class="mig-step"><div class="mig-num">6</div><div class="mig-name">Stop writing old column</div><div class="mig-desc">Remove old_field from INSERT/UPDATE queries</div><div class="mig-risk mr-low">safe</div></div>
+    <div class="mig-step"><div class="mig-num">7</div><div class="mig-name">Drop old column</div><div class="mig-desc">ALTER TABLE DROP COLUMN old_field — only when no code reads it</div><div class="mig-risk mr-high">high — verify</div></div>
+  </div>
+
+  <div class="code-label" style="margin-top:20px">lib/prisma-middleware.ts — automatic soft delete + audit log</div>
+  <pre><span class="kw">import</span> { <span class="ty">PrismaClient</span> } <span class="kw">from</span> <span class="str">'@prisma/client'</span>
+
+<span class="kw">const</span> <span class="var">prisma</span> <span class="op">=</span> <span class="kw">new</span> <span class="ty">PrismaClient</span>()
+
+<span class="cm">// Middleware 1: Auto-filter soft-deleted records</span>
+<span class="var">prisma</span>.<span class="prop">$use</span>(<span class="kw">async</span> (<span class="var">params</span>, <span class="var">next</span>) <span class="op">=&gt;</span> {
+  <span class="kw">const</span> <span class="var">softDeleteModels</span> <span class="op">=</span> [<span class="str">'Product'</span>]
+  <span class="kw">if</span> (<span class="var">softDeleteModels</span>.<span class="fn">includes</span>(<span class="var">params</span>.<span class="prop">model</span> <span class="op">??</span> <span class="str">''</span>)) {
+    <span class="kw">if</span> (<span class="var">params</span>.<span class="prop">action</span> <span class="op">===</span> <span class="str">'findMany'</span> <span class="op">||</span> <span class="var">params</span>.<span class="prop">action</span> <span class="op">===</span> <span class="str">'findFirst'</span>) {
+      <span class="var">params</span>.<span class="prop">args</span>.<span class="prop">where</span> <span class="op">??=</span> {}
+      <span class="var">params</span>.<span class="prop">args</span>.<span class="prop">where</span>.<span class="prop">deletedAt</span> <span class="op">=</span> <span class="kw">null</span> <span class="cm">// auto-exclude deleted</span>
+    }
+    <span class="kw">if</span> (<span class="var">params</span>.<span class="prop">action</span> <span class="op">===</span> <span class="str">'delete'</span>) {
+      <span class="var">params</span>.<span class="prop">action</span> <span class="op">=</span> <span class="str">'update'</span>          <span class="cm">// intercept DELETE</span>
+      <span class="var">params</span>.<span class="prop">args</span>.<span class="prop">data</span> <span class="op">=</span> { deletedAt: <span class="kw">new</span> <span class="fn">Date</span>() } <span class="cm">// set soft delete</span>
+    }
+  }
+  <span class="kw">return</span> <span class="fn">next</span>(<span class="var">params</span>)
+})
+
+<span class="cm">// Middleware 2: Audit log for mutations</span>
+<span class="var">prisma</span>.<span class="prop">$use</span>(<span class="kw">async</span> (<span class="var">params</span>, <span class="var">next</span>) <span class="op">=&gt;</span> {
+  <span class="kw">const</span> <span class="var">auditActions</span> <span class="op">=</span> [<span class="str">'create'</span>, <span class="str">'update'</span>, <span class="str">'delete'</span>]
+  <span class="kw">const</span> <span class="var">auditModels</span>  <span class="op">=</span> [<span class="str">'Product'</span>, <span class="str">'Order'</span>, <span class="str">'Review'</span>]
+  <span class="kw">if</span> (<span class="var">auditModels</span>.<span class="fn">includes</span>(<span class="var">params</span>.<span class="prop">model</span> <span class="op">??</span> <span class="str">''</span>) <span class="op">&amp;&amp;</span>
+      <span class="var">auditActions</span>.<span class="fn">includes</span>(<span class="var">params</span>.<span class="prop">action</span>)) {
+    <span class="kw">const</span> <span class="var">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="fn">next</span>(<span class="var">params</span>)
+    <span class="cm">// Write audit log after successful mutation</span>
+    <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">auditLog</span>.<span class="fn">create</span>({
+      data: {
+        userId:   (<span class="var">params</span>.<span class="prop">args</span>?.<span class="prop">data</span>?.<span class="prop">userId</span> <span class="op">??</span> <span class="str">'system'</span>) <span class="kw">as</span> <span class="ty">string</span>,
+        action:   <span class="var">params</span>.<span class="prop">action</span>.<span class="fn">toUpperCase</span>(),
+        table:    <span class="var">params</span>.<span class="prop">model</span> <span class="op">??</span> <span class="str">'unknown'</span>,
+        recordId: <span class="var">result</span>?.<span class="prop">id</span> <span class="op">??</span> <span class="str">'unknown'</span>,
+        changes:  <span class="var">params</span>.<span class="prop">args</span>.<span class="prop">data</span> <span class="op">??</span> {},
+      }
+    })
+    <span class="kw">return</span> <span class="var">result</span>
+  }
+  <span class="kw">return</span> <span class="fn">next</span>(<span class="var">params</span>)
+})</pre>
+
+  <div class="code-label">Cursor-based pagination for products</div>
+  <pre><span class="kw">export async function</span> <span class="fn">getProducts</span>({
+  cursor, limit = <span class="num">20</span>, categoryId, search
+}: {
+  cursor?: <span class="ty">string</span>
+  limit?: <span class="ty">number</span>
+  categoryId?: <span class="ty">string</span>
+  search?: <span class="ty">string</span>
+}) {
+  <span class="kw">const</span> <span class="var">items</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">product</span>.<span class="fn">findMany</span>({
+    take: <span class="var">limit</span> <span class="op">+</span> <span class="num">1</span>,          <span class="cm">// fetch one extra to detect hasNextPage</span>
+    cursor: <span class="var">cursor</span> ? { id: <span class="var">cursor</span> } : <span class="kw">undefined</span>,
+    skip: <span class="var">cursor</span> ? <span class="num">1</span> : <span class="num">0</span>,    <span class="cm">// skip the cursor itself</span>
+    where: {
+      deletedAt: <span class="kw">null</span>,
+      categoryId,
+      name: <span class="var">search</span> ? { contains: <span class="var">search</span>, mode: <span class="str">'insensitive'</span> } : <span class="kw">undefined</span>
+    },
+    orderBy: { createdAt: <span class="str">'desc'</span> },
+    include: { variants: <span class="kw">true</span>, images: { take: <span class="num">1</span> } }
+  })
+
+  <span class="kw">const</span> <span class="var">hasNextPage</span> <span class="op">=</span> <span class="var">items</span>.<span class="prop">length</span> <span class="op">&gt;</span> <span class="var">limit</span>
+  <span class="kw">const</span> <span class="var">data</span> <span class="op">=</span> <span class="var">hasNextPage</span> ? <span class="var">items</span>.<span class="fn">slice</span>(<span class="num">0</span>, <span class="op">-</span><span class="num">1</span>) : <span class="var">items</span>
+  <span class="kw">const</span> <span class="var">nextCursor</span> <span class="op">=</span> <span class="var">hasNextPage</span> ? <span class="var">data</span>[<span class="var">data</span>.<span class="prop">length</span> <span class="op">-</span> <span class="num">1</span>].<span class="prop">id</span> : <span class="kw">null</span>
+
+  <span class="kw">return</span> { data, nextCursor, hasNextPage }
+}</pre>
+
+  <div class="warn-box">
+    <strong style="color:var(--amber)">⚠ Schema pitfalls to avoid:</strong><br/>
+    Never store price in Float — use Decimal(10,2) to avoid floating point rounding errors on money. Always store prices at time of purchase in OrderItem.unitPrice — if the product price changes, historical orders must show the original price. Never use offset pagination on tables with &gt;100k rows. Always add indexes to foreign keys — Postgres doesn't do this automatically. Use cuid() not uuid() for shorter, URL-safe IDs.
+  </div>
+</section>
+
+<!-- EXERCISES -->
+<div class="ex-divider">
+  <div class="ex-line"></div>
+  <div class="ex-label">⚡ Exercises</div>
+  <div class="ex-line"></div>
+</div>
+
+<section class="section" id="exercises">
+
+  <!-- EX 1 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">1</div>
+      <div class="runner-title">Product Variant Price Calculator</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Given a product's basePrice and a variant's priceModifier, calculate the final price for each SKU. This models how the ProductVariant schema stores price adjustments, not absolute prices.</div>
+      <textarea id="ta1">// Product + Variant price model from ShopCo schema
+const product = {
+  id: 'prod_trailrunner',
+  name: 'TrailRunner Pro X',
+  basePrice: 189.00,
+}
+
+const variants = [
+  { id:'v1', sku:'TRX-BLK-SM', size:'S', colour:'Black',  priceModifier:  0.00, stock:12 },
+  { id:'v2', sku:'TRX-BLK-MD', size:'M', colour:'Black',  priceModifier:  0.00, stock:8  },
+  { id:'v3', sku:'TRX-BLK-LG', size:'L', colour:'Black',  priceModifier:  0.00, stock:3  },
+  { id:'v4', sku:'TRX-RED-SM', size:'S', colour:'Red',    priceModifier: 10.00, stock:5  },
+  { id:'v5', sku:'TRX-RED-MD', size:'M', colour:'Red',    priceModifier: 10.00, stock:0  },
+  { id:'v6', sku:'TRX-GLD-LG', size:'L', colour:'Gold',   priceModifier: 25.00, stock:2  },
+  { id:'v7', sku:'TRX-SLV-XL', size:'XL','colour':'Silver',priceModifier: 20.00, stock:0  },
+]
+
+function getFinalPrice(basePrice, priceModifier) {
+  return Math.round((basePrice + priceModifier) * 100) / 100
+}
+
+function getVariantMatrix(product, variants) {
+  const byColour = {}
+  variants.forEach(v => {
+    if (!byColour[v.colour]) byColour[v.colour] = []
+    byColour[v.colour].push({
+      ...v,
+      finalPrice: getFinalPrice(product.basePrice, v.priceModifier),
+      available: v.stock > 0
+    })
+  })
+  return byColour
+}
+
+console.log(`=== ${product.name} — Variant Matrix ===\n`)
+const matrix = getVariantMatrix(product, variants)
+
+Object.entries(matrix).forEach(([colour, vars]) => {
+  console.log(`${colour}:`)
+  vars.forEach(v => {
+    const status = v.available ? `✓ ${v.stock} in stock` : '✗ out of stock'
+    console.log(`  ${v.size.padEnd(3)} — $${v.finalPrice.toFixed(2)} (${status})`)
+  })
+  console.log()
+})
+
+// Order summary
+console.log('=== Order Calculation ===')
+const cart = [
+  { variantId:'v1', quantity:2 },
+  { variantId:'v4', quantity:1 },
+]
+const lineItems = cart.map(item => {
+  const variant = variants.find(v => v.id === item.variantId)
+  const unitPrice = getFinalPrice(product.basePrice, variant.priceModifier)
+  return { sku:variant.sku, quantity:item.quantity, unitPrice, subtotal:unitPrice * item.quantity }
+})
+const total = lineItems.reduce((s, li) => s + li.subtotal, 0)
+lineItems.forEach(li =>
+  console.log(`  ${li.sku} ×${li.quantity} @ $${li.unitPrice} = $${li.subtotal.toFixed(2)}`)
+)
+console.log(`  Total: $${total.toFixed(2)}`)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">2</div>
+      <div class="runner-title">Soft Delete Manager</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate the Prisma middleware that intercepts delete operations and converts them to soft deletes. Then implement a query that automatically filters out deleted records.</div>
+      <textarea id="ta2">// Simulate Prisma soft-delete middleware
+class SoftDeleteDB {
+  constructor(data) {
+    this.records = data.map(r => ({ ...r, deletedAt: null }))
+    this.auditLog = []
+  }
+
+  // Intercept delete — convert to soft delete
+  delete(id) {
+    const record = this.records.find(r => r.id === id)
+    if (!record) return { error: 'Not found' }
+    if (record.deletedAt) return { error: 'Already deleted' }
+    record.deletedAt = new Date().toISOString()
+    this.auditLog.push({ action:'SOFT_DELETE', id, timestamp:record.deletedAt })
+    console.log(`  → Soft deleted id:${id} at ${record.deletedAt}`)
+    return record
+  }
+
+  // Hard restore (undo soft delete)
+  restore(id) {
+    const record = this.records.find(r => r.id === id)
+    if (!record?.deletedAt) return { error: 'Not soft-deleted' }
+    record.deletedAt = null
+    this.auditLog.push({ action:'RESTORE', id, timestamp:new Date().toISOString() })
+    return record
+  }
+
+  // findMany — auto-filters deleted (like Prisma middleware)
+  findMany({ includeDeleted = false, where = {} } = {}) {
+    return this.records.filter(r => {
+      if (!includeDeleted && r.deletedAt) return false
+      return Object.entries(where).every(([k, v]) => r[k] === v)
+    })
+  }
+
+  // Hard delete — admin only, permanent
+  hardDelete(id) {
+    const idx = this.records.findIndex(r => r.id === id)
+    if (idx === -1) return { error:'Not found' }
+    const [removed] = this.records.splice(idx, 1)
+    this.auditLog.push({ action:'HARD_DELETE', id, timestamp:new Date().toISOString() })
+    return removed
+  }
+}
+
+const db = new SoftDeleteDB([
+  { id:'p1', name:'TrailRunner Pro X', categoryId:'c1' },
+  { id:'p2', name:'SpeedMax Elite',    categoryId:'c1' },
+  { id:'p3', name:'ArcticShell Jacket',categoryId:'c2' },
+])
+
+console.log('Initial products:', db.findMany().length)
+
+console.log('\nDeleting SpeedMax Elite:')
+db.delete('p2')
+
+console.log('\nActive products:', db.findMany().map(p => p.name).join(', '))
+console.log('All products (incl. deleted):', db.findMany({ includeDeleted:true }).map(p => `${p.name}${p.deletedAt?'(deleted)':''}`).join(', '))
+
+console.log('\nRestoring SpeedMax Elite:')
+db.restore('p2')
+console.log('Active products after restore:', db.findMany().map(p => p.name).join(', '))
+
+console.log('\nAudit log:')
+db.auditLog.forEach(e => console.log(`  [${e.action}] id:${e.id}`))
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">3</div>
+      <div class="runner-title">Audit Log Engine</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build the audit log system that tracks field-level changes. Given a before and after snapshot of a record, compute the diff and store it in the AuditLog table format.</div>
+      <textarea id="ta3">// Audit log diff engine
+function computeDiff(before, after) {
+  const changes = {}
+  const allKeys = new Set([...Object.keys(before), ...Object.keys(after)])
+  allKeys.forEach(key => {
+    if (key === 'updatedAt') return // skip noise
+    const oldVal = before[key]
+    const newVal = after[key]
+    if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+      changes[key] = { before: oldVal, after: newVal }
+    }
+  })
+  return changes
+}
+
+class AuditLogger {
+  constructor() { this.logs = [] }
+
+  log({ userId, action, table, recordId, before = {}, after = {} }) {
+    const changes = action === 'CREATE' ? after
+      : action === 'DELETE' ? before
+      : computeDiff(before, after)
+
+    const entry = {
+      id: `log_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
+      userId, action, table, recordId,
+      changes,
+      createdAt: new Date().toISOString()
+    }
+    this.logs.push(entry)
+    return entry
+  }
+
+  getHistory(table, recordId) {
+    return this.logs
+      .filter(l => l.table === table && l.recordId === recordId)
+      .sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt))
+  }
+
+  getUserActivity(userId, limit = 10) {
+    return this.logs
+      .filter(l => l.userId === userId)
+      .slice(-limit)
+  }
+}
+
+const audit = new AuditLogger()
+
+// Scenario: Admin creates, updates, then soft-deletes a product
+const productV1 = { id:'p_abc', name:'TrailRunner', price:159, stock:10, deletedAt:null }
+
+audit.log({ userId:'usr_admin', action:'CREATE', table:'Product', recordId:'p_abc', after:productV1 })
+
+const productV2 = { ...productV1, price:189, stock:8 }
+audit.log({ userId:'usr_admin', action:'UPDATE', table:'Product', recordId:'p_abc', before:productV1, after:productV2 })
+
+const productV3 = { ...productV2, name:'TrailRunner Pro X' }
+audit.log({ userId:'usr_admin2', action:'UPDATE', table:'Product', recordId:'p_abc', before:productV2, after:productV3 })
+
+const productV4 = { ...productV3, deletedAt:'2024-06-01T10:00:00Z' }
+audit.log({ userId:'usr_admin', action:'DELETE', table:'Product', recordId:'p_abc', before:productV3, after:productV4 })
+
+// Print history
+console.log('=== Product p_abc Audit History ===\n')
+audit.getHistory('Product', 'p_abc').forEach(log => {
+  console.log(`[${log.action}] by ${log.userId}`)
+  if (Object.keys(log.changes).length > 0) {
+    Object.entries(log.changes).forEach(([field, change]) => {
+      if (typeof change === 'object' && 'before' in change) {
+        console.log(`  ${field}: ${JSON.stringify(change.before)} → ${JSON.stringify(change.after)}`)
+      }
+    })
+  } else {
+    console.log('  (no field changes)')
+  }
+  console.log()
+})
+
+// Print user activity
+console.log('=== usr_admin Activity ===')
+audit.getUserActivity('usr_admin').forEach(log =>
+  console.log(`  [${log.action}] ${log.table}:${log.recordId}`)
+)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">4</div>
+      <div class="runner-title">Cursor Pagination Engine</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Implement cursor-based pagination over a product list. Compare it to offset pagination and demonstrate why cursor pagination is stable when rows are inserted between pages.</div>
+      <textarea id="ta4">// Generate a product dataset
+function makeProducts(n) {
+  return Array.from({ length:n }, (_, i) => ({
+    id: `p${String(i+1).padStart(3,'0')}`,
+    name: ['TrailRunner','SpeedMax','ArcticShell','HydroTrail','SummitPack'][i%5]+` ${i+1}`,
+    price: 49 + (i * 13),
+    createdAt: new Date(Date.now() - (n-i) * 3600000).toISOString()
+  }))
+}
+
+let products = makeProducts(25)
+
+// Offset pagination (unstable)
+function offsetPage(data, page, limit) {
+  return {
+    items: data.slice((page-1)*limit, page*limit),
+    total: data.length,
+    page,
+    totalPages: Math.ceil(data.length / limit)
+  }
+}
+
+// Cursor pagination (stable)
+function cursorPage(data, cursor, limit) {
+  const sorted = [...data].sort((a,b) => a.id.localeCompare(b.id))
+  const startIdx = cursor ? sorted.findIndex(p => p.id === cursor) + 1 : 0
+  const items = sorted.slice(startIdx, startIdx + limit + 1)
+  const hasNextPage = items.length > limit
+  const data_ = hasNextPage ? items.slice(0,-1) : items
+  return {
+    items: data_,
+    nextCursor: hasNextPage ? data_[data_.length-1].id : null,
+    hasNextPage,
+    count: data_.length
+  }
+}
+
+const LIMIT = 5
+
+console.log('=== Offset Pagination (UNSTABLE) ===')
+console.log('Page 1:', offsetPage(products,1,LIMIT).items.map(p=>p.id).join(', '))
+
+// New product inserted at the top — shifts all offset results!
+products.unshift({ id:'p000', name:'NEW PRODUCT', price:199, createdAt:new Date().toISOString() })
+console.log('→ New product inserted! (p000)')
+console.log('Page 2 now:', offsetPage(products,2,LIMIT).items.map(p=>p.id).join(', '))
+console.log('  ↳ p005 appears AGAIN — offset pagination has a duplicate!')
+
+// Reset
+products = makeProducts(25)
+
+console.log('\n=== Cursor Pagination (STABLE) ===')
+const page1 = cursorPage(products, null, LIMIT)
+console.log('Page 1:', page1.items.map(p=>p.id).join(', '))
+console.log('Next cursor:', page1.nextCursor)
+
+// Insert new product — cursor pagination is unaffected
+products.push({ id:'pNEW', name:'NEW PRODUCT', price:199, createdAt:new Date().toISOString() })
+console.log('→ New product inserted! (pNEW)')
+
+const page2 = cursorPage(products, page1.nextCursor, LIMIT)
+console.log('Page 2:', page2.items.map(p=>p.id).join(', '))
+console.log('  ↳ No duplicates — cursor pages are stable!')
+console.log('Next cursor:', page2.nextCursor)
+console.log('Has more:', page2.hasNextPage)
+
+const page3 = cursorPage(products, page2.nextCursor, LIMIT)
+console.log('\nPage 3:', page3.items.map(p=>p.id).join(', '))
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">5</div>
+      <div class="runner-title">Index Performance Analyser</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate a query planner that shows the difference between full table scans and indexed queries. Identify which ShopCo queries need indexes and estimate performance improvements.</div>
+      <textarea id="ta5">// Query performance analyser — simulate index usage
+class QueryAnalyser {
+  constructor(tableSize) {
+    this.tableSize = tableSize // total rows
+    this.indexes = new Set()
+  }
+
+  addIndex(columns) { this.indexes.add(columns.join(',')) }
+
+  analyse(query) {
+    const { table, where, orderBy, join } = query
+    const issues = []
+    const suggestions = []
+    let rowsScanned = this.tableSize
+    let useIndex = false
+
+    // Check if WHERE columns are indexed
+    const whereColumns = where ? Object.keys(where) : []
+    whereColumns.forEach(col => {
+      const hasIdx = [...this.indexes].some(idx => idx.startsWith(col) || idx.includes(','+col))
+      if (!hasIdx) {
+        issues.push(`No index on "${col}" — full scan on ${this.tableSize.toLocaleString()} rows`)
+        suggestions.push(`CREATE INDEX ON ${table} (${col})`)
+      } else {
+        useIndex = true
+        rowsScanned = Math.ceil(this.tableSize * 0.01) // indexed: ~1% of rows
+      }
+    })
+
+    // Check ORDER BY
+    if (orderBy && !useIndex) {
+      issues.push(`ORDER BY "${orderBy}" without index causes filesort`)
+      suggestions.push(`CREATE INDEX ON ${table} (${whereColumns.join(', ')}, ${orderBy})`)
+    }
+
+    // Check JOIN
+    if (join) {
+      const joinHasIdx = [...this.indexes].some(idx => idx.includes(join.foreignKey))
+      if (!joinHasIdx) {
+        issues.push(`JOIN on "${join.foreignKey}" missing index — nested loop scan`)
+        suggestions.push(`CREATE INDEX ON ${join.table} (${join.foreignKey})`)
+      }
+    }
+
+    const estimatedMs = useIndex
+      ? Math.round(1 + rowsScanned * 0.001)
+      : Math.round(10 + this.tableSize * 0.05)
+
+    return { query:query.name, rowsScanned, useIndex, estimatedMs, issues, suggestions }
+  }
+}
+
+// ShopCo tables with realistic sizes
+const orderAnalyser = new QueryAnalyser(500_000) // 500k orders
+orderAnalyser.addIndex(['userId', 'createdAt']) // composite index
+orderAnalyser.addIndex(['status'])
+
+const productAnalyser = new QueryAnalyser(50_000) // 50k products
+productAnalyser.addIndex(['categoryId'])
+productAnalyser.addIndex(['slug'])
+// Note: NO index on deletedAt yet!
+
+const queries = [
+  {
+    analyser: orderAnalyser,
+    query: { name:"List user's orders", table:'orders', where:{ userId:'usr_123' }, orderBy:'createdAt' }
+  },
+  {
+    analyser: orderAnalyser,
+    query: { name:'Orders by status', table:'orders', where:{ status:'PENDING' } }
+  },
+  {
+    analyser: productAnalyser,
+    query: { name:'Active products by category', table:'products', where:{ categoryId:'cat_footwear', deletedAt:null } }
+  },
+  {
+    analyser: productAnalyser,
+    query: { name:'Product by slug', table:'products', where:{ slug:'trailrunner-pro-x' } }
+  },
+]
+
+console.log('=== ShopCo Query Performance Analysis ===\n')
+queries.forEach(({ analyser, query }) => {
+  const result = analyser.analyse(query)
+  const icon = result.issues.length === 0 ? '✓' : '⚠'
+  console.log(`${icon} ${result.query}`)
+  console.log(`  Scanned: ${result.rowsScanned.toLocaleString()} rows | Est: ${result.estimatedMs}ms | Index: ${result.useIndex}`)
+  result.issues.forEach(i => console.log(`  ✗ ${i}`))
+  result.suggestions.forEach(s => console.log(`  💡 ${s}`))
+  console.log()
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">6</div>
+      <div class="runner-title">Zero-Downtime Migration Planner</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate the expand/contract migration pattern. Given a breaking schema change (rename a column), plan and execute it in safe phases that allow zero-downtime deployment.</div>
+      <textarea id="ta6">// Zero-downtime migration: rename Product.price → Product.basePrice
+// Using the Expand → Backfill → Contract pattern
+
+class MigrationSimulator {
+  constructor(records) {
+    this.db = records.map(r => ({ ...r }))
+    this.codeVersion = 'v1'
+    this.migrationLog = []
+  }
+
+  log(phase, step, detail) {
+    this.migrationLog.push({ phase, step, detail })
+    console.log(`[${phase}] ${step}: ${detail}`)
+  }
+
+  getState() {
+    const sample = this.db[0]
+    return `Fields: ${Object.keys(sample).join(', ')}`
+  }
+
+  // PHASE 1: EXPAND — add new column as nullable
+  expand() {
+    this.log('EXPAND', 'ALTER TABLE', 'ADD COLUMN base_price DECIMAL(10,2) NULL')
+    this.db.forEach(r => { r.basePrice = null }) // new column exists but empty
+    this.log('EXPAND', 'Deploy v2', 'Writes to BOTH price AND basePrice')
+    this.codeVersion = 'v2_dual_write'
+  }
+
+  // Simulate v2 write (dual-write)
+  updateProduct(id, data) {
+    const record = this.db.find(r => r.id === id)
+    if (!record) return
+    if (this.codeVersion === 'v1') {
+      // Old code only writes price
+      Object.assign(record, data)
+    } else if (this.codeVersion.includes('dual_write')) {
+      // New code writes BOTH
+      Object.assign(record, data)
+      if ('price' in data) record.basePrice = data.price
+      if ('basePrice' in data) record.price = data.basePrice
+    }
+  }
+
+  // PHASE 2: BACKFILL — fill basePrice from price for existing rows
+  backfill() {
+    const nullRows = this.db.filter(r => r.basePrice === null)
+    this.log('BACKFILL', 'Batch update', `Copying price → basePrice for ${nullRows.length} rows (in batches of 1000)`)
+    nullRows.forEach(r => { r.basePrice = r.price })
+    this.log('BACKFILL', 'Verify', 'All rows have basePrice: ' + this.db.every(r => r.basePrice !== null))
+  }
+
+  // PHASE 3: CONTRACT — make basePrice required, drop price
+  contract() {
+    this.log('CONTRACT', 'ALTER TABLE', 'ALTER COLUMN base_price SET NOT NULL')
+    this.log('CONTRACT', 'Deploy v3', 'Reads from basePrice only')
+    this.codeVersion = 'v3_new_column'
+    this.log('CONTRACT', 'ALTER TABLE', 'DROP COLUMN price (after confirming no v1/v2 code running)')
+    this.db.forEach(r => { delete r.price })
+  }
+}
+
+// Initial data with old schema
+const sim = new MigrationSimulator([
+  { id:'p1', name:'TrailRunner', price:189.00 },
+  { id:'p2', name:'SpeedMax',    price:229.00 },
+  { id:'p3', name:'ArcticShell', price:349.00 },
+])
+
+console.log('=== Zero-Downtime Migration Simulation ===')
+console.log('Rename: Product.price → Product.basePrice\n')
+
+console.log('--- Initial State ---')
+console.log(sim.getState())
+console.log()
+
+console.log('--- Phase 1: EXPAND ---')
+sim.expand()
+console.log(sim.getState())
+// New product added during dual-write — gets both fields
+sim.updateProduct('p1', { price: 199.00 })
+console.log('Updated p1.price → both price and basePrice updated')
+console.log()
+
+console.log('--- Phase 2: BACKFILL ---')
+sim.backfill()
+console.log(sim.getState())
+console.log()
+
+console.log('--- Phase 3: CONTRACT ---')
+sim.contract()
+console.log(sim.getState())
+
+console.log('\n--- Final Schema ---')
+console.log(JSON.stringify(sim.db[0], null, 2))
+
+console.log('\n--- Migration Risk Summary ---')
+sim.migrationLog.forEach((l,i) => console.log(`  ${i+1}. [${l.phase}] ${l.step}`))
+console.log('\n✓ Zero downtime achieved — no single step required locking the table or breaking running code.')
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Q&A -->
+<section class="section" id="qa">
+  <div class="section-header">
+    <span class="section-badge">05</span>
+    <h2 class="section-title">Interview Q&amp;A</h2>
+  </div>
+
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">1. Why should you never store price as a Float in a database?</div>
+    <div class="ans-text">Floating-point numbers cannot represent most decimal fractions exactly in binary — <code>0.1 + 0.2 = 0.30000000000000004</code> in IEEE 754. For money this causes rounding errors that compound across calculations: a $199.99 item multiplied by tax and discounts can produce $200.001 or $199.998. Always use <code>DECIMAL(10,2)</code> (or <code>NUMERIC</code>) in PostgreSQL — it stores exact decimal values. In JavaScript, use a library like <code>decimal.js</code> for arithmetic rather than native floats. Prisma's <code>Decimal</code> type maps to this correctly.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">2. What is a soft delete and when should you use it?</div>
+    <div class="ans-text">Soft delete sets a <code>deletedAt</code> timestamp instead of removing the row. Use it when: (1) referential integrity matters — orders reference products, deleting the product physically would orphan orders; (2) audit requirements — regulations require keeping data for 7 years; (3) undo capability — users might want to recover deleted items. Don't use it when: data must be physically removed for GDPR "right to be forgotten" (use anonymisation instead of soft delete in that case), or when the table grows so large that filtering <code>WHERE deletedAt IS NULL</code> becomes a bottleneck. Add a partial index to maintain performance.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">3. Why use an explicit junction table (OrderItem) instead of a M:N relation?</div>
+    <div class="ans-text">Prisma's implicit M:N creates a hidden junction table with only the two foreign keys. An explicit <code>OrderItem</code> table lets you add extra fields: <code>quantity</code>, <code>unitPrice</code> (price at time of purchase), <code>discount</code>, <code>notes</code>. These fields can't exist on either the Order or the Product — they belong to the <em>relationship between them</em>. Rule of thumb: use implicit M:N only when the relationship itself has no data. Any time you need to store "how much?" or "when?" on the relationship, use an explicit junction table.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">4. Explain cursor pagination vs offset pagination.</div>
+    <div class="ans-text">Offset (<code>SKIP n TAKE m</code>): simple but unstable and slow on large tables. If a row is inserted before your current page, all offsets shift — you get duplicates or skip items. The DB must count <code>n</code> rows to skip, which is O(n). Cursor pagination: use the last item's stable ID (or composite key) as the cursor. <code>WHERE id &gt; $cursor ORDER BY id LIMIT m</code> — uses the index, O(log n), and is stable because the cursor is a specific position, not a count. Tradeoff: can't jump to page 5 of 100 — only next/previous. For e-commerce product lists and feed-style UIs, cursor pagination is almost always correct.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">5. What is the expand/contract pattern and why is it needed?</div>
+    <div class="ans-text">When you deploy schema changes and application code simultaneously, there's a window where old code and new code run concurrently (during rolling deploy). If your migration renames a column, old code (reading the old column) breaks instantly. The expand/contract pattern avoids this: (1) Expand — add new column alongside old (safe); (2) Backfill — populate new column for existing rows; (3) Contract — remove old column only after all running code uses the new column. Each phase can be deployed independently with zero downtime. Most Prisma migrations are already safe (adding nullable columns), but renames always need this pattern.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">6. How do composite indexes work and what order do columns go in?</div>
+    <div class="ans-text">A composite index on <code>(userId, createdAt)</code> creates a B-tree sorted by userId first, then createdAt within each userId. This index can serve: <code>WHERE userId = ?</code> (leftmost prefix), <code>WHERE userId = ? ORDER BY createdAt</code> (full use), but NOT <code>WHERE createdAt = ?</code> alone (no leftmost prefix). Rule: put the most selective column (highest cardinality) first for equality filters, and the range/sort column last. For ShopCo orders: <code>(userId, createdAt DESC)</code> perfectly serves "get user's orders newest first". The index selector always matches from left to right.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">7. How do you model product variants (size/colour) in a relational database?</div>
+    <div class="ans-text">Three approaches: (1) <strong>Separate columns</strong> (ShopCo's approach): <code>ProductVariant</code> table with <code>size</code> and <code>colour</code> columns, a unique constraint on <code>(productId, size, colour)</code>, and its own <code>stock</code> and <code>sku</code>. Simple and queryable. (2) <strong>JSON column</strong>: <code>attributes JSON</code> — flexible but hard to query/index. (3) <strong>EAV (Entity-Attribute-Value)</strong>: a <code>VariantOption</code> table with <code>(variantId, attributeName, attributeValue)</code> — maximum flexibility, maximum complexity. For ShopCo with known attribute types, separate columns is cleanest and most performant.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">8. Why store unitPrice on OrderItem instead of reading from Product?</div>
+    <div class="ans-text">Prices change over time. If you stored only the productId on OrderItem and read the price from the Product table, a product price change would retroactively change the order total — which is incorrect and potentially illegal. <code>OrderItem.unitPrice</code> is the <strong>price at the time of purchase</strong> — immutable historical fact. This is standard in e-commerce: order receipts must show what was charged, not what the product currently costs. Same principle applies to tax rates, discount amounts, and shipping costs — all should be stored on the order, not computed from current configuration.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">9. What is Prisma middleware and how do you use it for cross-cutting concerns?</div>
+    <div class="ans-text">Prisma middleware intercepts every database operation — like an Express middleware but for Prisma. Use <code>prisma.$use(async (params, next) => {...})</code>. <code>params</code> contains the model, action, and args; <code>next(params)</code> executes the actual query. Common uses: (1) soft delete — intercept <code>delete</code> actions and convert to <code>update</code>; (2) auto-filter deleted — add <code>deletedAt: null</code> to all find queries; (3) audit logging — call <code>next()</code> and then log the result; (4) performance logging — time queries and log slow ones. Important: middleware runs in registration order and stacks, so order matters.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">10. How do you handle database migrations safely in a CI/CD pipeline?</div>
+    <div class="ans-text">Never run <code>prisma migrate deploy</code> automatically on production without checks. Safe pipeline: (1) generate migration in dev with <code>prisma migrate dev</code>, commit the migration file; (2) in CI: run <code>prisma migrate deploy</code> against the preview database (Neon branch); (3) run integration tests against the migrated preview DB; (4) on merge to main: run <code>prisma migrate deploy</code> in a pre-deploy step before the new app version starts; (5) if migration fails, rollback the deploy (but NOT the migration — migrations are additive, not reversible). For risky migrations (large tables, dropping columns), run manually with monitoring and a rollback plan.</div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section class="section" id="checklist">
+  <div class="section-header">
+    <span class="section-badge">06</span>
+    <h2 class="section-title">Night Review Checklist</h2>
+  </div>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain 1:1, 1:N, and M:N relations and when to use an explicit junction table</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why money must use Decimal, not Float</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write the ShopCo ProductVariant schema with the correct @@unique constraint</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand soft deletes and can implement Prisma middleware for them</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know why OrderItem stores unitPrice at time of purchase</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement an audit log with field-level diffs</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand composite indexes and why column order matters</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain cursor vs offset pagination and implement cursor pagination</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the expand/contract pattern for zero-downtime migrations</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed all 6 exercises and can trace the output</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to run Prisma migrations safely in a CI/CD pipeline</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand partial indexes and when to use them (deletedAt IS NULL)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can model self-referential relations (Category tree) in Prisma</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can answer all 10 interview questions confidently</div></div>
+  </div>
+  <div class="tomorrow-box">
+    <h4>🌅 Tomorrow — Day 36: API Layer</h4>
+    <p>Day 36 builds the ShopCo API layer with both REST and tRPC — giving you type-safe end-to-end communication from database to React component with zero codegen. You'll design the REST API for public-facing endpoints (product catalog, orders), set up tRPC for the admin dashboard where full type safety pays off most, and wire everything through Next.js App Router's route handlers. You'll also cover input validation with Zod, error serialization, and API versioning strategy. Prepare by reviewing the data models from today — tomorrow's API layer is built directly on top of them.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-btns">
+    <button class="footer-btn" onclick="navigateTo('day34_auth_roles.html',34)">← Day 34: Auth & Roles</button>
+    <button class="footer-btn primary" onclick="navigateTo('day36_api_layer.html',36)">Day 36: API Layer →</button>
+  </div>
+  <div style="margin-top:16px">
+    <div class="week-prog-label">Week 6 Progress — 3 of 7 days</div>
+    <div class="week-prog-bar"><div class="week-prog-fill" style="width:43%"></div></div>
+  </div>
+  <div style="margin-top:16px;font-size:11px;color:var(--hint)">ShopCo Course · Day 35 of 56 · Data Modeling</div>
+</footer>
+
+<script>
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_arrays_objects.html"},
+  {num:3,file:"day3_functions_async.html"},
+  {num:4,file:"day4_error_handling.html"},
+  {num:5,file:"day5_dom_events.html"},
+  {num:6,file:"day6_es6_modules.html"},
+  {num:7,file:"day7_week1_review.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design_rest.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html"},
+  {num:28,file:"day28_error_monitoring.html"},
+  {num:29,file:"day29_genai_vercel_ai_sdk.html"},
+  {num:30,file:"day30_rag_embeddings.html"},
+  {num:31,file:"day31_ai_agents_tools.html"},
+  {num:32,file:"day32_week5_review.html"},
+  {num:33,file:"day33_project_setup.html"},
+  {num:34,file:"day34_auth_roles.html"},
+  {num:35,file:"day35_data_modeling.html",current:true},
+  {num:36,file:"day36_api_layer.html"},
+  {num:37,file:"day37_realtime_features.html"},
+  {num:38,file:"day38_file_uploads.html"},
+  {num:39,file:"day39_week6_review.html"},
+  {num:40,file:"day40_stripe_payments.html"},
+  {num:41,file:"day41_email_notifications.html"},
+  {num:42,file:"day42_search.html"},
+  {num:43,file:"day43_advanced_rag.html"},
+  {num:44,file:"day44_ai_pipelines.html"},
+  {num:45,file:"day45_analytics.html"},
+  {num:46,file:"day46_week7_review.html"},
+  {num:47,file:"day47_accessibility.html"},
+  {num:48,file:"day48_i18n_l10n.html"},
+  {num:49,file:"day49_advanced_testing.html"},
+  {num:50,file:"day50_devops_cicd.html"},
+  {num:51,file:"day51_portfolio_project_1.html"},
+  {num:52,file:"day52_portfolio_project_2.html"},
+  {num:53,file:"day53_resume_github.html"},
+  {num:54,file:"day54_interview_prep.html"},
+  {num:55,file:"day55_mock_interviews.html"},
+  {num:56,file:"day56_graduation.html"},
+]
+const CURRENT = 35
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_arrays_objects.html",
+  "day3_functions_async.html","day5_dom_events.html","day6_es6_modules.html",
+  "day7_week1_review.html","day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html","day12_context_global_state.html",
+  "day13_week2_review.html","day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html","day18_tailwind_css.html",
+  "day19_week3_review.html","day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html","day24_api_design_rest.html",
+  "day25_week4_review.html","day26_performance.html","day27_testing.html",
+  "day28_error_monitoring.html","day29_genai_vercel_ai_sdk.html",
+  "day30_rag_embeddings.html","day31_ai_agents_tools.html","day32_week5_review.html",
+  "day33_project_setup.html","day34_auth_roles.html","day35_data_modeling.html",
+])
+
+function navigateTo(file, n) {
+  if (AVAILABLE.has(file)) window.location.href = file
+  else showToast('Day ' + n + ' coming soon!')
+}
+function showToast(msg) {
+  const t = document.createElement('div'); t.className='toast'; t.textContent=msg
+  document.body.appendChild(t); setTimeout(()=>t.remove(),3000)
+}
+const dotsEl = document.getElementById('day-dots')
+DAY_PLAN.forEach(d => {
+  const btn = document.createElement('button')
+  btn.className='ddot'+(d.current?' current':AVAILABLE.has(d.file)?' done available':' available')
+  btn.title='Day '+d.num
+  btn.onclick=()=>navigateTo(d.file, d.num)
+  dotsEl.appendChild(btn)
+})
+function runCode(btn) {
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea')
+  const out=wrap.querySelector('.output-box'),logs=[]
+  const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x,null,2):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try {
+    const result=new Function(ta.value)()
+    if(result&&typeof result.then==='function'){
+      out.textContent='Running...'
+      result.then(()=>{out.textContent=logs.length?logs.join('\n'):'(no output)'})
+            .catch(e=>{out.classList.add('err');out.textContent='✗ '+e.message})
+    } else { out.textContent=logs.length?logs.join('\n'):'(no output)' }
+  } catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+const secs=document.querySelectorAll('.section')
+const links=document.querySelectorAll('.nav-links a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

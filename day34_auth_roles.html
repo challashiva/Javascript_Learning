@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Day 34 — Auth & Roles | ShopCo Course</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --accent:#60a5fa;--accent-dim:rgba(96,165,250,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;height:52px}
+.nav-brand{font-weight:700;font-size:14px;color:var(--accent);white-space:nowrap;margin-right:24px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:6px 12px;border-radius:6px;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{color:var(--accent);background:var(--accent-dim)}
+.week-banner{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
+.week-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(96,165,250,0.25)}
+.week-desc{font-size:12px;color:var(--muted)}
+.day-nav{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px}
+.day-nav-title{font-size:14px;font-weight:700;color:var(--text);margin-right:8px}
+.day-dots{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.ddot{width:10px;height:10px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .2s;border:none;padding:0}
+.ddot.done{background:var(--green)}
+.ddot.current{background:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.5)}
+.ddot.available:hover{background:var(--muted);transform:scale(1.2)}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hero{padding:64px 24px 48px;max-width:900px;margin:0 auto;text-align:center}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:20px}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin:0 auto 28px}
+.topic-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:36px}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+.pill.accent{background:var(--accent-dim);border-color:rgba(96,165,250,0.3);color:var(--accent)}
+.stats-row{display:flex;border:1px solid var(--border2);border-radius:12px;overflow:hidden;max-width:500px;margin:0 auto}
+.stat{flex:1;padding:16px 8px;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+.section{padding:48px 24px;max-width:1000px;margin:0 auto}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.section-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(96,165,250,0.2)}
+.section-title{font-size:22px;font-weight:700}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.topic-card:hover{border-color:var(--accent);background:var(--surface2)}
+.topic-card.done{border-color:rgba(74,222,128,0.3);background:var(--green-dim)}
+.topic-icon{font-size:24px;margin-bottom:10px}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.topic-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.progress-label{font-size:14px;font-weight:600}
+.pct{font-size:14px;font-weight:700;color:var(--accent)}
+.prog-bar{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.topic-dots{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tdot{width:28px;height:28px;border-radius:6px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.tdot.done{background:var(--accent-dim);border-color:rgba(96,165,250,0.4);color:var(--accent)}
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.concept-card h3{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.concept-card p{font-size:13px;color:var(--muted);line-height:1.7}
+.concept-card code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:4px;color:var(--teal)}
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7}
+.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#86efac}.num{color:#f9a8d4}.fn{color:#93c5fd}
+.cm{color:#3d3d55;font-style:italic}.var{color:#5eead4}.op{color:#fcd34d}
+.prop{color:#fbbf24}.ty{color:#38bdf8}.tag{color:#fb7185}.attr{color:#fbbf24}
+.compare-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.compare-table th{background:var(--surface3);padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border2)}
+.compare-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--surface2)}
+.tag-g{color:var(--green);font-size:11px;font-weight:600}
+.tag-a{color:var(--amber);font-size:11px;font-weight:600}
+.tag-c{color:var(--coral);font-size:11px;font-weight:600}
+.ex-divider{padding:20px 24px;max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.ex-line{flex:1;height:1px;background:var(--border)}
+.ex-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.runner-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.runner-num{width:24px;height:24px;border-radius:6px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid rgba(96,165,250,0.3)}
+.runner-title{font-size:13px;font-weight:600;flex:1}
+.diff-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.diff-b{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.diff-i{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.diff-a{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.runner-body{padding:16px}
+.runner-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;min-height:130px;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent)}
+.run-btn{margin-top:10px;padding:8px 20px;border-radius:7px;border:none;background:var(--accent);color:#000;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.run-btn:hover{background:#3b82f6;transform:translateY(-1px)}
+.output-box{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);min-height:48px;white-space:pre-wrap;line-height:1.6}
+.output-box.err{color:var(--coral)}
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.qa-item:hover{border-color:var(--border2)}
+.qa-q{padding:16px 20px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.qa-q::after{content:'▸';color:var(--muted);transition:transform .25s;flex-shrink:0}
+.qa-item.open .qa-q::after{transform:rotate(90deg);color:var(--accent)}
+.qa-item.open{border-color:rgba(96,165,250,0.3)}
+.ans-text{display:none;padding:0 20px 16px;font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border)}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:4px;color:var(--teal)}
+.qa-item.open .ans-text{display:block}
+.checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-bottom:20px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s}
+.cl-item:hover{border-color:var(--border2)}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s}
+.cl-box.checked{background:var(--accent);border-color:var(--accent)}
+.cl-box.checked::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.cl-text{font-size:12px;color:var(--text);line-height:1.5}
+.cl-text.checked{color:var(--muted);text-decoration:line-through}
+.tomorrow-box{background:var(--surface);border:1px solid rgba(96,165,250,0.2);border-radius:10px;padding:20px;margin-top:16px}
+.tomorrow-box h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.tomorrow-box p{font-size:13px;color:var(--muted);line-height:1.7}
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:24px;text-align:center}
+.footer-btns{display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.footer-btn{padding:10px 24px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.footer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.footer-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.footer-btn.primary:hover{background:#3b82f6}
+.week-prog-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.week-prog-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;max-width:300px;margin:0 auto}
+.week-prog-fill{height:100%;background:var(--accent);border-radius:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.info-box{background:var(--accent-dim);border:1px solid rgba(96,165,250,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.warn-box{background:var(--amber-dim);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.danger-box{background:var(--coral-dim);border:1px solid rgba(251,113,133,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+/* RBAC Matrix */
+.rbac-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12px}
+.rbac-table th{background:var(--surface3);padding:10px 14px;text-align:center;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border:1px solid var(--border2)}
+.rbac-table th:first-child{text-align:left}
+.rbac-table td{padding:9px 14px;border:1px solid var(--border);text-align:center;font-size:12px}
+.rbac-table td:first-child{text-align:left;font-weight:600;color:var(--text)}
+.rbac-table tr:hover td{background:var(--surface2)}
+.perm-yes{color:var(--green);font-size:14px}
+.perm-no{color:var(--hint);font-size:14px}
+.perm-own{color:var(--amber);font-size:11px;font-weight:600}
+/* Auth flow diagram */
+.auth-flow{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0}
+.auth-step{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface)}
+.auth-step:last-child{border-bottom:none}
+.auth-step:hover{background:var(--surface2)}
+.auth-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0}
+.auth-name{font-size:13px;font-weight:600;min-width:180px}
+.auth-desc{font-size:12px;color:var(--muted);flex:1}
+.auth-layer{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap}
+.al-clerk{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.2)}
+.al-next{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(96,165,250,0.2)}
+.al-db{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,0.2)}
+.al-app{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 34 · Auth & Roles</div>
+  <div class="nav-links">
+    <a href="#topics">Topics</a>
+    <a href="#concepts">Concepts</a>
+    <a href="#rbac">RBAC</a>
+    <a href="#implementation">Implementation</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#qa">Interview</a>
+    <a href="#checklist">Review</a>
+  </div>
+</nav>
+
+<!-- WEEK BANNER -->
+<div class="week-banner">
+  <span class="week-badge">Week 6</span>
+  <span class="week-desc">Full-Stack Project Build — securing every layer of ShopCo</span>
+</div>
+
+<!-- DAY NAV -->
+<div class="day-nav">
+  <span class="day-nav-title">Day 34 — Auth & Roles</span>
+  <div class="day-dots" id="day-dots"></div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="navigateTo('day33_project_setup.html',33)">← Prev</button>
+    <button class="nav-btn" onclick="navigateTo('day35_data_modeling.html',35)">Next →</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Week 6 · Day 34 of 56</div>
+  <h1>Auth &amp; <span>Roles</span></h1>
+  <p class="hero-sub">Build a production-grade multi-role auth system for ShopCo — customers, staff, admins, and super-admins — with org workspaces, custom claims, and enforcement at every layer.</p>
+  <div class="topic-pills">
+    <span class="pill accent">Clerk Orgs</span>
+    <span class="pill accent">RBAC</span>
+    <span class="pill accent">Custom Claims</span>
+    <span class="pill">Middleware</span>
+    <span class="pill">Server Auth</span>
+    <span class="pill">Route Guards</span>
+    <span class="pill">JWT Claims</span>
+    <span class="pill">Permission Matrix</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">8</div><div class="stat-l">Topics</div></div>
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Exercises</div></div>
+    <div class="stat"><div class="stat-n">10</div><div class="stat-l">Q&amp;As</div></div>
+    <div class="stat"><div class="stat-n">6h</div><div class="stat-l">Study</div></div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<section class="section" id="topics">
+  <div class="section-header">
+    <span class="section-badge">01</span>
+    <h2 class="section-title">Today's Topics</h2>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label">Day Progress</span>
+      <span class="pct" id="pct-label">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="topic-dots" id="tdots">
+      <div class="tdot" onclick="markDone(this)" title="Auth Basics">A</div>
+      <div class="tdot" onclick="markDone(this)" title="RBAC">R</div>
+      <div class="tdot" onclick="markDone(this)" title="Clerk Orgs">O</div>
+      <div class="tdot" onclick="markDone(this)" title="Custom Claims">C</div>
+      <div class="tdot" onclick="markDone(this)" title="Middleware">M</div>
+      <div class="tdot" onclick="markDone(this)" title="Server Auth">S</div>
+      <div class="tdot" onclick="markDone(this)" title="Route Guards">G</div>
+      <div class="tdot" onclick="markDone(this)" title="Exercises">X</div>
+    </div>
+  </div>
+  <div class="topics-grid">
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔐</div>
+      <div class="topic-name">AuthN vs AuthZ</div>
+      <div class="topic-sub">Authentication (who are you?) vs Authorization (what can you do?)</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🏛️</div>
+      <div class="topic-name">RBAC</div>
+      <div class="topic-sub">Role-Based Access Control — assigning permissions to roles, not users</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🏢</div>
+      <div class="topic-name">Clerk Organizations</div>
+      <div class="topic-sub">Multi-tenant workspaces — one user, multiple orgs with different roles</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🏷️</div>
+      <div class="topic-name">Custom JWT Claims</div>
+      <div class="topic-sub">Embedding roles and permissions directly into session tokens</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🛡️</div>
+      <div class="topic-name">Next.js Middleware</div>
+      <div class="topic-sub">Edge-level auth guards that run before every request</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">⚙️</div>
+      <div class="topic-name">Server-Side Auth</div>
+      <div class="topic-sub">auth() in Server Components and API routes — never trust the client</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🚦</div>
+      <div class="topic-name">Route Guards</div>
+      <div class="topic-sub">Protecting entire route segments with layout-level auth checks</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔑</div>
+      <div class="topic-name">Permission Matrix</div>
+      <div class="topic-sub">Mapping roles to resources and actions across ShopCo</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPTS -->
+<section class="section" id="concepts">
+  <div class="section-header">
+    <span class="section-badge">02</span>
+    <h2 class="section-title">Core Concepts</h2>
+  </div>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <h3>🔐 AuthN vs AuthZ</h3>
+      <p><strong>Authentication</strong>: verifying identity — "Are you really user@email.com?" Handled by Clerk (passwords, OAuth, magic links, passkeys). <strong>Authorization</strong>: verifying permission — "Can user@email.com delete this product?" Handled by your RBAC system. Both are required. AuthN without AuthZ means any logged-in user can do anything. AuthZ without AuthN means you can't trust who's making the request.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🏛️ RBAC Concepts</h3>
+      <p>Role-Based Access Control assigns permissions to <em>roles</em>, then assigns roles to users. Benefits: adding a new admin is just assigning the <code>admin</code> role — not reconfiguring 50 permission flags. ShopCo roles: <code>customer</code> (default), <code>staff</code> (manage orders), <code>admin</code> (manage products/users), <code>super_admin</code> (full access including billing). Roles are hierarchical — admin has all staff permissions.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🏢 Clerk Organizations</h3>
+      <p>Orgs allow multi-tenant setups: a user can be a <code>customer</code> in one org and <code>admin</code> in another. For ShopCo: the "ShopCo Admin" org holds staff and admin members. Customers don't need orgs — they're just authenticated users. Use <code>auth().orgRole</code> to read the user's role in the current org. Clerk's <code>organizationMemberships</code> list all orgs a user belongs to.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🏷️ Custom JWT Claims</h3>
+      <p>Clerk lets you add custom data to the session JWT via a <strong>JWT template</strong>. Add <code>role</code> and <code>permissions</code> fields — now every API request carries the user's role without a database query. Use Clerk's session customization: <code>{{ user.public_metadata.role }}</code>. Critical: set roles in <code>publicMetadata</code> (readable by client) or <code>privateMetadata</code> (server-only) — never let users set their own role.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🛡️ Middleware Guard</h3>
+      <p>Next.js middleware runs at the edge before every request — perfect for auth. Use Clerk's <code>clerkMiddleware()</code> with <code>createRouteMatcher</code> to protect route patterns. The middleware redirects unauthenticated users to sign-in and can also enforce roles — if a non-admin hits <code>/admin/*</code>, redirect to 403. Runs in ~1ms edge compute, no cold starts.</p>
+    </div>
+    <div class="concept-card">
+      <h3>⚙️ Server-Side Auth</h3>
+      <p>In Server Components and API routes, use Clerk's <code>auth()</code> helper. It returns <code>userId</code>, <code>orgRole</code>, <code>sessionClaims</code> (including your custom fields) server-side, reading from the cookie. <strong>Never trust data from the client request body for auth decisions</strong> — always re-verify server-side. Even if the middleware passed, a Server Action should still call <code>auth()</code> and check permissions.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RBAC -->
+<section class="section" id="rbac">
+  <div class="section-header">
+    <span class="section-badge">03</span>
+    <h2 class="section-title">ShopCo Permission Matrix</h2>
+  </div>
+
+  <table class="rbac-table">
+    <thead>
+      <tr>
+        <th>Resource / Action</th>
+        <th>customer</th>
+        <th>staff</th>
+        <th>admin</th>
+        <th>super_admin</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>View products</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+      <tr><td>Place orders</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+      <tr><td>View own orders</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+      <tr><td>View all orders</td><td class="perm-no">✗</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+      <tr><td>Update order status</td><td class="perm-no">✗</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+      <tr><td>Create products</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+      <tr><td>Edit products</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+      <tr><td>Delete products</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+      <tr><td>Manage users</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+      <tr><td>View analytics</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+      <tr><td>Manage billing</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-yes">✓</td></tr>
+      <tr><td>Assign admin roles</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-yes">✓</td></tr>
+      <tr><td>Delete other users</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-yes">✓</td></tr>
+      <tr><td>Write own review</td><td class="perm-own">own only</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+      <tr><td>Delete any review</td><td class="perm-no">✗</td><td class="perm-no">✗</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box">
+    <strong>🎯 Design principle:</strong> Roles are hierarchical — each role inherits all permissions from roles below it. <code>super_admin ⊃ admin ⊃ staff ⊃ customer</code>. In code, always check the <em>minimum required role</em>: <code>requireRole('staff')</code> passes for staff, admin, and super_admin. Never hardcode "is the user this specific ID" — use roles.
+  </div>
+</section>
+
+<!-- IMPLEMENTATION -->
+<section class="section" id="implementation">
+  <div class="section-header">
+    <span class="section-badge">04</span>
+    <h2 class="section-title">Implementation</h2>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;margin-bottom:14px">Auth Request Lifecycle</h3>
+  <div class="auth-flow">
+    <div class="auth-step"><div class="auth-icon">🌐</div><div class="auth-name">Request arrives</div><div class="auth-desc">User hits any ShopCo route</div><div class="auth-layer al-next">Next.js</div></div>
+    <div class="auth-step"><div class="auth-icon">🛡️</div><div class="auth-name">Middleware runs</div><div class="auth-desc">clerkMiddleware() checks session cookie, redirects if unauthenticated or wrong role</div><div class="auth-layer al-clerk">Clerk Edge</div></div>
+    <div class="auth-step"><div class="auth-icon">📄</div><div class="auth-name">Server Component renders</div><div class="auth-desc">auth() called to get userId + orgRole + custom claims</div><div class="auth-layer al-next">Server</div></div>
+    <div class="auth-step"><div class="auth-icon">🔒</div><div class="auth-name">Permission check</div><div class="auth-desc">hasPermission(role, resource, action) called before data fetch</div><div class="auth-layer al-app">App Logic</div></div>
+    <div class="auth-step"><div class="auth-icon">🗄️</div><div class="auth-name">Database query</div><div class="auth-desc">Prisma query filtered by userId/orgId to prevent data leakage</div><div class="auth-layer al-db">Prisma</div></div>
+    <div class="auth-step"><div class="auth-icon">✅</div><div class="auth-name">Response returned</div><div class="auth-desc">Only data the user is authorised to see</div><div class="auth-layer al-app">Response</div></div>
+  </div>
+
+  <div class="code-label" style="margin-top:24px">middleware.ts — Clerk + RBAC at the edge</div>
+  <pre><span class="kw">import</span> { clerkMiddleware, createRouteMatcher } <span class="kw">from</span> <span class="str">'@clerk/nextjs/server'</span>
+<span class="kw">import</span> { NextResponse } <span class="kw">from</span> <span class="str">'next/server'</span>
+
+<span class="cm">// Define protected route patterns</span>
+<span class="kw">const</span> <span class="var">isPublicRoute</span> <span class="op">=</span> <span class="fn">createRouteMatcher</span>([
+  <span class="str">'/'</span>, <span class="str">'/products(.*)'</span>, <span class="str">'/sign-in(.*)'</span>, <span class="str">'/sign-up(.*)'</span>, <span class="str">'/api/webhooks(.*)'</span>
+])
+<span class="kw">const</span> <span class="var">isAdminRoute</span> <span class="op">=</span> <span class="fn">createRouteMatcher</span>([<span class="str">'/admin(.*)'</span>, <span class="str">'/api/admin(.*)'</span>])
+<span class="kw">const</span> <span class="var">isStaffRoute</span> <span class="op">=</span> <span class="fn">createRouteMatcher</span>([<span class="str">'/dashboard(.*)'</span>, <span class="str">'/api/orders/manage(.*)'</span>])
+
+<span class="kw">export default</span> <span class="fn">clerkMiddleware</span>(<span class="kw">async</span> (<span class="var">auth</span>, <span class="var">req</span>) <span class="op">=&gt;</span> {
+  <span class="kw">const</span> { <span class="var">userId</span>, <span class="var">sessionClaims</span> } <span class="op">=</span> <span class="kw">await</span> <span class="var">auth</span>()
+  <span class="kw">const</span> <span class="var">role</span> <span class="op">=</span> <span class="var">sessionClaims</span>?.<span class="prop">metadata</span>?.<span class="prop">role</span> <span class="kw">as</span> <span class="ty">string</span> <span class="op">|</span> <span class="kw">undefined</span>
+
+  <span class="cm">// Public routes — no auth needed</span>
+  <span class="kw">if</span> (<span class="fn">isPublicRoute</span>(<span class="var">req</span>)) <span class="kw">return</span>
+
+  <span class="cm">// Unauthenticated — redirect to sign-in</span>
+  <span class="kw">if</span> (!<span class="var">userId</span>) {
+    <span class="kw">const</span> <span class="var">signInUrl</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">URL</span>(<span class="str">'/sign-in'</span>, <span class="var">req</span>.<span class="prop">url</span>)
+    <span class="var">signInUrl</span>.<span class="prop">searchParams</span>.<span class="fn">set</span>(<span class="str">'redirect_url'</span>, <span class="var">req</span>.<span class="prop">url</span>)
+    <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">redirect</span>(<span class="var">signInUrl</span>)
+  }
+
+  <span class="cm">// Admin routes — require admin or super_admin</span>
+  <span class="kw">if</span> (<span class="fn">isAdminRoute</span>(<span class="var">req</span>) <span class="op">&amp;&amp;</span> !<span class="fn">hasRole</span>(<span class="var">role</span>, <span class="str">'admin'</span>)) {
+    <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">redirect</span>(<span class="kw">new</span> <span class="fn">URL</span>(<span class="str">'/403'</span>, <span class="var">req</span>.<span class="prop">url</span>))
+  }
+
+  <span class="cm">// Staff routes — require staff or above</span>
+  <span class="kw">if</span> (<span class="fn">isStaffRoute</span>(<span class="var">req</span>) <span class="op">&amp;&amp;</span> !<span class="fn">hasRole</span>(<span class="var">role</span>, <span class="str">'staff'</span>)) {
+    <span class="kw">return</span> <span class="ty">NextResponse</span>.<span class="fn">redirect</span>(<span class="kw">new</span> <span class="fn">URL</span>(<span class="str">'/403'</span>, <span class="var">req</span>.<span class="prop">url</span>))
+  }
+})
+
+<span class="cm">// Hierarchical role check</span>
+<span class="kw">const</span> <span class="var">ROLE_HIERARCHY</span> = [<span class="str">'customer'</span>, <span class="str">'staff'</span>, <span class="str">'admin'</span>, <span class="str">'super_admin'</span>]
+<span class="kw">function</span> <span class="fn">hasRole</span>(<span class="var">userRole</span>: <span class="ty">string</span> <span class="op">|</span> <span class="kw">undefined</span>, <span class="var">required</span>: <span class="ty">string</span>): <span class="ty">boolean</span> {
+  <span class="kw">if</span> (!<span class="var">userRole</span>) <span class="kw">return false</span>
+  <span class="kw">return</span> <span class="var">ROLE_HIERARCHY</span>.<span class="fn">indexOf</span>(<span class="var">userRole</span>) <span class="op">&gt;=</span> <span class="var">ROLE_HIERARCHY</span>.<span class="fn">indexOf</span>(<span class="var">required</span>)
+}
+
+<span class="kw">export const</span> config <span class="op">=</span> {
+  matcher: [<span class="str">'/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)','/(api|trpc)(.*)'</span>]
+}</pre>
+
+  <div class="code-label">lib/auth.ts — reusable server-side auth helpers</div>
+  <pre><span class="kw">import</span> { auth } <span class="kw">from</span> <span class="str">'@clerk/nextjs/server'</span>
+
+<span class="kw">export type</span> <span class="ty">Role</span> <span class="op">=</span> <span class="str">'customer'</span> <span class="op">|</span> <span class="str">'staff'</span> <span class="op">|</span> <span class="str">'admin'</span> <span class="op">|</span> <span class="str">'super_admin'</span>
+<span class="kw">const</span> <span class="var">HIERARCHY</span>: <span class="ty">Role</span>[] <span class="op">=</span> [<span class="str">'customer'</span>, <span class="str">'staff'</span>, <span class="str">'admin'</span>, <span class="str">'super_admin'</span>]
+
+<span class="cm">// Check if userRole meets the minimum required role</span>
+<span class="kw">export function</span> <span class="fn">hasRole</span>(<span class="var">userRole</span>: <span class="ty">Role</span> <span class="op">|</span> <span class="kw">undefined</span>, <span class="var">required</span>: <span class="ty">Role</span>): <span class="ty">boolean</span> {
+  <span class="kw">if</span> (!<span class="var">userRole</span>) <span class="kw">return false</span>
+  <span class="kw">return</span> <span class="var">HIERARCHY</span>.<span class="fn">indexOf</span>(<span class="var">userRole</span>) <span class="op">&gt;=</span> <span class="var">HIERARCHY</span>.<span class="fn">indexOf</span>(<span class="var">required</span>)
+}
+
+<span class="cm">// Get current user + role — throws if unauthenticated</span>
+<span class="kw">export async function</span> <span class="fn">requireAuth</span>() {
+  <span class="kw">const</span> { <span class="var">userId</span>, <span class="var">sessionClaims</span> } <span class="op">=</span> <span class="kw">await</span> <span class="fn">auth</span>()
+  <span class="kw">if</span> (!<span class="var">userId</span>) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'Unauthorized'</span>)
+  <span class="kw">const</span> <span class="var">role</span> <span class="op">=</span> (<span class="var">sessionClaims</span>?.<span class="prop">metadata</span>?.<span class="prop">role</span> <span class="op">??</span> <span class="str">'customer'</span>) <span class="kw">as</span> <span class="ty">Role</span>
+  <span class="kw">return</span> { <span class="var">userId</span>, <span class="var">role</span>, <span class="var">sessionClaims</span> }
+}
+
+<span class="cm">// Get current user + enforce minimum role</span>
+<span class="kw">export async function</span> <span class="fn">requireRole</span>(<span class="var">required</span>: <span class="ty">Role</span>) {
+  <span class="kw">const</span> { <span class="var">userId</span>, <span class="var">role</span> } <span class="op">=</span> <span class="kw">await</span> <span class="fn">requireAuth</span>()
+  <span class="kw">if</span> (!<span class="fn">hasRole</span>(<span class="var">role</span>, <span class="var">required</span>)) {
+    <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`Forbidden: requires ${required}, got ${role}`</span>)
+  }
+  <span class="kw">return</span> { <span class="var">userId</span>, <span class="var">role</span> }
+}
+
+<span class="cm">// Usage in Server Components / API routes:</span>
+<span class="cm">// const { userId, role } = await requireRole('admin')</span>
+<span class="cm">// const { userId } = await requireAuth()</span></pre>
+
+  <div class="code-label">app/admin/products/page.tsx — Server Component with role guard</div>
+  <pre><span class="kw">import</span> { requireRole } <span class="kw">from</span> <span class="str">'@/lib/auth'</span>
+<span class="kw">import</span> { prisma } <span class="kw">from</span> <span class="str">'@/lib/prisma'</span>
+<span class="kw">import</span> { redirect } <span class="kw">from</span> <span class="str">'next/navigation'</span>
+
+<span class="kw">export default async function</span> <span class="fn">AdminProductsPage</span>() {
+  <span class="cm">// Enforce admin role — throws if insufficient</span>
+  <span class="kw">try</span> {
+    <span class="kw">await</span> <span class="fn">requireRole</span>(<span class="str">'admin'</span>)
+  } <span class="kw">catch</span> {
+    <span class="fn">redirect</span>(<span class="str">'/403'</span>)
+  }
+
+  <span class="cm">// Safe to fetch all products now</span>
+  <span class="kw">const</span> <span class="var">products</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">product</span>.<span class="fn">findMany</span>({
+    orderBy: { createdAt: <span class="str">'desc'</span> }
+  })
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;h1&gt;</span>Product Management<span class="tag">&lt;/h1&gt;</span>
+      <span class="cm">{/* Admin UI here */}</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}</pre>
+
+  <div class="code-label">app/api/orders/[id]/status/route.ts — API route with role check</div>
+  <pre><span class="kw">import</span> { requireRole } <span class="kw">from</span> <span class="str">'@/lib/auth'</span>
+<span class="kw">import</span> { prisma } <span class="kw">from</span> <span class="str">'@/lib/prisma'</span>
+<span class="kw">import</span> { z } <span class="kw">from</span> <span class="str">'zod'</span>
+
+<span class="kw">const</span> <span class="ty">UpdateStatusSchema</span> <span class="op">=</span> <span class="var">z</span>.<span class="fn">object</span>({
+  status: <span class="var">z</span>.<span class="fn">enum</span>([<span class="str">'pending'</span>,<span class="str">'processing'</span>,<span class="str">'shipped'</span>,<span class="str">'delivered'</span>,<span class="str">'cancelled'</span>])
+})
+
+<span class="kw">export async function</span> <span class="fn">PATCH</span>(<span class="var">req</span>: <span class="ty">Request</span>, { <span class="var">params</span> }: { params: { id: <span class="ty">string</span> } }) {
+  <span class="kw">try</span> {
+    <span class="cm">// Only staff and above can update order status</span>
+    <span class="kw">await</span> <span class="fn">requireRole</span>(<span class="str">'staff'</span>)
+  } <span class="kw">catch</span> {
+    <span class="kw">return</span> <span class="ty">Response</span>.<span class="fn">json</span>({ error: <span class="str">'Forbidden'</span> }, { status: <span class="num">403</span> })
+  }
+  <span class="kw">const</span> <span class="var">body</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">req</span>.<span class="fn">json</span>()
+  <span class="kw">const</span> { <span class="var">status</span> } <span class="op">=</span> <span class="ty">UpdateStatusSchema</span>.<span class="fn">parse</span>(<span class="var">body</span>)
+  <span class="kw">const</span> <span class="var">order</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">order</span>.<span class="fn">update</span>({
+    where: { id: <span class="var">params</span>.<span class="prop">id</span> },
+    data: { status }
+  })
+  <span class="kw">return</span> <span class="ty">Response</span>.<span class="fn">json</span>(<span class="var">order</span>)
+}</pre>
+
+  <div class="warn-box">
+    <strong style="color:var(--amber)">⚠ Critical security rules:</strong><br/>
+    Never read the user's role from the request body or query string — only from <code>auth()</code> / the session token. Always check roles server-side even if middleware already checked — defence in depth. Filter database queries by <code>userId</code> for resource ownership (e.g. <code>WHERE userId = $currentUser</code>) to prevent IDOR (Insecure Direct Object Reference) attacks. Log all auth failures with Sentry for security monitoring.
+  </div>
+</section>
+
+<!-- EXERCISES -->
+<div class="ex-divider">
+  <div class="ex-line"></div>
+  <div class="ex-label">⚡ Exercises</div>
+  <div class="ex-line"></div>
+</div>
+
+<section class="section" id="exercises">
+
+  <!-- EX 1 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">1</div>
+      <div class="runner-title">Role Hierarchy Checker</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Implement the hierarchical role checking function used in ShopCo middleware. A user with a higher role always satisfies lower role requirements.</div>
+      <textarea id="ta1">const ROLE_HIERARCHY = ['customer', 'staff', 'admin', 'super_admin']
+
+function hasRole(userRole, requiredRole) {
+  const userIdx = ROLE_HIERARCHY.indexOf(userRole)
+  const reqIdx  = ROLE_HIERARCHY.indexOf(requiredRole)
+  if (userIdx === -1) return false // unknown role
+  return userIdx >= reqIdx
+}
+
+function checkAccess(userRole, action, requiredRole) {
+  const allowed = hasRole(userRole, requiredRole)
+  const icon = allowed ? '✓' : '✗'
+  console.log(`${icon} [${userRole}] ${action}: ${allowed ? 'ALLOWED' : 'DENIED'} (requires ${requiredRole})`)
+}
+
+console.log('=== ShopCo Auth Checks ===\n')
+// customer actions
+checkAccess('customer', 'view products',     'customer')
+checkAccess('customer', 'place order',       'customer')
+checkAccess('customer', 'view all orders',   'staff')
+checkAccess('customer', 'create product',    'admin')
+
+console.log()
+// staff actions
+checkAccess('staff', 'view all orders',    'staff')
+checkAccess('staff', 'update order status','staff')
+checkAccess('staff', 'create product',     'admin')
+checkAccess('staff', 'manage billing',     'super_admin')
+
+console.log()
+// admin actions
+checkAccess('admin', 'create product',     'admin')
+checkAccess('admin', 'manage users',       'admin')
+checkAccess('admin', 'manage billing',     'super_admin')
+checkAccess('admin', 'assign admin roles', 'super_admin')
+
+console.log()
+// super_admin
+checkAccess('super_admin', 'manage billing',  'super_admin')
+checkAccess('super_admin', 'delete any user', 'super_admin')
+
+console.log()
+// Edge cases
+checkAccess(undefined,  'anything', 'customer')
+checkAccess('hacker',   'anything', 'customer')
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">2</div>
+      <div class="runner-title">JWT Claims Parser & Validator</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate parsing and validating Clerk's JWT session claims. Extract the user's role from custom metadata and validate the token hasn't expired.</div>
+      <textarea id="ta2">// Simulate Clerk JWT session claims structure
+function parseSessionClaims(token) {
+  // In real Clerk, this is decoded from the JWT automatically
+  // We simulate what sessionClaims contains after auth()
+  const decoded = {
+    sub: token.userId,              // Clerk user ID
+    iat: token.issuedAt,            // issued at (unix timestamp)
+    exp: token.expiresAt,           // expiry (unix timestamp)
+    azp: 'shopco.vercel.app',       // authorized party
+    metadata: token.publicMetadata, // your custom data
+    org_id: token.orgId,
+    org_role: token.orgRole,
+  }
+
+  const now = Math.floor(Date.now() / 1000)
+  const issues = []
+
+  if (!decoded.sub) issues.push('Missing subject (userId)')
+  if (decoded.exp < now) issues.push(`Token expired ${Math.round((now - decoded.exp)/60)}min ago`)
+  if (decoded.exp - decoded.iat > 86400) issues.push('Token lifetime exceeds 24h — security risk')
+  if (!decoded.metadata?.role) issues.push('No role in public metadata — defaulting to customer')
+
+  const role = decoded.metadata?.role ?? 'customer'
+  const validRoles = ['customer', 'staff', 'admin', 'super_admin']
+  if (!validRoles.includes(role)) issues.push(`Unknown role: ${role}`)
+
+  return { decoded, role, issues, valid: issues.filter(i => !i.includes('defaulting')).length === 0 }
+}
+
+const now = Math.floor(Date.now() / 1000)
+
+// Valid admin token
+const adminToken = {
+  userId: 'user_2abc123',
+  issuedAt: now - 300,        // 5 min ago
+  expiresAt: now + 82800,     // 23h from now
+  publicMetadata: { role: 'admin', plan: 'pro' },
+  orgId: 'org_shopco',
+  orgRole: 'org:admin',
+}
+
+// Expired customer token
+const expiredToken = {
+  userId: 'user_customer99',
+  issuedAt: now - 90000,      // 25h ago
+  expiresAt: now - 3600,      // expired 1h ago
+  publicMetadata: {},          // no role set
+  orgId: null, orgRole: null,
+}
+
+// Token with unknown role
+const badRoleToken = {
+  userId: 'user_hacker',
+  issuedAt: now - 100,
+  expiresAt: now + 3600,
+  publicMetadata: { role: 'god_mode' },
+  orgId: null, orgRole: null,
+}
+
+[adminToken, expiredToken, badRoleToken].forEach((t, i) => {
+  const result = parseSessionClaims(t)
+  console.log(`\n=== Token ${i+1}: ${t.userId} ===`)
+  console.log(`Role: ${result.role} | Valid: ${result.valid}`)
+  if (result.issues.length) result.issues.forEach(iss => console.log(`  ⚠ ${iss}`))
+  else console.log('  ✓ All checks passed')
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">3</div>
+      <div class="runner-title">Permission Matrix Engine</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build the ShopCo permission engine that checks resource-action permissions for a given role. Supports ownership checks (e.g. a customer can only edit their own reviews).</div>
+      <textarea id="ta3">// ShopCo Permission Engine
+const PERMISSIONS = {
+  customer: {
+    products:  ['read'],
+    orders:    ['create', 'read:own'],
+    reviews:   ['create:own', 'update:own', 'delete:own'],
+    cart:      ['read', 'update'],
+    profile:   ['read:own', 'update:own'],
+  },
+  staff: {
+    products:  ['read'],
+    orders:    ['read', 'update:status'],
+    reviews:   ['read', 'delete'],
+    customers: ['read'],
+    profile:   ['read:own', 'update:own'],
+  },
+  admin: {
+    products:  ['read', 'create', 'update', 'delete'],
+    orders:    ['read', 'create', 'update', 'delete'],
+    reviews:   ['read', 'create', 'update', 'delete'],
+    customers: ['read', 'update', 'delete'],
+    analytics: ['read'],
+    profile:   ['read:own', 'update:own'],
+  },
+  super_admin: {
+    '*': ['*'],  // wildcard — can do anything
+  }
+}
+
+const HIERARCHY = ['customer', 'staff', 'admin', 'super_admin']
+
+function can(userRole, resource, action, context = {}) {
+  // super_admin can do anything
+  if (userRole === 'super_admin') return { allowed: true, reason: 'super_admin wildcard' }
+
+  // Build effective permissions (inherit from lower roles)
+  const roleIdx = HIERARCHY.indexOf(userRole)
+  if (roleIdx === -1) return { allowed: false, reason: 'Unknown role' }
+
+  const effectivePerms = new Set()
+  for (let i = 0; i <= roleIdx; i++) {
+    const rolePerms = PERMISSIONS[HIERARCHY[i]]?.[resource] || []
+    rolePerms.forEach(p => effectivePerms.add(p))
+  }
+
+  // Check exact action
+  if (effectivePerms.has(action)) return { allowed: true, reason: `${userRole} has ${action} on ${resource}` }
+
+  // Check ownership variant (action:own)
+  const ownAction = `${action}:own`
+  if (effectivePerms.has(ownAction)) {
+    if (context.ownerId && context.userId) {
+      const isOwner = context.ownerId === context.userId
+      return { allowed: isOwner, reason: isOwner ? 'Owner match' : 'Not owner' }
+    }
+    return { allowed: false, reason: 'Ownership context missing' }
+  }
+
+  // Check wildcard
+  if (effectivePerms.has('*')) return { allowed: true, reason: 'Wildcard permission' }
+
+  return { allowed: false, reason: `${userRole} cannot ${action} ${resource}` }
+}
+
+// Test scenarios
+const tests = [
+  // [role, resource, action, context, description]
+  ['customer', 'products',  'read',          {}, 'Customer views products'],
+  ['customer', 'orders',    'create',        {}, 'Customer places order'],
+  ['customer', 'orders',    'read',          {}, 'Customer reads ALL orders'],
+  ['customer', 'reviews',   'delete',        { userId:'u1', ownerId:'u1' }, 'Customer deletes own review'],
+  ['customer', 'reviews',   'delete',        { userId:'u1', ownerId:'u2' }, "Customer deletes other's review"],
+  ['staff',    'orders',    'read',          {}, 'Staff reads all orders'],
+  ['staff',    'products',  'delete',        {}, 'Staff tries to delete product'],
+  ['admin',    'products',  'delete',        {}, 'Admin deletes product'],
+  ['admin',    'analytics', 'read',          {}, 'Admin views analytics'],
+  ['admin',    'customers', 'delete',        {}, 'Admin deletes customer'],
+  ['super_admin','billing', 'manage',        {}, 'Super admin manages billing'],
+]
+
+console.log('=== ShopCo Permission Checks ===\n')
+tests.forEach(([role, resource, action, ctx, desc]) => {
+  const { allowed, reason } = can(role, resource, action, ctx)
+  console.log(`${allowed ? '✓' : '✗'} ${desc}`)
+  if (!allowed) console.log(`  → ${reason}`)
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">4</div>
+      <div class="runner-title">Middleware Route Matcher</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate Clerk's createRouteMatcher and the middleware logic. Given an incoming request URL and user session, decide: allow, redirect to sign-in, or redirect to 403.</div>
+      <textarea id="ta4">// Simulate Next.js middleware auth logic
+const ROUTES = {
+  public:      [/^\/$/, /^\/products/, /^\/sign-in/, /^\/sign-up/, /^\/api\/webhooks/],
+  staffOnly:   [/^\/dashboard/, /^\/api\/orders\/manage/],
+  adminOnly:   [/^\/admin/, /^\/api\/admin/],
+  authRequired:[/^\/account/, /^\/checkout/, /^\/orders/],
+}
+
+function matchesAny(url, patterns) {
+  return patterns.some(p => p.test(url))
+}
+
+function simulateMiddleware(url, session) {
+  const { userId, role } = session || {}
+  const HIERARCHY = ['customer', 'staff', 'admin', 'super_admin']
+
+  function hasRole(required) {
+    if (!role) return false
+    return HIERARCHY.indexOf(role) >= HIERARCHY.indexOf(required)
+  }
+
+  // 1. Public routes — always allow
+  if (matchesAny(url, ROUTES.public)) return { action:'allow', reason:'Public route' }
+
+  // 2. Not authenticated
+  if (!userId) return { action:'redirect', to:`/sign-in?redirect_url=${url}`, reason:'Not authenticated' }
+
+  // 3. Admin-only routes
+  if (matchesAny(url, ROUTES.adminOnly) && !hasRole('admin')) {
+    return { action:'redirect', to:'/403', reason:`Requires admin, has ${role||'none'}` }
+  }
+
+  // 4. Staff-only routes
+  if (matchesAny(url, ROUTES.staffOnly) && !hasRole('staff')) {
+    return { action:'redirect', to:'/403', reason:`Requires staff, has ${role||'none'}` }
+  }
+
+  // 5. Auth required (any logged in user)
+  if (matchesAny(url, ROUTES.authRequired)) {
+    return { action:'allow', reason:`Authenticated ${role}` }
+  }
+
+  return { action:'allow', reason:'Default allow' }
+}
+
+const sessions = {
+  anon:       null,
+  customer:   { userId:'usr_1', role:'customer' },
+  staff:      { userId:'usr_2', role:'staff' },
+  admin:      { userId:'usr_3', role:'admin' },
+  superAdmin: { userId:'usr_4', role:'super_admin' },
+}
+
+const testUrls = [
+  '/',
+  '/products/running-shoes',
+  '/account/profile',
+  '/checkout',
+  '/dashboard/orders',
+  '/admin/products',
+  '/admin/users',
+  '/api/admin/stats',
+  '/api/webhooks/clerk',
+]
+
+console.log('=== Middleware Simulation ===\n')
+testUrls.forEach(url => {
+  console.log(`URL: ${url}`)
+  Object.entries(sessions).forEach(([name, sess]) => {
+    const res = simulateMiddleware(url, sess)
+    const icon = res.action === 'allow' ? '✓' : '→'
+    const dest = res.action === 'redirect' ? ` → ${res.to}` : ''
+    console.log(`  [${name.padEnd(10)}] ${icon} ${res.action}${dest}`)
+  })
+  console.log()
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">5</div>
+      <div class="runner-title">Multi-Tenant Org Workspace</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate Clerk's organization membership system. A user can belong to multiple orgs with different roles in each. Build the logic to get a user's effective role in the current workspace context.</div>
+      <textarea id="ta5">// Multi-tenant org workspace simulation
+const USERS = {
+  alice: {
+    id: 'user_alice',
+    email: 'alice@example.com',
+    globalRole: 'customer',        // default role outside orgs
+    memberships: [
+      { orgId: 'org_shopco_main', role: 'admin',    orgName: 'ShopCo Main' },
+      { orgId: 'org_shopco_eu',   role: 'staff',    orgName: 'ShopCo Europe' },
+      { orgId: 'org_partner_acme',role: 'customer', orgName: 'ACME Corp' },
+    ]
+  },
+  bob: {
+    id: 'user_bob',
+    email: 'bob@example.com',
+    globalRole: 'customer',
+    memberships: [
+      { orgId: 'org_shopco_main', role: 'super_admin', orgName: 'ShopCo Main' },
+    ]
+  },
+  charlie: {
+    id: 'user_charlie',
+    email: 'charlie@example.com',
+    globalRole: 'customer',
+    memberships: []  // no org memberships — pure customer
+  }
+}
+
+// Simulate auth() return value given user + active org context
+function getAuthContext(userId, activeOrgId = null) {
+  const user = Object.values(USERS).find(u => u.id === userId)
+  if (!user) return null
+
+  const membership = activeOrgId
+    ? user.memberships.find(m => m.orgId === activeOrgId)
+    : null
+
+  return {
+    userId: user.id,
+    email: user.email,
+    orgId: activeOrgId,
+    orgName: membership?.orgName || null,
+    orgRole: membership?.role || null,
+    // Effective role: org role if in org context, otherwise global role
+    effectiveRole: membership?.role || user.globalRole,
+    allMemberships: user.memberships,
+  }
+}
+
+// Simulate requireRole for multi-tenant context
+const HIERARCHY = ['customer', 'staff', 'admin', 'super_admin']
+function canDo(authCtx, requiredRole) {
+  const idx = HIERARCHY.indexOf(authCtx.effectiveRole)
+  const req = HIERARCHY.indexOf(requiredRole)
+  return idx >= req
+}
+
+// Test scenarios
+console.log('=== Multi-Tenant Auth Contexts ===\n')
+
+// Alice in ShopCo Main (admin)
+const aliceMain = getAuthContext('user_alice', 'org_shopco_main')
+console.log('Alice @ ShopCo Main:')
+console.log(`  Role: ${aliceMain.effectiveRole}`)
+console.log(`  Can create products: ${canDo(aliceMain, 'admin')}`)
+console.log(`  Can manage billing:  ${canDo(aliceMain, 'super_admin')}`)
+
+// Alice in ShopCo Europe (staff)
+const aliceEU = getAuthContext('user_alice', 'org_shopco_eu')
+console.log('\nAlice @ ShopCo Europe:')
+console.log(`  Role: ${aliceEU.effectiveRole}`)
+console.log(`  Can update orders: ${canDo(aliceEU, 'staff')}`)
+console.log(`  Can create products: ${canDo(aliceEU, 'admin')}`)
+
+// Alice with no org context (global customer)
+const aliceGlobal = getAuthContext('user_alice', null)
+console.log('\nAlice (no org — shopping as customer):')
+console.log(`  Role: ${aliceGlobal.effectiveRole}`)
+console.log(`  Can place order: ${canDo(aliceGlobal, 'customer')}`)
+
+// Bob (super_admin in main org)
+const bobMain = getAuthContext('user_bob', 'org_shopco_main')
+console.log('\nBob @ ShopCo Main:')
+console.log(`  Role: ${bobMain.effectiveRole}`)
+console.log(`  Can manage billing: ${canDo(bobMain, 'super_admin')}`)
+
+// Charlie (no org, pure customer)
+const charlie = getAuthContext('user_charlie', null)
+console.log('\nCharlie (no org):')
+console.log(`  Role: ${charlie.effectiveRole}`)
+console.log(`  Can create products: ${canDo(charlie, 'admin')}`)
+console.log(`  Memberships: ${charlie.allMemberships.length}`)
+
+console.log('\n=== Alice\'s All Org Memberships ===')
+const aliceAll = getAuthContext('user_alice', null)
+aliceAll.allMemberships.forEach(m =>
+  console.log(`  ${m.orgName}: ${m.role}`)
+)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">6</div>
+      <div class="runner-title">Full Auth Pipeline Simulation</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate the complete ShopCo auth pipeline end-to-end: incoming request → middleware check → server component auth → permission check → filtered database query → response. No real auth needed.</div>
+      <textarea id="ta6">// Complete ShopCo auth pipeline simulation
+const HIERARCHY = ['customer','staff','admin','super_admin']
+function hasRole(userRole, required) {
+  return HIERARCHY.indexOf(userRole) >= HIERARCHY.indexOf(required)
+}
+
+// Simulated database
+const DB = {
+  orders: [
+    { id:'ord_1', userId:'usr_customer', total:89, status:'pending' },
+    { id:'ord_2', userId:'usr_customer', total:229, status:'shipped' },
+    { id:'ord_3', userId:'usr_staff',    total:349, status:'pending' },
+    { id:'ord_4', userId:'usr_admin',    total:159, status:'delivered' },
+  ],
+  products: [
+    { id:'p1', name:'TrailRunner Pro X', price:189, stock:12 },
+    { id:'p2', name:'SpeedMax Elite',    price:229, stock:0  },
+  ]
+}
+
+// Simulated Clerk auth() for different users
+const SESSIONS = {
+  usr_customer: { userId:'usr_customer', role:'customer' },
+  usr_staff:    { userId:'usr_staff',    role:'staff' },
+  usr_admin:    { userId:'usr_admin',    role:'admin' },
+  null:         null
+}
+
+// API handler simulator
+async function handleRequest(method, endpoint, userId, body = null) {
+  const session = SESSIONS[userId]
+  const log = [`\n${method} ${endpoint} (user: ${userId || 'anon'})`]
+
+  // LAYER 1: Middleware (edge)
+  if (!session) {
+    log.push('  [Middleware] ✗ No session → 401 Unauthorized')
+    return { status: 401, body: { error: 'Unauthorized' }, log }
+  }
+  log.push(`  [Middleware] ✓ Authenticated as ${session.role}`)
+
+  // LAYER 2: Route-level role check
+  const routeRoles = {
+    'GET /api/orders/all':      'staff',
+    'GET /api/orders/own':      'customer',
+    'PATCH /api/orders/:id':    'staff',
+    'GET /api/admin/products':  'admin',
+    'POST /api/admin/products': 'admin',
+  }
+  const normalizedEndpoint = endpoint.replace(/\/[a-z0-9_]+$/, '/:id')
+  const requiredRole = routeRoles[`${method} ${endpoint}`] || routeRoles[`${method} ${normalizedEndpoint}`] || 'customer'
+  if (!hasRole(session.role, requiredRole)) {
+    log.push(`  [Route Guard] ✗ Requires ${requiredRole}, has ${session.role} → 403`)
+    return { status: 403, body: { error: 'Forbidden' }, log }
+  }
+  log.push(`  [Route Guard] ✓ Role check passed (required: ${requiredRole})`)
+
+  // LAYER 3: Data access with ownership filtering
+  let data
+  if (endpoint === '/api/orders/all') {
+    data = DB.orders  // staff+ sees all
+    log.push(`  [DB Query]  SELECT * FROM orders → ${data.length} rows`)
+  } else if (endpoint === '/api/orders/own') {
+    data = DB.orders.filter(o => o.userId === session.userId)
+    log.push(`  [DB Query]  SELECT * FROM orders WHERE userId='${session.userId}' → ${data.length} rows`)
+  } else if (endpoint === '/api/admin/products') {
+    data = DB.products
+    log.push(`  [DB Query]  SELECT * FROM products → ${data.length} rows`)
+  } else if (method === 'POST' && endpoint === '/api/admin/products') {
+    data = { id:`p${Date.now()}`, ...body }
+    log.push(`  [DB Query]  INSERT INTO products → created ${data.id}`)
+  } else {
+    data = []
+    log.push(`  [DB Query]  Unknown endpoint`)
+  }
+
+  log.push(`  [Response]  200 OK → ${JSON.stringify(data).slice(0,60)}...`)
+  return { status: 200, body: data, log }
+}
+
+// Run the pipeline for multiple scenarios
+async function runTests() {
+  const scenarios = [
+    ['GET',  '/api/orders/all',      'usr_customer'],  // forbidden
+    ['GET',  '/api/orders/own',      'usr_customer'],  // allowed (own only)
+    ['GET',  '/api/orders/all',      'usr_staff'],     // allowed (all orders)
+    ['GET',  '/api/admin/products',  'usr_staff'],     // forbidden
+    ['GET',  '/api/admin/products',  'usr_admin'],     // allowed
+    ['POST', '/api/admin/products',  'usr_admin'],     // allowed
+    ['GET',  '/api/orders/all',      null],            // unauthenticated
+  ]
+
+  for (const [method, endpoint, userId] of scenarios) {
+    const result = await handleRequest(method, endpoint, userId, { name:'Test Product', price:99 })
+    result.log.forEach(l => console.log(l))
+    console.log(`  Status: ${result.status}`)
+  }
+}
+
+runTests()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Q&A -->
+<section class="section" id="qa">
+  <div class="section-header">
+    <span class="section-badge">05</span>
+    <h2 class="section-title">Interview Q&amp;A</h2>
+  </div>
+
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">1. What is the difference between authentication and authorization?</div>
+    <div class="ans-text">Authentication (AuthN) verifies identity: "Are you who you claim to be?" — handled by login flows, OAuth, JWTs. Authorization (AuthZ) verifies permission: "Are you allowed to do this?" — handled by role checks, permission systems. Both are required. A common mistake is only implementing AuthN — any logged-in user can access any resource. In ShopCo: Clerk handles AuthN; our RBAC system handles AuthZ. Every API route must do both: verify the session exists (AuthN) and check the role permits the action (AuthZ).</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">2. What is RBAC and how does it differ from ABAC?</div>
+    <div class="ans-text">RBAC (Role-Based Access Control) assigns permissions to roles and roles to users. Simple, predictable, easy to audit. ABAC (Attribute-Based Access Control) checks arbitrary attributes: user attributes (department, clearance), resource attributes (owner, classification), and environment attributes (time of day, IP). ABAC is more flexible but complex. For ShopCo, RBAC covers 95% of needs. We add lightweight ownership checks ("customer can edit own review") which is a hybrid. Pure ABAC is overkill unless you need very fine-grained controls like "user can only access records from their region during business hours."</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">3. Why use custom JWT claims instead of a database lookup on every request?</div>
+    <div class="ans-text">Database lookups add 10–50ms latency to every request and create a hot path in your DB. JWT claims are decoded from the cookie/header in microseconds with no I/O. For stable attributes (role, plan, org membership) that don't change often, embedding them in the JWT via Clerk's session customization is ideal. Tradeoff: if you change a user's role, the old token is still valid until it expires (up to 24h). Mitigate with: short token lifetimes (1–2h), token invalidation via Clerk's session revocation API, or a fast cache check (Redis, edge KV) for high-security role changes.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">4. What is an IDOR vulnerability and how do you prevent it?</div>
+    <div class="ans-text">IDOR (Insecure Direct Object Reference): a user accesses a resource they shouldn't by guessing or brute-forcing an ID. Example: <code>GET /api/orders/123</code> — if the API returns the order without checking that the requesting user owns order 123, any authenticated user can read any order. Prevention: always filter database queries by ownership — <code>WHERE id = $orderId AND userId = $currentUserId</code>. Even if the middleware checked that the user is authenticated, the data layer must also enforce ownership. This is a top-10 OWASP vulnerability.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">5. Where should you enforce authorization — middleware, Server Component, or database query?</div>
+    <div class="ans-text">All three — defence in depth. <strong>Middleware</strong>: coarse-grained, fast — block entire route segments (e.g. all of /admin) at the edge. <strong>Server Component / API handler</strong>: fine-grained role check for specific actions — call <code>requireRole('admin')</code> before processing. <strong>Database query</strong>: ownership filtering — always include <code>WHERE userId = $currentUser</code> for user-scoped resources. Never rely on only one layer: if a middleware bug allows a customer into /admin, the Server Component check catches it. If a Server Component bug skips the role check, the DB query's ownership filter limits the damage.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">6. How do Clerk Organizations enable multi-tenant auth?</div>
+    <div class="ans-text">Clerk Organizations let one user have different roles in different tenants. A user can be <code>customer</code> in Org A and <code>admin</code> in Org B. The active org is set via <code>setActive({ organization: orgId })</code> — Clerk updates the session to include <code>orgId</code> and <code>orgRole</code>. Your middleware and server-side code read <code>auth().orgRole</code> for the current org context. This is ideal for B2B SaaS where a business subscribes and adds their own team members. For ShopCo: the "ShopCo Staff" org contains employees; customers are just authenticated users without org membership.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">7. How do you handle role changes that need to take effect immediately?</div>
+    <div class="ans-text">JWT-based sessions can be up to 24h old — a user demoted from admin could still have admin claims. Options: (1) <strong>Revoke session</strong>: Clerk's <code>sessions.revokeSession(sessionId)</code> immediately invalidates the token — user is forced to re-authenticate; (2) <strong>Short token lifetime</strong>: set Clerk's session token lifetime to 1h — role changes take effect within 1h; (3) <strong>Database check</strong>: for high-security actions (delete user, billing changes), do a fresh database role lookup to bypass the cached token. In ShopCo, revoke session when promoting/demoting staff or admin roles.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">8. What is the difference between publicMetadata and privateMetadata in Clerk?</div>
+    <div class="ans-text"><code>publicMetadata</code>: set server-side via Clerk Backend API, readable by the client (included in the session token). Use for: role, plan tier, feature flags the frontend needs to know. <code>privateMetadata</code>: set server-side, never sent to the client — server-side only. Use for: internal notes, admin-only flags, fraud scores. <code>unsafeMetadata</code>: set by the client — never trust for security decisions, only use for non-critical UI preferences. Critical rule: <strong>never let users write their own role</strong>. Role assignment must always go through your backend via Clerk's Management API with your secret key, never through the frontend SDK.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">9. How would you implement a "resource ownership" check for ShopCo reviews?</div>
+    <div class="ans-text">Two-layer approach: (1) <strong>API handler</strong>: fetch the review from DB and compare <code>review.userId === currentUserId</code> before allowing update/delete. (2) <strong>Database</strong>: include ownership in the WHERE clause — <code>DELETE FROM reviews WHERE id = $id AND userId = $currentUserId</code> — this way even if the application logic has a bug, the DB won't delete someone else's review. For admins who should bypass ownership: <code>const where = hasRole(role, 'admin') ? { id } : { id, userId }</code>. This pattern — conditional WHERE based on role — keeps your code clean and secure.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">10. How do you audit auth events for compliance?</div>
+    <div class="ans-text">Log every significant auth event: sign-in, sign-out, role change, permission denied, password reset, org membership change. In Next.js: log in middleware for denied requests, in API handlers for successful sensitive operations. Store logs in a separate, append-only system (never delete audit logs) — options: Axiom, Datadog, or a separate Postgres table with no UPDATE/DELETE permissions. Log: timestamp, userId, action, resource, result, IP address, user agent. For compliance (SOC2, GDPR): retain for 90–365 days depending on regulation. Clerk's event webhooks also provide audit events — subscribe and store them.</div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section class="section" id="checklist">
+  <div class="section-header">
+    <span class="section-badge">06</span>
+    <h2 class="section-title">Night Review Checklist</h2>
+  </div>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the difference between AuthN and AuthZ clearly</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the ShopCo role hierarchy: customer → staff → admin → super_admin</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement the hasRole() hierarchy function from memory</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to add custom JWT claims in Clerk via publicMetadata</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write middleware.ts with clerkMiddleware and createRouteMatcher</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can use requireRole() in a Server Component and API route</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand IDOR attacks and how ownership filtering prevents them</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use publicMetadata vs privateMetadata vs unsafeMetadata</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built the permission matrix engine and understand ownership checks</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built the middleware route matcher and traced all user types</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand Clerk Organizations for multi-tenant role management</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the three layers of auth enforcement (middleware, handler, DB)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand how to handle role changes that need immediate effect</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can answer all 10 interview Q&As with confidence</div></div>
+  </div>
+  <div class="tomorrow-box">
+    <h4>🌅 Tomorrow — Day 35: Data Modeling</h4>
+    <p>Day 35 dives into complex Prisma schema design for ShopCo's full-stack project. You'll model multi-level product variants (size/colour combinations), polymorphic relationships (a review can belong to a product or a seller), soft deletes, audit trails, and the migrations strategy for making schema changes without downtime. You'll also explore cursor-based pagination for large datasets, composite indexes, and query optimization with Prisma's query engine. Prepare by thinking about the data relationships in a real e-commerce system — products, variants, orders, line items, addresses, reviews, and how they all connect.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-btns">
+    <button class="footer-btn" onclick="navigateTo('day33_project_setup.html',33)">← Day 33: Project Setup</button>
+    <button class="footer-btn primary" onclick="navigateTo('day35_data_modeling.html',35)">Day 35: Data Modeling →</button>
+  </div>
+  <div style="margin-top:16px">
+    <div class="week-prog-label">Week 6 Progress — 2 of 7 days</div>
+    <div class="week-prog-bar"><div class="week-prog-fill" style="width:28%"></div></div>
+  </div>
+  <div style="margin-top:16px;font-size:11px;color:var(--hint)">ShopCo Course · Day 34 of 56 · Auth & Roles</div>
+</footer>
+
+<script>
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_arrays_objects.html"},
+  {num:3,file:"day3_functions_async.html"},
+  {num:4,file:"day4_error_handling.html"},
+  {num:5,file:"day5_dom_events.html"},
+  {num:6,file:"day6_es6_modules.html"},
+  {num:7,file:"day7_week1_review.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design_rest.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html"},
+  {num:28,file:"day28_error_monitoring.html"},
+  {num:29,file:"day29_genai_vercel_ai_sdk.html"},
+  {num:30,file:"day30_rag_embeddings.html"},
+  {num:31,file:"day31_ai_agents_tools.html"},
+  {num:32,file:"day32_week5_review.html"},
+  {num:33,file:"day33_project_setup.html"},
+  {num:34,file:"day34_auth_roles.html",current:true},
+  {num:35,file:"day35_data_modeling.html"},
+  {num:36,file:"day36_api_layer.html"},
+  {num:37,file:"day37_realtime_features.html"},
+  {num:38,file:"day38_file_uploads.html"},
+  {num:39,file:"day39_week6_review.html"},
+  {num:40,file:"day40_stripe_payments.html"},
+  {num:41,file:"day41_email_notifications.html"},
+  {num:42,file:"day42_search.html"},
+  {num:43,file:"day43_advanced_rag.html"},
+  {num:44,file:"day44_ai_pipelines.html"},
+  {num:45,file:"day45_analytics.html"},
+  {num:46,file:"day46_week7_review.html"},
+  {num:47,file:"day47_accessibility.html"},
+  {num:48,file:"day48_i18n_l10n.html"},
+  {num:49,file:"day49_advanced_testing.html"},
+  {num:50,file:"day50_devops_cicd.html"},
+  {num:51,file:"day51_portfolio_project_1.html"},
+  {num:52,file:"day52_portfolio_project_2.html"},
+  {num:53,file:"day53_resume_github.html"},
+  {num:54,file:"day54_interview_prep.html"},
+  {num:55,file:"day55_mock_interviews.html"},
+  {num:56,file:"day56_graduation.html"},
+]
+const CURRENT = 34
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_arrays_objects.html",
+  "day3_functions_async.html","day5_dom_events.html","day6_es6_modules.html",
+  "day7_week1_review.html","day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html","day12_context_global_state.html",
+  "day13_week2_review.html","day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html","day18_tailwind_css.html",
+  "day19_week3_review.html","day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html","day24_api_design_rest.html",
+  "day25_week4_review.html","day26_performance.html","day27_testing.html",
+  "day28_error_monitoring.html","day29_genai_vercel_ai_sdk.html",
+  "day30_rag_embeddings.html","day31_ai_agents_tools.html","day32_week5_review.html",
+  "day33_project_setup.html","day34_auth_roles.html",
+])
+
+function navigateTo(file, n) {
+  if (AVAILABLE.has(file)) window.location.href = file
+  else showToast('Day ' + n + ' coming soon!')
+}
+function showToast(msg) {
+  const t = document.createElement('div'); t.className='toast'; t.textContent=msg
+  document.body.appendChild(t); setTimeout(()=>t.remove(),3000)
+}
+const dotsEl = document.getElementById('day-dots')
+DAY_PLAN.forEach(d => {
+  const btn = document.createElement('button')
+  btn.className='ddot'+(d.current?' current':AVAILABLE.has(d.file)?' done available':' available')
+  btn.title='Day '+d.num
+  btn.onclick=()=>navigateTo(d.file, d.num)
+  dotsEl.appendChild(btn)
+})
+function runCode(btn) {
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea')
+  const out=wrap.querySelector('.output-box'),logs=[]
+  const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x,null,2):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try {
+    const result=new Function(ta.value)()
+    if(result&&typeof result.then==='function'){
+      out.textContent='Running...'
+      result.then(()=>{out.textContent=logs.length?logs.join('\n'):'(no output)'})
+            .catch(e=>{out.classList.add('err');out.textContent='✗ '+e.message})
+    } else { out.textContent=logs.length?logs.join('\n'):'(no output)' }
+  } catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+const secs=document.querySelectorAll('.section')
+const links=document.querySelectorAll('.nav-links a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>
