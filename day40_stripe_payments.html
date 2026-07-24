@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Day 40 — Stripe Payments | ShopCo Course</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --indigo:#6366f1;--indigo-dim:rgba(99,102,241,0.09);
+  --accent:#6366f1;--accent-dim:rgba(99,102,241,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;height:52px}
+.nav-brand{font-weight:700;font-size:14px;color:var(--accent);white-space:nowrap;margin-right:24px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:6px 12px;border-radius:6px;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{color:var(--accent);background:var(--accent-dim)}
+.week-banner{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
+.week-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(99,102,241,0.25)}
+.week-desc{font-size:12px;color:var(--muted)}
+.day-nav{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px}
+.day-nav-title{font-size:14px;font-weight:700;color:var(--text);margin-right:8px}
+.day-dots{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.ddot{width:10px;height:10px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .2s;border:none;padding:0}
+.ddot.done{background:var(--green)}
+.ddot.current{background:var(--accent);box-shadow:0 0 8px rgba(99,102,241,0.5)}
+.ddot.available:hover{background:var(--muted);transform:scale(1.2)}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hero{padding:64px 24px 48px;max-width:900px;margin:0 auto;text-align:center}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:20px}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin:0 auto 28px}
+.topic-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:36px}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+.pill.accent{background:var(--accent-dim);border-color:rgba(99,102,241,0.3);color:var(--accent)}
+.stats-row{display:flex;border:1px solid var(--border2);border-radius:12px;overflow:hidden;max-width:500px;margin:0 auto}
+.stat{flex:1;padding:16px 8px;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+.section{padding:48px 24px;max-width:1000px;margin:0 auto}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.section-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(99,102,241,0.2)}
+.section-title{font-size:22px;font-weight:700}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.topic-card:hover{border-color:var(--accent);background:var(--surface2)}
+.topic-card.done{border-color:rgba(74,222,128,0.3);background:var(--green-dim)}
+.topic-icon{font-size:24px;margin-bottom:10px}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.topic-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.progress-label{font-size:14px;font-weight:600}
+.pct{font-size:14px;font-weight:700;color:var(--accent)}
+.prog-bar{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.topic-dots{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tdot{width:28px;height:28px;border-radius:6px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.tdot.done{background:var(--accent-dim);border-color:rgba(99,102,241,0.4);color:var(--accent)}
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.concept-card h3{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.concept-card p{font-size:13px;color:var(--muted);line-height:1.7}
+.concept-card code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:4px;color:var(--teal)}
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7}
+.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#86efac}.num{color:#f9a8d4}.fn{color:#93c5fd}
+.cm{color:#3d3d55;font-style:italic}.var{color:#5eead4}.op{color:#fcd34d}
+.prop{color:#fbbf24}.ty{color:#38bdf8}.tag{color:#fb7185}.attr{color:#fbbf24}
+.compare-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.compare-table th{background:var(--surface3);padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border2)}
+.compare-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--surface2)}
+.tag-g{color:var(--green);font-size:11px;font-weight:600}
+.tag-a{color:var(--amber);font-size:11px;font-weight:600}
+.tag-c{color:var(--coral);font-size:11px;font-weight:600}
+.ex-divider{padding:20px 24px;max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.ex-line{flex:1;height:1px;background:var(--border)}
+.ex-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.runner-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.runner-num{width:24px;height:24px;border-radius:6px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid rgba(99,102,241,0.3)}
+.runner-title{font-size:13px;font-weight:600;flex:1}
+.diff-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.diff-b{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.diff-i{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.diff-a{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.runner-body{padding:16px}
+.runner-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;min-height:130px;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent)}
+.run-btn{margin-top:10px;padding:8px 20px;border-radius:7px;border:none;background:var(--accent);color:#000;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.run-btn:hover{background:#4f46e5;transform:translateY(-1px)}
+.output-box{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);min-height:48px;white-space:pre-wrap;line-height:1.6}
+.output-box.err{color:var(--coral)}
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.qa-item:hover{border-color:var(--border2)}
+.qa-q{padding:16px 20px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.qa-q::after{content:'▸';color:var(--muted);transition:transform .25s;flex-shrink:0}
+.qa-item.open .qa-q::after{transform:rotate(90deg);color:var(--accent)}
+.qa-item.open{border-color:rgba(99,102,241,0.3)}
+.ans-text{display:none;padding:0 20px 16px;font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border)}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:4px;color:var(--teal)}
+.qa-item.open .ans-text{display:block}
+.checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-bottom:20px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s}
+.cl-item:hover{border-color:var(--border2)}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s}
+.cl-box.checked{background:var(--accent);border-color:var(--accent)}
+.cl-box.checked::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.cl-text{font-size:12px;color:var(--text);line-height:1.5}
+.cl-text.checked{color:var(--muted);text-decoration:line-through}
+.tomorrow-box{background:var(--surface);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:20px;margin-top:16px}
+.tomorrow-box h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.tomorrow-box p{font-size:13px;color:var(--muted);line-height:1.7}
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:24px;text-align:center}
+.footer-btns{display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.footer-btn{padding:10px 24px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.footer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.footer-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.footer-btn.primary:hover{background:#4f46e5}
+.week-prog-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.week-prog-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;max-width:300px;margin:0 auto}
+.week-prog-fill{height:100%;background:var(--accent);border-radius:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.info-box{background:var(--accent-dim);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.warn-box{background:var(--amber-dim);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+/* Stripe flow diagram */
+.pay-flow{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0}
+.pf-step{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--surface)}
+.pf-step:last-child{border-bottom:none}
+.pf-step:hover{background:var(--surface2)}
+.pf-num{width:22px;height:22px;border-radius:50%;background:var(--accent-dim);color:var(--accent);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(99,102,241,0.3)}
+.pf-name{font-size:13px;font-weight:600;min-width:170px}
+.pf-desc{font-size:12px;color:var(--muted);flex:1}
+/* Webhook event table */
+.webhook-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12px}
+.webhook-table th{background:var(--surface3);padding:9px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border2)}
+.webhook-table td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+.webhook-table tr:last-child td{border-bottom:none}
+.webhook-table tr:hover td{background:var(--surface2)}
+.webhook-event{font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:11px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 40 · Stripe Payments</div>
+  <div class="nav-links">
+    <a href="#topics">Topics</a>
+    <a href="#concepts">Concepts</a>
+    <a href="#checkout">Checkout</a>
+    <a href="#webhooks">Webhooks</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#qa">Interview</a>
+    <a href="#checklist">Review</a>
+  </div>
+</nav>
+
+<!-- WEEK BANNER -->
+<div class="week-banner">
+  <span class="week-badge">Week 7</span>
+  <span class="week-desc">Monetization &amp; AI — giving ShopCo a real business model</span>
+</div>
+
+<!-- DAY NAV -->
+<div class="day-nav">
+  <span class="day-nav-title">Day 40 — Stripe Payments</span>
+  <div class="day-dots" id="day-dots"></div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="navigateTo('day39_week6_review.html',39)">← Prev</button>
+    <button class="nav-btn" onclick="navigateTo('day41_email_notifications.html',41)">Next →</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Week 7 · Day 40 of 56</div>
+  <h1>Stripe <span>Payments</span></h1>
+  <p class="hero-sub">Build ShopCo's complete payment infrastructure — Stripe Checkout for one-time purchases, webhooks for reliable order fulfillment, and subscription billing for a premium membership tier.</p>
+  <div class="topic-pills">
+    <span class="pill accent">Stripe Checkout</span>
+    <span class="pill accent">Webhooks</span>
+    <span class="pill accent">Subscriptions</span>
+    <span class="pill">Payment Intents</span>
+    <span class="pill">Idempotency</span>
+    <span class="pill">Refunds</span>
+    <span class="pill">Customer Portal</span>
+    <span class="pill">Test Mode</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">8</div><div class="stat-l">Topics</div></div>
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Exercises</div></div>
+    <div class="stat"><div class="stat-n">10</div><div class="stat-l">Q&amp;As</div></div>
+    <div class="stat"><div class="stat-n">6h</div><div class="stat-l">Study</div></div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<section class="section" id="topics">
+  <div class="section-header">
+    <span class="section-badge">01</span>
+    <h2 class="section-title">Today's Topics</h2>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label">Day Progress</span>
+      <span class="pct" id="pct-label">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="topic-dots" id="tdots">
+      <div class="tdot" onclick="markDone(this)" title="Checkout">C</div>
+      <div class="tdot" onclick="markDone(this)" title="Payment Intents">P</div>
+      <div class="tdot" onclick="markDone(this)" title="Webhooks">W</div>
+      <div class="tdot" onclick="markDone(this)" title="Idempotency">I</div>
+      <div class="tdot" onclick="markDone(this)" title="Subscriptions">S</div>
+      <div class="tdot" onclick="markDone(this)" title="Refunds">R</div>
+      <div class="tdot" onclick="markDone(this)" title="Customer Portal">O</div>
+      <div class="tdot" onclick="markDone(this)" title="Exercises">X</div>
+    </div>
+  </div>
+  <div class="topics-grid">
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🛒</div>
+      <div class="topic-name">Stripe Checkout</div>
+      <div class="topic-sub">Hosted checkout session for one-time product purchases</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">💳</div>
+      <div class="topic-name">Payment Intents</div>
+      <div class="topic-sub">The core Stripe object tracking a payment through its lifecycle</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🪝</div>
+      <div class="topic-name">Webhooks</div>
+      <div class="topic-sub">Reliable async events — signature verification and event handling</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔁</div>
+      <div class="topic-name">Idempotency</div>
+      <div class="topic-sub">Preventing duplicate charges and double order fulfillment</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📅</div>
+      <div class="topic-name">Subscriptions</div>
+      <div class="topic-sub">ShopCo Premium membership — recurring billing and plan changes</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">↩️</div>
+      <div class="topic-name">Refunds</div>
+      <div class="topic-sub">Full and partial refunds, and syncing order status on refund</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🧾</div>
+      <div class="topic-name">Customer Portal</div>
+      <div class="topic-sub">Self-service billing management — Stripe-hosted portal</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🧪</div>
+      <div class="topic-name">Testing Payments</div>
+      <div class="topic-sub">Stripe test mode, test cards, and the Stripe CLI for local webhooks</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPTS -->
+<section class="section" id="concepts">
+  <div class="section-header">
+    <span class="section-badge">02</span>
+    <h2 class="section-title">Core Concepts</h2>
+  </div>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <h3>🛒 Stripe Checkout Sessions</h3>
+      <p>Checkout is Stripe's hosted, pre-built payment page — handles card input, 3D Secure, Apple/Google Pay, and PCI compliance for you. Create a <code>Checkout Session</code> server-side with line items, then redirect the customer to <code>session.url</code>. After payment, Stripe redirects back to your <code>success_url</code>. Never trust the client-side redirect alone — always confirm the order via webhook, since a customer could close the tab before redirecting back.</p>
+    </div>
+    <div class="concept-card">
+      <h3>💳 Payment Intents</h3>
+      <p>A <code>PaymentIntent</code> tracks a payment through its entire lifecycle: <code>requires_payment_method</code> → <code>requires_confirmation</code> → <code>processing</code> → <code>succeeded</code> (or <code>requires_action</code> for 3D Secure, <code>canceled</code>). Checkout Sessions create a PaymentIntent internally. For custom payment UI (Stripe Elements) you create and confirm PaymentIntents directly. Always handle every status, especially <code>requires_action</code> — many EU cards require 3D Secure authentication.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🪝 Why Webhooks Matter</h3>
+      <p>Never mark an order as paid based only on the client redirecting to your success page — the customer's browser could crash, lose connection, or they could manually navigate away. Webhooks are Stripe's server-to-server notification that a payment actually succeeded, sent reliably (with retries) regardless of what happens in the browser. The <strong>only</strong> trustworthy signal that a payment succeeded is the <code>checkout.session.completed</code> or <code>payment_intent.succeeded</code> webhook event.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🔁 Idempotency Keys</h3>
+      <p>Network failures can cause your client to retry a request that actually succeeded server-side, risking a duplicate charge. Pass an <code>idempotency key</code> (a unique string, e.g. <code>order_${orderId}_attempt_1</code>) to Stripe API calls — if Stripe sees the same key again within 24 hours, it returns the original result instead of creating a new charge. Always generate this key from something stable (your internal order ID), not <code>Date.now()</code>, which changes on every retry.</p>
+    </div>
+    <div class="concept-card">
+      <h3>📅 Subscription Lifecycle</h3>
+      <p>Subscriptions move through statuses: <code>trialing</code> → <code>active</code> → <code>past_due</code> (payment failed, Stripe retries) → <code>canceled</code> or back to <code>active</code>. Use <code>customer.subscription.updated</code> webhooks to sync status to your DB. For plan changes: <code>stripe.subscriptions.update()</code> with proration. For cancellation: prefer <code>cancel_at_period_end: true</code> so the customer keeps access until the period they already paid for ends.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🧾 Stripe Customer Portal</h3>
+      <p>The Customer Portal is a Stripe-hosted page where subscribers manage their own billing: update payment method, view invoices, change plans, cancel subscription. Create a portal session server-side (<code>stripe.billingPortal.sessions.create()</code>) and redirect the customer. This eliminates building your own billing UI — Stripe handles PCI compliance, proration math, and invoice generation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CHECKOUT -->
+<section class="section" id="checkout">
+  <div class="section-header">
+    <span class="section-badge">03</span>
+    <h2 class="section-title">Stripe Checkout Implementation</h2>
+  </div>
+
+  <div class="pay-flow">
+    <div class="pf-step"><div class="pf-num">1</div><div class="pf-name">Customer clicks "Checkout"</div><div class="pf-desc">Client calls POST /api/checkout with cart items</div></div>
+    <div class="pf-step"><div class="pf-num">2</div><div class="pf-name">Server creates Checkout Session</div><div class="pf-desc">stripe.checkout.sessions.create() with line items and metadata (orderId)</div></div>
+    <div class="pf-step"><div class="pf-num">3</div><div class="pf-name">Redirect to Stripe-hosted page</div><div class="pf-desc">Client redirects to session.url — customer enters card details on Stripe's domain</div></div>
+    <div class="pf-step"><div class="pf-num">4</div><div class="pf-name">Stripe processes payment</div><div class="pf-desc">Handles 3D Secure, validates card, charges the customer</div></div>
+    <div class="pf-step"><div class="pf-num">5</div><div class="pf-name">Webhook fires (source of truth)</div><div class="pf-desc">checkout.session.completed → your server marks order as PAID</div></div>
+    <div class="pf-step"><div class="pf-num">6</div><div class="pf-name">Customer redirected to success page</div><div class="pf-desc">UI shows confirmation — but the DB update already happened via webhook</div></div>
+  </div>
+
+  <div class="code-label">app/api/checkout/route.ts — create a Checkout Session</div>
+  <pre><span class="kw">import</span> Stripe <span class="kw">from</span> <span class="str">'stripe'</span>
+<span class="kw">import</span> { <span class="fn">requireAuth</span> } <span class="kw">from</span> <span class="str">'@/lib/auth'</span>
+<span class="kw">import</span> { prisma } <span class="kw">from</span> <span class="str">'@/lib/prisma'</span>
+
+<span class="kw">const</span> <span class="var">stripe</span> <span class="op">=</span> <span class="kw">new</span> <span class="ty">Stripe</span>(<span class="fn">process.env</span>.<span class="prop">STRIPE_SECRET_KEY</span>!)
+
+<span class="kw">export async function</span> <span class="fn">POST</span>(<span class="var">req</span>: <span class="ty">Request</span>) {
+  <span class="kw">const</span> { <span class="var">userId</span> } <span class="op">=</span> <span class="kw">await</span> <span class="fn">requireAuth</span>()
+  <span class="kw">const</span> { <span class="var">items</span>, <span class="var">addressId</span> } <span class="op">=</span> <span class="kw">await</span> <span class="var">req</span>.<span class="fn">json</span>()
+
+  <span class="cm">// 1. Create a PENDING order in our DB first (source of truth for line items)</span>
+  <span class="kw">const</span> <span class="var">order</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">order</span>.<span class="fn">create</span>({
+    data: { userId, addressId, status: <span class="str">'PENDING'</span>, items: { create: <span class="var">items</span> } },
+    include: { items: { include: { variant: { include: { product: <span class="kw">true</span> } } } } }
+  })
+
+  <span class="cm">// 2. Build Stripe line items from OUR order data (never trust client prices)</span>
+  <span class="kw">const</span> <span class="var">lineItems</span> <span class="op">=</span> <span class="var">order</span>.<span class="prop">items</span>.<span class="fn">map</span>(<span class="var">item</span> <span class="op">=&gt;</span> ({
+    price_data: {
+      currency: <span class="str">'usd'</span>,
+      product_data: { name: <span class="var">item</span>.<span class="prop">variant</span>.<span class="prop">product</span>.<span class="prop">name</span>, images: [<span class="var">item</span>.<span class="prop">variant</span>.<span class="prop">product</span>.<span class="prop">imageUrl</span>] },
+      unit_amount: <span class="ty">Math</span>.<span class="fn">round</span>(<span class="ty">Number</span>(<span class="var">item</span>.<span class="prop">unitPrice</span>) <span class="op">*</span> <span class="num">100</span>), <span class="cm">// cents</span>
+    },
+    quantity: <span class="var">item</span>.<span class="prop">quantity</span>,
+  }))
+
+  <span class="cm">// 3. Create Checkout Session with idempotency key</span>
+  <span class="kw">const</span> <span class="var">session</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">stripe</span>.<span class="prop">checkout</span>.<span class="prop">sessions</span>.<span class="fn">create</span>(
+    {
+      mode: <span class="str">'payment'</span>,
+      payment_method_types: [<span class="str">'card'</span>],
+      line_items: <span class="var">lineItems</span>,
+      metadata: { orderId: <span class="var">order</span>.<span class="prop">id</span> },   <span class="cm">// retrieve on webhook</span>
+      success_url: <span class="str">`${process.env.APP_URL}/orders/${order.id}?success=true`</span>,
+      cancel_url:  <span class="str">`${process.env.APP_URL}/checkout?canceled=true`</span>,
+      customer_email: <span class="var">req</span>.<span class="prop">headers</span>.<span class="fn">get</span>(<span class="str">'x-user-email'</span>) <span class="op">??</span> <span class="kw">undefined</span>,
+    },
+    { idempotencyKey: <span class="str">`checkout_${order.id}`</span> }
+  )
+
+  <span class="kw">return</span> <span class="ty">Response</span>.<span class="fn">json</span>({ url: <span class="var">session</span>.<span class="prop">url</span> })
+}</pre>
+</section>
+
+<!-- WEBHOOKS -->
+<section class="section" id="webhooks">
+  <div class="section-header">
+    <span class="section-badge">04</span>
+    <h2 class="section-title">Webhook Handling</h2>
+  </div>
+
+  <table class="webhook-table">
+    <thead><tr><th>Event</th><th>Meaning</th><th>ShopCo Action</th></tr></thead>
+    <tbody>
+      <tr><td><span class="webhook-event">checkout.session.completed</span></td><td>Checkout finished, payment captured</td><td>Mark order PAID, decrement inventory, send confirmation email</td></tr>
+      <tr><td><span class="webhook-event">payment_intent.succeeded</span></td><td>Payment fully processed</td><td>Redundant confirmation — use session.completed as primary</td></tr>
+      <tr><td><span class="webhook-event">payment_intent.payment_failed</span></td><td>Card declined or payment failed</td><td>Mark order FAILED, notify customer to retry</td></tr>
+      <tr><td><span class="webhook-event">charge.refunded</span></td><td>A refund was issued</td><td>Update order status to REFUNDED, restock inventory</td></tr>
+      <tr><td><span class="webhook-event">customer.subscription.created</span></td><td>New subscription started</td><td>Grant premium access, set user.tier = 'premium'</td></tr>
+      <tr><td><span class="webhook-event">customer.subscription.updated</span></td><td>Plan changed or status changed</td><td>Sync subscription status and plan to DB</td></tr>
+      <tr><td><span class="webhook-event">customer.subscription.deleted</span></td><td>Subscription canceled/ended</td><td>Revoke premium access at period end</td></tr>
+      <tr><td><span class="webhook-event">invoice.payment_failed</span></td><td>Recurring payment failed</td><td>Email customer, subscription enters past_due</td></tr>
+    </tbody>
+  </table>
+
+  <div class="code-label">app/api/webhooks/stripe/route.ts — signature verification + event handling</div>
+  <pre><span class="kw">import</span> Stripe <span class="kw">from</span> <span class="str">'stripe'</span>
+<span class="kw">import</span> { prisma } <span class="kw">from</span> <span class="str">'@/lib/prisma'</span>
+<span class="kw">import</span> { <span class="fn">sendOrderConfirmation</span> } <span class="kw">from</span> <span class="str">'@/lib/email'</span>
+
+<span class="kw">const</span> <span class="var">stripe</span> <span class="op">=</span> <span class="kw">new</span> <span class="ty">Stripe</span>(<span class="fn">process.env</span>.<span class="prop">STRIPE_SECRET_KEY</span>!)
+<span class="kw">const</span> <span class="var">webhookSecret</span> <span class="op">=</span> <span class="fn">process.env</span>.<span class="prop">STRIPE_WEBHOOK_SECRET</span>!
+
+<span class="kw">export async function</span> <span class="fn">POST</span>(<span class="var">req</span>: <span class="ty">Request</span>) {
+  <span class="kw">const</span> <span class="var">body</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">req</span>.<span class="fn">text</span>()  <span class="cm">// MUST be raw text, not JSON — signature needs raw bytes</span>
+  <span class="kw">const</span> <span class="var">signature</span> <span class="op">=</span> <span class="var">req</span>.<span class="prop">headers</span>.<span class="fn">get</span>(<span class="str">'stripe-signature'</span>)!
+
+  <span class="kw">let</span> <span class="var">event</span>: <span class="ty">Stripe</span>.<span class="ty">Event</span>
+  <span class="kw">try</span> {
+    <span class="cm">// Verify this webhook actually came from Stripe (not a forged request)</span>
+    <span class="var">event</span> <span class="op">=</span> <span class="var">stripe</span>.<span class="prop">webhooks</span>.<span class="fn">constructEvent</span>(<span class="var">body</span>, <span class="var">signature</span>, <span class="var">webhookSecret</span>)
+  } <span class="kw">catch</span> (<span class="var">err</span>) {
+    console.<span class="fn">error</span>(<span class="str">'Webhook signature verification failed:'</span>, <span class="var">err</span>)
+    <span class="kw">return</span> <span class="kw">new</span> <span class="fn">Response</span>(<span class="str">'Invalid signature'</span>, { status: <span class="num">400</span> })
+  }
+
+  <span class="cm">// Idempotency: have we already processed this event?</span>
+  <span class="kw">const</span> <span class="var">existing</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">processedWebhook</span>.<span class="fn">findUnique</span>({ where: { stripeEventId: <span class="var">event</span>.<span class="prop">id</span> } })
+  <span class="kw">if</span> (<span class="var">existing</span>) <span class="kw">return</span> <span class="ty">Response</span>.<span class="fn">json</span>({ received: <span class="kw">true</span>, duplicate: <span class="kw">true</span> })
+
+  <span class="kw">switch</span> (<span class="var">event</span>.<span class="prop">type</span>) {
+    <span class="kw">case</span> <span class="str">'checkout.session.completed'</span>: {
+      <span class="kw">const</span> <span class="var">session</span> <span class="op">=</span> <span class="var">event</span>.<span class="prop">data</span>.<span class="prop">object</span> <span class="kw">as</span> <span class="ty">Stripe</span>.<span class="ty">Checkout</span>.<span class="ty">Session</span>
+      <span class="kw">const</span> <span class="var">orderId</span> <span class="op">=</span> <span class="var">session</span>.<span class="prop">metadata</span>?.<span class="prop">orderId</span>
+      <span class="kw">if</span> (<span class="var">orderId</span>) {
+        <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">order</span>.<span class="fn">update</span>({
+          where: { id: <span class="var">orderId</span> },
+          data: { status: <span class="str">'PAID'</span>, stripeSessionId: <span class="var">session</span>.<span class="prop">id</span>, paidAt: <span class="kw">new</span> <span class="fn">Date</span>() }
+        })
+        <span class="kw">await</span> <span class="fn">decrementInventory</span>(<span class="var">orderId</span>)
+        <span class="kw">await</span> <span class="fn">sendOrderConfirmation</span>(<span class="var">orderId</span>)
+      }
+      <span class="kw">break</span>
+    }
+    <span class="kw">case</span> <span class="str">'payment_intent.payment_failed'</span>: {
+      <span class="kw">const</span> <span class="var">pi</span> <span class="op">=</span> <span class="var">event</span>.<span class="prop">data</span>.<span class="prop">object</span> <span class="kw">as</span> <span class="ty">Stripe</span>.<span class="ty">PaymentIntent</span>
+      <span class="kw">await</span> <span class="fn">markOrderFailed</span>(<span class="var">pi</span>.<span class="prop">metadata</span>.<span class="prop">orderId</span>)
+      <span class="kw">break</span>
+    }
+    <span class="kw">case</span> <span class="str">'customer.subscription.updated'</span>: {
+      <span class="kw">const</span> <span class="var">sub</span> <span class="op">=</span> <span class="var">event</span>.<span class="prop">data</span>.<span class="prop">object</span> <span class="kw">as</span> <span class="ty">Stripe</span>.<span class="ty">Subscription</span>
+      <span class="kw">await</span> <span class="fn">syncSubscriptionStatus</span>(<span class="var">sub</span>)
+      <span class="kw">break</span>
+    }
+    <span class="kw">case</span> <span class="str">'customer.subscription.deleted'</span>: {
+      <span class="kw">const</span> <span class="var">sub</span> <span class="op">=</span> <span class="var">event</span>.<span class="prop">data</span>.<span class="prop">object</span> <span class="kw">as</span> <span class="ty">Stripe</span>.<span class="ty">Subscription</span>
+      <span class="kw">await</span> <span class="fn">revokePremiumAccess</span>(<span class="var">sub</span>.<span class="prop">customer</span> <span class="kw">as</span> <span class="ty">string</span>)
+      <span class="kw">break</span>
+    }
+  }
+
+  <span class="cm">// Record we processed this event (idempotency)</span>
+  <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">processedWebhook</span>.<span class="fn">create</span>({ data: { stripeEventId: <span class="var">event</span>.<span class="prop">id</span>, type: <span class="var">event</span>.<span class="prop">type</span> } })
+
+  <span class="kw">return</span> <span class="ty">Response</span>.<span class="fn">json</span>({ received: <span class="kw">true</span> })
+}</pre>
+
+  <div class="warn-box">
+    <strong style="color:var(--amber)">⚠ Webhook gotchas:</strong><br/>
+    Always use <code>req.text()</code>, never <code>req.json()</code> for the raw body — signature verification needs the exact bytes Stripe sent. Return <strong>200</strong> quickly even if downstream processing is slow (queue heavy work, don't block the response) — Stripe retries with exponential backoff if it doesn't get a fast 2xx. Test locally with <code>stripe listen --forward-to localhost:3000/api/webhooks/stripe</code>. Always verify the signature — an unauthenticated webhook endpoint lets anyone fake a "payment succeeded" event.
+  </div>
+</section>
+
+<!-- EXERCISES -->
+<div class="ex-divider">
+  <div class="ex-line"></div>
+  <div class="ex-label">⚡ Exercises</div>
+  <div class="ex-line"></div>
+</div>
+
+<section class="section" id="exercises">
+
+  <!-- EX 1 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">1</div>
+      <div class="runner-title">Checkout Line Item Builder</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build the function that converts a ShopCo order into Stripe Checkout line items — always pricing from the server's data, never trusting client-submitted prices.</div>
+      <textarea id="ta1">// Convert order items into Stripe Checkout line items (server-trusted pricing)
+const DB_VARIANTS = {
+  v1: { sku:'TRX-BLK-M', productName:'TrailRunner Pro X', price:189.00, imageUrl:'trx.jpg' },
+  v2: { sku:'SX-WHT-L',  productName:'SpeedMax Elite',    price:229.00, imageUrl:'sx.jpg' },
+  v3: { sku:'AC-BLK-XL', productName:'ArcticShell Jacket',price:349.00, imageUrl:'ac.jpg' },
+}
+
+function buildLineItems(cartItems) {
+  const errors = []
+  const lineItems = []
+
+  cartItems.forEach(item => {
+    const variant = DB_VARIANTS[item.variantId]
+    if (!variant) { errors.push(`Unknown variant: ${item.variantId}`); return }
+    if (item.quantity < 1 || item.quantity > 10) { errors.push(`Invalid quantity for ${variant.sku}: ${item.quantity}`); return }
+
+    // NEVER use item.price from the client — always look up server-side price
+    lineItems.push({
+      price_data: {
+        currency: 'usd',
+        product_data: { name: variant.productName, images: [variant.imageUrl] },
+        unit_amount: Math.round(variant.price * 100), // Stripe uses cents
+      },
+      quantity: item.quantity,
+    })
+  })
+
+  return { lineItems, errors, valid: errors.length === 0 }
+}
+
+function calculateOrderTotal(lineItems) {
+  return lineItems.reduce((sum, li) => sum + (li.price_data.unit_amount * li.quantity), 0) / 100
+}
+
+// Test: legitimate cart
+console.log('=== Legitimate Cart ===')
+const cart1 = [
+  { variantId:'v1', quantity:2 },
+  { variantId:'v3', quantity:1 },
+]
+const result1 = buildLineItems(cart1)
+console.log(`Valid: ${result1.valid}`)
+result1.lineItems.forEach(li => console.log(`  ${li.price_data.product_data.name} × ${li.quantity} @ $${(li.price_data.unit_amount/100).toFixed(2)}`))
+console.log(`Total: $${calculateOrderTotal(result1.lineItems).toFixed(2)}`)
+
+// Test: attacker tries to send a fake low price (should be ignored — we don't use item.price)
+console.log('\n=== Attempted Price Manipulation (ignored) ===')
+const cart2 = [
+  { variantId:'v2', quantity:1, price:0.01 }, // attacker-submitted fake price
+]
+const result2 = buildLineItems(cart2)
+console.log(`Server-calculated price: $${(result2.lineItems[0].price_data.unit_amount/100).toFixed(2)} (attacker tried $0.01)`)
+
+// Test: invalid variant
+console.log('\n=== Invalid Variant ===')
+const cart3 = [{ variantId:'v99', quantity:1 }]
+const result3 = buildLineItems(cart3)
+console.log(`Valid: ${result3.valid}`)
+result3.errors.forEach(e => console.log(`  ✗ ${e}`))
+
+// Test: quantity out of range
+console.log('\n=== Invalid Quantity ===')
+const cart4 = [{ variantId:'v1', quantity:50 }]
+const result4 = buildLineItems(cart4)
+console.log(`Valid: ${result4.valid}`)
+result4.errors.forEach(e => console.log(`  ✗ ${e}`))
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">2</div>
+      <div class="runner-title">Webhook Signature Verifier</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate Stripe's webhook signature verification using HMAC — reject forged webhook requests that don't have a valid signature from your webhook secret.</div>
+      <textarea id="ta2">// Simulated webhook signature verification (Stripe uses HMAC-SHA256)
+function simpleHmac(secret, message) {
+  // Simplified hash simulation (real Stripe uses crypto.createHmac('sha256',...))
+  let hash = 0
+  const combined = secret + message
+  for (let i = 0; i < combined.length; i++) {
+    hash = ((hash << 5) - hash + combined.charCodeAt(i)) | 0
+  }
+  return Math.abs(hash).toString(16).padStart(16, '0')
+}
+
+function constructWebhookEvent(payload, signatureHeader, webhookSecret, toleranceSec = 300) {
+  // Signature header format: "t=1699999999,v1=abc123..."
+  const parts = Object.fromEntries(
+    signatureHeader.split(',').map(p => p.split('='))
+  )
+  const timestamp = parseInt(parts.t)
+  const providedSig = parts.v1
+
+  // 1. Check timestamp tolerance (prevent replay attacks)
+  const age = Date.now()/1000 - timestamp
+  if (age > toleranceSec) {
+    throw new Error(`Timestamp too old: ${Math.round(age)}s (max ${toleranceSec}s) — possible replay attack`)
+  }
+
+  // 2. Recompute expected signature
+  const signedPayload = `${timestamp}.${payload}`
+  const expectedSig = simpleHmac(webhookSecret, signedPayload)
+
+  // 3. Compare signatures (constant-time in real Stripe SDK)
+  if (expectedSig !== providedSig) {
+    throw new Error('Signature mismatch — payload may have been tampered with or wrong secret used')
+  }
+
+  return JSON.parse(payload)
+}
+
+function generateSignature(payload, secret, timestamp = Math.floor(Date.now()/1000)) {
+  const signedPayload = `${timestamp}.${payload}`
+  const sig = simpleHmac(secret, signedPayload)
+  return `t=${timestamp},v1=${sig}`
+}
+
+const WEBHOOK_SECRET = 'whsec_test_abc123xyz'
+const payload = JSON.stringify({
+  id: 'evt_1', type: 'checkout.session.completed',
+  data: { object: { id: 'cs_test_1', metadata: { orderId: 'ord_1' } } }
+})
+
+console.log('=== Webhook Signature Verification ===\n')
+
+// 1. Valid request from real Stripe
+const validSig = generateSignature(payload, WEBHOOK_SECRET)
+try {
+  const event = constructWebhookEvent(payload, validSig, WEBHOOK_SECRET)
+  console.log('✓ Valid webhook accepted:', event.type)
+} catch (e) { console.log('✗', e.message) }
+
+// 2. Forged request — attacker doesn't know the secret
+const forgedSig = generateSignature(payload, 'wrong_secret_guess')
+try {
+  constructWebhookEvent(payload, forgedSig, WEBHOOK_SECRET)
+  console.log('✓ Forged webhook accepted (BAD!)')
+} catch (e) { console.log('✓ Forged webhook correctly rejected:', e.message) }
+
+// 3. Tampered payload — signature was valid for original payload, not modified one
+const tamperedPayload = payload.replace('ord_1', 'ord_999')
+try {
+  constructWebhookEvent(tamperedPayload, validSig, WEBHOOK_SECRET)
+  console.log('✓ Tampered payload accepted (BAD!)')
+} catch (e) { console.log('✓ Tampered payload correctly rejected:', e.message) }
+
+// 4. Replay attack — old timestamp
+const oldSig = generateSignature(payload, WEBHOOK_SECRET, Math.floor(Date.now()/1000) - 600)
+try {
+  constructWebhookEvent(payload, oldSig, WEBHOOK_SECRET)
+  console.log('✓ Old (replayed) webhook accepted (BAD!)')
+} catch (e) { console.log('✓ Replay attack correctly rejected:', e.message) }
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">3</div>
+      <div class="runner-title">Idempotent Order Fulfillment</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build an idempotent webhook processor that safely handles Stripe's at-least-once delivery guarantee — the same event might arrive multiple times, but fulfillment must only happen once.</div>
+      <textarea id="ta3">// Idempotent webhook event processor
+class WebhookProcessor {
+  constructor() {
+    this.processedEvents = new Set()  // stripeEventId -> processed
+    this.orders = { ord_1:{ id:'ord_1', status:'PENDING', inventory:{ v1:5 } } }
+    this.log = []
+  }
+
+  async processEvent(event) {
+    // Idempotency check: have we seen this exact Stripe event before?
+    if (this.processedEvents.has(event.id)) {
+      this.log.push(`SKIP: Event ${event.id} already processed (duplicate delivery)`)
+      return { status:'skipped', reason:'duplicate' }
+    }
+
+    switch (event.type) {
+      case 'checkout.session.completed':
+        return await this.fulfillOrder(event)
+      default:
+        this.log.push(`IGNORE: Unhandled event type ${event.type}`)
+        return { status:'ignored' }
+    }
+  }
+
+  async fulfillOrder(event) {
+    const orderId = event.data.object.metadata.orderId
+    const order = this.orders[orderId]
+
+    if (!order) {
+      this.log.push(`ERROR: Order ${orderId} not found`)
+      return { status:'error', reason:'order_not_found' }
+    }
+
+    // Business-level idempotency: even if event ID tracking failed, don't double-fulfill
+    if (order.status === 'PAID') {
+      this.log.push(`SKIP: Order ${orderId} already marked PAID (business-level idempotency)`)
+      this.processedEvents.add(event.id)
+      return { status:'skipped', reason:'already_fulfilled' }
+    }
+
+    // Fulfill: update status, decrement inventory, "send" confirmation
+    order.status = 'PAID'
+    order.inventory.v1 -= 1
+    this.processedEvents.add(event.id)
+    this.log.push(`FULFILLED: Order ${orderId} → PAID, inventory decremented, confirmation email queued`)
+
+    return { status:'fulfilled', orderId }
+  }
+}
+
+async function runTests() {
+  const processor = new WebhookProcessor()
+
+  console.log('=== Idempotent Webhook Processing ===\n')
+
+  const event1 = { id:'evt_1', type:'checkout.session.completed', data:{ object:{ metadata:{ orderId:'ord_1' } } } }
+
+  // First delivery — should fulfill
+  console.log('1st delivery of evt_1:')
+  const r1 = await processor.processEvent(event1)
+  console.log(`  Result: ${r1.status}`)
+
+  // Stripe retries (network hiccup on our 200 response) — same event ID
+  console.log('\n2nd delivery of evt_1 (Stripe retry due to timeout):')
+  const r2 = await processor.processEvent(event1)
+  console.log(`  Result: ${r2.status} (${r2.reason})`)
+
+  // 3rd retry, still same event
+  console.log('\n3rd delivery of evt_1:')
+  const r3 = await processor.processEvent(event1)
+  console.log(`  Result: ${r3.status} (${r3.reason})`)
+
+  // Different event, same order (e.g., payment_intent.succeeded firing after checkout.session.completed)
+  console.log('\nDifferent event ID, same order (business-level check catches it):')
+  const event2 = { id:'evt_2', type:'checkout.session.completed', data:{ object:{ metadata:{ orderId:'ord_1' } } } }
+  const r4 = await processor.processEvent(event2)
+  console.log(`  Result: ${r4.status} (${r4.reason})`)
+
+  console.log('\n=== Final State ===')
+  console.log(`Order status: ${processor.orders.ord_1.status}`)
+  console.log(`Inventory (v1): ${processor.orders.ord_1.inventory.v1} (should be 4, decremented exactly ONCE)`)
+  console.log(`Processed event IDs: ${processor.processedEvents.size}`)
+
+  console.log('\n=== Log ===')
+  processor.log.forEach(l => console.log('  ' + l))
+}
+runTests()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">4</div>
+      <div class="runner-title">Subscription Status State Machine</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Model the ShopCo Premium subscription lifecycle as a state machine — handling trials, active periods, failed payments, and cancellation — synced from Stripe subscription webhook events.</div>
+      <textarea id="ta4">// Subscription lifecycle state machine
+const VALID_TRANSITIONS = {
+  trialing:  ['active', 'canceled'],
+  active:    ['past_due', 'canceled'],
+  past_due:  ['active', 'canceled', 'unpaid'],
+  unpaid:    ['active', 'canceled'],
+  canceled:  [], // terminal state
+}
+
+class SubscriptionManager {
+  constructor() {
+    this.subscriptions = {}
+    this.log = []
+  }
+
+  handleWebhook(event) {
+    const sub = event.data.object
+    const userId = sub.metadata?.userId
+
+    switch (event.type) {
+      case 'customer.subscription.created':
+        this.subscriptions[userId] = {
+          id: sub.id, status: sub.status, plan: sub.plan,
+          currentPeriodEnd: sub.current_period_end,
+        }
+        this.log.push(`CREATED: ${userId} → ${sub.plan} (${sub.status})`)
+        this.grantAccess(userId, sub.plan)
+        break
+
+      case 'customer.subscription.updated':
+        this.transitionStatus(userId, sub.status, sub.plan)
+        break
+
+      case 'customer.subscription.deleted':
+        this.transitionStatus(userId, 'canceled', null)
+        this.revokeAccess(userId)
+        break
+    }
+  }
+
+  transitionStatus(userId, newStatus, newPlan) {
+    const current = this.subscriptions[userId]
+    if (!current) { this.log.push(`ERROR: No subscription found for ${userId}`); return }
+
+    const allowed = VALID_TRANSITIONS[current.status] || []
+    if (current.status !== newStatus && !allowed.includes(newStatus)) {
+      this.log.push(`⚠ INVALID TRANSITION: ${userId} ${current.status} → ${newStatus} (not in allowed list)`)
+      return
+    }
+
+    const oldStatus = current.status
+    current.status = newStatus
+    if (newPlan) current.plan = newPlan
+
+    this.log.push(`TRANSITION: ${userId} ${oldStatus} → ${newStatus}`)
+
+    // Access control based on status
+    if (newStatus === 'active') this.grantAccess(userId, current.plan)
+    if (['canceled','unpaid'].includes(newStatus)) this.revokeAccess(userId)
+    if (newStatus === 'past_due') this.log.push(`  ⚠ ${userId}: payment failed, Stripe will retry, access retained for now`)
+  }
+
+  grantAccess(userId, plan) { this.log.push(`  ✓ ${userId}: premium access GRANTED (${plan})`) }
+  revokeAccess(userId)      { this.log.push(`  ✗ ${userId}: premium access REVOKED`) }
+}
+
+const manager = new SubscriptionManager()
+
+console.log('=== ShopCo Premium Subscription Lifecycle ===\n')
+
+// New subscription starts trialing
+manager.handleWebhook({ type:'customer.subscription.created', data:{ object:{
+  id:'sub_1', status:'trialing', plan:'premium_monthly', current_period_end:Date.now()+7*86400000,
+  metadata:{ userId:'usr_1' }
+}}})
+
+// Trial converts to active
+manager.handleWebhook({ type:'customer.subscription.updated', data:{ object:{
+  status:'active', plan:'premium_monthly', metadata:{ userId:'usr_1' }
+}}})
+
+// Payment fails — goes past_due
+manager.handleWebhook({ type:'customer.subscription.updated', data:{ object:{
+  status:'past_due', plan:'premium_monthly', metadata:{ userId:'usr_1' }
+}}})
+
+// Customer updates card, payment succeeds — back to active
+manager.handleWebhook({ type:'customer.subscription.updated', data:{ object:{
+  status:'active', plan:'premium_monthly', metadata:{ userId:'usr_1' }
+}}})
+
+// Customer cancels
+manager.handleWebhook({ type:'customer.subscription.deleted', data:{ object:{
+  metadata:{ userId:'usr_1' }
+}}})
+
+// Try invalid transition: canceled subscription can't go back to active directly
+manager.transitionStatus('usr_1', 'active', 'premium_monthly')
+
+console.log(manager.log.join('\n'))
+console.log('\nFinal subscription state:', JSON.stringify(manager.subscriptions.usr_1))
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">5</div>
+      <div class="runner-title">Refund Processing System</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a refund processor that handles full and partial refunds, restocks inventory proportionally, and enforces business rules (refund window, already-refunded checks).</div>
+      <textarea id="ta5">// Refund processing system with business rules
+class RefundProcessor {
+  constructor() {
+    this.orders = {
+      ord_1: { id:'ord_1', status:'PAID', total:378, paidAt:Date.now()-5*86400000,
+        items:[{ variantId:'v1', qty:2, unitPrice:189 }], refundedAmount:0 },
+      ord_2: { id:'ord_2', status:'PAID', total:229, paidAt:Date.now()-45*86400000,
+        items:[{ variantId:'v2', qty:1, unitPrice:229 }], refundedAmount:0 },
+    }
+    this.inventory = { v1:3, v2:8 }
+    this.refundWindowDays = 30
+    this.log = []
+  }
+
+  canRefund(orderId, amount) {
+    const order = this.orders[orderId]
+    if (!order) return { ok:false, reason:'ORDER_NOT_FOUND' }
+    if (order.status === 'REFUNDED') return { ok:false, reason:'ALREADY_FULLY_REFUNDED' }
+    if (order.status !== 'PAID' && order.status !== 'PARTIALLY_REFUNDED') return { ok:false, reason:'ORDER_NOT_PAID' }
+
+    const daysSincePaid = (Date.now() - order.paidAt) / 86400000
+    if (daysSincePaid > this.refundWindowDays) {
+      return { ok:false, reason:'REFUND_WINDOW_EXPIRED', details:`${Math.round(daysSincePaid)} days since payment (max ${this.refundWindowDays})` }
+    }
+
+    const remainingRefundable = order.total - order.refundedAmount
+    if (amount > remainingRefundable) {
+      return { ok:false, reason:'AMOUNT_EXCEEDS_REFUNDABLE', details:`Requested $${amount}, only $${remainingRefundable.toFixed(2)} refundable` }
+    }
+
+    return { ok:true }
+  }
+
+  async processRefund(orderId, amount, reason) {
+    const check = this.canRefund(orderId, amount)
+    if (!check.ok) {
+      this.log.push(`✗ REFUND DENIED: ${orderId} $${amount} — ${check.reason} ${check.details||''}`)
+      return { ok:false, error:check.reason }
+    }
+
+    const order = this.orders[orderId]
+    const isFullRefund = (order.refundedAmount + amount) >= order.total
+
+    // Simulate calling Stripe refund API
+    const refundId = `re_${Math.random().toString(36).slice(2,10)}`
+
+    // Update order
+    order.refundedAmount += amount
+    order.status = isFullRefund ? 'REFUNDED' : 'PARTIALLY_REFUNDED'
+
+    // Proportional inventory restock
+    const restockRatio = amount / order.total
+    order.items.forEach(item => {
+      const restockQty = Math.round(item.qty * restockRatio)
+      if (restockQty > 0) {
+        this.inventory[item.variantId] = (this.inventory[item.variantId]||0) + restockQty
+        this.log.push(`  ↩ Restocked ${restockQty}× ${item.variantId}`)
+      }
+    })
+
+    this.log.push(`✓ REFUND PROCESSED: ${orderId} $${amount.toFixed(2)} (${isFullRefund?'full':'partial'}) — reason: ${reason} — Stripe refund: ${refundId}`)
+    return { ok:true, refundId, newStatus:order.status, totalRefunded:order.refundedAmount }
+  }
+}
+
+async function runScenarios() {
+  const processor = new RefundProcessor()
+  console.log('=== ShopCo Refund Processing ===\n')
+
+  console.log('Scenario 1: Partial refund (1 of 2 items)')
+  await processor.processRefund('ord_1', 189, 'Customer changed mind about one item')
+
+  console.log('\nScenario 2: Complete the refund (second item)')
+  await processor.processRefund('ord_1', 189, 'Full order refund follow-up')
+
+  console.log('\nScenario 3: Try to refund already-refunded order')
+  await processor.processRefund('ord_1', 50, 'Duplicate refund attempt')
+
+  console.log('\nScenario 4: Refund outside 30-day window')
+  await processor.processRefund('ord_2', 229, 'Too late request')
+
+  console.log('\n=== Log ===')
+  console.log(processor.log.join('\n'))
+
+  console.log('\n=== Inventory After Refunds ===')
+  console.log(processor.inventory)
+}
+runScenarios()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">6</div>
+      <div class="runner-title">Complete Payment Lifecycle Simulation</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate the entire payment flow end-to-end: checkout session creation → webhook fulfillment → subscription upgrade → refund — tying together everything from today's lesson.</div>
+      <textarea id="ta6">// Complete ShopCo payment lifecycle simulation
+class PaymentSystem {
+  constructor() {
+    this.orders = {}
+    this.subscriptions = {}
+    this.users = { usr_1: { tier:'free', email:'sam@example.com' } }
+    this.inventory = { v1: 10 }
+    this.processedEvents = new Set()
+    this.timeline = []
+  }
+
+  log(msg) { this.timeline.push(msg); console.log(msg) }
+
+  // Step 1: Create checkout session
+  createCheckoutSession(userId, items) {
+    const orderId = `ord_${Object.keys(this.orders).length+1}`
+    const total = items.reduce((s,i) => s + i.price*i.qty, 0)
+    this.orders[orderId] = { id:orderId, userId, items, total, status:'PENDING' }
+    const sessionId = `cs_${Math.random().toString(36).slice(2,10)}`
+    this.log(`1. Checkout session created: ${sessionId} for order ${orderId} ($${total})`)
+    return { sessionId, orderId, url:`https://checkout.stripe.com/${sessionId}` }
+  }
+
+  // Step 2: Webhook fires after customer pays
+  handleWebhook(event) {
+    if (this.processedEvents.has(event.id)) {
+      this.log(`   [SKIP] Duplicate webhook ${event.id}`)
+      return
+    }
+    this.processedEvents.add(event.id)
+
+    if (event.type === 'checkout.session.completed') {
+      const order = this.orders[event.orderId]
+      if (order && order.status === 'PENDING') {
+        order.status = 'PAID'
+        order.items.forEach(i => { this.inventory[i.variantId] = (this.inventory[i.variantId]||0) - i.qty })
+        this.log(`2. Webhook processed: order ${order.id} → PAID, inventory updated`)
+        this.log(`   📧 Confirmation email queued for ${this.users[order.userId].email}`)
+      }
+    }
+
+    if (event.type === 'customer.subscription.created') {
+      this.subscriptions[event.userId] = { status:'active', plan:event.plan }
+      this.users[event.userId].tier = 'premium'
+      this.log(`3. Subscription webhook: ${event.userId} upgraded to ${event.plan}`)
+    }
+  }
+
+  // Step 3: Process a refund
+  refund(orderId, amount) {
+    const order = this.orders[orderId]
+    if (!order || order.status !== 'PAID') {
+      this.log(`   ✗ Cannot refund ${orderId}: not in PAID status`)
+      return
+    }
+    order.status = amount >= order.total ? 'REFUNDED' : 'PARTIALLY_REFUNDED'
+    order.items.forEach(i => { this.inventory[i.variantId] = (this.inventory[i.variantId]||0) + i.qty })
+    this.log(`4. Refund processed: ${orderId} $${amount} → status ${order.status}, inventory restocked`)
+  }
+}
+
+async function runFullSimulation() {
+  const system = new PaymentSystem()
+  console.log('=== ShopCo Complete Payment Lifecycle ===\n')
+
+  // Customer buys 2 TrailRunners
+  const checkout = system.createCheckoutSession('usr_1', [{ variantId:'v1', qty:2, price:189 }])
+  console.log(`   Redirect customer to: ${checkout.url}\n`)
+
+  // Simulate customer completing payment on Stripe's page — webhook fires
+  await new Promise(r => setTimeout(r, 30))
+  system.handleWebhook({ id:'evt_1', type:'checkout.session.completed', orderId:checkout.orderId })
+
+  // Stripe retries the same webhook (network blip on our end) — must be idempotent
+  system.handleWebhook({ id:'evt_1', type:'checkout.session.completed', orderId:checkout.orderId })
+
+  console.log('')
+  // Customer upgrades to Premium subscription
+  system.handleWebhook({ id:'evt_2', type:'customer.subscription.created', userId:'usr_1', plan:'premium_monthly' })
+
+  console.log('')
+  // Customer requests a partial refund
+  system.refund(checkout.orderId, 189) // refund 1 of 2 items
+
+  console.log('\n=== Final State ===')
+  console.log('Order:', JSON.stringify(system.orders[checkout.orderId]))
+  console.log('User tier:', system.users.usr_1.tier)
+  console.log('Inventory v1:', system.inventory.v1, '(started at 10, -2 for order, +1 for partial refund = 9)')
+  console.log('\n✓ Checkout → Webhook (idempotent) → Subscription → Refund, all consistent')
+}
+
+runFullSimulation()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Q&A -->
+<section class="section" id="qa">
+  <div class="section-header">
+    <span class="section-badge">05</span>
+    <h2 class="section-title">Interview Q&amp;A</h2>
+  </div>
+
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">1. Why shouldn't you mark an order as paid based on the checkout success redirect alone?</div>
+    <div class="ans-text">The success redirect is a client-side event — the customer's browser could crash, lose internet connection, or the tab could be closed before the redirect completes, even though the payment succeeded on Stripe's servers. Relying on it means some successful payments never get fulfilled. Webhooks are server-to-server, reliably delivered with retries, and represent the actual source of truth for payment state. Best practice: use the redirect purely for UX (showing a "thank you" page), and use the <code>checkout.session.completed</code> webhook as the only trigger for order fulfillment, inventory updates, and confirmation emails.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">2. How do you verify a webhook actually came from Stripe?</div>
+    <div class="ans-text">Stripe signs every webhook payload with an HMAC-SHA256 signature using your webhook signing secret, sent in the <code>Stripe-Signature</code> header. Your server recomputes the signature from the raw request body and compares it. Use <code>stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)</code> — this both verifies the signature and parses the event. Critical: you must read the request body as raw text (not parsed JSON) because signature verification needs the exact bytes Stripe sent — any reformatting (like JSON.stringify(JSON.parse(body))) breaks the signature check.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">3. What is an idempotency key and why is it important for payments?</div>
+    <div class="ans-text">An idempotency key is a unique string you pass with a Stripe API request. If the same key is sent again within 24 hours (e.g., due to a network timeout causing your client to retry), Stripe returns the original result instead of creating a duplicate charge. This is critical for payments — a customer clicking "Pay" twice due to a slow network shouldn't result in being charged twice. Generate the key from something stable and unique to the operation, like <code>`checkout_${orderId}`</code> — never from <code>Date.now()</code>, which changes on every retry and defeats the purpose.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">4. Walk through what happens when a subscription payment fails.</div>
+    <div class="ans-text">Stripe automatically retries failed subscription payments according to your configured retry schedule (e.g., 3 days, 5 days, 7 days later). The subscription status becomes <code>past_due</code> — you'll receive a <code>customer.subscription.updated</code> webhook. Decide your access policy: many apps keep access active during <code>past_due</code> (grace period) to avoid frustrating customers over a temporarily failed card. If all retries fail, the subscription becomes <code>unpaid</code> or is <code>canceled</code> (configurable), and you'll get another webhook to revoke access. Also handle <code>invoice.payment_failed</code> to send the customer an email prompting them to update their card via the Customer Portal.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">5. Why should you never trust product prices sent from the client?</div>
+    <div class="ans-text">Client-side JavaScript can be modified by anyone using browser dev tools — an attacker could intercept the checkout request and change a $189 item to $0.01 before it reaches your server. Always look up the authoritative price from your database using the product/variant ID sent by the client, and build the Stripe line items server-side from that trusted data. Never accept a <code>price</code> field from the client request body for anything that affects the amount charged. The client should only send identifiers (variant IDs, quantities) — never amounts.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">6. How do you test Stripe integrations locally before going live?</div>
+    <div class="ans-text">Use Stripe's test mode (test API keys, prefixed <code>sk_test_</code> / <code>pk_test_</code>) — no real money moves. Test card numbers like <code>4242 4242 4242 4242</code> simulate successful payments; other numbers simulate declines, insufficient funds, or 3D Secure challenges. For webhooks locally, use the Stripe CLI: <code>stripe listen --forward-to localhost:3000/api/webhooks/stripe</code> — this forwards real webhook events to your local server and gives you a temporary webhook secret for testing. Use <code>stripe trigger checkout.session.completed</code> to fire test events on demand without going through a full checkout flow.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">7. What's the difference between Stripe Checkout and Stripe Elements?</div>
+    <div class="ans-text"><strong>Checkout</strong> is Stripe's fully-hosted payment page — you redirect the customer to a Stripe-controlled URL, they enter payment details there, and get redirected back. Minimal integration work, Stripe handles all UI, PCI compliance, and localization. <strong>Elements</strong> are embeddable UI components (card input, payment element) that you render directly in your own checkout page — the customer never leaves your site. More design control and a more seamless brand experience, but more integration work and you're responsible for more of the checkout UX. For most projects, start with Checkout — move to Elements only if you need full UI control (e.g., multi-step custom checkout flows).</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">8. How would you implement a "buy now, pay later" or free trial flow?</div>
+    <div class="ans-text">For subscriptions: set <code>trial_period_days</code> when creating the subscription — Stripe automatically manages the trial-to-paid transition and won't charge the card until the trial ends. You still collect payment method upfront (via Checkout with <code>mode: 'subscription'</code> and trial settings) so there's no friction converting after the trial. Listen for <code>customer.subscription.trial_will_end</code> (fires 3 days before trial ends) to send a reminder email. If the customer cancels during the trial, you get <code>customer.subscription.deleted</code> before any charge occurs — no refund needed since nothing was charged.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">9. How do you handle proration when a customer changes subscription plans?</div>
+    <div class="ans-text">Stripe automatically calculates proration when you call <code>stripe.subscriptions.update()</code> with a new price ID — by default it credits the unused time on the old plan and charges for the remaining time on the new plan, reflected on the next invoice (or immediately with <code>proration_behavior: 'always_invoice'</code>). For downgrades, you often want <code>proration_behavior: 'none'</code> combined with scheduling the change for the next billing cycle, avoiding an awkward immediate credit. Always test both upgrade and downgrade paths — customers get confused by unexpected mid-cycle charges more than by delayed downgrades.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">10. What database schema do you need to support Stripe subscriptions?</div>
+    <div class="ans-text">Minimum fields on your User/Subscription table: <code>stripeCustomerId</code> (link to Stripe's Customer object, created once per user), <code>stripeSubscriptionId</code>, <code>status</code> (mirrors Stripe's status enum), <code>currentPeriodEnd</code> (for grace period logic), <code>priceId</code> / <code>plan</code> (which tier they're on), and <code>cancelAtPeriodEnd</code> (boolean — true means "canceled but access continues until period end"). Also maintain a <code>ProcessedWebhook</code> table (event ID + processed timestamp) for idempotency. Never store card details yourself — Stripe handles that entirely; you only store references (customer ID, subscription ID) to Stripe's objects.</div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section class="section" id="checklist">
+  <div class="section-header">
+    <span class="section-badge">06</span>
+    <h2 class="section-title">Night Review Checklist</h2>
+  </div>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can create a Stripe Checkout Session with server-trusted pricing</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why webhooks (not redirects) are the source of truth for payment status</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can verify webhook signatures using the raw request body</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand idempotency keys and why they prevent duplicate charges</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement idempotent webhook processing with event ID tracking</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the subscription lifecycle: trialing → active → past_due → canceled</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can build a refund system with business rules (window, partial amounts)</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the difference between Stripe Checkout and Stripe Elements</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand proration for subscription plan changes</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to test Stripe locally with the Stripe CLI</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built the full payment lifecycle exercise and traced every step</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can answer all 10 interview questions confidently</div></div>
+  </div>
+  <div class="tomorrow-box">
+    <h4>🌅 Tomorrow — Day 41: Email Notifications</h4>
+    <p>Day 41 builds ShopCo's transactional email system using Resend — order confirmations, shipping updates, password resets, and subscription receipts. You'll learn React Email for building type-safe, testable email templates, queue-based sending to avoid blocking API responses, retry logic for failed sends, and email deliverability best practices (SPF, DKIM, avoiding spam filters). Prepare by thinking about which events from today's payment flow should trigger an email — order confirmation, payment failed, subscription started, refund issued.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-btns">
+    <button class="footer-btn" onclick="navigateTo('day39_week6_review.html',39)">← Day 39: Week 6 Review</button>
+    <button class="footer-btn primary" onclick="navigateTo('day41_email_notifications.html',41)">Day 41: Email Notifications →</button>
+  </div>
+  <div style="margin-top:16px">
+    <div class="week-prog-label">Week 7 Progress — 1 of 7 days</div>
+    <div class="week-prog-bar"><div class="week-prog-fill" style="width:14%"></div></div>
+  </div>
+  <div style="margin-top:16px;font-size:11px;color:var(--hint)">ShopCo Course · Day 40 of 56 · Stripe Payments</div>
+</footer>
+
+<script>
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_arrays_objects.html"},
+  {num:3,file:"day3_functions_async.html"},
+  {num:4,file:"day4_error_handling.html"},
+  {num:5,file:"day5_dom_events.html"},
+  {num:6,file:"day6_es6_modules.html"},
+  {num:7,file:"day7_week1_review.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design_rest.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html"},
+  {num:28,file:"day28_error_monitoring.html"},
+  {num:29,file:"day29_genai_vercel_ai_sdk.html"},
+  {num:30,file:"day30_rag_embeddings.html"},
+  {num:31,file:"day31_ai_agents_tools.html"},
+  {num:32,file:"day32_week5_review.html"},
+  {num:33,file:"day33_project_setup.html"},
+  {num:34,file:"day34_auth_roles.html"},
+  {num:35,file:"day35_data_modeling.html"},
+  {num:36,file:"day36_api_layer.html"},
+  {num:37,file:"day37_realtime_features.html"},
+  {num:38,file:"day38_file_uploads.html"},
+  {num:39,file:"day39_week6_review.html"},
+  {num:40,file:"day40_stripe_payments.html",current:true},
+  {num:41,file:"day41_email_notifications.html"},
+  {num:42,file:"day42_search.html"},
+  {num:43,file:"day43_advanced_rag.html"},
+  {num:44,file:"day44_ai_pipelines.html"},
+  {num:45,file:"day45_analytics.html"},
+  {num:46,file:"day46_week7_review.html"},
+  {num:47,file:"day47_accessibility.html"},
+  {num:48,file:"day48_i18n_l10n.html"},
+  {num:49,file:"day49_advanced_testing.html"},
+  {num:50,file:"day50_devops_cicd.html"},
+  {num:51,file:"day51_portfolio_project_1.html"},
+  {num:52,file:"day52_portfolio_project_2.html"},
+  {num:53,file:"day53_resume_github.html"},
+  {num:54,file:"day54_interview_prep.html"},
+  {num:55,file:"day55_mock_interviews.html"},
+  {num:56,file:"day56_graduation.html"},
+]
+const CURRENT = 40
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_arrays_objects.html",
+  "day3_functions_async.html","day5_dom_events.html","day6_es6_modules.html",
+  "day7_week1_review.html","day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html","day12_context_global_state.html",
+  "day13_week2_review.html","day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html","day18_tailwind_css.html",
+  "day19_week3_review.html","day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html","day24_api_design_rest.html",
+  "day25_week4_review.html","day26_performance.html","day27_testing.html",
+  "day28_error_monitoring.html","day29_genai_vercel_ai_sdk.html",
+  "day30_rag_embeddings.html","day31_ai_agents_tools.html","day32_week5_review.html",
+  "day33_project_setup.html","day34_auth_roles.html","day35_data_modeling.html",
+  "day36_api_layer.html","day37_realtime_features.html","day38_file_uploads.html",
+  "day39_week6_review.html","day40_stripe_payments.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast('Day '+n+' coming soon!')
+}
+function showToast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3000)
+}
+const dotsEl=document.getElementById('day-dots')
+DAY_PLAN.forEach(d=>{
+  const btn=document.createElement('button')
+  btn.className='ddot'+(d.current?' current':AVAILABLE.has(d.file)?' done available':' available')
+  btn.title='Day '+d.num
+  btn.onclick=()=>navigateTo(d.file,d.num)
+  dotsEl.appendChild(btn)
+})
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea')
+  const out=wrap.querySelector('.output-box'),logs=[]
+  const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x,null,2):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{
+    const result=new Function(ta.value)()
+    if(result&&typeof result.then==='function'){
+      out.textContent='Running...'
+      result.then(()=>{out.textContent=logs.length?logs.join('\n'):'(no output)'})
+            .catch(e=>{out.classList.add('err');out.textContent='✗ '+e.message})
+    }else{out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  }catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+const secs=document.querySelectorAll('.section')
+const links=document.querySelectorAll('.nav-links a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>
