@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Day 39 — Week 6 Review | ShopCo Course</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --accent:#4ade80;--accent-dim:rgba(74,222,128,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;height:52px}
+.nav-brand{font-weight:700;font-size:14px;color:var(--accent);white-space:nowrap;margin-right:24px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:6px 12px;border-radius:6px;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{color:var(--accent);background:var(--accent-dim)}
+.week-banner{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
+.week-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(74,222,128,0.25)}
+.week-desc{font-size:12px;color:var(--muted)}
+.day-nav{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px}
+.day-nav-title{font-size:14px;font-weight:700;color:var(--text);margin-right:8px}
+.day-dots{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.ddot{width:10px;height:10px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .2s;border:none;padding:0}
+.ddot.done{background:var(--green)}
+.ddot.current{background:var(--accent);box-shadow:0 0 8px rgba(74,222,128,0.5)}
+.ddot.available:hover{background:var(--muted);transform:scale(1.2)}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hero{padding:64px 24px 48px;max-width:900px;margin:0 auto;text-align:center}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:20px}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin:0 auto 28px}
+.topic-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:36px}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+.pill.accent{background:var(--accent-dim);border-color:rgba(74,222,128,0.3);color:var(--accent)}
+.stats-row{display:flex;border:1px solid var(--border2);border-radius:12px;overflow:hidden;max-width:500px;margin:0 auto}
+.stat{flex:1;padding:16px 8px;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+.section{padding:48px 24px;max-width:1000px;margin:0 auto}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.section-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(74,222,128,0.2)}
+.section-title{font-size:22px;font-weight:700}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.topic-card:hover{border-color:var(--accent);background:var(--surface2)}
+.topic-card.done{border-color:rgba(74,222,128,0.3);background:var(--green-dim)}
+.topic-icon{font-size:24px;margin-bottom:10px}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.topic-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.progress-label{font-size:14px;font-weight:600}
+.pct{font-size:14px;font-weight:700;color:var(--accent)}
+.prog-bar{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.topic-dots{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tdot{width:28px;height:28px;border-radius:6px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.tdot.done{background:var(--accent-dim);border-color:rgba(74,222,128,0.4);color:var(--accent)}
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.concept-card h3{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.concept-card p{font-size:13px;color:var(--muted);line-height:1.7}
+.concept-card code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:4px;color:var(--teal)}
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7}
+.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#86efac}.num{color:#f9a8d4}.fn{color:#93c5fd}
+.cm{color:#3d3d55;font-style:italic}.var{color:#5eead4}.op{color:#fcd34d}
+.prop{color:#fbbf24}.ty{color:#38bdf8}.tag{color:#fb7185}.attr{color:#fbbf24}
+.compare-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.compare-table th{background:var(--surface3);padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border2)}
+.compare-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--surface2)}
+.tag-g{color:var(--green);font-size:11px;font-weight:600}
+.tag-a{color:var(--amber);font-size:11px;font-weight:600}
+.tag-c{color:var(--coral);font-size:11px;font-weight:600}
+.ex-divider{padding:20px 24px;max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.ex-line{flex:1;height:1px;background:var(--border)}
+.ex-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.runner-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.runner-num{width:24px;height:24px;border-radius:6px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid rgba(74,222,128,0.3)}
+.runner-title{font-size:13px;font-weight:600;flex:1}
+.diff-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.diff-b{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.diff-i{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.diff-a{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.runner-body{padding:16px}
+.runner-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;min-height:130px;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent)}
+.run-btn{margin-top:10px;padding:8px 20px;border-radius:7px;border:none;background:var(--accent);color:#000;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.run-btn:hover{background:#22c55e;transform:translateY(-1px)}
+.output-box{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);min-height:48px;white-space:pre-wrap;line-height:1.6}
+.output-box.err{color:var(--coral)}
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.qa-item:hover{border-color:var(--border2)}
+.qa-q{padding:16px 20px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.qa-q::after{content:'▸';color:var(--muted);transition:transform .25s;flex-shrink:0}
+.qa-item.open .qa-q::after{transform:rotate(90deg);color:var(--accent)}
+.qa-item.open{border-color:rgba(74,222,128,0.3)}
+.ans-text{display:none;padding:0 20px 16px;font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border)}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:4px;color:var(--teal)}
+.qa-item.open .ans-text{display:block}
+.checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-bottom:20px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s}
+.cl-item:hover{border-color:var(--border2)}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s}
+.cl-box.checked{background:var(--accent);border-color:var(--accent)}
+.cl-box.checked::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.cl-text{font-size:12px;color:var(--text);line-height:1.5}
+.cl-text.checked{color:var(--muted);text-decoration:line-through}
+.tomorrow-box{background:var(--surface);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:20px;margin-top:16px}
+.tomorrow-box h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.tomorrow-box p{font-size:13px;color:var(--muted);line-height:1.7}
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:24px;text-align:center}
+.footer-btns{display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.footer-btn{padding:10px 24px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.footer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.footer-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.footer-btn.primary:hover{background:#22c55e}
+.week-prog-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.week-prog-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;max-width:300px;margin:0 auto}
+.week-prog-fill{height:100%;background:var(--accent);border-radius:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.info-box{background:var(--accent-dim);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.warn-box{background:var(--amber-dim);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+/* Recap cards */
+.recap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:8px}
+.recap-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;position:relative}
+.recap-day{position:absolute;top:14px;right:16px;font-size:10px;font-weight:700;color:var(--hint)}
+.recap-title{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px;padding-right:36px}
+.recap-list{list-style:none;padding:0}
+.recap-list li{font-size:11px;color:var(--muted);padding:2px 0 2px 14px;position:relative;line-height:1.6}
+.recap-list li::before{content:'✓';position:absolute;left:0;color:var(--green);font-size:10px}
+/* Architecture diagram */
+.arch-diagram{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin:16px 0}
+.arch-layer{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;padding-bottom:14px;border-bottom:1px dashed var(--border)}
+.arch-layer:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.arch-label{font-size:10px;color:var(--hint);text-transform:uppercase;letter-spacing:1px;width:100%;text-align:center;margin-bottom:6px}
+.arch-box{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--text)}
+.arch-box.hl{border-color:rgba(74,222,128,0.4);background:var(--green-dim);color:var(--green)}
+/* quiz */
+.quiz-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px}
+.quiz-q{font-size:13px;font-weight:600;margin-bottom:10px}
+.quiz-opts{display:flex;flex-direction:column;gap:6px}
+.quiz-opt{padding:8px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);font-size:12px;cursor:pointer;transition:all .15s}
+.quiz-opt:hover{border-color:var(--accent)}
+.quiz-opt.correct{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{background:var(--coral-dim);border-color:var(--coral);color:var(--coral)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 39 · Week 6 Review</div>
+  <div class="nav-links">
+    <a href="#recap">Recap</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#quiz">Self-Test</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#qa">Interview</a>
+    <a href="#checklist">Review</a>
+  </div>
+</nav>
+
+<!-- WEEK BANNER -->
+<div class="week-banner">
+  <span class="week-badge">Week 6 · Complete</span>
+  <span class="week-desc">Full-Stack Project Build — from monorepo setup to real-time features and file uploads</span>
+</div>
+
+<!-- DAY NAV -->
+<div class="day-nav">
+  <span class="day-nav-title">Day 39 — Week 6 Review</span>
+  <div class="day-dots" id="day-dots"></div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="navigateTo('day38_file_uploads.html',38)">← Prev</button>
+    <button class="nav-btn" onclick="navigateTo('day40_stripe_payments.html',40)">Next →</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Week 6 Finale · Day 39 of 56</div>
+  <h1>Week 6 <span>Review</span></h1>
+  <p class="hero-sub">Six days of full-stack architecture — monorepo, auth, data modeling, APIs, real-time features, and file uploads. Today you connect every piece into one coherent ShopCo backend and prove you can explain the whole system end-to-end.</p>
+  <div class="topic-pills">
+    <span class="pill accent">Turborepo</span>
+    <span class="pill accent">RBAC + Clerk</span>
+    <span class="pill accent">Prisma Schema</span>
+    <span class="pill accent">REST + tRPC</span>
+    <span class="pill accent">SSE + Pusher</span>
+    <span class="pill accent">S3 + Sharp</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Days Reviewed</div></div>
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Exercises</div></div>
+    <div class="stat"><div class="stat-n">10</div><div class="stat-l">Q&amp;As</div></div>
+    <div class="stat"><div class="stat-n">5h</div><div class="stat-l">Study</div></div>
+  </div>
+</section>
+
+<!-- RECAP -->
+<section class="section" id="recap">
+  <div class="section-header">
+    <span class="section-badge">01</span>
+    <h2 class="section-title">Week 6 Recap — Days 33–38</h2>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label">Review Progress</span>
+      <span class="pct" id="pct-label">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="topic-dots" id="tdots">
+      <div class="tdot" onclick="markDone(this)" title="Day 33">33</div>
+      <div class="tdot" onclick="markDone(this)" title="Day 34">34</div>
+      <div class="tdot" onclick="markDone(this)" title="Day 35">35</div>
+      <div class="tdot" onclick="markDone(this)" title="Day 36">36</div>
+      <div class="tdot" onclick="markDone(this)" title="Day 37">37</div>
+      <div class="tdot" onclick="markDone(this)" title="Day 38">38</div>
+      <div class="tdot" onclick="markDone(this)" title="Quiz">Q</div>
+      <div class="tdot" onclick="markDone(this)" title="Exercises">X</div>
+    </div>
+  </div>
+
+  <div class="recap-grid">
+    <div class="recap-card">
+      <span class="recap-day">DAY 33</span>
+      <div class="recap-title">🏗️ Project Setup</div>
+      <ul class="recap-list">
+        <li>Monorepo with Turborepo + shared packages</li>
+        <li>CI/CD pipeline with preview deploys</li>
+        <li>Environment strategy per stage</li>
+        <li>Architecture Decision Records (ADRs)</li>
+      </ul>
+    </div>
+    <div class="recap-card">
+      <span class="recap-day">DAY 34</span>
+      <div class="recap-title">🔐 Auth & Roles</div>
+      <ul class="recap-list">
+        <li>RBAC with customer/staff/admin/super_admin</li>
+        <li>Clerk organizations + custom JWT claims</li>
+        <li>Next.js middleware route guards</li>
+        <li>Server-side permission checking</li>
+      </ul>
+    </div>
+    <div class="recap-card">
+      <span class="recap-day">DAY 35</span>
+      <div class="recap-title">🗄️ Data Modeling</div>
+      <ul class="recap-list">
+        <li>Product variants, soft deletes, audit trail</li>
+        <li>Full ShopCo Prisma schema + ERD</li>
+        <li>Zero-downtime migrations (expand/contract)</li>
+        <li>Cursor pagination + composite keys</li>
+      </ul>
+    </div>
+    <div class="recap-card">
+      <span class="recap-day">DAY 36</span>
+      <div class="recap-title">🌐 API Layer</div>
+      <ul class="recap-list">
+        <li>REST routes for public API surface</li>
+        <li>tRPC for type-safe internal dashboard</li>
+        <li>Zod validation + structured errors</li>
+        <li>Sliding window rate limiting</li>
+      </ul>
+    </div>
+    <div class="recap-card">
+      <span class="recap-day">DAY 37</span>
+      <div class="recap-title">📡 Real-time Features</div>
+      <ul class="recap-list">
+        <li>SSE for order status streaming</li>
+        <li>Pusher channels for admin dashboard</li>
+        <li>Optimistic UI with React Query</li>
+        <li>Reconnection with exponential backoff</li>
+      </ul>
+    </div>
+    <div class="recap-card">
+      <span class="recap-day">DAY 38</span>
+      <div class="recap-title">📤 File Uploads</div>
+      <ul class="recap-list">
+        <li>UploadThing + direct-to-S3 pre-signed URLs</li>
+        <li>Sharp: resize, WebP convert, strip EXIF</li>
+        <li>File validation via magic bytes</li>
+        <li>Orphan cleanup strategy</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="section" id="architecture">
+  <div class="section-header">
+    <span class="section-badge">02</span>
+    <h2 class="section-title">ShopCo Backend Architecture — The Full Picture</h2>
+  </div>
+
+  <div class="arch-diagram">
+    <div class="arch-layer">
+      <div class="arch-label">Client</div>
+      <div class="arch-box">Next.js App Router</div>
+      <div class="arch-box">React Query</div>
+      <div class="arch-box">EventSource / Pusher Client</div>
+      <div class="arch-box">UploadThing Hook</div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-label">Edge / Middleware</div>
+      <div class="arch-box hl">Clerk Auth Middleware</div>
+      <div class="arch-box">Route Guards (RBAC)</div>
+      <div class="arch-box">Rate Limiter</div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-label">API Layer</div>
+      <div class="arch-box hl">REST Routes (public)</div>
+      <div class="arch-box hl">tRPC Router (internal)</div>
+      <div class="arch-box">Zod Validation</div>
+      <div class="arch-box">SSE Stream Handlers</div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-label">Services</div>
+      <div class="arch-box">Pusher (WebSockets)</div>
+      <div class="arch-box">Sharp (Image Processing)</div>
+      <div class="arch-box">S3 (File Storage)</div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-label">Data</div>
+      <div class="arch-box hl">Prisma + PostgreSQL</div>
+      <div class="arch-box">Audit Log</div>
+      <div class="arch-box">Redis (rate limit / pub-sub)</div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>💡 How it all connects:</strong> A request hits Clerk middleware for auth, gets routed through REST (public/mobile) or tRPC (internal dashboard) with Zod validating every input. Business logic reads/writes through Prisma with soft deletes and audit logging. Order status changes trigger both an SSE push to the customer and a Pusher event to the admin dashboard. Product images flow through pre-signed S3 URLs into a Sharp processing pipeline that generates WebP variants before saving URLs to Postgres.
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section class="section" id="quiz">
+  <div class="section-header">
+    <span class="section-badge">03</span>
+    <h2 class="section-title">Week 6 Self-Test</h2>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q">1. Which channel type would you use for a live "who's viewing this admin page" feature?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="checkQuiz(this,false)">Public channel</div>
+      <div class="quiz-opt" onclick="checkQuiz(this,false)">Private channel</div>
+      <div class="quiz-opt" onclick="checkQuiz(this,true)">Presence channel</div>
+    </div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q">2. What's the correct migration strategy for renaming a column with zero downtime?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="checkQuiz(this,false)">Rename directly in one migration</div>
+      <div class="quiz-opt" onclick="checkQuiz(this,true)">Expand/contract: add new column, dual-write, backfill, cutover, drop old</div>
+      <div class="quiz-opt" onclick="checkQuiz(this,false)">Drop and recreate the table</div>
+    </div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q">3. Why should you validate file uploads with magic bytes instead of file extension?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="checkQuiz(this,false)">Magic bytes are faster to check</div>
+      <div class="quiz-opt" onclick="checkQuiz(this,true)">Extensions are client-controlled and can be spoofed</div>
+      <div class="quiz-opt" onclick="checkQuiz(this,false)">Extensions don't work with S3</div>
+    </div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q">4. In RBAC with a role hierarchy, if 'staff' can view orders, what can 'admin' do (assuming admin > staff)?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="checkQuiz(this,false)">Only what's explicitly granted to admin</div>
+      <div class="quiz-opt" onclick="checkQuiz(this,true)">Everything staff can do, plus admin-specific permissions</div>
+      <div class="quiz-opt" onclick="checkQuiz(this,false)">Nothing — roles are isolated</div>
+    </div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q">5. What's the main reason to prefer tRPC over REST for an internal admin dashboard?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="checkQuiz(this,false)">tRPC is faster over the network</div>
+      <div class="quiz-opt" onclick="checkQuiz(this,true)">End-to-end TypeScript type safety without codegen</div>
+      <div class="quiz-opt" onclick="checkQuiz(this,false)">REST doesn't support POST requests</div>
+    </div>
+  </div>
+</section>
+
+<!-- EXERCISES -->
+<div class="ex-divider">
+  <div class="ex-line"></div>
+  <div class="ex-label">⚡ Integration Exercises</div>
+  <div class="ex-line"></div>
+</div>
+
+<section class="section" id="exercises">
+
+  <!-- EX 1 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">1</div>
+      <div class="runner-title">Week 6 Self-Test Quiz Grader</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build a quiz grading engine covering all of Week 6's core concepts — monorepo, auth, data modeling, APIs, real-time, and uploads.</div>
+      <textarea id="ta1">// Week 6 comprehensive quiz grader
+const questions = [
+  { q:'What does Turborepo cache to speed up CI?', a:'task-outputs', options:['task-outputs','node_modules','git-history'], topic:'Monorepo' },
+  { q:'What HTTP status means "authenticated but not permitted"?', a:'403', options:['401','403','404'], topic:'Auth' },
+  { q:'What Prisma field marks a record as soft-deleted?', a:'deletedAt', options:['isDeleted','deletedAt','removed'], topic:'Data Modeling' },
+  { q:'Which validation library is used for both REST and tRPC input?', a:'Zod', options:['Yup','Zod','Joi'], topic:'API Layer' },
+  { q:'What browser API auto-reconnects SSE streams?', a:'EventSource', options:['WebSocket','EventSource','fetch'], topic:'Real-time' },
+  { q:'What Sharp method strips GPS/camera metadata?', a:'withMetadata(false)', options:['stripExif()','withMetadata(false)','clean()'], topic:'File Uploads' },
+]
+
+function gradeQuiz(answers) {
+  let correct = 0
+  const results = []
+  questions.forEach((item, i) => {
+    const userAnswer = answers[i]
+    const isCorrect = userAnswer === item.a
+    if (isCorrect) correct++
+    results.push({ topic: item.topic, question: item.q, correct: isCorrect, expected: item.a, got: userAnswer })
+  })
+  return { score: correct, total: questions.length, pct: Math.round((correct/questions.length)*100), results }
+}
+
+// Simulate a student's answers (mix of correct/incorrect)
+const studentAnswers = ['task-outputs', '403', 'isDeleted', 'Zod', 'EventSource', 'withMetadata(false)']
+
+const report = gradeQuiz(studentAnswers)
+console.log('=== Week 6 Self-Test Results ===\n')
+report.results.forEach((r, i) => {
+  console.log(`${r.correct ? '✓' : '✗'} [${r.topic}] Q${i+1}: ${r.question}`)
+  if (!r.correct) console.log(`   Your answer: ${r.got} | Correct: ${r.expected}`)
+})
+
+console.log(`\nScore: ${report.score}/${report.total} (${report.pct}%)`)
+if (report.pct >= 80) console.log('🎉 Great job! You have a solid grasp of Week 6.')
+else if (report.pct >= 60) console.log('👍 Good progress — review the missed topics above.')
+else console.log('📚 Consider reviewing Days 33-38 before moving on.')
+
+// Topic-level breakdown
+const byTopic = {}
+report.results.forEach(r => {
+  if (!byTopic[r.topic]) byTopic[r.topic] = { correct:0, total:0 }
+  byTopic[r.topic].total++
+  if (r.correct) byTopic[r.topic].correct++
+})
+console.log('\n=== By Topic ===')
+Object.entries(byTopic).forEach(([topic, s]) =>
+  console.log(`  ${topic}: ${s.correct}/${s.total}`)
+)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">2</div>
+      <div class="runner-title">Full Auth + API Integration</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Combine Day 34's RBAC system with Day 36's API layer — build a request pipeline that checks role hierarchy before executing tRPC-style procedures.</div>
+      <textarea id="ta2">// Integrated auth + API pipeline
+const HIERARCHY = ['customer','staff','admin','super_admin']
+const hasRole = (role, required) => HIERARCHY.indexOf(role) >= HIERARCHY.indexOf(required)
+
+// Permission matrix from Day 34
+const PERMISSIONS = {
+  customer:    { orders:['read:own'], products:['read'], reviews:['create','read'] },
+  staff:       { orders:['read:all','update:status'], products:['read'], reviews:['read','moderate'] },
+  admin:       { orders:['read:all','update:status','cancel'], products:['create','update','delete'], reviews:['read','moderate','delete'] },
+  super_admin: { orders:['*'], products:['*'], reviews:['*'] },
+}
+
+function can(role, resource, action) {
+  const perms = PERMISSIONS[role]?.[resource] || []
+  return perms.includes('*') || perms.includes(action)
+}
+
+// tRPC-style procedure with permission check baked in
+function procedure(resource, action) {
+  return {
+    handler: null,
+    use(fn) { this.handler = fn; return this },
+    async call(ctx, input) {
+      if (!ctx.userId) return { ok:false, error:{ code:'UNAUTHORIZED' } }
+      if (!can(ctx.role, resource, action))
+        return { ok:false, error:{ code:'FORBIDDEN', message:`${ctx.role} cannot ${action} ${resource}` } }
+      try {
+        const result = await this.handler({ ctx, input })
+        return { ok:true, result }
+      } catch (e) {
+        return { ok:false, error:{ code:'INTERNAL', message:e.message } }
+      }
+    }
+  }
+}
+
+// Define procedures
+const cancelOrder = procedure('orders','cancel').use(async ({ input }) =>
+  ({ orderId:input.orderId, status:'CANCELLED' }))
+
+const deleteProduct = procedure('products','delete').use(async ({ input }) =>
+  ({ productId:input.productId, deletedAt:new Date().toISOString() }))
+
+const updateOrderStatus = procedure('orders','update:status').use(async ({ input }) =>
+  ({ orderId:input.orderId, status:input.status }))
+
+// Test with different role contexts
+async function runScenarios() {
+  const scenarios = [
+    { ctx:{userId:'u1',role:'customer'}, proc:cancelOrder, input:{orderId:'ord_1'}, label:'Customer cancels order' },
+    { ctx:{userId:'u2',role:'staff'},    proc:updateOrderStatus, input:{orderId:'ord_1',status:'SHIPPED'}, label:'Staff updates status' },
+    { ctx:{userId:'u2',role:'staff'},    proc:deleteProduct, input:{productId:'p1'}, label:'Staff tries delete product' },
+    { ctx:{userId:'u3',role:'admin'},    proc:deleteProduct, input:{productId:'p1'}, label:'Admin deletes product' },
+    { ctx:{userId:'u3',role:'admin'},    proc:cancelOrder, input:{orderId:'ord_2'}, label:'Admin cancels order' },
+    { ctx:{userId:null,role:null},       proc:cancelOrder, input:{orderId:'ord_3'}, label:'Anonymous tries cancel' },
+  ]
+
+  console.log('=== Integrated RBAC + API Pipeline ===\n')
+  for (const s of scenarios) {
+    const res = await s.proc.call(s.ctx, s.input)
+    if (res.ok) console.log(`✓ ${s.label} → ${JSON.stringify(res.result)}`)
+    else console.log(`✗ ${s.label} → ${res.error.code}: ${res.error.message || ''}`)
+  }
+}
+runScenarios()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">3</div>
+      <div class="runner-title">Order Lifecycle: DB + Real-time + Audit</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Combine Day 35's audit logging, Day 36's structured API responses, and Day 37's real-time events into one order status update flow.</div>
+      <textarea id="ta3">// Integrated order update: DB mutation + audit log + real-time broadcast
+class OrderSystem {
+  constructor() {
+    this.orders = { ord_1:{ id:'ord_1', status:'PROCESSING', userId:'usr_c1', total:189 } }
+    this.auditLog = []
+    this.eventBus = { emit:(ch,ev,data)=>{ console.log(`  📡 [${ch}] ${ev}: ${JSON.stringify(data)}`); return 1 } }
+  }
+
+  async updateStatus({ orderId, newStatus, actorId, actorRole }) {
+    const order = this.orders[orderId]
+    if (!order) return { ok:false, error:{ code:'NOT_FOUND', message:'Order not found' } }
+
+    const validTransitions = {
+      PENDING: ['PROCESSING','CANCELLED'],
+      PROCESSING: ['SHIPPED','CANCELLED'],
+      SHIPPED: ['DELIVERED'],
+      DELIVERED: [],
+      CANCELLED: [],
+    }
+    if (!validTransitions[order.status]?.includes(newStatus)) {
+      return { ok:false, error:{ code:'CONFLICT', message:`Cannot go from ${order.status} to ${newStatus}` } }
+    }
+
+    // 1. Update DB (simulated)
+    const oldStatus = order.status
+    order.status = newStatus
+    order.updatedAt = new Date().toISOString()
+
+    // 2. Write audit log entry (Day 35 pattern)
+    const auditEntry = {
+      id: `audit_${this.auditLog.length+1}`,
+      entityType: 'Order', entityId: orderId,
+      action: 'STATUS_CHANGE',
+      actorId, actorRole,
+      before: { status: oldStatus }, after: { status: newStatus },
+      timestamp: new Date().toISOString(),
+    }
+    this.auditLog.push(auditEntry)
+
+    // 3. Broadcast real-time events (Day 37 pattern)
+    this.eventBus.emit(`private-user-${order.userId}`, 'order-status', { orderId, status:newStatus })
+    this.eventBus.emit('private-admin', 'order-status', { orderId, status:newStatus, actorId })
+
+    // 4. Return structured API response (Day 36 pattern)
+    return { ok:true, data:{ orderId, status:newStatus, updatedAt:order.updatedAt } }
+  }
+}
+
+async function runFlow() {
+  const system = new OrderSystem()
+  console.log('=== Integrated Order Status Update Flow ===\n')
+
+  console.log('Step 1: Staff moves PROCESSING → SHIPPED')
+  const r1 = await system.updateStatus({ orderId:'ord_1', newStatus:'SHIPPED', actorId:'usr_staff1', actorRole:'staff' })
+  console.log(`  API Response: ${r1.ok ? '200 OK' : r1.error.code}`, r1.ok ? JSON.stringify(r1.data) : r1.error.message)
+
+  console.log('\nStep 2: Invalid transition SHIPPED → PROCESSING')
+  const r2 = await system.updateStatus({ orderId:'ord_1', newStatus:'PROCESSING', actorId:'usr_staff1', actorRole:'staff' })
+  console.log(`  API Response: ${r2.ok ? '200 OK' : '409 ' + r2.error.code}`, r2.ok ? '' : r2.error.message)
+
+  console.log('\nStep 3: Staff moves SHIPPED → DELIVERED')
+  const r3 = await system.updateStatus({ orderId:'ord_1', newStatus:'DELIVERED', actorId:'usr_staff2', actorRole:'staff' })
+  console.log(`  API Response: ${r3.ok ? '200 OK' : r3.error.code}`, r3.ok ? JSON.stringify(r3.data) : '')
+
+  console.log('\n=== Audit Trail ===')
+  system.auditLog.forEach(a =>
+    console.log(`  [${a.timestamp.slice(11,19)}] ${a.actorRole} (${a.actorId}) changed ${a.entityType} ${a.entityId}: ${a.before.status} → ${a.after.status}`)
+  )
+}
+runFlow()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">4</div>
+      <div class="runner-title">Rate-Limited Upload Pipeline</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Combine Day 36's rate limiter with Day 38's upload validation — protect the pre-signed URL endpoint from abuse while validating file constraints.</div>
+      <textarea id="ta4">// Rate-limited, validated upload request pipeline
+class RateLimiter {
+  constructor() { this.store = {} }
+  check(key, limit, windowMs) {
+    const now = Date.now()
+    if (!this.store[key]) this.store[key] = []
+    this.store[key] = this.store[key].filter(t => t > now - windowMs)
+    if (this.store[key].length >= limit) return { ok:false }
+    this.store[key].push(now)
+    return { ok:true, remaining: limit - this.store[key].length }
+  }
+}
+
+const limiter = new RateLimiter()
+
+function validateUploadRequest({ userId, role, file }) {
+  const errors = []
+  // Role check — only admin/staff can upload product images
+  if (!['admin','staff'].includes(role)) errors.push('Insufficient role for product image upload')
+  // File validation
+  if (file.size > 8*1024*1024) errors.push('File exceeds 8MB limit')
+  if (!['image/jpeg','image/png','image/webp'].includes(file.type)) errors.push('Invalid file type')
+  return { valid: errors.length === 0, errors }
+}
+
+async function requestUploadUrl({ userId, role, file }) {
+  // 1. Rate limit: 10 upload requests per minute per user
+  const rl = limiter.check(`upload:${userId}`, 10, 60000)
+  if (!rl.ok) return { status:429, error:'Too many upload requests, try again shortly' }
+
+  // 2. Validate request
+  const validation = validateUploadRequest({ userId, role, file })
+  if (!validation.valid) return { status:400, error:'Validation failed', details:validation.errors }
+
+  // 3. Generate pre-signed URL (simulated)
+  const key = `products/uploads/${userId}_${Date.now()}_${file.name}`
+  return {
+    status:200,
+    data:{
+      uploadUrl:`https://shopco-uploads.s3.amazonaws.com/${key}?X-Amz-Signature=...`,
+      key, expiresIn:300, rateLimitRemaining:rl.remaining
+    }
+  }
+}
+
+async function runTests() {
+  console.log('=== Rate-Limited Upload Pipeline ===\n')
+
+  // Admin uploads normally
+  for (let i = 1; i <= 3; i++) {
+    const res = await requestUploadUrl({
+      userId:'usr_admin1', role:'admin',
+      file:{ name:`product_${i}.jpg`, size:2*1024*1024, type:'image/jpeg' }
+    })
+    console.log(`Admin upload ${i}: ${res.status} ${res.status===200 ? `(${res.data.rateLimitRemaining} requests left)` : res.error}`)
+  }
+
+  // Customer tries to upload (wrong role)
+  const customerRes = await requestUploadUrl({
+    userId:'usr_cust1', role:'customer',
+    file:{ name:'photo.jpg', size:1*1024*1024, type:'image/jpeg' }
+  })
+  console.log(`\nCustomer upload attempt: ${customerRes.status} — ${customerRes.details?.[0] || customerRes.error}`)
+
+  // Admin uploads oversized file
+  const bigFileRes = await requestUploadUrl({
+    userId:'usr_admin1', role:'admin',
+    file:{ name:'huge.jpg', size:12*1024*1024, type:'image/jpeg' }
+  })
+  console.log(`Admin oversized file: ${bigFileRes.status} — ${bigFileRes.details?.[0]}`)
+
+  // Simulate rate limit exhaustion
+  console.log('\nSimulating rapid requests to exhaust rate limit:')
+  for (let i = 4; i <= 12; i++) {
+    const res = await requestUploadUrl({
+      userId:'usr_admin1', role:'admin',
+      file:{ name:`p${i}.jpg`, size:1*1024*1024, type:'image/jpeg' }
+    })
+    if (res.status === 429) { console.log(`  Request ${i}: ✗ 429 Too Many Requests`); break }
+    if (i === 10 || i === 12) console.log(`  Request ${i}: ${res.status} OK`)
+  }
+}
+runTests()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">5</div>
+      <div class="runner-title">ADR Generator for Week 6 Decisions</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build an Architecture Decision Record generator that documents the key technical choices made throughout Week 6 — the kind of artifact a senior engineer produces for a real project.</div>
+      <textarea id="ta5">// ADR (Architecture Decision Record) generator for Week 6 decisions
+function generateADR({ number, title, status, context, decision, consequences, alternatives }) {
+  const lines = []
+  lines.push(`# ADR-${String(number).padStart(3,'0')}: ${title}`)
+  lines.push(`\nStatus: ${status}`)
+  lines.push(`\n## Context`)
+  lines.push(context)
+  lines.push(`\n## Decision`)
+  lines.push(decision)
+  lines.push(`\n## Alternatives Considered`)
+  alternatives.forEach(a => lines.push(`- **${a.name}**: ${a.reason}`))
+  lines.push(`\n## Consequences`)
+  consequences.forEach(c => lines.push(`- ${c}`))
+  return lines.join('\n')
+}
+
+const adrs = [
+  {
+    number: 1, title: 'Use tRPC for internal dashboard, REST for public API', status: 'Accepted',
+    context: 'ShopCo needs both a public API (mobile app, third parties) and an internal admin dashboard. We need to choose consistent patterns for each.',
+    decision: 'Use REST with Zod validation for all public-facing endpoints. Use tRPC for the internal admin dashboard where we control both client and server.',
+    alternatives: [
+      { name:'tRPC everywhere', reason:'Rejected — third parties cannot consume tRPC without a TypeScript client' },
+      { name:'REST everywhere', reason:'Rejected — loses type safety benefits for internal tooling, more boilerplate' },
+      { name:'GraphQL', reason:'Rejected — adds complexity, N+1 risk, not needed at our current scale' },
+    ],
+    consequences: [
+      'Two API patterns to maintain, but each is optimal for its context',
+      'Internal dashboard iterates faster with full type inference',
+      'Public API has stable, documented, versioned contracts',
+    ]
+  },
+  {
+    number: 2, title: 'Use Pusher instead of raw WebSockets', status: 'Accepted',
+    context: 'ShopCo runs on Vercel serverless functions, which cannot maintain persistent WebSocket connections.',
+    decision: 'Use Pusher as a managed WebSocket service, triggered via HTTP from serverless functions.',
+    alternatives: [
+      { name:'Raw WebSocket server', reason:'Rejected — requires a persistent server, incompatible with our serverless deployment' },
+      { name:'Polling', reason:'Rejected — too slow for admin dashboard live updates, wastes resources' },
+      { name:'Ably', reason:'Considered — similar tradeoffs to Pusher, chose Pusher for team familiarity' },
+    ],
+    consequences: [
+      'Additional vendor dependency and monthly cost at scale',
+      'No infrastructure to manage — faster time to market',
+      'Slight latency overhead through Pusher\\'s infrastructure',
+    ]
+  },
+  {
+    number: 3, title: 'Soft deletes with deletedAt timestamp', status: 'Accepted',
+    context: 'Products and orders need to be "removable" without losing historical data for analytics, audit, and potential recovery.',
+    decision: 'Add a nullable deletedAt DateTime field to Product, User, and Order models. All queries filter WHERE deletedAt IS NULL by default.',
+    alternatives: [
+      { name:'Hard deletes', reason:'Rejected — loses audit trail, breaks foreign key references in order history' },
+      { name:'Separate archive table', reason:'Rejected — adds complexity for marginal benefit at our scale' },
+    ],
+    consequences: [
+      'Every query must remember to filter deletedAt IS NULL',
+      'Data can be recovered if deleted accidentally',
+      'Database size grows over time — need periodic hard-delete cron for truly old records',
+    ]
+  },
+]
+
+console.log('=== ShopCo Architecture Decision Records — Week 6 ===\n')
+adrs.forEach(adr => {
+  console.log(generateADR(adr))
+  console.log('\n' + '─'.repeat(60) + '\n')
+})
+
+console.log(`Total ADRs documented: ${adrs.length}`)
+console.log('These records help future engineers understand WHY decisions were made, not just what was built.')
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">6</div>
+      <div class="runner-title">Full Week 6 System Integration Test</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">The capstone exercise: simulate a complete customer journey through every system built this week — auth, product browsing, order placement, real-time tracking, and admin image upload — as one integrated test suite.</div>
+      <textarea id="ta6">// Full Week 6 integration test — simulates a complete ShopCo user journey
+class ShopCoSystem {
+  constructor() {
+    this.users = { usr_c1:{ role:'customer' }, usr_admin1:{ role:'admin' } }
+    this.products = { p1:{ id:'p1', name:'TrailRunner Pro X', price:189, deletedAt:null, images:[] } }
+    this.orders = {}
+    this.auditLog = []
+    this.events = []
+    this.rateLimits = {}
+  }
+
+  checkAuth(userId) { return this.users[userId] || null }
+  hasRole(userId, required) {
+    const HIERARCHY = ['customer','staff','admin','super_admin']
+    const user = this.checkAuth(userId)
+    return user && HIERARCHY.indexOf(user.role) >= HIERARCHY.indexOf(required)
+  }
+
+  emit(channel, event, data) {
+    this.events.push({ channel, event, data, time:Date.now() })
+  }
+
+  // Admin uploads a product image
+  async uploadProductImage(userId, productId, file) {
+    if (!this.hasRole(userId, 'admin')) return { ok:false, error:'FORBIDDEN' }
+    if (file.size > 8*1024*1024) return { ok:false, error:'FILE_TOO_LARGE' }
+    const variants = ['thumb','sm','md','hero'].map(v => `cdn.shopco.com/${productId}_${v}.webp`)
+    this.products[productId].images.push({ url:variants[2], variants })
+    this.auditLog.push({ action:'IMAGE_UPLOAD', productId, userId, time:Date.now() })
+    return { ok:true, data:{ variants } }
+  }
+
+  // Customer places an order
+  async placeOrder(userId, items) {
+    const user = this.checkAuth(userId)
+    if (!user) return { ok:false, error:'UNAUTHORIZED' }
+    const key = `order:${userId}`
+    this.rateLimits[key] = (this.rateLimits[key]||0) + 1
+    if (this.rateLimits[key] > 5) return { ok:false, error:'RATE_LIMITED' }
+
+    const total = items.reduce((s,i) => s + (this.products[i.productId]?.price||0) * i.qty, 0)
+    const orderId = `ord_${Object.keys(this.orders).length+1}`
+    this.orders[orderId] = { id:orderId, userId, items, total, status:'PENDING' }
+    this.emit('private-admin', 'new-order', { orderId, total })
+    this.auditLog.push({ action:'ORDER_CREATED', orderId, userId, time:Date.now() })
+    return { ok:true, data:{ orderId, total, status:'PENDING' } }
+  }
+
+  // Status update flows through SSE + Pusher
+  async updateOrderStatus(orderId, newStatus, actorId) {
+    const order = this.orders[orderId]
+    if (!order) return { ok:false, error:'NOT_FOUND' }
+    if (!this.hasRole(actorId, 'staff') && actorId !== 'system') return { ok:false, error:'FORBIDDEN' }
+    order.status = newStatus
+    this.emit(`private-user-${order.userId}`, 'order-status', { orderId, status:newStatus })
+    this.emit('private-admin', 'order-status', { orderId, status:newStatus })
+    this.auditLog.push({ action:'STATUS_CHANGE', orderId, newStatus, actorId, time:Date.now() })
+    return { ok:true, data:{ orderId, status:newStatus } }
+  }
+}
+
+async function runIntegrationTest() {
+  const system = new ShopCoSystem()
+  const results = []
+  const test = (label, condition) => {
+    results.push({ label, pass: !!condition })
+    console.log(`${condition ? '✓' : '✗'} ${label}`)
+  }
+
+  console.log('=== ShopCo Full Journey Integration Test ===\n')
+
+  console.log('--- Phase 1: Admin sets up product ---')
+  const upload = await system.uploadProductImage('usr_admin1', 'p1', { size:3*1024*1024 })
+  test('Admin can upload product image', upload.ok)
+  test('Product has 4 image variants', upload.data?.variants.length === 4)
+
+  const customerUploadAttempt = await system.uploadProductImage('usr_c1', 'p1', { size:1*1024*1024 })
+  test('Customer CANNOT upload product image (RBAC)', !customerUploadAttempt.ok && customerUploadAttempt.error === 'FORBIDDEN')
+
+  console.log('\n--- Phase 2: Customer places order ---')
+  const order = await system.placeOrder('usr_c1', [{ productId:'p1', qty:2 }])
+  test('Customer can place order', order.ok)
+  test('Order total calculated correctly ($378)', order.data?.total === 378)
+  test('Admin notified via Pusher on new order', system.events.some(e => e.event === 'new-order'))
+
+  console.log('\n--- Phase 3: Order lifecycle with real-time updates ---')
+  const s1 = await system.updateOrderStatus(order.data.orderId, 'PROCESSING', 'usr_admin1')
+  const s2 = await system.updateOrderStatus(order.data.orderId, 'SHIPPED', 'usr_admin1')
+  test('Staff can update order status', s1.ok && s2.ok)
+  test('Customer receives SSE-style status events', system.events.filter(e => e.channel.includes('private-user')).length === 2)
+  test('Admin receives Pusher status events', system.events.filter(e => e.channel==='private-admin' && e.event==='order-status').length === 2)
+
+  console.log('\n--- Phase 4: Unauthorized customer status update blocked ---')
+  const blocked = await system.updateOrderStatus(order.data.orderId, 'DELIVERED', 'usr_c1')
+  test('Customer cannot update order status directly', !blocked.ok && blocked.error === 'FORBIDDEN')
+
+  console.log('\n--- Phase 5: Audit trail is complete ---')
+  test('Audit log captured all actions', system.auditLog.length === 4)
+
+  const passed = results.filter(r => r.pass).length
+  console.log(`\n=== Test Results: ${passed}/${results.length} passed ===`)
+  if (passed === results.length) console.log('🎉 All Week 6 systems integrate correctly!')
+}
+
+runIntegrationTest()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Q&A -->
+<section class="section" id="qa">
+  <div class="section-header">
+    <span class="section-badge">04</span>
+    <h2 class="section-title">Week 6 Interview Q&amp;A Recap</h2>
+  </div>
+
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">1. Walk me through the ShopCo backend architecture end-to-end.</div>
+    <div class="ans-text">A request enters through Clerk middleware for authentication, then hits either a REST route (public/mobile clients) or a tRPC procedure (internal admin dashboard) — both validated with Zod. Business logic reads/writes through Prisma to PostgreSQL, with soft deletes and audit logging on every mutation. Order status changes trigger two parallel real-time paths: an SSE stream pushes updates to the customer, and a Pusher event notifies the admin dashboard. Product images upload directly to S3 via pre-signed URLs, then get processed by Sharp into WebP variants before URLs are saved to Postgres. Rate limiting via Redis protects all of it from abuse.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">2. Why did you choose a monorepo with Turborepo for this project?</div>
+    <div class="ans-text">A monorepo lets us share TypeScript types, UI components, and validation schemas across the Next.js app, admin dashboard, and any future mobile app — without publishing/versioning internal npm packages. Turborepo adds intelligent caching (skip rebuilding unchanged packages) and parallel task execution, which keeps CI fast even as the codebase grows. The tradeoff is more complex tooling setup initially, but it pays off once you have 3+ apps or packages that need to share code and stay in sync.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">3. How does your RBAC system prevent privilege escalation?</div>
+    <div class="ans-text">Roles are stored server-side in Clerk's session claims (not client-editable), verified on every request via middleware, and checked against a strict hierarchy (customer &lt; staff &lt; admin &lt; super_admin) using index comparison rather than string matching. Every tRPC procedure and REST route explicitly declares its minimum required role — there's no "default allow" path. Role changes go through an audited admin action, not a self-service user setting. Combined with the permission matrix (role × resource × action), this ensures a customer can never reach admin-only mutations even if they tamper with client-side state.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">4. How would you scale the real-time order tracking system to 100,000 concurrent users?</div>
+    <div class="ans-text">Pusher's infrastructure already handles horizontal scaling for WebSocket fan-out — that's the point of using a managed service instead of raw WebSockets. For SSE (customer order tracking), the bottleneck is serverless function concurrency and DB polling load — mitigate by using Redis pub/sub instead of DB polling for status changes, and cap SSE connection duration with keepalives. Rate limit connection attempts per user to prevent one customer opening hundreds of tabs from exhausting resources. Monitor Pusher's per-app connection limits and upgrade plan tiers proactively as usage grows.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">5. What was the hardest architectural tradeoff this week and how did you resolve it?</div>
+    <div class="ans-text">Choosing between REST and tRPC required weighing type safety against API openness. tRPC gives incredible developer velocity for the admin dashboard we fully control, but it can't serve third-party integrations or a future mobile app without a TypeScript client. The resolution was using both: REST for anything that needs to be a stable, documented, external-facing contract, and tRPC for internal tooling where we want maximum type safety and iteration speed. This "boring but correct" solution avoids forcing one technology to do a job it's not suited for.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">6. How do soft deletes interact with your audit logging and real-time systems?</div>
+    <div class="ans-text">When a product is soft-deleted (deletedAt set), the audit log records who deleted it and when, preserving full history. Any active SSE/Pusher subscriptions related to that product should be notified so the UI can react (e.g., remove from admin's live product list) — this requires explicitly emitting a 'product-deleted' event, since soft delete alone doesn't automatically notify connected clients. File cleanup for that product's images is deferred to a background job with a grace period, since the soft-deleted record might be restored. The key lesson: soft delete is a data-layer concept, but its effects ripple into every other system that references that entity.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">7. What security review would you do before launching this to production?</div>
+    <div class="ans-text">Checklist: (1) Verify every tRPC/REST mutation has proper role checks — no accidentally public admin endpoints; (2) confirm S3 bucket blocks public access and pre-signed URLs have short expiries; (3) validate all file uploads server-side by magic bytes, not extension; (4) ensure rate limiting covers all mutation endpoints, not just reads; (5) confirm Zod schemas reject unexpected fields (no mass-assignment vulnerabilities); (6) check that Clerk webhook signatures are verified before processing; (7) audit that Pusher private/presence channels have server-side auth checks, not just client-side channel naming; (8) review CORS policy is restricted to your domains only.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">8. How would you test this entire system before shipping a new feature?</div>
+    <div class="ans-text">Layered testing: unit tests for pure functions (Zod schemas, permission checks, error formatters); integration tests for API routes with a test database (Vitest + Prisma test client); mocked tests for external services (Pusher, S3, UploadThing) to avoid real network calls in CI; E2E tests with Playwright for critical user journeys (place order, admin uploads image, real-time status update appears). The integration test built in Exercise 6 today is exactly this pattern — simulate the full system with in-memory state and assert on the emergent behavior across auth, orders, and real-time events together, not just each piece in isolation.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">9. If you had to cut scope for a launch deadline, what would you cut first?</div>
+    <div class="ans-text">Real-time features are the safest to defer — SSE/Pusher can be replaced with polling or manual refresh initially, and added later without touching the data model. File upload processing (Sharp variants) could ship with just the original image and add WebP optimization in a follow-up. What should NOT be cut: authentication and RBAC (security foundation), core data model with soft deletes and audit logging (hard to retrofit later), and basic API validation with Zod (prevents entire classes of bugs). The rule of thumb: cut features that enhance UX, never cut the data integrity and security foundations.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">10. What would you do differently if you rebuilt Week 6's architecture from scratch?</div>
+    <div class="ans-text">This is a strong interview question to practice answering about your own projects. Good answers show reflection: e.g., "I'd introduce the Zod schemas earlier and derive Prisma-adjacent types from them from day one, rather than defining API shapes separately." Or: "I'd set up the audit log table before building any mutations, since retrofitting audit logging into existing endpoints means touching every mutation twice." Or: "I'd choose Redis pub/sub over Pusher earlier for cost control at scale, accepting more operational complexity for lower per-message cost." The goal is demonstrating you can critically evaluate your own architectural decisions, not just defend them.</div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section class="section" id="checklist">
+  <div class="section-header">
+    <span class="section-badge">05</span>
+    <h2 class="section-title">Week 6 Complete — Final Checklist</h2>
+  </div>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the full ShopCo backend architecture without notes</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why we use monorepo + Turborepo for this project</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement RBAC with a role hierarchy and permission matrix</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the full Prisma schema with variants, soft deletes, and audit logs</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know when to use REST vs tRPC and can justify the choice</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement SSE and Pusher for different real-time use cases</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the direct-to-S3 upload flow with Sharp processing</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I completed all 6 integration exercises connecting multiple systems together</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I scored 80%+ on the Week 6 self-test quiz</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write an ADR documenting a technical decision and its tradeoffs</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can answer all 10 recap interview questions confidently</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I feel confident describing this project in a technical interview</div></div>
+  </div>
+  <div class="tomorrow-box">
+    <h4>🌅 Next Up — Week 7: Monetization & AI</h4>
+    <p>Week 7 begins with Day 40: Stripe Payments — checkout flows, webhooks, and subscription billing. You'll build ShopCo's complete payment infrastructure, then move through email notifications, search, advanced RAG techniques, AI-powered background pipelines, and analytics with feature flags and A/B testing. Week 6 gave ShopCo its backbone — Week 7 gives it a business model. Rest well; tomorrow starts a new phase of the build.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-btns">
+    <button class="footer-btn" onclick="navigateTo('day38_file_uploads.html',38)">← Day 38: File Uploads</button>
+    <button class="footer-btn primary" onclick="navigateTo('day40_stripe_payments.html',40)">Day 40: Stripe Payments →</button>
+  </div>
+  <div style="margin-top:16px">
+    <div class="week-prog-label">Week 6 Progress — 7 of 7 days · COMPLETE</div>
+    <div class="week-prog-bar"><div class="week-prog-fill" style="width:100%"></div></div>
+  </div>
+  <div style="margin-top:16px;font-size:11px;color:var(--hint)">ShopCo Course · Day 39 of 56 · Week 6 Review</div>
+</footer>
+
+<script>
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_arrays_objects.html"},
+  {num:3,file:"day3_functions_async.html"},
+  {num:4,file:"day4_error_handling.html"},
+  {num:5,file:"day5_dom_events.html"},
+  {num:6,file:"day6_es6_modules.html"},
+  {num:7,file:"day7_week1_review.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design_rest.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html"},
+  {num:28,file:"day28_error_monitoring.html"},
+  {num:29,file:"day29_genai_vercel_ai_sdk.html"},
+  {num:30,file:"day30_rag_embeddings.html"},
+  {num:31,file:"day31_ai_agents_tools.html"},
+  {num:32,file:"day32_week5_review.html"},
+  {num:33,file:"day33_project_setup.html"},
+  {num:34,file:"day34_auth_roles.html"},
+  {num:35,file:"day35_data_modeling.html"},
+  {num:36,file:"day36_api_layer.html"},
+  {num:37,file:"day37_realtime_features.html"},
+  {num:38,file:"day38_file_uploads.html"},
+  {num:39,file:"day39_week6_review.html",current:true},
+  {num:40,file:"day40_stripe_payments.html"},
+  {num:41,file:"day41_email_notifications.html"},
+  {num:42,file:"day42_search.html"},
+  {num:43,file:"day43_advanced_rag.html"},
+  {num:44,file:"day44_ai_pipelines.html"},
+  {num:45,file:"day45_analytics.html"},
+  {num:46,file:"day46_week7_review.html"},
+  {num:47,file:"day47_accessibility.html"},
+  {num:48,file:"day48_i18n_l10n.html"},
+  {num:49,file:"day49_advanced_testing.html"},
+  {num:50,file:"day50_devops_cicd.html"},
+  {num:51,file:"day51_portfolio_project_1.html"},
+  {num:52,file:"day52_portfolio_project_2.html"},
+  {num:53,file:"day53_resume_github.html"},
+  {num:54,file:"day54_interview_prep.html"},
+  {num:55,file:"day55_mock_interviews.html"},
+  {num:56,file:"day56_graduation.html"},
+]
+const CURRENT = 39
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_arrays_objects.html",
+  "day3_functions_async.html","day5_dom_events.html","day6_es6_modules.html",
+  "day7_week1_review.html","day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html","day12_context_global_state.html",
+  "day13_week2_review.html","day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html","day18_tailwind_css.html",
+  "day19_week3_review.html","day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html","day24_api_design_rest.html",
+  "day25_week4_review.html","day26_performance.html","day27_testing.html",
+  "day28_error_monitoring.html","day29_genai_vercel_ai_sdk.html",
+  "day30_rag_embeddings.html","day31_ai_agents_tools.html","day32_week5_review.html",
+  "day33_project_setup.html","day34_auth_roles.html","day35_data_modeling.html",
+  "day36_api_layer.html","day37_realtime_features.html","day38_file_uploads.html",
+  "day39_week6_review.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast('Day '+n+' coming soon!')
+}
+function showToast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3000)
+}
+const dotsEl=document.getElementById('day-dots')
+DAY_PLAN.forEach(d=>{
+  const btn=document.createElement('button')
+  btn.className='ddot'+(d.current?' current':AVAILABLE.has(d.file)?' done available':' available')
+  btn.title='Day '+d.num
+  btn.onclick=()=>navigateTo(d.file,d.num)
+  dotsEl.appendChild(btn)
+})
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea')
+  const out=wrap.querySelector('.output-box'),logs=[]
+  const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x,null,2):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{
+    const result=new Function(ta.value)()
+    if(result&&typeof result.then==='function'){
+      out.textContent='Running...'
+      result.then(()=>{out.textContent=logs.length?logs.join('\n'):'(no output)'})
+            .catch(e=>{out.classList.add('err');out.textContent='✗ '+e.message})
+    }else{out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  }catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function checkQuiz(el, isCorrect){
+  const opts = el.parentElement.querySelectorAll('.quiz-opt')
+  opts.forEach(o=>o.style.pointerEvents='none')
+  el.classList.add(isCorrect?'correct':'wrong')
+  if(!isCorrect){
+    opts.forEach(o=>{ if(o.onclick.toString().includes('true')) o.classList.add('correct') })
+  }
+}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+const secs=document.querySelectorAll('.section')
+const links=document.querySelectorAll('.nav-links a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>

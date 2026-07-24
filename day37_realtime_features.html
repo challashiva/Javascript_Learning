@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Day 37 — Real-time Features | ShopCo Course</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#e2e2ee;--muted:#6e6e8a;--hint:#3a3a50;
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.09);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.09);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.09);
+  --coral:#fb7185;--coral-dim:rgba(251,113,133,0.09);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.09);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.09);
+  --accent:#fb7185;--accent-dim:rgba(251,113,133,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;height:52px}
+.nav-brand{font-weight:700;font-size:14px;color:var(--accent);white-space:nowrap;margin-right:24px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:6px 12px;border-radius:6px;font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{color:var(--accent);background:var(--accent-dim)}
+.week-banner{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px}
+.week-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(251,113,133,0.25)}
+.week-desc{font-size:12px;color:var(--muted)}
+.day-nav{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px}
+.day-nav-title{font-size:14px;font-weight:700;color:var(--text);margin-right:8px}
+.day-dots{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.ddot{width:10px;height:10px;border-radius:50%;background:var(--hint);cursor:pointer;transition:all .2s;border:none;padding:0}
+.ddot.done{background:var(--green)}
+.ddot.current{background:var(--accent);box-shadow:0 0 8px rgba(251,113,133,0.5)}
+.ddot.available:hover{background:var(--muted);transform:scale(1.2)}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface3);color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hero{padding:64px 24px 48px;max-width:900px;margin:0 auto;text-align:center}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:20px}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:600px;margin:0 auto 28px}
+.topic-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:36px}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+.pill.accent{background:var(--accent-dim);border-color:rgba(251,113,133,0.3);color:var(--accent)}
+.stats-row{display:flex;border:1px solid var(--border2);border-radius:12px;overflow:hidden;max-width:500px;margin:0 auto}
+.stat{flex:1;padding:16px 8px;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+.section{padding:48px 24px;max-width:1000px;margin:0 auto}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.section-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(251,113,133,0.2)}
+.section-title{font-size:22px;font-weight:700}
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.topic-card:hover{border-color:var(--accent);background:var(--surface2)}
+.topic-card.done{border-color:rgba(74,222,128,0.3);background:var(--green-dim)}
+.topic-icon{font-size:24px;margin-bottom:10px}
+.topic-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.topic-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.progress-label{font-size:14px;font-weight:600}
+.pct{font-size:14px;font-weight:700;color:var(--accent)}
+.prog-bar{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.topic-dots{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tdot{width:28px;height:28px;border-radius:6px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.tdot.done{background:var(--accent-dim);border-color:rgba(251,113,133,0.4);color:var(--accent)}
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.concept-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.concept-card h3{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.concept-card p{font-size:13px;color:var(--muted);line-height:1.7}
+.concept-card code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:1px 6px;border-radius:4px;color:var(--teal)}
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7}
+.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#86efac}.num{color:#f9a8d4}.fn{color:#93c5fd}
+.cm{color:#3d3d55;font-style:italic}.var{color:#5eead4}.op{color:#fcd34d}
+.prop{color:#fbbf24}.ty{color:#38bdf8}.tag{color:#fb7185}.attr{color:#fbbf24}
+.compare-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.compare-table th{background:var(--surface3);padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border2)}
+.compare-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--surface2)}
+.tag-g{color:var(--green);font-size:11px;font-weight:600}
+.tag-a{color:var(--amber);font-size:11px;font-weight:600}
+.tag-c{color:var(--coral);font-size:11px;font-weight:600}
+.ex-divider{padding:20px 24px;max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.ex-line{flex:1;height:1px;background:var(--border)}
+.ex-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.runner{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.runner-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.runner-num{width:24px;height:24px;border-radius:6px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid rgba(251,113,133,0.3)}
+.runner-title{font-size:13px;font-weight:600;flex:1}
+.diff-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.diff-b{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.diff-i{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.diff-a{background:var(--coral-dim);color:var(--coral);border:1px solid rgba(251,113,133,0.2)}
+.runner-body{padding:16px}
+.runner-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;min-height:130px;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent)}
+.run-btn{margin-top:10px;padding:8px 20px;border-radius:7px;border:none;background:var(--accent);color:#000;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.run-btn:hover{background:#f43f5e;transform:translateY(-1px)}
+.output-box{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);min-height:48px;white-space:pre-wrap;line-height:1.6}
+.output-box.err{color:var(--coral)}
+.qa-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.qa-item:hover{border-color:var(--border2)}
+.qa-q{padding:16px 20px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.qa-q::after{content:'▸';color:var(--muted);transition:transform .25s;flex-shrink:0}
+.qa-item.open .qa-q::after{transform:rotate(90deg);color:var(--accent)}
+.qa-item.open{border-color:rgba(251,113,133,0.3)}
+.ans-text{display:none;padding:0 20px 16px;font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border)}
+.ans-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:4px;color:var(--teal)}
+.qa-item.open .ans-text{display:block}
+.checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;margin-bottom:20px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s}
+.cl-item:hover{border-color:var(--border2)}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s}
+.cl-box.checked{background:var(--accent);border-color:var(--accent)}
+.cl-box.checked::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.cl-text{font-size:12px;color:var(--text);line-height:1.5}
+.cl-text.checked{color:var(--muted);text-decoration:line-through}
+.tomorrow-box{background:var(--surface);border:1px solid rgba(251,113,133,0.2);border-radius:10px;padding:20px;margin-top:16px}
+.tomorrow-box h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.tomorrow-box p{font-size:13px;color:var(--muted);line-height:1.7}
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:24px;text-align:center}
+.footer-btns{display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.footer-btn{padding:10px 24px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.footer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.footer-btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.footer-btn.primary:hover{background:#f43f5e}
+.week-prog-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.week-prog-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;max-width:300px;margin:0 auto}
+.week-prog-fill{height:100%;background:var(--accent);border-radius:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.info-box{background:var(--accent-dim);border:1px solid rgba(251,113,133,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+.warn-box{background:var(--amber-dim);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;color:var(--text);line-height:1.7}
+/* Channel diagram */
+.channel-row{display:flex;align-items:center;gap:0;margin:8px 0}
+.channel-node{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-size:12px;font-weight:600;text-align:center;min-width:100px}
+.channel-arrow{padding:0 12px;color:var(--accent);font-size:18px;font-weight:700}
+.channel-label{font-size:10px;color:var(--muted);text-align:center;margin-top:4px}
+/* Event feed */
+.event-feed{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:11px;max-height:220px;overflow-y:auto}
+.evt{padding:3px 0;border-bottom:1px solid var(--border);line-height:1.5}
+.evt:last-child{border-bottom:none}
+.evt-time{color:var(--hint);margin-right:8px}
+.evt-type{padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700;margin-right:6px}
+.et-sse{background:var(--blue-dim);color:var(--blue)}
+.et-ws{background:var(--accent-dim);color:var(--accent)}
+.et-opt{background:var(--green-dim);color:var(--green)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Day 37 · Real-time Features</div>
+  <div class="nav-links">
+    <a href="#topics">Topics</a>
+    <a href="#concepts">Concepts</a>
+    <a href="#sse">SSE</a>
+    <a href="#websockets">WebSockets</a>
+    <a href="#optimistic">Optimistic UI</a>
+    <a href="#exercises">Exercises</a>
+    <a href="#qa">Interview</a>
+    <a href="#checklist">Review</a>
+  </div>
+</nav>
+
+<!-- WEEK BANNER -->
+<div class="week-banner">
+  <span class="week-badge">Week 6</span>
+  <span class="week-desc">Full-Stack Project Build — making ShopCo feel alive with real-time updates</span>
+</div>
+
+<!-- DAY NAV -->
+<div class="day-nav">
+  <span class="day-nav-title">Day 37 — Real-time Features</span>
+  <div class="day-dots" id="day-dots"></div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="navigateTo('day36_api_layer.html',36)">← Prev</button>
+    <button class="nav-btn" onclick="navigateTo('day38_file_uploads.html',38)">Next →</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Week 6 · Day 37 of 56</div>
+  <h1>Real-time <span>Features</span></h1>
+  <p class="hero-sub">Build live order tracking, admin inventory alerts, and a real-time activity feed for ShopCo using SSE, Pusher WebSockets, and optimistic UI — zero page refreshes required.</p>
+  <div class="topic-pills">
+    <span class="pill accent">Server-Sent Events</span>
+    <span class="pill accent">WebSockets</span>
+    <span class="pill accent">Pusher</span>
+    <span class="pill">Optimistic UI</span>
+    <span class="pill">EventSource API</span>
+    <span class="pill">Connection Management</span>
+    <span class="pill">Presence Channels</span>
+    <span class="pill">Live Updates</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">8</div><div class="stat-l">Topics</div></div>
+    <div class="stat"><div class="stat-n">6</div><div class="stat-l">Exercises</div></div>
+    <div class="stat"><div class="stat-n">10</div><div class="stat-l">Q&amp;As</div></div>
+    <div class="stat"><div class="stat-n">6h</div><div class="stat-l">Study</div></div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<section class="section" id="topics">
+  <div class="section-header">
+    <span class="section-badge">01</span>
+    <h2 class="section-title">Today's Topics</h2>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label">Day Progress</span>
+      <span class="pct" id="pct-label">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="topic-dots" id="tdots">
+      <div class="tdot" onclick="markDone(this)" title="SSE">S</div>
+      <div class="tdot" onclick="markDone(this)" title="WebSockets">W</div>
+      <div class="tdot" onclick="markDone(this)" title="Pusher">P</div>
+      <div class="tdot" onclick="markDone(this)" title="Optimistic UI">O</div>
+      <div class="tdot" onclick="markDone(this)" title="EventSource">E</div>
+      <div class="tdot" onclick="markDone(this)" title="Reconnection">R</div>
+      <div class="tdot" onclick="markDone(this)" title="Presence">X</div>
+      <div class="tdot" onclick="markDone(this)" title="Exercises">Z</div>
+    </div>
+  </div>
+  <div class="topics-grid">
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">📡</div>
+      <div class="topic-name">Server-Sent Events</div>
+      <div class="topic-sub">One-way server→client streaming over HTTP — perfect for live feeds</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔌</div>
+      <div class="topic-name">WebSockets</div>
+      <div class="topic-sub">Full-duplex bidirectional communication for chat and collaboration</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">⚡</div>
+      <div class="topic-name">Pusher Channels</div>
+      <div class="topic-sub">Managed WebSocket service — public, private, and presence channels</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">✨</div>
+      <div class="topic-name">Optimistic UI</div>
+      <div class="topic-sub">Update the UI instantly before server confirmation, rollback on error</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🌐</div>
+      <div class="topic-name">EventSource API</div>
+      <div class="topic-sub">Browser API for consuming SSE streams with auto-reconnect</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🔄</div>
+      <div class="topic-name">Reconnection Strategy</div>
+      <div class="topic-sub">Exponential backoff, event IDs for resuming, connection state UI</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">👥</div>
+      <div class="topic-name">Presence Channels</div>
+      <div class="topic-sub">Know who's currently online — live user count and member list</div>
+    </div>
+    <div class="topic-card" onclick="this.classList.toggle('done');updateProgress()">
+      <div class="topic-icon">🛍️</div>
+      <div class="topic-name">ShopCo Live Features</div>
+      <div class="topic-sub">Order tracker, admin dashboard, inventory alerts, live cart</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPTS -->
+<section class="section" id="concepts">
+  <div class="section-header">
+    <span class="section-badge">02</span>
+    <h2 class="section-title">Core Concepts</h2>
+  </div>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <h3>📡 Server-Sent Events (SSE)</h3>
+      <p>SSE is a one-way HTTP stream — the server pushes data to the client over a persistent connection. The browser's <code>EventSource</code> API handles reconnection automatically. Best for: live feeds, order status updates, notifications. Uses standard HTTP (works through proxies). Limited to server→client direction, text only. Much simpler than WebSockets for read-only real-time data.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🔌 WebSockets</h3>
+      <p>WebSockets upgrade an HTTP connection to a persistent, full-duplex TCP channel. Both client and server can send messages at any time. Best for: chat, collaborative editing, live cursor positions, gaming. Requires a persistent server (doesn't work well with serverless). For ShopCo: use WebSockets for the admin dashboard where staff trigger actions that others see instantly.</p>
+    </div>
+    <div class="concept-card">
+      <h3>⚡ Pusher Channels</h3>
+      <p>Pusher is a managed WebSocket service — you trigger events from your Next.js API, Pusher delivers them to subscribed clients. No persistent server needed — works with Vercel serverless. Three channel types: <strong>public</strong> (anyone), <strong>private</strong> (authenticated users only, validated by your server), <strong>presence</strong> (private + member list). ShopCo uses private channels per order and a presence channel for the admin dashboard.</p>
+    </div>
+    <div class="concept-card">
+      <h3>✨ Optimistic Updates</h3>
+      <p>Don't wait for the server to confirm an action — update the UI immediately, then reconcile with the server response. If the server returns an error, roll back. React Query's <code>useMutation</code> has built-in optimistic update support via <code>onMutate</code>, <code>onError</code>, and <code>onSettled</code>. Example: clicking "Cancel Order" immediately shows "Cancelled" in the UI while the API call happens in the background.</p>
+    </div>
+    <div class="concept-card">
+      <h3>🔄 Reconnection & Resilience</h3>
+      <p>Networks drop. Always handle disconnections: SSE's <code>EventSource</code> auto-reconnects, but track the last event ID (<code>id:</code> field in the stream) so you can resume from where you left off. For WebSockets: implement exponential backoff — retry after 1s, 2s, 4s, 8s, max 30s. Show connection status in the UI so users know if they're seeing stale data. Never silently drop events.</p>
+    </div>
+    <div class="concept-card">
+      <h3>👥 Presence Channels</h3>
+      <p>Pusher's presence channels extend private channels with a member list — you can see who else is subscribed to the same channel. Use for: live user count on a product page, admin seeing which staff are online, collaborative cart editing. Each member authenticates with your server, which adds their metadata (userId, name, role) to the presence data. The client receives <code>pusher:member_added</code> and <code>pusher:member_removed</code> events.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;margin:20px 0 12px">SSE vs WebSockets vs Polling — When to use each</h3>
+  <table class="compare-table">
+    <thead><tr><th>Technique</th><th>Direction</th><th>Protocol</th><th>Serverless?</th><th>Best for ShopCo</th></tr></thead>
+    <tbody>
+      <tr><td>Polling</td><td>Client pulls</td><td>HTTP</td><td class="tag-g">Yes</td><td>Last resort — slow, wasteful</td></tr>
+      <tr><td>Long Polling</td><td>Client pulls (held)</td><td>HTTP</td><td class="tag-a">Limited</td><td>Legacy fallback</td></tr>
+      <tr><td>SSE</td><td>Server → Client</td><td>HTTP</td><td class="tag-g">Yes (edge streaming)</td><td>Order status, notifications, feeds</td></tr>
+      <tr><td>WebSockets (raw)</td><td>Bidirectional</td><td>WS</td><td class="tag-c">No</td><td>Complex collab — needs persistent server</td></tr>
+      <tr><td>Pusher (managed WS)</td><td>Bidirectional</td><td>WS via Pusher</td><td class="tag-g">Yes</td><td>Admin dashboard, live inventory, chat</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- SSE -->
+<section class="section" id="sse">
+  <div class="section-header">
+    <span class="section-badge">03</span>
+    <h2 class="section-title">Server-Sent Events in Next.js</h2>
+  </div>
+
+  <div class="code-label">app/api/orders/[id]/stream/route.ts — SSE order status stream</div>
+  <pre><span class="kw">import</span> { <span class="fn">requireAuth</span> } <span class="kw">from</span> <span class="str">'@/lib/auth'</span>
+<span class="kw">import</span> { prisma } <span class="kw">from</span> <span class="str">'@/lib/prisma'</span>
+
+<span class="kw">export const</span> runtime <span class="op">=</span> <span class="str">'edge'</span>  <span class="cm">// Edge runtime for streaming</span>
+
+<span class="kw">export async function</span> <span class="fn">GET</span>(
+  <span class="var">req</span>: <span class="ty">Request</span>,
+  { params }: { params: { id: <span class="ty">string</span> } }
+) {
+  <span class="kw">const</span> { <span class="var">userId</span> } <span class="op">=</span> <span class="kw">await</span> <span class="fn">requireAuth</span>()
+
+  <span class="cm">// Verify ownership before streaming</span>
+  <span class="kw">const</span> <span class="var">order</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">order</span>.<span class="fn">findFirst</span>({
+    where: { id: <span class="var">params</span>.<span class="prop">id</span>, userId }
+  })
+  <span class="kw">if</span> (!<span class="var">order</span>) <span class="kw">return</span> <span class="kw">new</span> <span class="fn">Response</span>(<span class="str">'Not found'</span>, { status: <span class="num">404</span> })
+
+  <span class="kw">const</span> <span class="var">stream</span> <span class="op">=</span> <span class="kw">new</span> <span class="ty">ReadableStream</span>({
+    <span class="kw">async</span> <span class="fn">start</span>(<span class="var">controller</span>) {
+      <span class="kw">const</span> <span class="fn">send</span> <span class="op">=</span> (<span class="var">event</span>: <span class="ty">string</span>, <span class="var">data</span>: <span class="kw">unknown</span>, <span class="var">id</span>?: <span class="ty">string</span>) <span class="op">=&gt;</span> {
+        <span class="kw">const</span> <span class="var">msg</span> <span class="op">=</span> [
+          <span class="var">id</span> ? <span class="str">`id: ${id}`</span> : <span class="str">''</span>,
+          <span class="str">`event: ${event}`</span>,
+          <span class="str">`data: ${JSON.stringify(data)}`</span>,
+          <span class="str">''</span>, <span class="str">''</span>          <span class="cm">// blank line ends SSE message</span>
+        ].<span class="fn">filter</span>(<span class="ty">Boolean</span>).<span class="fn">join</span>(<span class="str">'\n'</span>)
+        <span class="var">controller</span>.<span class="fn">enqueue</span>(<span class="kw">new</span> <span class="fn">TextEncoder</span>().<span class="fn">encode</span>(<span class="var">msg</span>))
+      }
+
+      <span class="cm">// Send initial state</span>
+      <span class="fn">send</span>(<span class="str">'status'</span>, { status: <span class="var">order</span>.<span class="prop">status</span>, orderId: <span class="var">order</span>.<span class="prop">id</span> }, <span class="str">'0'</span>)
+
+      <span class="cm">// Poll for status changes every 5s</span>
+      <span class="kw">let</span> <span class="var">lastStatus</span> <span class="op">=</span> <span class="var">order</span>.<span class="prop">status</span>
+      <span class="kw">let</span> <span class="var">eventId</span> <span class="op">=</span> <span class="num">1</span>
+      <span class="kw">const</span> <span class="var">interval</span> <span class="op">=</span> <span class="fn">setInterval</span>(<span class="kw">async</span> () <span class="op">=&gt;</span> {
+        <span class="kw">const</span> <span class="var">latest</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">prisma</span>.<span class="prop">order</span>.<span class="fn">findUnique</span>({
+          where: { id: <span class="var">params</span>.<span class="prop">id</span> }, select: { status: <span class="kw">true</span> }
+        })
+        <span class="kw">if</span> (<span class="var">latest</span>?.<span class="prop">status</span> <span class="op">!==</span> <span class="var">lastStatus</span>) {
+          <span class="var">lastStatus</span> <span class="op">=</span> <span class="var">latest</span>.<span class="prop">status</span>
+          <span class="fn">send</span>(<span class="str">'status'</span>, { status: <span class="var">lastStatus</span> }, <span class="ty">String</span>(<span class="var">eventId</span>++))
+          <span class="kw">if</span> (<span class="var">lastStatus</span> <span class="op">===</span> <span class="str">'DELIVERED'</span>) {
+            <span class="fn">send</span>(<span class="str">'complete'</span>, { message: <span class="str">'Order delivered!'</span> })
+            <span class="fn">clearInterval</span>(<span class="var">interval</span>)
+            <span class="var">controller</span>.<span class="fn">close</span>()
+          }
+        }
+      }, <span class="num">5000</span>)
+
+      <span class="cm">// Cleanup on client disconnect</span>
+      <span class="var">req</span>.<span class="prop">signal</span>.<span class="fn">addEventListener</span>(<span class="str">'abort'</span>, () <span class="op">=&gt;</span> <span class="fn">clearInterval</span>(<span class="var">interval</span>))
+    }
+  })
+
+  <span class="kw">return</span> <span class="kw">new</span> <span class="fn">Response</span>(<span class="var">stream</span>, {
+    headers: {
+      <span class="str">'Content-Type'</span>: <span class="str">'text/event-stream'</span>,
+      <span class="str">'Cache-Control'</span>: <span class="str">'no-cache'</span>,
+      <span class="str">'Connection'</span>: <span class="str">'keep-alive'</span>,
+      <span class="str">'X-Accel-Buffering'</span>: <span class="str">'no'</span>,  <span class="cm">// disable nginx buffering</span>
+    }
+  })
+}</pre>
+
+  <div class="code-label">React hook: useOrderStatus — consuming the SSE stream</div>
+  <pre><span class="str">'use client'</span>
+<span class="kw">import</span> { useState, useEffect } <span class="kw">from</span> <span class="str">'react'</span>
+
+<span class="kw">export function</span> <span class="fn">useOrderStatus</span>(<span class="var">orderId</span>: <span class="ty">string</span>) {
+  <span class="kw">const</span> [<span class="var">status</span>, <span class="fn">setStatus</span>] <span class="op">=</span> <span class="fn">useState</span>&lt;<span class="ty">string</span>&gt;(<span class="str">'PENDING'</span>)
+  <span class="kw">const</span> [<span class="var">connected</span>, <span class="fn">setConnected</span>] <span class="op">=</span> <span class="fn">useState</span>(<span class="kw">false</span>)
+
+  <span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+    <span class="kw">const</span> <span class="var">es</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">`/api/orders/${orderId}/stream`</span>)
+    <span class="var">es</span>.<span class="prop">onopen</span>  <span class="op">=</span> () <span class="op">=&gt;</span> <span class="fn">setConnected</span>(<span class="kw">true</span>)
+    <span class="var">es</span>.<span class="prop">onerror</span> <span class="op">=</span> () <span class="op">=&gt;</span> <span class="fn">setConnected</span>(<span class="kw">false</span>) <span class="cm">// EventSource auto-retries</span>
+
+    <span class="var">es</span>.<span class="fn">addEventListener</span>(<span class="str">'status'</span>, (<span class="var">e</span>) <span class="op">=&gt;</span> {
+      <span class="kw">const</span> { <span class="var">status</span> } <span class="op">=</span> <span class="ty">JSON</span>.<span class="fn">parse</span>(<span class="var">e</span>.<span class="prop">data</span>)
+      <span class="fn">setStatus</span>(<span class="var">status</span>)
+    })
+    <span class="var">es</span>.<span class="fn">addEventListener</span>(<span class="str">'complete'</span>, () <span class="op">=&gt;</span> <span class="var">es</span>.<span class="fn">close</span>())
+
+    <span class="kw">return</span> () <span class="op">=&gt;</span> <span class="var">es</span>.<span class="fn">close</span>()  <span class="cm">// cleanup on unmount</span>
+  }, [<span class="var">orderId</span>])
+
+  <span class="kw">return</span> { <span class="var">status</span>, <span class="var">connected</span> }
+}</pre>
+</section>
+
+<!-- WEBSOCKETS -->
+<section class="section" id="websockets">
+  <div class="section-header">
+    <span class="section-badge">04</span>
+    <h2 class="section-title">Pusher for Real-time Admin Dashboard</h2>
+  </div>
+
+  <div class="code-label">lib/pusher.ts — Pusher server + client setup</div>
+  <pre><span class="cm">// SERVER (trigger events from API routes)</span>
+<span class="kw">import</span> Pusher <span class="kw">from</span> <span class="str">'pusher'</span>
+
+<span class="kw">export const</span> <span class="var">pusherServer</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Pusher</span>({
+  appId:   <span class="fn">process.env</span>.<span class="prop">PUSHER_APP_ID</span>!,
+  key:     <span class="fn">process.env</span>.<span class="prop">PUSHER_KEY</span>!,
+  secret:  <span class="fn">process.env</span>.<span class="prop">PUSHER_SECRET</span>!,
+  cluster: <span class="fn">process.env</span>.<span class="prop">PUSHER_CLUSTER</span>!,
+})
+
+<span class="cm">// CLIENT (subscribe in React components)</span>
+<span class="kw">import</span> PusherClient <span class="kw">from</span> <span class="str">'pusher-js'</span>
+
+<span class="kw">export const</span> <span class="var">pusherClient</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">PusherClient</span>(<span class="fn">process.env</span>.<span class="prop">NEXT_PUBLIC_PUSHER_KEY</span>!, {
+  cluster: <span class="fn">process.env</span>.<span class="prop">NEXT_PUBLIC_PUSHER_CLUSTER</span>!,
+  <span class="cm">// Private/presence channels need auth endpoint</span>
+  channelAuthorization: {
+    endpoint: <span class="str">'/api/pusher/auth'</span>,
+    transport: <span class="str">'ajax'</span>,
+  }
+})</pre>
+
+  <div class="code-label">Triggering events from order API — notify admin when new order placed</div>
+  <pre><span class="cm">// In POST /api/v1/orders — after creating the order</span>
+<span class="kw">await</span> <span class="var">pusherServer</span>.<span class="fn">trigger</span>(
+  <span class="str">'private-admin'</span>,         <span class="cm">// private channel — staff only</span>
+  <span class="str">'new-order'</span>,              <span class="cm">// event name</span>
+  {
+    orderId: <span class="var">order</span>.<span class="prop">id</span>,
+    total:   <span class="var">order</span>.<span class="prop">totalAmount</span>,
+    userId:  <span class="var">order</span>.<span class="prop">userId</span>,
+    items:   <span class="var">order</span>.<span class="prop">items</span>.<span class="prop">length</span>,
+    time:    <span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">toISOString</span>(),
+  }
+)
+
+<span class="cm">// Also notify the customer's personal channel</span>
+<span class="kw">await</span> <span class="var">pusherServer</span>.<span class="fn">trigger</span>(
+  <span class="str">`private-user-${order.userId}`</span>,
+  <span class="str">'order-created'</span>,
+  { orderId: <span class="var">order</span>.<span class="prop">id</span>, status: <span class="str">'PENDING'</span> }
+)</pre>
+
+  <div class="code-label">React hook: useAdminDashboard — real-time order stream</div>
+  <pre><span class="str">'use client'</span>
+<span class="kw">import</span> { useState, useEffect } <span class="kw">from</span> <span class="str">'react'</span>
+<span class="kw">import</span> { <span class="var">pusherClient</span> } <span class="kw">from</span> <span class="str">'@/lib/pusher'</span>
+
+<span class="kw">export function</span> <span class="fn">useAdminDashboard</span>() {
+  <span class="kw">const</span> [<span class="var">liveOrders</span>, <span class="fn">setLiveOrders</span>] <span class="op">=</span> <span class="fn">useState</span>&lt;<span class="ty">Order</span>[]&gt;([])
+  <span class="kw">const</span> [<span class="var">onlineStaff</span>, <span class="fn">setOnlineStaff</span>] <span class="op">=</span> <span class="fn">useState</span>(<span class="num">0</span>)
+
+  <span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+    <span class="cm">// Private channel for order events</span>
+    <span class="kw">const</span> <span class="var">adminChannel</span> <span class="op">=</span> <span class="var">pusherClient</span>.<span class="fn">subscribe</span>(<span class="str">'private-admin'</span>)
+    <span class="var">adminChannel</span>.<span class="fn">bind</span>(<span class="str">'new-order'</span>, (<span class="var">data</span>: <span class="ty">NewOrderEvent</span>) <span class="op">=&gt;</span> {
+      <span class="fn">setLiveOrders</span>(<span class="var">prev</span> <span class="op">=&gt;</span> [<span class="var">data</span>, ...<span class="var">prev</span>.<span class="fn">slice</span>(<span class="num">0</span>, <span class="num">49</span>)])
+    })
+    <span class="var">adminChannel</span>.<span class="fn">bind</span>(<span class="str">'order-status-change'</span>, (<span class="var">data</span>) <span class="op">=&gt;</span> {
+      <span class="fn">setLiveOrders</span>(<span class="var">prev</span> <span class="op">=&gt;</span>
+        <span class="var">prev</span>.<span class="fn">map</span>(<span class="var">o</span> <span class="op">=&gt;</span> <span class="var">o</span>.<span class="prop">orderId</span> <span class="op">===</span> <span class="var">data</span>.<span class="prop">orderId</span> ? { ...<span class="var">o</span>, status: <span class="var">data</span>.<span class="prop">status</span> } : <span class="var">o</span>)
+      )
+    })
+
+    <span class="cm">// Presence channel to count online staff</span>
+    <span class="kw">const</span> <span class="var">presenceChannel</span> <span class="op">=</span> <span class="var">pusherClient</span>.<span class="fn">subscribe</span>(<span class="str">'presence-staff'</span>)
+    <span class="var">presenceChannel</span>.<span class="fn">bind</span>(<span class="str">'pusher:subscription_succeeded'</span>, (<span class="var">members</span>) <span class="op">=&gt;</span>
+      <span class="fn">setOnlineStaff</span>(<span class="var">members</span>.<span class="prop">count</span>))
+    <span class="var">presenceChannel</span>.<span class="fn">bind</span>(<span class="str">'pusher:member_added'</span>,   () <span class="op">=&gt;</span> <span class="fn">setOnlineStaff</span>(<span class="var">n</span> <span class="op">=&gt;</span> <span class="var">n</span> <span class="op">+</span> <span class="num">1</span>))
+    <span class="var">presenceChannel</span>.<span class="fn">bind</span>(<span class="str">'pusher:member_removed'</span>, () <span class="op">=&gt;</span> <span class="fn">setOnlineStaff</span>(<span class="var">n</span> <span class="op">=&gt;</span> <span class="fn">Math.max</span>(<span class="num">0</span>, <span class="var">n</span> <span class="op">-</span> <span class="num">1</span>)))
+
+    <span class="kw">return</span> () <span class="op">=&gt;</span> {
+      <span class="var">pusherClient</span>.<span class="fn">unsubscribe</span>(<span class="str">'private-admin'</span>)
+      <span class="var">pusherClient</span>.<span class="fn">unsubscribe</span>(<span class="str">'presence-staff'</span>)
+    }
+  }, [])
+
+  <span class="kw">return</span> { <span class="var">liveOrders</span>, <span class="var">onlineStaff</span> }
+}</pre>
+</section>
+
+<!-- OPTIMISTIC UI -->
+<section class="section" id="optimistic">
+  <div class="section-header">
+    <span class="section-badge">05</span>
+    <h2 class="section-title">Optimistic UI with React Query</h2>
+  </div>
+
+  <div class="code-label">Optimistic order cancellation — instant UI, safe rollback</div>
+  <pre><span class="str">'use client'</span>
+<span class="kw">import</span> { useQueryClient } <span class="kw">from</span> <span class="str">'@tanstack/react-query'</span>
+<span class="kw">import</span> { trpc } <span class="kw">from</span> <span class="str">'@/lib/trpc'</span>
+
+<span class="kw">export function</span> <span class="fn">OrderCancelButton</span>({ <span class="var">orderId</span> }: { orderId: <span class="ty">string</span> }) {
+  <span class="kw">const</span> <span class="var">utils</span> <span class="op">=</span> <span class="var">trpc</span>.<span class="fn">useUtils</span>()
+
+  <span class="kw">const</span> <span class="var">cancel</span> <span class="op">=</span> <span class="var">trpc</span>.<span class="prop">orders</span>.<span class="prop">cancel</span>.<span class="fn">useMutation</span>({
+    <span class="cm">// 1. Optimistically update the cache BEFORE API call</span>
+    <span class="kw">async</span> <span class="fn">onMutate</span>({ <span class="var">orderId</span> }) {
+      <span class="kw">await</span> <span class="var">utils</span>.<span class="prop">orders</span>.<span class="prop">list</span>.<span class="fn">cancel</span>()
+      <span class="kw">const</span> <span class="var">previous</span> <span class="op">=</span> <span class="var">utils</span>.<span class="prop">orders</span>.<span class="prop">list</span>.<span class="fn">getData</span>()
+      <span class="var">utils</span>.<span class="prop">orders</span>.<span class="prop">list</span>.<span class="fn">setData</span>(<span class="kw">undefined</span>, (<span class="var">old</span>) <span class="op">=&gt;</span>
+        <span class="var">old</span>?.<span class="fn">map</span>(<span class="var">o</span> <span class="op">=&gt;</span>
+          <span class="var">o</span>.<span class="prop">id</span> <span class="op">===</span> <span class="var">orderId</span> ? { ...<span class="var">o</span>, status: <span class="str">'CANCELLED'</span> } : <span class="var">o</span>
+        )
+      )
+      <span class="kw">return</span> { <span class="var">previous</span> }   <span class="cm">// context for rollback</span>
+    },
+    <span class="cm">// 2. On error: roll back to previous state</span>
+    <span class="fn">onError</span>(<span class="var">err</span>, <span class="var">vars</span>, <span class="var">ctx</span>) {
+      <span class="kw">if</span> (<span class="var">ctx</span>?.<span class="prop">previous</span>)
+        <span class="var">utils</span>.<span class="prop">orders</span>.<span class="prop">list</span>.<span class="fn">setData</span>(<span class="kw">undefined</span>, <span class="var">ctx</span>.<span class="prop">previous</span>)
+    },
+    <span class="cm">// 3. Always refetch to sync with server truth</span>
+    <span class="fn">onSettled</span>() {
+      <span class="var">utils</span>.<span class="prop">orders</span>.<span class="prop">list</span>.<span class="fn">invalidate</span>()
+    },
+  })
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;button</span>
+      <span class="attr">onClick</span>={() <span class="op">=&gt;</span> <span class="var">cancel</span>.<span class="fn">mutate</span>({ <span class="var">orderId</span> })}
+      <span class="attr">disabled</span>={<span class="var">cancel</span>.<span class="prop">isPending</span>}
+    <span class="tag">&gt;</span>
+      {<span class="var">cancel</span>.<span class="prop">isPending</span> ? <span class="str">'Cancelling...'</span> : <span class="str">'Cancel Order'</span>}
+    <span class="tag">&lt;/button&gt;</span>
+  )
+}</pre>
+
+  <div class="warn-box">
+    <strong style="color:var(--amber)">⚠ Real-time gotchas in Next.js + Vercel:</strong><br/>
+    SSE connections time out after 10–30s on Vercel's Edge network — use Vercel's Edge Streaming feature or send a keepalive <code>: ping\n\n</code> comment every 25s. WebSockets don't work in Next.js App Router route handlers — use Pusher or a separate WebSocket server. Never store connection state in a module-level variable on serverless — each invocation is isolated. Use Redis pub/sub (Upstash) to fan out events across multiple serverless instances.
+  </div>
+</section>
+
+<!-- EXERCISES -->
+<div class="ex-divider">
+  <div class="ex-line"></div>
+  <div class="ex-label">⚡ Exercises</div>
+  <div class="ex-line"></div>
+</div>
+
+<section class="section" id="exercises">
+
+  <!-- EX 1 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">1</div>
+      <div class="runner-title">SSE Message Formatter</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build the SSE message formatter that converts event objects into the correct text/event-stream wire format. The SSE protocol has a specific format the browser's EventSource parses.</div>
+      <textarea id="ta1">// SSE wire format:
+// id: <optional event ID>
+// event: <event name>
+// data: <JSON string>
+// retry: <ms for reconnection>
+// (blank line terminates the message)
+
+function formatSSEMessage({ event, data, id, retry }) {
+  const lines = []
+  if (id !== undefined)    lines.push(`id: ${id}`)
+  if (event)               lines.push(`event: ${event}`)
+  if (data !== undefined)  lines.push(`data: ${JSON.stringify(data)}`)
+  if (retry !== undefined) lines.push(`retry: ${retry}`)
+  lines.push('') // blank line to terminate message
+  return lines.join('\n')
+}
+
+function formatKeepAlive() {
+  return ': keepalive\n\n' // SSE comment — keeps connection alive
+}
+
+// Test the formatter with ShopCo events
+const events = [
+  { event:'status',    data:{ orderId:'ord_1', status:'PROCESSING', updatedAt:new Date().toISOString() }, id:'1' },
+  { event:'status',    data:{ orderId:'ord_1', status:'SHIPPED', carrier:'FedEx', trackingId:'FX123' }, id:'2' },
+  { event:'inventory', data:{ productId:'p1', variantId:'v2', stock:0, action:'out_of_stock' }, id:'3' },
+  { event:'complete',  data:{ orderId:'ord_1', message:'Your order has been delivered!' }, id:'4' },
+  { event:'error',     data:{ code:'ORDER_NOT_FOUND', message:'Order no longer exists' } },
+]
+
+console.log('=== SSE Wire Format Output ===\n')
+events.forEach(evt => {
+  const formatted = formatSSEMessage(evt)
+  console.log('--- Message ---')
+  console.log(formatted)
+})
+
+console.log('--- Keepalive comment ---')
+console.log(formatKeepAlive())
+
+// Parse incoming SSE (simulates what the browser EventSource does)
+function parseSSEMessage(raw) {
+  const lines = raw.split('\n').filter(l => l.trim())
+  const msg = {}
+  lines.forEach(line => {
+    const [key, ...rest] = line.split(': ')
+    const val = rest.join(': ')
+    if (key === 'id')    msg.id = val
+    if (key === 'event') msg.event = val
+    if (key === 'data')  msg.data = JSON.parse(val)
+    if (key === 'retry') msg.retry = parseInt(val)
+  })
+  return msg
+}
+
+const raw = formatSSEMessage({ event:'status', data:{ status:'SHIPPED' }, id:'5' })
+const parsed = parseSSEMessage(raw)
+console.log('=== Parsed back ===')
+console.log(parsed)
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">2</div>
+      <div class="runner-title">EventSource Reconnection Manager</div>
+      <span class="diff-badge diff-b">Beginner</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate the EventSource reconnection strategy with exponential backoff. When a connection drops, retry with increasing delays — 1s, 2s, 4s, 8s, max 30s.</div>
+      <textarea id="ta2">// EventSource reconnection manager with exponential backoff
+class SSEConnectionManager {
+  constructor(url, handlers) {
+    this.url = url
+    this.handlers = handlers
+    this.retryCount = 0
+    this.maxRetries = 8
+    this.baseDelay = 1000   // 1s
+    this.maxDelay = 30000   // 30s
+    this.connected = false
+    this.lastEventId = null
+    this.log = []
+  }
+
+  getDelay() {
+    // Exponential backoff with jitter
+    const exp = Math.pow(2, this.retryCount) * this.baseDelay
+    const jitter = Math.random() * 1000
+    return Math.min(exp + jitter, this.maxDelay)
+  }
+
+  connect() {
+    const url = this.lastEventId
+      ? `${this.url}?lastEventId=${this.lastEventId}`
+      : this.url
+
+    this.log.push({ time:Date.now(), event:'connect', attempt:this.retryCount+1, url })
+
+    // Simulate connection (random success/failure for demo)
+    const willSucceed = this.retryCount >= 2 || Math.random() > 0.5
+    if (willSucceed) {
+      this.connected = true
+      this.retryCount = 0
+      this.log.push({ time:Date.now(), event:'connected', msg:'Receiving events...' })
+      this.handlers.onConnect?.()
+      return true
+    } else {
+      this.connected = false
+      const delay = this.getDelay()
+      this.log.push({ time:Date.now(), event:'error', msg:`Connection failed, retry in ${Math.round(delay/1000)}s` })
+      this.handlers.onError?.({ delay })
+      this.retryCount++
+      return false
+    }
+  }
+
+  simulateDisconnect() {
+    this.connected = false
+    this.log.push({ time:Date.now(), event:'disconnect', msg:'Connection lost' })
+    this.handlers.onDisconnect?.()
+  }
+
+  receiveEvent(event, data, id) {
+    if (!this.connected) return
+    this.lastEventId = id
+    this.log.push({ time:Date.now(), event:'receive', type:event, data, id })
+    this.handlers.onMessage?.({ event, data, id })
+  }
+}
+
+// Simulate a full connection lifecycle
+const manager = new SSEConnectionManager('/api/orders/ord_1/stream', {
+  onConnect:    ()  => console.log('  ✓ Connected to order stream'),
+  onDisconnect: ()  => console.log('  ✗ Disconnected'),
+  onError:      (e) => console.log(`  ⚠ Error — retry in ${Math.round(e.delay/1000)}s`),
+  onMessage:    (m) => console.log(`  📨 [${m.event}] status=${m.data?.status || JSON.stringify(m.data)}`),
+})
+
+console.log('=== SSE Lifecycle Simulation ===\n')
+
+// Attempt connections (may fail first few times due to random)
+let attempts = 0
+while (!manager.connected && attempts < 5) {
+  console.log(`Attempt ${attempts + 1}:`)
+  manager.connect()
+  attempts++
+}
+
+if (manager.connected) {
+  // Receive some events
+  console.log('\nReceiving events:')
+  manager.receiveEvent('status', { status:'PROCESSING' }, '1')
+  manager.receiveEvent('status', { status:'SHIPPED', carrier:'FedEx' }, '2')
+
+  // Simulate disconnect
+  console.log('\nNetwork drops:')
+  manager.simulateDisconnect()
+
+  // Reconnect — should resume from lastEventId
+  console.log('\nReconnecting (will resume from event ID: ' + manager.lastEventId + '):')
+  manager.connect()
+  if (manager.connected) {
+    manager.receiveEvent('status', { status:'DELIVERED' }, '3')
+  }
+}
+
+console.log('\n=== Event Log ===')
+manager.log.forEach(l => {
+  const t = new Date(l.time).toISOString().slice(11,23)
+  console.log(`[${t}] ${l.event.toUpperCase()}: ${l.msg || JSON.stringify(l.data||l.type||'') }`)
+})
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">3</div>
+      <div class="runner-title">Pusher Event Router</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate the Pusher channel and event routing system — trigger events from the server, route them to the correct channels, and deliver to subscribed clients with auth checking.</div>
+      <textarea id="ta3">// Pusher channel system simulation
+class PusherSimulator {
+  constructor() {
+    this.channels = {}     // channelName → Set of subscribers
+    this.members = {}      // presence channels → member data
+    this.eventLog = []
+  }
+
+  // Server-side: trigger event on a channel
+  trigger(channel, event, data) {
+    const subs = this.channels[channel]
+    if (!subs || subs.size === 0) {
+      this.eventLog.push({ dir:'server→pusher', channel, event, delivered:0 })
+      return { ok:true, delivered:0 }
+    }
+    let delivered = 0
+    subs.forEach(sub => {
+      sub.receive(channel, event, data)
+      delivered++
+    })
+    this.eventLog.push({ dir:'pusher→clients', channel, event, delivered })
+    return { ok:true, delivered }
+  }
+
+  // Client-side: subscribe to channel
+  subscribe(clientId, channel, authCheck = null) {
+    if (channel.startsWith('private-') && !authCheck?.(clientId)) {
+      return { ok:false, error:'Unauthorized for private channel' }
+    }
+    if (channel.startsWith('presence-') && !authCheck?.(clientId)) {
+      return { ok:false, error:'Unauthorized for presence channel' }
+    }
+    if (!this.channels[channel]) this.channels[channel] = new Set()
+    const client = { id:clientId, handlers:{}, receive(ch, ev, data) {
+      this.handlers[ev]?.(data)
+    }}
+    this.channels[channel].add(client)
+    // Presence: add member
+    if (channel.startsWith('presence-')) {
+      if (!this.members[channel]) this.members[channel] = {}
+      this.members[channel][clientId] = { userId:clientId }
+      this.trigger(channel, 'pusher:member_added', { userId:clientId })
+    }
+    return { ok:true, client, bind:(event, fn) => { client.handlers[event] = fn; return client } }
+  }
+
+  unsubscribe(clientId, channel) {
+    const subs = this.channels[channel]
+    if (!subs) return
+    subs.forEach(c => { if (c.id === clientId) subs.delete(c) })
+    if (channel.startsWith('presence-')) {
+      delete this.members[channel]?.[clientId]
+      this.trigger(channel, 'pusher:member_removed', { userId:clientId })
+    }
+  }
+
+  getMemberCount(channel) {
+    return Object.keys(this.members[channel] || {}).length
+  }
+}
+
+const pusher = new PusherSimulator()
+
+// Auth function: only authenticated users get private/presence channels
+const isAuthenticated = (userId) => userId.startsWith('usr_')
+
+// Subscribe clients
+console.log('=== Client Subscriptions ===\n')
+const admin1 = pusher.subscribe('usr_admin1', 'private-admin', isAuthenticated)
+const admin2 = pusher.subscribe('usr_admin2', 'private-admin', isAuthenticated)
+const customer = pusher.subscribe('usr_customer', 'private-admin', isAuthenticated)
+const anon = pusher.subscribe('anon_user', 'private-admin', isAuthenticated) // should fail
+
+console.log('admin1:', admin1.ok ? '✓ subscribed' : `✗ ${admin1.error}`)
+console.log('admin2:', admin2.ok ? '✓ subscribed' : `✗ ${admin2.error}`)
+console.log('customer to private-admin:', customer.ok ? '✓ subscribed' : `✗ ${customer.error}`)
+console.log('anon to private-admin:', anon.ok ? '✓ subscribed' : `✗ ${anon.error}`)
+
+// Bind event handlers
+const orders = []
+if (admin1.ok) {
+  admin1.client.handlers['new-order'] = (data) => {
+    orders.push(data)
+    console.log(`  [admin1] New order: ${data.orderId} $${data.total}`)
+  }
+}
+if (admin2.ok) admin2.client.handlers['new-order'] = (data) =>
+  console.log(`  [admin2] New order notification: ${data.orderId}`)
+
+// Trigger events from server (simulating POST /api/v1/orders)
+console.log('\n=== Server Triggers ===\n')
+const result1 = pusher.trigger('private-admin', 'new-order', { orderId:'ord_100', total:189, userId:'usr_c1' })
+const result2 = pusher.trigger('private-admin', 'new-order', { orderId:'ord_101', total:449, userId:'usr_c2' })
+const result3 = pusher.trigger('private-admin', 'inventory-alert', { productId:'p2', stock:0, sku:'TRX-BLK-M' })
+
+console.log(`\nTrigger new-order: delivered to ${result1.delivered} subscribers`)
+console.log(`Trigger new-order: delivered to ${result2.delivered} subscribers`)
+console.log(`Trigger inventory-alert: delivered to ${result3.delivered} subscribers`)
+
+// Presence channel
+console.log('\n=== Presence Channel (online staff) ===')
+pusher.subscribe('usr_staff1', 'presence-staff', isAuthenticated)
+pusher.subscribe('usr_staff2', 'presence-staff', isAuthenticated)
+console.log('Online staff:', pusher.getMemberCount('presence-staff'))
+pusher.unsubscribe('usr_staff1', 'presence-staff')
+console.log('After staff1 leaves:', pusher.getMemberCount('presence-staff'))
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">4</div>
+      <div class="runner-title">Optimistic UI State Machine</div>
+      <span class="diff-badge diff-i">Intermediate</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Implement the optimistic update pattern — instantly apply state changes, then reconcile with the server. Handle the three outcomes: pending, success (confirm), and error (rollback).</div>
+      <textarea id="ta4">// Optimistic state manager — simulates React Query's onMutate/onError/onSettled
+class OptimisticStore {
+  constructor(initialData) {
+    this.committed = JSON.parse(JSON.stringify(initialData))  // server truth
+    this.optimistic = JSON.parse(JSON.stringify(initialData)) // UI state
+    this.pending = []   // list of in-flight mutations
+    this.log = []
+  }
+
+  // Apply optimistic update immediately
+  applyOptimistic(id, updateFn) {
+    const snapshot = JSON.parse(JSON.stringify(this.committed))
+    this.optimistic = updateFn(JSON.parse(JSON.stringify(this.optimistic)))
+    this.pending.push({ id, snapshot })
+    this.log.push({ phase:'optimistic', id, ui:this._summarize() })
+    return snapshot
+  }
+
+  // Server confirmed: commit the optimistic state
+  confirm(id, serverData) {
+    this.committed = serverData || this.optimistic
+    this.optimistic = JSON.parse(JSON.stringify(this.committed))
+    this.pending = this.pending.filter(p => p.id !== id)
+    this.log.push({ phase:'confirmed', id, ui:this._summarize() })
+  }
+
+  // Server error: rollback to snapshot
+  rollback(id) {
+    const mutation = this.pending.find(p => p.id !== id)
+    const snap = this.pending.find(p => p.id === id)?.snapshot
+    if (snap) {
+      this.optimistic = JSON.parse(JSON.stringify(snap))
+      this.committed  = JSON.parse(JSON.stringify(snap))
+    }
+    this.pending = this.pending.filter(p => p.id !== id)
+    this.log.push({ phase:'rollback', id, ui:this._summarize() })
+  }
+
+  _summarize() {
+    return this.optimistic.orders.map(o => `${o.id}:${o.status}`).join(', ')
+  }
+}
+
+// Initial ShopCo orders
+const store = new OptimisticStore({
+  orders: [
+    { id:'ord_1', status:'PENDING',    total:189 },
+    { id:'ord_2', status:'PROCESSING', total:449 },
+    { id:'ord_3', status:'SHIPPED',    total:89  },
+  ]
+})
+
+function printState(label) {
+  console.log(`\n[${label}]`)
+  store.optimistic.orders.forEach(o =>
+    console.log(`  ${o.id}: ${o.status} ($${o.total})`)
+  )
+  if (store.pending.length) console.log(`  Pending: ${store.pending.map(p=>p.id).join(', ')}`)
+}
+
+// Scenario 1: Successful order cancellation
+console.log('=== Scenario 1: Cancel ord_1 (SUCCESS) ===')
+printState('Before')
+
+store.applyOptimistic('cancel_ord_1', (data) => ({
+  ...data,
+  orders: data.orders.map(o => o.id === 'ord_1' ? { ...o, status:'CANCELLED' } : o)
+}))
+printState('After optimistic (user sees instantly)')
+
+// Simulate async API call resolving
+await new Promise(r => setTimeout(r, 50))
+store.confirm('cancel_ord_1', store.optimistic)
+printState('After server confirmed')
+
+// Scenario 2: Failed cancellation (server rejects)
+console.log('\n=== Scenario 2: Cancel ord_2 (SERVER ERROR) ===')
+store.applyOptimistic('cancel_ord_2', (data) => ({
+  ...data,
+  orders: data.orders.map(o => o.id === 'ord_2' ? { ...o, status:'CANCELLED' } : o)
+}))
+printState('After optimistic (user sees CANCELLED)')
+
+// Simulate API error
+await new Promise(r => setTimeout(r, 50))
+console.log('\n  → Server returned 409: Order already shipped, cannot cancel')
+store.rollback('cancel_ord_2')
+printState('After rollback (back to PROCESSING)')
+
+console.log('\n=== Summary ===')
+store.log.forEach(l => console.log(`  [${l.phase.toUpperCase().padEnd(10)}] ${l.id}: ${l.ui}`))
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">5</div>
+      <div class="runner-title">Live Inventory Alert System</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Build ShopCo's real-time inventory alert system. When stock drops below thresholds, it broadcasts alerts to admins via Pusher channels, with priority levels and deduplication.</div>
+      <textarea id="ta5">// Real-time inventory alert system
+class InventoryAlertSystem {
+  constructor(pusher) {
+    this.pusher = pusher
+    this.thresholds = { critical:2, low:10, medium:25 }
+    this.alertCooldown = {}  // prevent duplicate alerts within 5min
+    this.alertLog = []
+  }
+
+  getLevel(stock, reorderPoint) {
+    if (stock === 0)                   return 'out_of_stock'
+    if (stock <= this.thresholds.critical) return 'critical'
+    if (stock <= this.thresholds.low)      return 'low'
+    if (stock <= reorderPoint)             return 'reorder'
+    return null  // no alert needed
+  }
+
+  shouldAlert(variantId, level) {
+    const key = `${variantId}:${level}`
+    const last = this.alertCooldown[key]
+    if (last && Date.now() - last < 300_000) return false // 5min cooldown
+    this.alertCooldown[key] = Date.now()
+    return true
+  }
+
+  async onStockUpdate(variant, newStock, reorderPoint = 15) {
+    const level = this.getLevel(newStock, reorderPoint)
+    if (!level) return
+
+    if (!this.shouldAlert(variant.id, level)) {
+      console.log(`  ⏭  Skipping duplicate alert for ${variant.sku} (${level})`)
+      return
+    }
+
+    const alert = {
+      id:        `alert_${Date.now()}`,
+      variantId: variant.id,
+      sku:       variant.sku,
+      product:   variant.productName,
+      stock:     newStock,
+      level,
+      priority:  level === 'out_of_stock' || level === 'critical' ? 'HIGH' : 'MEDIUM',
+      channel:   level === 'out_of_stock' ? 'private-admin' : 'private-inventory',
+      timestamp: new Date().toISOString(),
+    }
+
+    const result = this.pusher.trigger(alert.channel, 'inventory-alert', alert)
+    this.alertLog.push({ ...alert, delivered: result.delivered })
+
+    console.log(`  🔔 [${alert.priority}] ${alert.level.toUpperCase().replace('_',' ')} — ${alert.product} (${alert.sku}): ${newStock} units`)
+    console.log(`     Channel: ${alert.channel} → ${result.delivered} admin(s)`)
+    return alert
+  }
+
+  getAlertSummary() {
+    const byLevel = {}
+    this.alertLog.forEach(a => {
+      byLevel[a.level] = (byLevel[a.level] || 0) + 1
+    })
+    return byLevel
+  }
+}
+
+// Mock Pusher with admin subscriber
+const mockPusher = {
+  channels: { 'private-admin':2, 'private-inventory':1 },
+  trigger(channel, event, data) {
+    return { ok:true, delivered:this.channels[channel]||0 }
+  }
+}
+
+const alerts = new InventoryAlertSystem(mockPusher)
+
+// Simulate stock changes throughout the day
+const stockEvents = [
+  { variant:{ id:'v1', sku:'TRX-BLK-M', productName:'TrailRunner Pro X' }, stock:35 }, // healthy
+  { variant:{ id:'v2', sku:'TRX-RED-S',  productName:'TrailRunner Pro X' }, stock:20 }, // health
+  { variant:{ id:'v3', sku:'SX-WHT-L',   productName:'SpeedMax Elite' },    stock:12 }, // reorder
+  { variant:{ id:'v4', sku:'TRX-BLK-L',  productName:'TrailRunner Pro X' }, stock:8  }, // low
+  { variant:{ id:'v5', sku:'AC-BLK-XL',  productName:'ArcticShell Jacket'}, stock:2  }, // critical
+  { variant:{ id:'v6', sku:'HT-BLU-ONE', productName:'HydroTrail 20L' },    stock:0  }, // out of stock
+  { variant:{ id:'v5', sku:'AC-BLK-XL',  productName:'ArcticShell Jacket'}, stock:2  }, // duplicate — should skip
+]
+
+console.log('=== Inventory Alert System ===\n')
+async function runAlerts() {
+  for (const ev of stockEvents) {
+    await alerts.onStockUpdate(ev.variant, ev.stock)
+  }
+  console.log('\n=== Alert Summary ===')
+  const summary = alerts.getAlertSummary()
+  Object.entries(summary).forEach(([level, count]) =>
+    console.log(`  ${level.replace('_',' ')}: ${count} alert(s)`)
+  )
+  console.log(`\nTotal alerts fired: ${alerts.alertLog.length}`)
+}
+runAlerts()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+  <!-- EX 6 -->
+  <div class="runner">
+    <div class="runner-header">
+      <div class="runner-num">6</div>
+      <div class="runner-title">Real-time Order Tracker (Full Simulation)</div>
+      <span class="diff-badge diff-a">Advanced</span>
+    </div>
+    <div class="runner-body">
+      <div class="runner-desc">Simulate the complete ShopCo real-time order tracking system — from order placement to delivery. Combines SSE event streaming, optimistic UI updates, and Pusher admin notifications in one integrated flow.</div>
+      <textarea id="ta6">// Complete real-time order lifecycle simulation
+const ORDER_STATUSES = ['PENDING','PROCESSING','SHIPPED','OUT_FOR_DELIVERY','DELIVERED']
+const STATUS_DELAYS  = [0, 500, 800, 600, 700] // ms between transitions (scaled down)
+const STATUS_MESSAGES = {
+  PENDING:           '⏳ Order received — awaiting payment confirmation',
+  PROCESSING:        '📦 Payment confirmed — packing your items',
+  SHIPPED:           '🚚 Order shipped via FedEx — tracking: FX123456',
+  OUT_FOR_DELIVERY:  '🏃 Out for delivery — arriving today',
+  DELIVERED:         '✅ Order delivered! Enjoy your TrailRunner Pro X',
+}
+
+// Simulated clients
+class Customer {
+  constructor(id, orderId) { this.id=id; this.orderId=orderId; this.updates=[]; this.connected=true }
+  onStatusUpdate(status, message, id) {
+    this.updates.push({ status, id })
+    console.log(`  👤 Customer: [${status}] ${message}`)
+  }
+}
+
+class AdminDashboard {
+  constructor() { this.orders={}; this.notifications=[] }
+  onNewOrder(order) {
+    this.orders[order.id] = order
+    this.notifications.push(`New order: ${order.id} ($${order.total})`)
+    console.log(`  🖥️  Admin: New order arrived — ${order.id} $${order.total}`)
+  }
+  onStatusChange(orderId, status) {
+    if (this.orders[orderId]) this.orders[orderId].status = status
+    console.log(`  🖥️  Admin: Order ${orderId} → ${status}`)
+  }
+}
+
+// Event bus (simulates both Pusher and SSE delivery)
+class EventBus {
+  constructor() { this.subscribers = {} }
+  on(channel, event, fn) {
+    const key=`${channel}:${event}`
+    if(!this.subscribers[key]) this.subscribers[key]=[]
+    this.subscribers[key].push(fn)
+  }
+  emit(channel, event, data) {
+    const key=`${channel}:${event}`
+    const subs = this.subscribers[key]||[]
+    subs.forEach(fn => fn(data))
+    return subs.length
+  }
+}
+
+async function simulateOrderLifecycle() {
+  const bus = new AdminDashboard()
+  const eventBus = new EventBus()
+  const customer = new Customer('usr_c1', 'ord_demo_1')
+  const admin = bus
+
+  // Wire up subscriptions
+  eventBus.on(`private-user-usr_c1`,  'order-status', (d) => customer.onStatusUpdate(d.status, STATUS_MESSAGES[d.status], d.eventId))
+  eventBus.on(`private-admin`,        'new-order',    (d) => admin.onNewOrder(d))
+  eventBus.on(`private-admin`,        'order-status', (d) => admin.onStatusChange(d.orderId, d.status))
+
+  console.log('=== ShopCo Real-Time Order Tracker ===')
+  console.log('Order: ord_demo_1 | Product: TrailRunner Pro X | Total: $189\n')
+
+  // Customer places order
+  const order = { id:'ord_demo_1', userId:'usr_c1', total:189, status:'PENDING', items:1 }
+  eventBus.emit('private-admin', 'new-order', order)
+
+  // SSE stream: walk through statuses
+  for (let i = 0; i < ORDER_STATUSES.length; i++) {
+    await new Promise(r => setTimeout(r, STATUS_DELAYS[i]))
+    const status = ORDER_STATUSES[i]
+    const eventId = String(i + 1)
+    // Deliver to customer via SSE
+    eventBus.emit(`private-user-usr_c1`, 'order-status', { orderId:order.id, status, eventId })
+    // Notify admin via Pusher
+    if (i > 0) eventBus.emit('private-admin', 'order-status', { orderId:order.id, status })
+  }
+
+  console.log('\n=== Order Complete ===')
+  console.log(`Customer received ${customer.updates.length} SSE events`)
+  console.log(`Final status: ${customer.updates.at(-1)?.status}`)
+  console.log(`Admin notifications: ${admin.notifications.length}`)
+  console.log(`Admin tracked status: ${admin.orders['ord_demo_1']?.status}`)
+  console.log('\n✓ SSE delivered all status updates to customer')
+  console.log('✓ Pusher kept admin dashboard in sync')
+  console.log('✓ No page refreshes needed throughout the entire journey')
+}
+
+simulateOrderLifecycle()
+</textarea>
+      <button class="run-btn" onclick="runCode(this)">▶ Run</button>
+      <div class="output-box">Output will appear here...</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Q&A -->
+<section class="section" id="qa">
+  <div class="section-header">
+    <span class="section-badge">06</span>
+    <h2 class="section-title">Interview Q&amp;A</h2>
+  </div>
+
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">1. What is the difference between SSE and WebSockets?</div>
+    <div class="ans-text">SSE (Server-Sent Events) is a one-way HTTP stream — server pushes data to client over a persistent connection. The browser's <code>EventSource</code> API handles reconnection automatically. Works through HTTP/2 multiplexing and most proxies. Best for: notifications, live feeds, order tracking. WebSockets upgrade HTTP to a full-duplex TCP channel — both sides can send at any time. Lower latency for bidirectional communication. Requires a persistent server (not serverless-friendly). Best for: chat, collaborative editing, gaming. For ShopCo: use SSE for customer-facing order updates (read-only), WebSockets (via Pusher) for the admin dashboard where staff interact.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">2. Why use Pusher instead of raw WebSockets in a Next.js app?</div>
+    <div class="ans-text">Raw WebSockets require a persistent server — they can't run in Vercel's serverless functions which terminate after each request. Pusher is a managed WebSocket service: your Next.js API triggers events via HTTP to Pusher's servers, which maintain the persistent WebSocket connections to clients. Benefits: works serverless, scales automatically, built-in auth (private/presence channels), client SDKs for React, automatic reconnection, and a generous free tier. The tradeoff is vendor dependency and slight latency (your API → Pusher servers → client). Alternatives: Ably, Soketi (self-hosted Pusher-compatible).</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">3. What is optimistic UI and when should you use it?</div>
+    <div class="ans-text">Optimistic UI updates the interface immediately (assuming success) before the server confirms, then reconciles with the actual server response. Use it when: the action is likely to succeed (low error rate), the latency is noticeable (&gt;200ms), and the rollback UX is acceptable. Good candidates: liking a post, adding to cart, toggling a setting, cancelling an order. Bad candidates: payment processing (always wait for confirmation), irreversible actions, or actions with high failure rates. React Query's <code>onMutate</code> + <code>onError</code> pattern makes this straightforward — snapshot the cache, apply the update, rollback on error.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">4. How do you handle SSE in a serverless environment?</div>
+    <div class="ans-text">Serverless functions time out — on Vercel, Edge functions can stream for longer than serverless functions. Use the Edge runtime: <code>export const runtime = 'edge'</code>. Send SSE keepalive comments (<code>: keepalive\n\n</code>) every 25s to prevent proxy timeouts. For longer-lived connections, use a polling approach server-side within the SSE handler (poll your DB every few seconds). The SSE connection itself stays open — but the Edge function is effectively in a loop. For Vercel's timeout limits, Pusher is more reliable for events that span many minutes (like order tracking over hours).</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">5. What are Pusher's three channel types and when do you use each?</div>
+    <div class="ans-text"><strong>Public</strong>: anyone can subscribe — use for anonymous data like site-wide announcements or stock tickers. <strong>Private</strong>: subscribers must authenticate via your server (<code>/api/pusher/auth</code>) — use for user-specific data like order updates or personal notifications. <strong>Presence</strong>: extends private channels with a member list — you can see who else is subscribed. Use for: live user count, "who's viewing this product", admin dashboard online staff count, collaborative features. For ShopCo: private channel per user for order updates, private-admin for staff notifications, presence-staff for the admin dashboard member count.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">6. How do you implement exponential backoff for reconnection?</div>
+    <div class="ans-text">Exponential backoff increases the wait time between retry attempts to avoid hammering a struggling server. Formula: <code>delay = min(base * 2^attempt + jitter, maxDelay)</code>. Jitter (random ±0–1s) prevents thundering herd — if many clients reconnect at exactly the same time, they overwhelm the server. Typical values: base=1000ms, max=30000ms. For SSE: the browser's EventSource has built-in retry via the <code>retry:</code> field in the SSE stream. For WebSockets/Pusher: implement manually in the connection manager. Always show a "Reconnecting..." UI so users know the app is aware of the disconnection.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">7. How do you fan out real-time events across multiple serverless instances?</div>
+    <div class="ans-text">Each serverless invocation is isolated — you can't share in-memory state between instances. If instance A handles a new order and instance B handles a WebSocket connection, instance A can't directly push to instance B's connection. Solutions: (1) <strong>Pusher/Ably</strong>: trigger events via HTTP to Pusher, which handles delivery across all clients regardless of which server instance processed the origin event; (2) <strong>Redis pub/sub</strong> (Upstash): instance A publishes to Redis, all instances subscribe and forward to their connected clients; (3) <strong>Database polling</strong>: all SSE handlers poll the same database — simpler but less efficient. For ShopCo, Pusher solves this cleanly.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">8. What is the SSE event ID and why is it important?</div>
+    <div class="ans-text">The SSE <code>id:</code> field in each message tells the browser the ID of the last received event. When the connection drops and the EventSource reconnects, it sends a <code>Last-Event-ID</code> HTTP header with this value. Your server can use this to replay missed events since the disconnect. Without IDs: client misses events during disconnection and gets a stale view. With IDs: seamless reconnection with no gaps. For ShopCo order tracking: store events in Redis or a database keyed by event ID, so a customer who goes offline for 10 minutes catches up when their phone reconnects.</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">9. When is polling a valid alternative to SSE or WebSockets?</div>
+    <div class="ans-text">Polling (repeatedly calling a REST endpoint) is valid when: (1) event frequency is low — checking for a daily report is fine, checking for order status once a minute is reasonable; (2) the tech complexity of SSE/WebSockets isn't justified — a simple admin page that refreshes every 30s may be fine; (3) you need to work through restrictive network environments that block long-lived connections; (4) caching is important — polls can be CDN-cached, SSE cannot. Long polling (holding the request open until data is available) is a middle ground. For ShopCo: use polling as a fallback if SSE fails (EventSource onerror after N retries → switch to polling).</div>
+  </div>
+  <div class="qa-item" onclick="this.classList.toggle('open')">
+    <div class="qa-q">10. How would you test real-time features?</div>
+    <div class="ans-text">Testing real-time is harder than REST because of timing. Approaches: (1) <strong>Unit test event formatters</strong> — test SSE message formatting, event routing logic, optimistic update reducers in isolation; (2) <strong>Integration test with fake time</strong> — use <code>vi.useFakeTimers()</code> in Vitest to control timing without real delays; (3) <strong>Mock SSE/Pusher</strong> — replace <code>EventSource</code> and <code>pusherClient</code> with test doubles that allow triggering events programmatically; (4) <strong>E2E with Playwright</strong> — test the actual SSE stream end-to-end, triggering a server event and asserting the UI updates; (5) <strong>Chaos testing</strong> — simulate network drops and verify reconnection behaviour. Most coverage from (1) and (3), E2E for critical user journeys like order tracking.</div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section class="section" id="checklist">
+  <div class="section-header">
+    <span class="section-badge">07</span>
+    <h2 class="section-title">Night Review Checklist</h2>
+  </div>
+  <div class="checklist">
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can explain the difference between SSE and WebSockets and when to use each</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand the SSE wire format: id, event, data, retry fields and blank line terminator</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can write a Next.js edge route handler that streams SSE events</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to use the browser's EventSource API with custom event listeners</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand why Pusher is preferred over raw WebSockets in serverless environments</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know Pusher's three channel types: public, private, presence</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can implement optimistic UI with onMutate/onError/onSettled in React Query</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand exponential backoff reconnection strategy with jitter</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I understand SSE event IDs and how they enable gap-free reconnection</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I built all 6 exercises and can trace the real-time order lifecycle</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know how to fan out events across serverless instances using Pusher or Redis pub/sub</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I know the SSE keepalive trick to prevent proxy timeouts on Vercel</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can test real-time features using mocked EventSource and Pusher test doubles</div></div>
+    <div class="cl-item" onclick="toggleCheck(this)"><div class="cl-box"></div><div class="cl-text">I can answer all 10 interview questions confidently</div></div>
+  </div>
+  <div class="tomorrow-box">
+    <h4>🌅 Tomorrow — Day 38: File Uploads</h4>
+    <p>Day 38 solves one of the trickiest full-stack problems: handling file uploads at scale. You'll implement UploadThing for type-safe file uploads directly to S3 (bypassing your server entirely for large files), add image processing with Sharp for automatic resizing and format conversion, and wire up product image management in ShopCo. You'll also cover secure pre-signed URLs, file validation (type, size, dimensions), and cleaning up orphaned files when products are deleted. Prepare by thinking about the product image workflow — upload, preview, crop, save, and the UI states that come with it.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-btns">
+    <button class="footer-btn" onclick="navigateTo('day36_api_layer.html',36)">← Day 36: API Layer</button>
+    <button class="footer-btn primary" onclick="navigateTo('day38_file_uploads.html',38)">Day 38: File Uploads →</button>
+  </div>
+  <div style="margin-top:16px">
+    <div class="week-prog-label">Week 6 Progress — 5 of 7 days</div>
+    <div class="week-prog-bar"><div class="week-prog-fill" style="width:71%"></div></div>
+  </div>
+  <div style="margin-top:16px;font-size:11px;color:var(--hint)">ShopCo Course · Day 37 of 56 · Real-time Features</div>
+</footer>
+
+<script>
+const DAY_PLAN = [
+  {num:1,file:"day1_javascript_fundamentals.html"},
+  {num:2,file:"day2_arrays_objects.html"},
+  {num:3,file:"day3_functions_async.html"},
+  {num:4,file:"day4_error_handling.html"},
+  {num:5,file:"day5_dom_events.html"},
+  {num:6,file:"day6_es6_modules.html"},
+  {num:7,file:"day7_week1_review.html"},
+  {num:8,file:"day8_react_essentials.html"},
+  {num:9,file:"day9_react_state_events.html"},
+  {num:10,file:"day10_react_hooks.html"},
+  {num:11,file:"day11_react_router.html"},
+  {num:12,file:"day12_context_global_state.html"},
+  {num:13,file:"day13_week2_review.html"},
+  {num:14,file:"day14_react_query.html"},
+  {num:15,file:"day15_advanced_react_query.html"},
+  {num:16,file:"day16_react_hook_form.html"},
+  {num:17,file:"day17_typescript_react.html"},
+  {num:18,file:"day18_tailwind_css.html"},
+  {num:19,file:"day19_week3_review.html"},
+  {num:20,file:"day20_advanced_patterns.html"},
+  {num:21,file:"day21_nextjs_app_router.html"},
+  {num:22,file:"day22_auth_clerk.html"},
+  {num:23,file:"day23_prisma_database.html"},
+  {num:24,file:"day24_api_design_rest.html"},
+  {num:25,file:"day25_week4_review.html"},
+  {num:26,file:"day26_performance.html"},
+  {num:27,file:"day27_testing.html"},
+  {num:28,file:"day28_error_monitoring.html"},
+  {num:29,file:"day29_genai_vercel_ai_sdk.html"},
+  {num:30,file:"day30_rag_embeddings.html"},
+  {num:31,file:"day31_ai_agents_tools.html"},
+  {num:32,file:"day32_week5_review.html"},
+  {num:33,file:"day33_project_setup.html"},
+  {num:34,file:"day34_auth_roles.html"},
+  {num:35,file:"day35_data_modeling.html"},
+  {num:36,file:"day36_api_layer.html"},
+  {num:37,file:"day37_realtime_features.html",current:true},
+  {num:38,file:"day38_file_uploads.html"},
+  {num:39,file:"day39_week6_review.html"},
+  {num:40,file:"day40_stripe_payments.html"},
+  {num:41,file:"day41_email_notifications.html"},
+  {num:42,file:"day42_search.html"},
+  {num:43,file:"day43_advanced_rag.html"},
+  {num:44,file:"day44_ai_pipelines.html"},
+  {num:45,file:"day45_analytics.html"},
+  {num:46,file:"day46_week7_review.html"},
+  {num:47,file:"day47_accessibility.html"},
+  {num:48,file:"day48_i18n_l10n.html"},
+  {num:49,file:"day49_advanced_testing.html"},
+  {num:50,file:"day50_devops_cicd.html"},
+  {num:51,file:"day51_portfolio_project_1.html"},
+  {num:52,file:"day52_portfolio_project_2.html"},
+  {num:53,file:"day53_resume_github.html"},
+  {num:54,file:"day54_interview_prep.html"},
+  {num:55,file:"day55_mock_interviews.html"},
+  {num:56,file:"day56_graduation.html"},
+]
+const CURRENT = 37
+const AVAILABLE = new Set([
+  "day1_javascript_fundamentals.html","day2_arrays_objects.html",
+  "day3_functions_async.html","day5_dom_events.html","day6_es6_modules.html",
+  "day7_week1_review.html","day8_react_essentials.html","day9_react_state_events.html",
+  "day10_react_hooks.html","day11_react_router.html","day12_context_global_state.html",
+  "day13_week2_review.html","day14_react_query.html","day15_advanced_react_query.html",
+  "day16_react_hook_form.html","day17_typescript_react.html","day18_tailwind_css.html",
+  "day19_week3_review.html","day20_advanced_patterns.html","day21_nextjs_app_router.html",
+  "day22_auth_clerk.html","day23_prisma_database.html","day24_api_design_rest.html",
+  "day25_week4_review.html","day26_performance.html","day27_testing.html",
+  "day28_error_monitoring.html","day29_genai_vercel_ai_sdk.html",
+  "day30_rag_embeddings.html","day31_ai_agents_tools.html","day32_week5_review.html",
+  "day33_project_setup.html","day34_auth_roles.html","day35_data_modeling.html",
+  "day36_api_layer.html","day37_realtime_features.html",
+])
+function navigateTo(file,n){
+  if(AVAILABLE.has(file))window.location.href=file
+  else showToast('Day '+n+' coming soon!')
+}
+function showToast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3000)
+}
+const dotsEl=document.getElementById('day-dots')
+DAY_PLAN.forEach(d=>{
+  const btn=document.createElement('button')
+  btn.className='ddot'+(d.current?' current':AVAILABLE.has(d.file)?' done available':' available')
+  btn.title='Day '+d.num
+  btn.onclick=()=>navigateTo(d.file,d.num)
+  dotsEl.appendChild(btn)
+})
+function runCode(btn){
+  const wrap=btn.closest('.runner'),ta=wrap.querySelector('textarea')
+  const out=wrap.querySelector('.output-box'),logs=[]
+  const o=console.log,ow=console.warn,oe=console.error
+  console.log=(...a)=>logs.push(a.map(x=>typeof x==='object'&&x!==null?JSON.stringify(x,null,2):String(x)).join(' '))
+  console.warn=(...a)=>logs.push('⚠ '+a.join(' '))
+  console.error=(...a)=>logs.push('✗ '+a.join(' '))
+  out.classList.remove('err')
+  try{
+    const result=new Function(ta.value)()
+    if(result&&typeof result.then==='function'){
+      out.textContent='Running...'
+      result.then(()=>{out.textContent=logs.length?logs.join('\n'):'(no output)'})
+            .catch(e=>{out.classList.add('err');out.textContent='✗ '+e.message})
+    }else{out.textContent=logs.length?logs.join('\n'):'(no output)'}
+  }catch(e){out.classList.add('err');out.textContent='✗ '+e.message}
+  console.log=o;console.warn=ow;console.error=oe
+}
+function updateProgress(){
+  const d=document.querySelectorAll('.tdot.done').length
+  const c=document.querySelectorAll('.cl-box.checked').length
+  const t=document.querySelectorAll('.tdot').length+document.querySelectorAll('.cl-box').length
+  const p=Math.round(((d+c)/t)*100)
+  document.getElementById('prog-fill').style.width=p+'%'
+  document.getElementById('pct-label').textContent=p+'%'
+}
+function markDone(el){el.classList.toggle('done');updateProgress()}
+function toggleCheck(el){
+  el.querySelector('.cl-box').classList.toggle('checked')
+  el.querySelector('.cl-text').classList.toggle('checked')
+  updateProgress()
+}
+const secs=document.querySelectorAll('.section')
+const links=document.querySelectorAll('.nav-links a')
+window.addEventListener('scroll',()=>{
+  let cur=''
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-80)cur=s.id})
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))
+},{passive:true})
+</script>
+</body>
+</html>
